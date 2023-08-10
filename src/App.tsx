@@ -1,25 +1,34 @@
-import React from 'react';
-import logo from './logo.svg';
-import './App.css';
+import GamePlayer from "./component/GamePlayer";
+import { CoordProvider } from "./service/CoordManager";
+import { EventProvider } from "./service/EventManager";
+import { GameProvider } from "./service/GameManager";
 
 function App() {
+  const FlattenedProviderTree = (providers: any): any => {
+    if (providers?.length === 1) {
+      return providers[0][0];
+    }
+    const [A, paramsA] = providers.shift();
+    const [B, paramsB] = providers.shift();
+
+    return FlattenedProviderTree([
+      [
+        ({ children }: { children: any }) => (
+          <A {...(paramsA || {})}>
+            <B {...(paramsB || {})}>{children}</B>
+          </A>
+        ),
+      ],
+      ...providers,
+    ]);
+  };
+  const Providers = FlattenedProviderTree([[CoordProvider], [EventProvider], [GameProvider]]);
   return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.tsx</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
-    </div>
+    <Providers>
+      {/* <div style={{ display: "flex", justifyContent: "center", alignItems: "center", width: "100%", height: "100%" }}> */}
+      <GamePlayer></GamePlayer>
+      {/* </div> */}
+    </Providers>
   );
 }
 
