@@ -30,7 +30,7 @@ const reducer = (state: any, action: any) => {
       const cells: CellItem[] = action.data;
       cells.forEach((c) => {
         const sc = state.cells.find((s: CellItem) => s.id === c.id);
-        Object.assign(sc, c);
+        if (sc) Object.assign(sc, c);
       });
       return Object.assign({}, state, { cells: [...state.cells] });
     default:
@@ -49,6 +49,7 @@ export const GameProvider = ({ children }: { children: React.ReactNode }) => {
 
   useEffect(() => {
     const cells = initGame();
+    console.log(cells);
     dispatch({ type: actions.CREATE_CELLS, data: cells });
   }, []);
 
@@ -67,7 +68,7 @@ export const GameProvider = ({ children }: { children: React.ReactNode }) => {
           let cells: CellItem[];
           if (res?.toRemoves) {
             cells = state.cells.filter((c: CellItem) => {
-              const index = res.toRemoves.findIndex((r, index) => r.id === c.id);
+              const index = res.toRemoves.findIndex((r: CellItem) => r.id === c.id);
               return index >= 0 ? false : true;
             });
             res.toMoves.forEach((m: CellItem) => {
@@ -79,7 +80,6 @@ export const GameProvider = ({ children }: { children: React.ReactNode }) => {
               if (a.row !== b.row) return a.row - b.row;
               else return a.column - b.column;
             });
-
             dispatch({ type: actions.CREATE_CELLS, data: allCells });
           }
         }, 2000);

@@ -1,7 +1,6 @@
 import GamePlayer from "./component/GamePlayer";
 import { CoordProvider } from "./service/CoordManager";
 import { EventProvider } from "./service/EventManager";
-import { GameProvider } from "./service/GameManager";
 
 function App() {
   const FlattenedProviderTree = (providers: any): any => {
@@ -22,7 +21,7 @@ function App() {
       ...providers,
     ]);
   };
-  const Providers = FlattenedProviderTree([[CoordProvider], [EventProvider], [GameProvider]]);
+  const Providers = FlattenedProviderTree([[CoordProvider], [EventProvider]]);
   return (
     <Providers>
       {/* <div style={{ display: "flex", justifyContent: "center", alignItems: "center", width: "100%", height: "100%" }}> */}
