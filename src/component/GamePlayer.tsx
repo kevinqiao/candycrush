@@ -1,6 +1,5 @@
 import Phaser from "phaser";
-import React, { useEffect, useState } from "react";
-import useCoordManager from "../service/CoordManager";
+import React, { useEffect, useRef, useState } from "react";
 import useSceneManager from "../service/SceneManager";
 
 export interface MyScene extends Phaser.Scene {
@@ -9,19 +8,22 @@ export interface MyScene extends Phaser.Scene {
 }
 
 const GamePlayer: React.FC = () => {
-  const { width, height } = useCoordManager();
+  const gameRef = useRef<Phaser.Game>();
   const [scene, setScene] = useState<Phaser.Scene>();
   useSceneManager(scene);
 
   useEffect(() => {
+    console.log("creating game");
+    const sceneW = Number(window.innerHeight) * 0.8;
+    const sceneH = window.innerWidth;
     const config: Phaser.Types.Core.GameConfig = {
       type: Phaser.WEBGL,
       antialias: true,
       parent: "game-player",
-      width: 700,
-      height: 1000,
+      width: sceneW,
+      height: sceneH,
       scale: {
-        mode: Phaser.Scale.FIT,
+        mode: Phaser.Scale.NONE,
         autoCenter: Phaser.Scale.CENTER_BOTH,
       },
       physics: {
@@ -36,7 +38,7 @@ const GamePlayer: React.FC = () => {
       },
     };
 
-    const game = new Phaser.Game(config);
+    gameRef.current = new Phaser.Game(config);
 
     function preload(this: Phaser.Scene) {
       this.load.spritesheet("candies", "assets/gems.png", {
@@ -50,7 +52,7 @@ const GamePlayer: React.FC = () => {
     }
 
     return () => {
-      game.destroy(true);
+      if (gameRef.current) gameRef.current.destroy(true);
     };
   }, []);
 

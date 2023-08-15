@@ -1,21 +1,24 @@
 
-import { useEffect, useRef } from "react";
-
 import Phaser from "phaser";
+import { useEffect, useRef } from "react";
 import useSleep from "../common/useSleep";
 import { CellItem } from "../model/CellItem";
+import * as Constant from "../model/Constant";
 import { checkForMatches, getMatches, initGame, processMatch } from "./GameEngine";
 interface Candy {
     id: number;
     sprite: Phaser.GameObjects.Image;
     data: CellItem;
 }
+const cellW = Math.floor((window.innerHeight * 0.8) / Constant.COLUMN)
+
 const useSceneManager = (scene: Phaser.Scene | undefined) => {
     const dragRef = useRef<{ startX: number; startY: number; cellId: number }>({ startX: 0, startY: 0, cellId: -1 });
     const candyMapRef = useRef(new Map());
     const matchingRef = useRef(0);
+    // const coord = useCoord();
     const [isSleeping, sleep] = useSleep(300);
-    // const { cells, updateCells, handleMatch } = useGameManager();
+
     useEffect(() => {
         if (!isSleeping) {
 
@@ -39,7 +42,7 @@ const useSceneManager = (scene: Phaser.Scene | undefined) => {
                     if (result?.toRemoves)
                         removeCandies(result.toRemoves)
                     if (result?.toCreates) {
-                        createCandies(result.toCreates, matches[0]['direction'])
+                        setTimeout(() => createCandies(result.toCreates, matches[0]['direction']), 200)
                     }
                     setTimeout(() => matchingRef.current = 0, 1200)
                 } else
@@ -52,10 +55,13 @@ const useSceneManager = (scene: Phaser.Scene | undefined) => {
 
 
     useEffect(() => {
-        if (scene && candyMapRef.current.size === 0) {
+        if (scene) {
+
+
             const cells = initGame();
             cells.forEach((c) => {
-                const candy = scene.add.image(c.column * 100 + 50, c.row * 100 + 50, "candies", c.asset);
+                const candy = scene.add.image(c.column * cellW + Math.floor(cellW / 2), c.row * cellW + Math.floor(cellW / 2), "candies", c.asset);
+                candy.setDisplaySize(cellW, cellW)
                 candy.setInteractive();
                 candyMapRef.current.set(c.id, { id: c.id, sprite: candy, data: c })
                 candy.on("pointerdown", (event: PointerEvent) => selectCandy(event, c.id));
@@ -123,7 +129,7 @@ const useSceneManager = (scene: Phaser.Scene | undefined) => {
             scene?.tweens.add({
                 targets: sprite,
                 alpha: 0,
-                duration: 300,
+                duration: 500,
                 onComplete: function (tween, targets) {
                     candyMapRef.current.delete(c.id)
                     targets[0].destroy();
@@ -138,7 +144,8 @@ const useSceneManager = (scene: Phaser.Scene | undefined) => {
             return;
 
         candies.sort((a, b) => (b.row + b.column) - (a.row + a.column)).forEach((c, index) => {
-            const candy = scene.add.image(c.column * 100 + 50, direction === 1 ? -100 : -100 * (index + 1) - 50, "candies", c.asset);
+            const candy = scene.add.image(c.column * cellW + Math.floor(cellW / 2), direction === 1 ? -cellW : -cellW * (index + 1) - Math.floor(cellW / 2), "candies", c.asset);
+            candy.setDisplaySize(cellW, cellW)
             candy.setInteractive();
             candyMapRef.current.set(c.id, { id: c.id, sprite: candy, data: c })
 
@@ -151,8 +158,8 @@ const useSceneManager = (scene: Phaser.Scene | undefined) => {
 
             scene?.tweens.add({
                 targets: candy,
-                x: c.column * 100 + 50,
-                y: c.row * 100 + 50,
+                x: c.column * cellW + Math.floor(cellW / 2),
+                y: c.row * cellW + Math.floor(cellW / 2),
                 duration: 1000,
                 ease: 'Power2',
             });
@@ -168,8 +175,8 @@ const useSceneManager = (scene: Phaser.Scene | undefined) => {
                 if (sprite)
                     scene?.tweens.add({
                         targets: sprite,
-                        x: c.column * 100 + 50,
-                        y: c.row * 100 + 50,
+                        x: c.column * cellW + Math.floor(cellW / 2),
+                        y: c.row * cellW + Math.floor(cellW / 2),
                         duration: 1000,
                         ease: 'Power2',
                     })
@@ -180,16 +187,16 @@ const useSceneManager = (scene: Phaser.Scene | undefined) => {
     const cancelSwap = (cell: CellItem, target: CellItem) => {
         scene?.tweens.add({
             targets: candyMapRef.current.get(cell.id).sprite,
-            x: cell.column * 100 + 50,
-            y: cell.row * 100 + 50,
+            x: cell.column * cellW + Math.floor(cellW / 2),
+            y: cell.row * cellW + Math.floor(cellW / 2),
             duration: 1000,
             ease: 'Power2',
         })
 
         scene?.tweens.add({
             targets: candyMapRef.current.get(target.id).sprite,
-            x: target.column * 100 + 50,
-            y: target.row * 100 + 50,
+            x: target.column * cellW + Math.floor(cellW / 2),
+            y: target.row * cellW + Math.floor(cellW / 2),
             duration: 1000,
             ease: 'Power2',
         })
@@ -227,16 +234,16 @@ const useSceneManager = (scene: Phaser.Scene | undefined) => {
 
             scene.tweens.add({
                 targets: next.sprite,
-                x: candy.data.column * 100 + 50,
-                y: candy.data.row * 100 + 50,
+                x: candy.data.column * cellW + Math.floor(cellW / 2),
+                y: candy.data.row * cellW + Math.floor(cellW / 2),
                 duration: 400,
                 ease: 'Power2',
             })
 
             scene.tweens.add({
                 targets: candy.sprite,
-                x: next.data.column * 100 + 50,
-                y: next.data.row * 100 + 50,
+                x: next.data.column * cellW + Math.floor(cellW / 2),
+                y: next.data.row * cellW + Math.floor(cellW / 2),
                 duration: 400,
                 ease: 'Power2',
             })

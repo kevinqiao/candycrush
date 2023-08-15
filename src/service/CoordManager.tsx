@@ -1,13 +1,17 @@
 import { ReactNode, createContext, useContext, useEffect, useState } from "react";
-
+import * as Constant from "../model/Constant";
 const CoordContext = createContext<any>(null);
 
 export const CoordProvider = ({ children }: { children: ReactNode }) => {
-  const [value, setValue] = useState({ width: 800, height: 600 });
+  const [value, setValue] = useState({ width: 0, height: 0 });
   const updateCoord = () => {
     const w = window.innerWidth;
     const h = window.innerHeight;
-    const v: any = { width: w, height: h };
+    const sceneW = w >= h ? 0.85 * h : w;
+    const sceneH = h;
+    const cellW = Math.floor(sceneW / Constant.COLUMN);
+
+    const v: any = { width: w, height: h, sceneW, sceneH, cellW, cellH: cellW };
 
     setValue(v);
   };
@@ -20,7 +24,7 @@ export const CoordProvider = ({ children }: { children: ReactNode }) => {
   return <CoordContext.Provider value={value}> {children} </CoordContext.Provider>;
 };
 
-const useCoordManager = () => {
+const useCoord = () => {
   return useContext(CoordContext);
 };
-export default useCoordManager;
+export default useCoord;
