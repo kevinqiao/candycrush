@@ -1,0 +1,38 @@
+/* Container */
+.tournament-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  width: 100%;
+  max-width: 400px;
+  margin: 0 auto;
+  padding: 20px;
+  border: 1px solid #ccc;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+/* Items */
+.tournament-item {
+  width: 100%;
+  min-height:200px;
+  padding: 10px;
+  margin: 5px 0;
+  text-align: center;
+  background-color: #e10808;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+}
+.play-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 80px;
+  height:40px;
+  background-color: #5590f5;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+}
+
+
+

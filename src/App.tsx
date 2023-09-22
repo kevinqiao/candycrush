@@ -1,7 +1,12 @@
-import GamePlayer from "./component/GamePlayer";
+import { ConvexProvider, ConvexReactClient } from "convex/react";
+import NavController from "./component/NavController";
+import StackController from "./component/StackController";
 import { CoordProvider } from "./service/CoordManager";
 import { EventProvider } from "./service/EventManager";
+import { PageProvider } from "./service/PageManager";
+import UserEventHandler from "./service/UserEventHandler";
 
+const convex = new ConvexReactClient("https://dazzling-setter-839.convex.cloud");
 function App() {
   const FlattenedProviderTree = (providers: any): any => {
     if (providers?.length === 1) {
@@ -21,12 +26,17 @@ function App() {
       ...providers,
     ]);
   };
-  const Providers = FlattenedProviderTree([[CoordProvider], [EventProvider]]);
+  const Providers = FlattenedProviderTree([
+    [CoordProvider],
+    [EventProvider],
+    [PageProvider],
+    [ConvexProvider, { client: convex }],
+  ]);
   return (
     <Providers>
-      {/* <div style={{ display: "flex", justifyContent: "center", alignItems: "center", width: "100%", height: "100%" }}> */}
-      <GamePlayer></GamePlayer>
-      {/* </div> */}
+      <UserEventHandler />
+      <NavController />
+      <StackController />
     </Providers>
   );
 }

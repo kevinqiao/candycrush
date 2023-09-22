@@ -1,136 +1,170 @@
 import { CellItem } from "../model/CellItem";
-
+import { MATCH_DIRECTION, MOVE_DIRECTION } from "../model/Constants";
+import { MatchModel } from "../model/MatchModel";
+import candy_textures from "../model/candy_textures";
 const COLUMN = 7;
 const ROW = 8;
 let cellId: number = COLUMN * ROW + 1;
-interface MatchModel {
-    start: CellItem;
-    end: CellItem;
-    direction: number;
-    size: number;
+
+export const checkSwipe = (candyId: number, targetId: number, cells: CellItem[]): boolean => {
+    let matched = false;
+    const candies: CellItem[] = JSON.parse(JSON.stringify(cells));
+    const candy: CellItem | undefined = candies.find((c) => c.id === candyId);
+    const target: CellItem | undefined = candies.find((c) => c.id === targetId);
+    if (candy && target && candies) {
+        [candy.row, target.row] = [target.row, candy.row];
+        [candy.column, target.column] = [target.column, candy.column];
+
+        // Check for horizontal matches
+        for (let y = 0; y < ROW; y++) {
+            let matchStart = candies.find((c) => c.row === y && c.column === 0)
+
+            for (let x = 1; x < COLUMN; x++) {
+                const current = candies.find((c) => c.row === y && c.column === x);
+                if (current?.asset !== matchStart?.asset) {
+                    matchStart = current
+                }
+                if (current && matchStart && current.column - matchStart.column >= 2) {
+                    matched = true;
+                    break;
+                }
+
+            }
+
+        }
+        // Check for vertical matches
+        for (let x = 0; x < COLUMN; x++) {
+            let matchStart = candies.find((c) => c.row === 0 && c.column === x);
+            for (let y = 1; y < ROW; y++) {
+                const current = candies.find((c) => c.row === y && c.column === x);
+                if (current?.asset !== matchStart?.asset) {
+                    matchStart = current
+                }
+
+                if (current && matchStart && (current?.row - matchStart?.row >= 2)) {
+                    matched = true;
+                    break;
+                }
+            }
+        }
+    }
+    return matched;
 }
 
-export const checkForMatches = (cells: CellItem[]) => {
+export const getSwipeTarget = (cellItem: CellItem, direction: number, cells: CellItem[]): CellItem | undefined => {
 
-    // Check for horizontal matches
-    for (let y = 0; y < ROW; y++) {
-        let matchStart = cells.find((c) => c.row === y && c.column === 0);
-        let matchEnd = matchStart;
-
-        for (let x = 1; x < COLUMN; x++) {
-            const current = cells.find((c) => c.row === y && c.column === x);
-            if (current && matchEnd && matchStart) {
-                if ((current?.asset !== matchStart?.asset && current.column - matchStart.column > 2) || (current?.asset === matchStart?.asset && x === COLUMN - 1 && current.column - matchStart.column >= 2))
-                    return true;
-            }
-            if (current?.asset !== matchStart?.asset) {
-                matchStart = current
-            } else
-                matchEnd = current;
+    let target;
+    if (cellItem) {
+        switch (direction) {
+            //right move
+            case MOVE_DIRECTION.RIGHT:
+                target = cells.find((c) => c.row === cellItem.row && c.column === cellItem.column + 1);
+                break;
+            //down move
+            case MOVE_DIRECTION.DOWN:
+                target = cells.find((c) => c.row === cellItem.row + 1 && c.column === cellItem.column);
+                break;
+            //left move
+            case MOVE_DIRECTION.LEFT:
+                target = cells.find((c) => c.row === cellItem.row && c.column === cellItem.column - 1);
+                break;
+            //up move
+            case MOVE_DIRECTION.UP:
+                target = cells.find((c) => c.row === cellItem.row - 1 && c.column === cellItem.column);
+                break;
+            default:
+                break;
         }
-
     }
 
-    // Check for vertical matches
-    for (let x = 0; x < COLUMN; x++) {
-        let matchStart = cells.find((c) => c.row === 0 && c.column === x);
-        let matchEnd = matchStart;
-
-        for (let y = 1; y < ROW; y++) {
-            const current = cells.find((c) => c.row === y && c.column === x);
-
-            if (current && matchEnd && matchStart) {
-                if ((current?.asset !== matchStart?.asset && current.row - matchStart.row > 2) || (current?.asset === matchStart?.asset && y === ROW - 1 && current.row - matchStart.row >= 2))
-                    return true;
-            }
-            if (current?.asset !== matchStart?.asset) {
-                matchStart = current
-            } else
-                matchEnd = current;
-        }
-
-    }
-
-    return false
+    return target;
 
 }
-export const getMatches = (cells: CellItem[]) => {
+export const getMatches = (cells: CellItem[]): MatchModel[] | undefined => {
 
     const horMatches: MatchModel[] = [];
     const verMatches: MatchModel[] = []
 
     // Check for horizontal matches
     for (let y = 0; y < ROW; y++) {
-        let matchStart = cells.find((c) => c.row === y && c.column === 0);
-        let matchEnd = matchStart;
-        // console.log(matchStart)
-        let line = matchStart?.asset + " ";
-        for (let x = 1; x < COLUMN; x++) {
-            const current = cells.find((c) => c.row === y && c.column === x);
-            line = line + current?.asset + " ";
-            // if (current && matchStart)
-            //     console.log(y + ":" + (current.column - matchStart.column))
-            if (current && matchEnd && matchStart) {
+        let start = cells.find((c) => c.row === y && c.column === 0);
+        let count = 0;
 
-                if (current?.asset !== matchStart?.asset && current.column - matchStart.column > 2)
-                    horMatches.push({ start: matchStart, end: matchEnd, direction: 1, size: current.column - matchStart.column });
-                else if (current?.asset === matchStart?.asset && x === COLUMN - 1 && current.column - matchStart.column >= 2)
-                    horMatches.push({ start: matchStart, end: current, direction: 1, size: current.column - matchStart.column + 1 });
+        for (let x = 0; x < COLUMN - 1; x++) {
+            const cur = cells.find((c) => c.row === y && c.column === x);
+            const next = cells.find((c) => c.row === y && c.column === x + 1);
+            if (cur && next) {
+                if (!start)
+                    start = cur;
+                if (next.asset === cur.asset) {
+                    count++;
+                } else {
+                    if (count >= 2) {
+                        horMatches.push({ start: start, end: cur, size: count + 1, direction: MATCH_DIRECTION.HORIZATION, asset: cur.asset })
+                    }
+                    start = next;
+                    count = 0;
+                }
             }
-            if (current?.asset !== matchStart?.asset) {
-                matchStart = current
-            } else
-                matchEnd = current;
 
         }
-        // console.log(line)
+        if (start && count >= 2) {
+            const cur = cells.find((c) => c.column === COLUMN - 1 && c.row === y);
+            if (cur)
+                horMatches.push({ start: start, end: cur, size: count + 1, direction: MATCH_DIRECTION.HORIZATION, asset: cur.asset })
+        }
+
     }
 
     // Check for vertical matches
     for (let x = 0; x < COLUMN; x++) {
-        let matchStart = cells.find((c) => c.row === 0 && c.column === x);
-        let matchEnd = matchStart;
-        // console.log(matchStart)
-        let line = matchStart?.asset + " ";
-        for (let y = 1; y < ROW; y++) {
-            const current = cells.find((c) => c.row === y && c.column === x);
-            line = line + current?.asset + " ";
-            // if (current && matchStart)
-            //     console.log(x + ":" + (current.row - matchStart.row))
-            if (current && matchEnd && matchStart) {
-                if (current?.asset !== matchStart?.asset && current.row - matchStart.row > 2)
-                    verMatches.push({ start: matchStart, end: matchEnd, direction: 2, size: current.row - matchStart.row });
-                else if (current?.asset === matchStart?.asset && y === ROW - 1 && current.row - matchStart.row >= 2)
-                    verMatches.push({ start: matchStart, end: current, direction: 2, size: current.row - matchStart.row + 1 })
+        let start: CellItem | null = null;
+        let count = 0;
+
+        for (let y = 0; y < ROW - 1; y++) {
+
+            const cur = cells.find((c) => c.row === y && c.column === x);
+            const next = cells.find((c) => c.row === y + 1 && c.column === x);
+
+            if (cur && next) {
+                if (!start)
+                    start = cur;
+                if (next.asset === cur.asset) {
+                    count++;
+                } else {
+                    if (count >= 2) {
+                        verMatches.push({ start: start, end: cur, size: count + 1, direction: MATCH_DIRECTION.VERTICAL, asset: cur.asset })
+                    }
+                    start = next;
+                    count = 0;
+                }
             }
-            if (current?.asset !== matchStart?.asset) {
-                matchStart = current
-            } else
-                matchEnd = current;
+
         }
-        // console.log("vertical;" + line)
+        if (start && count >= 2) {
+            const cur = cells.find((c) => c.row === ROW - 1 && c.column === x);
+            if (cur)
+                verMatches.push({ start: start, end: cur, size: count + 1, direction: MATCH_DIRECTION.VERTICAL, asset: cur.asset })
+        }
     }
 
     return [...horMatches, ...verMatches]
 
 }
 export const initGame = () => {
-    const cellTypes = Array.from({ length: 6 }, (_, k) => k);
-    console.log(cellTypes)
+    // const cellTypes = Array.from({ length: 6 }, (_, k) => k);
     const cells: CellItem[] = [];
     let cellId: number = 1;
     for (let y = 0; y < ROW; y++) {
         for (let x = 0; x < COLUMN; x++) {
             let asset = -1;
-            const ts = [...cellTypes];
-            while (ts.length > 0) {
-                const index = Math.floor(Math.random() * ts.length);
-                asset = ts[index];
+            while (true) {
+                const index = Math.floor(Math.random() * (candy_textures.length - 10));
+                asset = candy_textures[index]['id'] ?? 0;
                 if (x >= 2) {
                     const x0 = cells.find((c) => c.row === y && c.column === x - 1);
                     const x1 = cells.find((c) => c.row === y && c.column === x - 2);
                     if (x0?.asset === asset && x1?.asset === asset) {
-                        ts.splice(index, 1);
                         continue;
                     }
                 }
@@ -138,7 +172,6 @@ export const initGame = () => {
                     const y0 = cells.find((c) => c.row === y - 1 && c.column === x);
                     const y1 = cells.find((c) => c.row === y - 2 && c.column === x);
                     if (y0?.asset === asset && y1?.asset === asset) {
-                        ts.splice(index, 1);
                         continue;
                     }
                 }
@@ -150,42 +183,63 @@ export const initGame = () => {
     }
     return cells;
 }
-export const processMatch = (cells: CellItem[], matches: { start: CellItem; end: CellItem; direction: number; size: number }) => {
 
-    const toRemoves: CellItem[] = cells.filter(
-        (c: CellItem) =>
-            c.row >= matches.start.row &&
-            c.row <= matches.end.row &&
-            c.column >= matches.start.column &&
-            c.column <= matches.end.column
-    );
-    const toMoves: CellItem[] = cells
-        .filter((c: CellItem) => {
-            if (
-                (matches.direction === 1 && c.row < matches.start.row && c.column >= matches.start.column && c.column <= matches.end.column) ||
-                (matches.direction === 2 && c.column === matches.start.column && c.row < matches.start.row)
-            )
-                return true;
-        })
-        .map((m: CellItem, index: number) => {
-            if (matches.direction === 1) return Object.assign({}, m, { row: m.row + 1 });
-            else return Object.assign({}, m, { row: m.row + matches.size });
-        });
+export const processMatches = (cells: CellItem[], matches: MatchModel[]) => {
+    let results: { toRemove?: CellItem[], toMove?: CellItem[], toCreate?: CellItem[] } = {};
+    const allRemoves: CellItem[] = [];
+    const ucells = JSON.parse(JSON.stringify(cells));
+    for (let match of matches) {
 
-    const toCreates: CellItem[] = [];
-    for (let i = 0; i < matches.size; i++) {
-        const asset = Math.floor(Math.random() * 6);
-        const cell: CellItem = {
-            id: cellId++,
-            row: matches.direction === 1 ? 0 : i,
-            column: matches.direction === 2 ? matches.start.column : i + matches.start.column,
-            asset,
-        };
-        toCreates.push(cell);
+        let removes: CellItem[] = ucells.filter(
+            (c: CellItem) =>
+                c.row >= match.start.row &&
+                c.row <= match.end.row &&
+                c.column >= match.start.column &&
+                c.column <= match.end.column && !allRemoves.some((a) => a.id === c.id)
+        )
+        allRemoves.push(...removes)
     }
 
-    return { toCreates, toRemoves, toMoves };
+    for (let r of allRemoves) {
+        r.status = 1;
+        let moves: CellItem[] = ucells.filter((c: CellItem) => c.status !== 1 && c.column === r.column && c.row < r.row);
+        moves.forEach((m: CellItem) => {
+            m.row = m.row + 1;
+            m.status = 2
+        })
+
+    }
+
+    results.toRemove = allRemoves;
+    results.toMove = ucells.filter((u: CellItem) => u.status === 2).sort((a: CellItem, b: CellItem) => {
+        return a.column - b.column
+    });
+    return results;
 
 }
+export const applyMatches = (
+    cells: CellItem[],
+    results: { toMove?: CellItem[]; toRemove?: CellItem[]; toCreate?: CellItem[] }
+) => {
+    let resovledCells: CellItem[] = JSON.parse(JSON.stringify(cells));
+
+    if (results.toRemove) {
+        const rids: number[] = results.toRemove.map((c) => c.id);
+        resovledCells = resovledCells.filter((c) => !rids.includes(c.id));
+    }
+
+    if (results.toMove) {
+        for (let m of results.toMove) {
+            const move = resovledCells.find((c) => c.id === m.id);
+            if (move) Object.assign(move, m);
+        }
+    }
+    if (results.toCreate) {
+        resovledCells.push(...results.toCreate);
+    }
+    // console.log(JSON.parse(JSON.stringify(resovledCells)))
+    return resovledCells;
+};
+
 
 

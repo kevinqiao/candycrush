@@ -1,16 +1,16 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 
-function useSleep(duration: number): [boolean, () => void] {
-    const [isSleeping, setIsSleeping] = useState<boolean>(false);
+const useSleep = (initialCount: number, delay: number): number => {
+    const [count, setCount] = useState<number>(initialCount);
 
-    const sleep = () => {
-        setIsSleeping(true);
-        setTimeout(() => {
-            setIsSleeping(false);
-        }, duration);
-    };
+    useEffect(() => {
+        const timer = setTimeout(() => {
+            setCount(count + 1);
+        }, delay);
 
-    return [isSleeping, sleep];
-}
+        return () => clearTimeout(timer);
+    }, [count, delay]);
 
-export default useSleep;
+    return count;
+};
+export default useSleep

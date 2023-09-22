@@ -1,6 +1,7 @@
 export interface CellItem {
     id: number;
-    row: number;
     column: number;
     asset: number;
+    status?: number;//0-active 1-removed
+    row: number;
 }

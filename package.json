@@ -3,12 +3,18 @@
   "version": "0.1.0",
   "private": true,
   "dependencies": {
+    "@pixi/react": "^7.1.1",
     "@testing-library/user-event": "^13.5.0",
     "@types/jest": "^27.5.2",
     "@types/node": "^16.18.39",
     "@types/react": "^18.2.18",
     "@types/react-dom": "^18.2.7",
+    "convex": "^1.0.3",
+    "framer-motion": "^10.16.0",
+    "gsap": "^3.12.2",
+    "hammerjs": "^2.0.8",
     "phaser": "^3.60.0",
+    "pixi.js": "^7.2.4",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "react-scripts": "5.0.1",
@@ -43,6 +49,8 @@
   "devDependencies": {
     "@testing-library/jest-dom": "^5.17.0",
     "@testing-library/react": "^14.0.0",
+    "@types/hammerjs": "^2.0.41",
+    "@types/pixi.js": "^5.0.0",
     "jest": "^27.5.1"
   }
 }

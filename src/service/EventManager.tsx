@@ -3,7 +3,7 @@ import { Subject } from "rxjs";
 export declare type EventModel = {
   name: string;
   topic?: string;
-  time?:number;
+  time?: number;
   delay: number;
   data?: any;
 };
@@ -27,7 +27,10 @@ const useEventSubscriber = (selectors: string[], topics: string[]) => {
     if (selectors && selectors.length > 0 && subject) {
       const observable = subject.asObservable();
       const subscription = observable.subscribe((event: EventModel) => {
-        if ((!topics || topics.length === 0 || !event.topic||topics?.includes(event.topic)) && selectors?.includes(event.name))
+        if (
+          (!topics || topics.length === 0 || !event.topic || topics?.includes(event.topic)) &&
+          selectors?.includes(event.name)
+        )
           setEvent(event);
       });
       return () => subscription.unsubscribe();
@@ -37,7 +40,6 @@ const useEventSubscriber = (selectors: string[], topics: string[]) => {
   const createEvent = useCallback(
     (event: EventModel) => {
       if (subject) {
-
         setTimeout(() => subject.next(event), event.delay);
       }
     },
