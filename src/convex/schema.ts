@@ -6,6 +6,10 @@ export default defineSchema({
         lastCellId: v.number(),
         cells: v.any(),
         uid: v.string(),
+        battleId: v.string(),
+        startTime: v.number(),
+        endTime: v.number(),
+        score: v.number(),
     }),
     events: defineTable({
         name: v.string(),
@@ -20,16 +24,18 @@ export default defineSchema({
     }),
     battle: defineTable({
         type: v.number(),
-        tournamentId: v.string(),
+        tournamentId: v.id("tournament"),
         games: v.any(),
-        status: v.number(),
+        lastUpdate: v.optional(v.number()),
+        status: v.number(),//0-open 1-settled
+        seed: v.optional(v.string())
     }),
     tournament: defineTable({
-        type: v.number(),
-        battleType: v.number(),
+        cid: v.number(),
         startTime: v.number(),
         endTime: v.number(),
-        status: v.number(),
+        rewards: v.optional(v.any()),
+        status: v.number(),//0-on going 1-over 2-settled
     }),
     asset: defineTable({
         id: v.string(),//uid+type
@@ -37,5 +43,23 @@ export default defineSchema({
         uid: v.string(),
         amount: v.number(),
         status: v.number(),
+        lastUpdate: v.optional(v.number())
     }),
+    user: defineTable({
+        uid: v.string(),
+        name: v.string(),
+        channel: v.number(),
+        email: v.optional(v.string()),
+        level: v.number(),
+        exp: v.number(),
+        status: v.optional(v.number())//0-active 1-removed
+    }).index("by_uid", ["uid"]),
+
+    leaderboard: defineTable({
+        tournamentId: v.string(),
+        uid: v.string(),
+        points: v.number(),
+        lastUpdate: v.number()
+    }).index("by_points", ["points"]),
+
 });

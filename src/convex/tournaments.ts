@@ -10,9 +10,9 @@ export const list = internalMutation({
 });
 
 export const create = internalMutation({
-  args: { name: v.string(), uid: v.optional(v.string()), steptime: v.optional(v.number()), gameId: v.optional(v.string()), data: v.any() },
-  handler: async (ctx, { name, uid, gameId, steptime, data }) => {
-    await ctx.db.insert("events", { name, uid, gameId, steptime, data });
+  args: { cid: v.number(), startTime: v.number(), endTime: v.number() },
+  handler: async (ctx, { cid, startTime, endTime }) => {
+    await ctx.db.insert("tournament", { cid, startTime, endTime, status: 0 });
     return
   },
 });

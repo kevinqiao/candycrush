@@ -17,8 +17,8 @@ const useSceneManager = (gameId: string | null, playMode: number, scene: PIXI.Ap
     const candyMapRef = useRef(new Map<number, CandyModel>());
     const matchingRef = useRef(0);
     const { cellW } = useCoord();
-    const gameManager = useGameManager({ gameId, playMode });
-    const animationManager = useAnimationManager(candyMapRef, gameManager.game ?? null);
+    const { game, swapCell } = useGameManager({ gameId, playMode });
+    const animationManager = useAnimationManager(candyMapRef, game ?? null);
 
     const startSwipe = useCallback(async (pointer: PointerEvent, cid: number) => {
 
@@ -26,7 +26,7 @@ const useSceneManager = (gameId: string | null, playMode: number, scene: PIXI.Ap
 
         const drag = dragRef.current;
 
-        if (gameManager.game && drag?.cellId && cid === drag.cellId) {
+        if (game && drag?.cellId && cid === drag.cellId) {
 
             const deltaX = pointer.x - drag.startX;
             const deltaY = pointer.y - drag.startY;
@@ -39,7 +39,7 @@ const useSceneManager = (gameId: string | null, playMode: number, scene: PIXI.Ap
 
 
             if (direction) {
-                const cells = gameManager.game.cells;
+                const cells = game.cells;
                 drag.cellId = -1;
                 const candy = cells.find((c: CellItem) => c.id === cid);
                 if (candy) {
@@ -52,7 +52,7 @@ const useSceneManager = (gameId: string | null, playMode: number, scene: PIXI.Ap
                             [c.row, t.row] = [t.row, c.row];
                             [c.column, t.column] = [t.column, c.column]
                             animationManager.swipeSuccess(c, t)
-                            const results = await gameManager.swapCell(candy.id, target.id, cells);
+                            const results = await swapCell(candy.id, target.id, cells);
                             // if (results)
                             //     animationManager.solveMatch(results, 0)
                         } else {
@@ -64,7 +64,7 @@ const useSceneManager = (gameId: string | null, playMode: number, scene: PIXI.Ap
 
             }
         }
-    }, [animationManager, gameManager])
+    }, [animationManager, game, swapCell])
     const createCandySprite = useCallback((cell: CellItem, x: number, y: number): PIXI.Sprite | null => {
 
         const texture = textures?.find((d) => d.id === cell.asset);
@@ -99,7 +99,7 @@ const useSceneManager = (gameId: string | null, playMode: number, scene: PIXI.Ap
 
         Array.from(candyMapRef.current.values()).forEach((s) => s.sprite.destroy());
         candyMapRef.current = new Map<number, CandyModel>()
-        gameManager.game?.cells.forEach((c) => {
+        game?.cells.forEach((c) => {
             const x = c.column * cellW + Math.floor(cellW / 2);
             const y = c.row * cellW + Math.floor(cellW / 2);
             const sprite = createCandySprite(c, x, y);

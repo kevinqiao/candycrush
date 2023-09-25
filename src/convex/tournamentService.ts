@@ -5,7 +5,7 @@ import * as gameEngine from "../service/GameEngine";
 import { internal } from "./_generated/api";
 import { action } from "./_generated/server";
 export const joinTournament = action({
-    args: { tournamentId: v.string(), cid: v.number(), uid: v.string() },
+    args: { tournamentId: v.id("tournament"), cid: v.number(), uid: v.string() },
     handler: async (ctx, args) => {
         console.log("join tournament");
         let battle_type = BATTLE_TYPE.SOLO;
@@ -36,7 +36,13 @@ export const joinTournamentByType = action({
 
     }
 })
-export const findActiveOpenByUser = action({
+export const findMyTournaments = action({
+    args: { uid: v.string() },
+    handler: async (ctx, args) => {
+        return tournamentDefs
+    }
+})
+export const findMyBattles = action({
     args: { uid: v.string() },
     handler: async (ctx, args) => {
         return tournamentDefs

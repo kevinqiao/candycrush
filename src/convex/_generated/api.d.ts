@@ -14,10 +14,12 @@ import type {
   FilterApi,
   FunctionReference,
 } from "convex/server";
+import type * as asset from "../asset";
 import type * as battle from "../battle";
 import type * as events from "../events";
 import type * as games from "../games";
 import type * as gameService from "../gameService";
+import type * as leaderboard from "../leaderboard";
 import type * as tournaments from "../tournaments";
 import type * as tournamentService from "../tournamentService";
 
@@ -30,10 +32,12 @@ import type * as tournamentService from "../tournamentService";
  * ```
  */
 declare const fullApi: ApiFromModules<{
+  asset: typeof asset;
   battle: typeof battle;
   events: typeof events;
   games: typeof games;
   gameService: typeof gameService;
+  leaderboard: typeof leaderboard;
   tournaments: typeof tournaments;
   tournamentService: typeof tournamentService;
 }>;
