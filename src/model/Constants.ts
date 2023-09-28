@@ -11,9 +11,9 @@ export const MATCH_DIRECTION = {
     VERTICAL: 2
 };
 export const BATTLE_TYPE = {
-    SOLO: 1,
-    SYNC: 2,
-    TURN: 3
+    SOLO: 0,
+    SYNC: 1,
+    TURN: 2
 }
 
 export const GAME_MODE = {

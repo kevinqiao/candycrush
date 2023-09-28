@@ -6,6 +6,10 @@ export const NavPages = [
     {
         name: "playHome",
         uri: "./play/PlayHome",
+    },
+    {
+        name: "battleHome",
+        uri: "./battle/BattleHome",
     }
 ]
 export const StackPages = [
@@ -20,6 +24,10 @@ export const StackPages = [
     {
         name: "battlePlay",
         uri: "./play/BattlePlay",
+    },
+    {
+        name: "battleReplay",
+        uri: "./play/ReplayBattle",
     }
 
 ]

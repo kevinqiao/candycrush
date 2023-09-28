@@ -1,5 +1,4 @@
-import { gsap } from "gsap";
-
+import gsap from "gsap";
 import { FunctionComponent, Suspense, lazy, useCallback, useEffect, useRef, useState } from "react";
 import { NavPages } from "../model/PageCfg";
 import useCoord from "../service/CoordManager";
@@ -11,6 +10,9 @@ const colors = ["red", "green", "blue", "orange", "white"];
 const getIndex = (name: string) => {
   let index = 0;
   switch (name) {
+    case "battleHome":
+      index = 2;
+      break;
     case "playHome":
       index = 1;
       break;
@@ -23,21 +25,28 @@ const getIndex = (name: string) => {
   return index;
 };
 const NavController: React.FC = () => {
-  const indexRef = useRef<number>(0);
-  const [pages, setPages] = useState<{ name: string; index: number; component: any }[]>();
+  // const indexRef = useRef<number>(2);
+  const [pages, setPages] = useState<{ name: string; index: number; component: any }[]>([]);
   const { currentPage, openPage } = usePageManager();
   const mainRef = useRef<HTMLDivElement | null>(null);
   const { width, height } = useCoord();
   useEffect(() => {
-    const pages = NavPages.map((p) => {
+    const ps = NavPages.map((p) => {
       const c = lazy(() => import(`${p.uri}`));
       return { name: p.name, index: getIndex(p.name), component: c };
     });
-    if (pages?.length > 0) {
-      setPages(pages);
-      openPage({ name: pages[0].name, data: {} });
+    if (ps?.length > 0) {
+      setPages(ps);
     }
   }, []);
+  useEffect(() => {
+    if (mainRef.current != null && pages?.length > 0) {
+      console.log("moving...");
+      const tl = gsap.timeline();
+      tl.to(mainRef.current, { duration: 0.1, autoAlpha: 0, x: -2 * width });
+      tl.to(mainRef.current, { duration: 2, autoAlpha: 1, ease: "back.out(1.2)" });
+    }
+  }, [mainRef.current, pages, width]);
   useEffect(() => {
     const swipeArea = mainRef.current;
     if (!swipeArea) return;
@@ -55,12 +64,13 @@ const NavController: React.FC = () => {
       const diffX = startX - clientX;
 
       if (Math.abs(diffX) > 50) {
-        if (diffX > 0 && indexRef.current < 4) {
-          indexRef.current = indexRef.current + 1;
-        } else if (diffX < 0 && indexRef.current > 0) {
-          indexRef.current = indexRef.current - 1;
+        let index = currentIndex();
+        if (diffX > 0 && index < 4) {
+          index++;
+        } else if (diffX < 0 && index > 0) {
+          index--;
         }
-        const page = pages?.find((p) => p.index === indexRef.current);
+        const page = pages?.find((p) => p.index === index);
         if (page) openPage({ name: page.name, data: {} });
         else {
           openPage({ name: "test", data: {} });
@@ -80,12 +90,19 @@ const NavController: React.FC = () => {
 
   useEffect(() => {
     if (currentPage) {
-      // const page = pages?.find((p) => p.name === currentPage.name);
-      gsap.to(mainRef.current, { duration: 0.9, x: -indexRef.current * width });
-      // if (page) gsap.to(mainRef.current, { duration: 0.9, x: -page.index * width });
-      // else gsap.to(mainRef.current, { duration: 0.9, x: -indexRef.current * width });
+      const page = pages?.find((p) => p.name === currentPage.name);
+      if (page) {
+        gsap.to(mainRef.current, { duration: 1, autoAlpha: 1, x: -page.index * width });
+      }
     }
-  }, [width, currentPage]);
+  }, [currentPage]);
+  const currentIndex = () => {
+    if (currentPage && pages) {
+      const page = pages.find((p) => p.name === currentPage.name);
+      return page ? page.index : 2;
+    }
+    return 2;
+  };
 
   const renderPage = useCallback(
     (index: number) => {
@@ -102,7 +119,7 @@ const NavController: React.FC = () => {
     [pages]
   );
   const changeMenu = (index: number) => {
-    indexRef.current = index;
+    // indexRef.current = index;
     const page = pages?.find((p) => p.index === index);
     if (page) {
       // indexRef.current = index;
@@ -114,25 +131,31 @@ const NavController: React.FC = () => {
   };
   return (
     <>
-      <MainMenu currentIndex={indexRef.current} onChange={changeMenu} />
-      <div
-        id="main-home"
-        ref={mainRef}
-        style={{ display: "flex", justifyContent: "flex-start", width: 5 * width, height: "100vh" }}
-      >
-        {Array.from({ length: 5 }, (_, k) => k).map((p, index) => (
-          <div
-            key={index + "00"}
-            style={{
-              width: width,
-              height: "100%",
-              padding: "0px",
-              backgroundColor: colors[index],
-            }}
-          >
-            {renderPage(p)}
-          </div>
-        ))}
+      <MainMenu currentIndex={currentIndex()} onChange={changeMenu} />
+      <div id="main-home" key={"main-home"} ref={mainRef} style={{ opacity: 0 }}>
+        <div
+          id="main-content"
+          style={{
+            display: "flex",
+            justifyContent: "flex-start",
+            width: 5 * width,
+            height: "100vh",
+          }}
+        >
+          {Array.from({ length: 5 }, (_, k) => k).map((p, index) => (
+            <div
+              key={index + "00"}
+              style={{
+                width: width,
+                height: "100%",
+                padding: "0px",
+                backgroundColor: colors[index],
+              }}
+            >
+              {renderPage(p)}
+            </div>
+          ))}
+        </div>
       </div>
     </>
   );

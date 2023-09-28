@@ -15,8 +15,8 @@ interface IPageContext {
 
 const initialState = {
   stacks: [],
-  prevPage: -1,
-  currentPage: 0,
+  prevPage: null,
+  currentPage: { name: "battleHome" },
 };
 
 const actions = {

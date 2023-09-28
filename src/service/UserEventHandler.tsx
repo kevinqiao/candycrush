@@ -29,7 +29,7 @@ const UserEventHandler: React.FC = () => {
       switch (name) {
         case "battleCreated":
           const battle = userEvent.data as BattleModel;
-          pushPage({ name: "battlePlay", data: userEvent.data });
+          pushPage({ name: "battlePlay", data: battle });
 
           // processBattleCreate(userEvent.data);
           break;

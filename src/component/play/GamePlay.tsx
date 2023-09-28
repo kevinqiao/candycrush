@@ -2,14 +2,16 @@ import * as PIXI from "pixi.js";
 import { useEffect, useRef, useState } from "react";
 import candy_texture_defs from "../../model/candy_textures";
 import useCoord from "../../service/CoordManager";
+import useGameManager from "../../service/GameManager";
 import useSceneManager from "../../service/SceneManager";
 
-const GamePlay = ({ gameId, mode }: { gameId: string | null; mode: number }) => {
+const GamePlay = ({ battleId, gameId, isReplay }: { battleId?: string; gameId: string; isReplay?: boolean }) => {
   const sceneContainerRef = useRef<HTMLDivElement | null>(null);
   const { sceneW, sceneH } = useCoord();
   const [scene, setScene] = useState<PIXI.Application>();
   const [candy_textures, setCandyTextures] = useState<{ id: number; texture: PIXI.Texture }[]>();
-  useSceneManager(gameId, mode, scene, candy_textures);
+  const { game, swapCell } = useGameManager({ battleId, gameId, isReplay: isReplay ?? false });
+  useSceneManager(game, swapCell, scene, candy_textures);
 
   useEffect(() => {
     // Initialize PixiJS Application

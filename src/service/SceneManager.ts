@@ -3,26 +3,26 @@ import { useCallback, useEffect, useRef } from "react";
 import { CandyModel } from "../model/CandyModel";
 import { CellItem } from "../model/CellItem";
 import { MOVE_DIRECTION } from "../model/Constants";
+import { GameModel } from "../model/GameModel";
 import useAnimationManager from "./AnimationManager";
 import useCoord from "./CoordManager";
 import useEventSubscriber from "./EventManager";
 import * as gameEngine from "./GameEngine";
-import useGameManager from "./GameManager";
 
 
-const useSceneManager = (gameId: string | null, playMode: number, scene: PIXI.Application | undefined, textures: { id: number; texture: PIXI.Texture }[] | undefined) => {
+const useSceneManager = (game: GameModel | null, swapCell: Function, scene: PIXI.Application | undefined, textures: { id: number; texture: PIXI.Texture }[] | undefined) => {
     const { event } = useEventSubscriber(["pause", "gameInited", "gameSync", "matchSolved", "candySwapped"], ["animation"]);
     const gameInitedRef = useRef<boolean>(false)
     const dragRef = useRef<{ startX: number; startY: number; cellId: number }>({ startX: 0, startY: 0, cellId: -1 });
     const candyMapRef = useRef(new Map<number, CandyModel>());
     const matchingRef = useRef(0);
     const { cellW } = useCoord();
-    const { game, swapCell } = useGameManager({ gameId, playMode });
+    // const { game, swapCell } = useGameManager({ gameId, playMode });
     const animationManager = useAnimationManager(candyMapRef, game ?? null);
 
     const startSwipe = useCallback(async (pointer: PointerEvent, cid: number) => {
 
-        if (playMode === 1 || matchingRef.current > 0) return;
+
 
         const drag = dragRef.current;
 

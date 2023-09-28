@@ -15,7 +15,7 @@ const SyncBattle = ({ battle }: { battle: BattleModel | undefined }) => {
   return (
     <>
       <div style={{ width: sceneW, height: height * 0.8, backgroundColor: "blue" }}>
-        <GamePlay gameId={battle?.games[0] ?? null} mode={0} />
+        {battle ? <GamePlay gameId={battle?.games[0]} /> : null}
       </div>
     </>
   );

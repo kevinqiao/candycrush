@@ -16,6 +16,7 @@ import type {
 } from "convex/server";
 import type * as asset from "../asset";
 import type * as battle from "../battle";
+import type * as crons from "../crons";
 import type * as events from "../events";
 import type * as games from "../games";
 import type * as gameService from "../gameService";
@@ -34,6 +35,7 @@ import type * as tournamentService from "../tournamentService";
 declare const fullApi: ApiFromModules<{
   asset: typeof asset;
   battle: typeof battle;
+  crons: typeof crons;
   events: typeof events;
   games: typeof games;
   gameService: typeof gameService;

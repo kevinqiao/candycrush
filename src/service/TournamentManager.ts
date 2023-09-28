@@ -8,6 +8,7 @@ const useTournamentManager = () => {
 
   const convex = useConvex();
   const joinTournament = useAction(api.tournamentService.joinTournament);
+  const joinTournamentByType = useAction(api.tournamentService.joinTournamentByType);
   const findMyTournaments = useAction(api.tournamentService.findMyTournaments);
 
 
@@ -22,6 +23,12 @@ const useTournamentManager = () => {
     },
     []
   );
+  const joinByType = useCallback(
+    async (cid: number) => {
+      await joinTournamentByType({ cid, uid: "kqiao" })
+    },
+    []
+  );
   const listActives = useCallback(
     async () => {
       const allOpens = await findMyTournaments({ uid: "kqiao" });
@@ -30,6 +37,6 @@ const useTournamentManager = () => {
     []
   );
 
-  return { join, listActives };
+  return { join, joinByType, listActives };
 };
 export default useTournamentManager;

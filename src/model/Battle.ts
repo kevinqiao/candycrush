@@ -1,5 +1,5 @@
 export default interface BattleModel {
-    id: number;
+    id: string;
     type: number;//0-solo 1-sync 2-turn 
     games: string[];
     tournamentId: string;

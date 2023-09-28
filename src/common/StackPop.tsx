@@ -1,5 +1,6 @@
 import gsap from "gsap";
 import React, { useEffect, useRef } from "react";
+import useCoord from "../service/CoordManager";
 import "./popup.css";
 interface PopupProps {
   zIndex: number;
@@ -7,27 +8,29 @@ interface PopupProps {
 }
 
 const StackPop: React.FC<PopupProps> = ({ zIndex, render }) => {
-  const popupRef = useRef(null);
+  const { sceneW, sceneH, height } = useCoord();
+  const popupRef = useRef<HTMLDivElement>(null);
   const maskRef = useRef(null);
   useEffect(() => {
-    gsap.to(popupRef.current, { autoAlpha: 1, scale: 1, duration: 0.3, ease: "back.out(1.4)" });
+    if (!popupRef.current) return;
+    const tl = gsap.timeline();
+    tl.to(popupRef.current, { duration: 0.1, scale: 0.4, x: 0 - sceneW / 2, y: 0 - height / 2 });
+    tl.to(popupRef.current, { autoAlpha: 1, scale: 1, duration: 0.4, ease: "back.out(1.4)" });
+    // gsap.to(popupRef.current, { autoAlpha: 1, scale: 1, duration: 0.3, ease: "back.out(1.4)" });
     gsap.to(maskRef.current, { autoAlpha: 0.7, duration: 0.3 });
-    return () => {
-      // gsap.to(popupRef.current, { autoAlpha: 0, scale: 0.4, duration: 0.5, ease: "back.in(1.7)" });
-      // gsap.to(maskRef.current, { autoAlpha: 0, duration: 0.3 });
-    };
+    return () => {};
   }, []);
   const togglePopup = () => {
     gsap.to(popupRef.current, { autoAlpha: 0, scale: 0.4, duration: 0.3, ease: "back.in(1.1)" });
     gsap.to(maskRef.current, { autoAlpha: 0, duration: 0.3 });
   };
   return (
-    <div>
+    <>
       <div ref={maskRef} className="mask" style={{ zIndex, opacity: 0 }}></div>
-      <div className="popup" ref={popupRef} style={{ zIndex: zIndex + 1, opacity: 0 }}>
+      <div className="popup" ref={popupRef} style={{ width: sceneW, height: height, zIndex: zIndex + 1, opacity: 0 }}>
         {render(togglePopup)}
       </div>
-    </div>
+    </>
   );
 };
 

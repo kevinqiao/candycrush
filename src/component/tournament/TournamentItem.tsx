@@ -7,7 +7,7 @@ interface Props {
 const TournamentItem: React.FC<Props> = ({ data }) => {
   const itemRef = useRef(null);
 
-  const { join } = useTournamentManager();
+  const { join, joinByType } = useTournamentManager();
   // useEffect(() => {
   //   if (itemRef.current) {
   //     const hammer = new Hammer(itemRef.current);
@@ -25,7 +25,7 @@ const TournamentItem: React.FC<Props> = ({ data }) => {
         className="play-btn"
         onClick={(e) => {
           console.log("play clicked in item");
-          join("###", data.id);
+          joinByType(data.id);
         }}
       >
         Play

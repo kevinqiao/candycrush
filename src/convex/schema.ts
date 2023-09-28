@@ -3,13 +3,13 @@ import { v } from "convex/values";
 
 export default defineSchema({
     games: defineTable({
+        ref: v.optional(v.string()),
         lastCellId: v.number(),
         cells: v.any(),
         uid: v.string(),
-        battleId: v.string(),
-        startTime: v.number(),
-        endTime: v.number(),
-        score: v.number(),
+        endTime: v.optional(v.number()),
+        result: v.optional(v.number()),
+        status: v.optional(v.number())
     }),
     events: defineTable({
         name: v.string(),
@@ -27,8 +27,18 @@ export default defineSchema({
         tournamentId: v.id("tournament"),
         games: v.any(),
         lastUpdate: v.optional(v.number()),
+        endTime: v.optional(v.number()),
         status: v.number(),//0-open 1-settled
         seed: v.optional(v.string())
+    }),
+    mybattle: defineTable({
+        uid: v.string(),
+        battleId: v.string(),
+        tournamentId: v.id("tournament"),
+        game: v.string(),
+        lastUpdate: v.optional(v.number()),
+        status: v.number(),//0-open 1-settled
+        score: v.number()
     }),
     tournament: defineTable({
         cid: v.number(),
@@ -59,7 +69,8 @@ export default defineSchema({
         tournamentId: v.string(),
         uid: v.string(),
         points: v.number(),
-        lastUpdate: v.number()
+        lastUpdate: v.number(),
+        reward: v.optional(v.any())
     }).index("by_points", ["points"]),
 
 });
