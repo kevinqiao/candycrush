@@ -1,5 +1,8 @@
+import { useQuery } from "convex/react";
 import React, { createContext, useCallback, useContext, useEffect, useState } from "react";
 import { Subject } from "rxjs";
+import { api } from "../convex/_generated/api";
+import { useUserManager } from "./UserManager";
 export declare type EventModel = {
   name: string;
   topic?: string;
@@ -21,8 +24,15 @@ export const EventProvider = ({ children }: { children: React.ReactNode }) => {
 };
 
 const useEventSubscriber = (selectors: string[], topics: string[]) => {
+  const { uid, name } = useUserManager();
   const [event, setEvent] = useState<EventModel | null>(null);
   const { subject } = useContext(EventContext);
+  const userEvent: any = useQuery(api.events.getByUser, { uid: uid ?? "###" });
+  useEffect(() => {
+    if (userEvent) {
+      setEvent(userEvent);
+    }
+  }, [userEvent]);
   useEffect(() => {
     if (selectors && selectors.length > 0 && subject) {
       const observable = subject.asObservable();

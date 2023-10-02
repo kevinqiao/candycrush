@@ -1,13 +1,18 @@
 import PageProps from "../../model/PageProps";
+import { GameProvider } from "../../service/GameManager";
 import GamePlay from "./GamePlay";
 
-const ReplayBattle: React.FC<PageProps> = ({ data }) => {
+const ReplayBattle: React.FC<PageProps> = ({ data, position }) => {
   const { battleId, gameId } = data;
 
   return (
-    <div style={{ height: "100vh", backgroundColor: "blue" }}>
-      <div style={{ height: 50 }}></div>
-      {gameId ? <GamePlay battleId={battleId} gameId={gameId} isReplay={true} /> : null}
+    <div style={{ width: position?.width, height: position?.height, backgroundColor: "blue" }}>
+      <GameProvider battleId={battleId} gameId={gameId} isReplay={true} pid={"replay"}>
+        <div style={{ height: 250 }}></div>
+        <div style={{ display: "flex", justifyContent: "center", width: "100%" }}>
+          {position ? <GamePlay width={position.width * 0.8} height={position.height * 0.6} /> : null}
+        </div>
+      </GameProvider>
     </div>
   );
 };

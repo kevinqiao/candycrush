@@ -4,7 +4,7 @@ import useCoord from "../../service/CoordManager";
 import GamePlay from "./GamePlay";
 
 const SyncBattle = ({ battle }: { battle: BattleModel | undefined }) => {
-  const { sceneW, height } = useCoord();
+  const { sceneW, sceneH, height } = useCoord();
 
   useEffect(() => {
     if (battle) {
@@ -15,7 +15,7 @@ const SyncBattle = ({ battle }: { battle: BattleModel | undefined }) => {
   return (
     <>
       <div style={{ width: sceneW, height: height * 0.8, backgroundColor: "blue" }}>
-        {battle ? <GamePlay gameId={battle?.games[0]} /> : null}
+        {battle ? <GamePlay width={sceneW} height={sceneH} /> : null}
       </div>
     </>
   );

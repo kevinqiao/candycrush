@@ -2,10 +2,12 @@ import { FunctionComponent, Suspense, lazy, useCallback, useEffect, useState } f
 import StackPop from "../common/StackPop";
 import { StackPages } from "../model/PageCfg";
 import PageProps from "../model/PageProps";
+import useCoord from "../service/CoordManager";
 import { usePageManager } from "../service/PageManager";
 import "./layout.css";
 
 const StackController = () => {
+  const { width, height } = useCoord();
   const [components, setComponents] = useState<{ name: string; component: any }[]>();
   const { stacks, popPage } = usePageManager();
   useEffect(() => {
@@ -17,6 +19,16 @@ const StackController = () => {
       setComponents(pages);
     }
   }, []);
+  const getPosition = (pname: string) => {
+    const pageCfg = StackPages.find((s) => s.name === pname);
+    if (pageCfg) {
+      const w = pageCfg.width <= 1 ? width : pageCfg.width;
+      const h = pageCfg.height <= 1 ? height : pageCfg.height;
+      const position = { page: pname, top: 0, left: 0, width: w, height: h, direction: pageCfg.direction };
+      return position;
+    }
+    return null;
+  };
   const renderPage = useCallback(
     (page: any) => {
       if (page) {
@@ -25,7 +37,7 @@ const StackController = () => {
           const SelectedComponent: FunctionComponent<PageProps> = p.component;
           return (
             <Suspense fallback={<div>Loading...</div>}>
-              <SelectedComponent data={page.data} />
+              <SelectedComponent data={page.data} position={getPosition(page.name)} />
             </Suspense>
           );
         }
@@ -36,28 +48,34 @@ const StackController = () => {
 
   return (
     <>
-      {stacks.map((p, index) => (
-        <StackPop
-          key={p.name + "stack"}
-          zIndex={(index + 1) * 200}
-          render={(togglePopup) => {
-            return (
-              <div style={{ height: "100vh", backgroundColor: "blue" }}>
-                <div
-                  className="closePopBtn"
-                  onClick={() => {
-                    togglePopup();
-                    setTimeout(() => popPage([p.name]), 400);
-                  }}
-                >
-                  Cancel
-                </div>
-                {renderPage(p)}
-              </div>
-            );
-          }}
-        />
-      ))}
+      {stacks.map((p, index) => {
+        const position = getPosition(p.name);
+
+        return (
+          <StackPop
+            key={p.name + "stack"}
+            page={p.name}
+            zIndex={(index + 1) * 200}
+            position={position}
+            render={(togglePopup) => {
+              return (
+                <>
+                  <div
+                    className="closePopBtn"
+                    onClick={() => {
+                      togglePopup();
+                      setTimeout(() => popPage([p.name]), 1000);
+                    }}
+                  >
+                    Cancel
+                  </div>
+                  {renderPage(p)}
+                </>
+              );
+            }}
+          />
+        );
+      })}
     </>
   );
 };

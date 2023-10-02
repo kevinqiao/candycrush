@@ -1,0 +1,15 @@
+/* Container */
+
+.signin-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 80px;
+  height:40px;
+  background-color: #5590f5;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+}
+
+
+

@@ -21,3 +21,10 @@ export const GAME_MODE = {
     REPLAY: 1,
     VIEW: 2
 }
+export const STACK_PAGE_DIRECTION = {
+    TOP: 1,
+    LEFT: 4,
+    BOTTOM: 3,
+    RIGHT: 2,
+    CENTER: 0
+}

@@ -1,23 +1,26 @@
 import * as PIXI from "pixi.js";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import candy_texture_defs from "../../model/candy_textures";
-import useCoord from "../../service/CoordManager";
-import useGameManager from "../../service/GameManager";
 import useSceneManager from "../../service/SceneManager";
-
-const GamePlay = ({ battleId, gameId, isReplay }: { battleId?: string; gameId: string; isReplay?: boolean }) => {
+interface Props {
+  width: number;
+  height: number;
+  pid?: string;
+}
+const GamePlay: React.FC<Props> = ({ width, height, pid }) => {
   const sceneContainerRef = useRef<HTMLDivElement | null>(null);
-  const { sceneW, sceneH } = useCoord();
   const [scene, setScene] = useState<PIXI.Application>();
   const [candy_textures, setCandyTextures] = useState<{ id: number; texture: PIXI.Texture }[]>();
-  const { game, swapCell } = useGameManager({ battleId, gameId, isReplay: isReplay ?? false });
-  useSceneManager(game, swapCell, scene, candy_textures);
+
+  // const { gameEvent } = useGamePlayHandler(battleId, game, isReplay ?? false, pid);
+
+  useSceneManager(scene, candy_textures, pid);
 
   useEffect(() => {
     // Initialize PixiJS Application
     const app = new PIXI.Application({
-      width: sceneW,
-      height: sceneH,
+      width,
+      height,
       transparent: true,
     } as any);
 
@@ -36,9 +39,12 @@ const GamePlay = ({ battleId, gameId, isReplay }: { battleId?: string; gameId: s
     return () => {
       app.destroy(true);
     };
-  }, [sceneW, sceneH]);
-
-  return <div ref={sceneContainerRef} style={{ width: sceneW, height: sceneH }}></div>;
+  }, [width, height]);
+  const render = useMemo(() => {
+    return <div ref={sceneContainerRef} style={{ width, height }}></div>;
+  }, []);
+  return <>{render}</>;
+  // return <div ref={sceneContainerRef} style={{ width, height }}></div>;
 };
 
 export default GamePlay;

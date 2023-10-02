@@ -222,12 +222,12 @@ export const applyMatches = (
     results: { toMove?: CellItem[]; toRemove?: CellItem[]; toCreate?: CellItem[] }
 ) => {
     let resovledCells: CellItem[] = JSON.parse(JSON.stringify(cells));
-
+    // console.log(JSON.parse(JSON.stringify(cells)))
     if (results.toRemove) {
         const rids: number[] = results.toRemove.map((c) => c.id);
         resovledCells = resovledCells.filter((c) => !rids.includes(c.id));
     }
-
+    // console.log(JSON.parse(JSON.stringify(resovledCells)))
     if (results.toMove) {
         for (let m of results.toMove) {
             const move = resovledCells.find((c) => c.id === m.id);

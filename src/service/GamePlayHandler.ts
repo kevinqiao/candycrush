@@ -1,100 +1,100 @@
 import { useConvex, useQuery } from "convex/react";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { api } from "../convex/_generated/api";
+import { GameEvent } from "../model/GameEvent";
 import { GameModel } from "../model/GameModel";
-import useEventSubscriber from "./EventManager";
 import * as gameEngine from "./GameEngine";
-interface GameEvent {
-  id: string;
-  name: string;
-  data: any;
-  steptime: number;
-}
-const useGamePlayHandler = (battleId: string | undefined, game: GameModel | null, isReplay: boolean) => {
+// export interface GameEvent {
+//   id: string;
+//   name: string;
+//   data: any;
+//   steptime: number;
+// }
+const useGamePlayHandler = (battleId: string | undefined, game: GameModel | null, isReplay: boolean, pid: string | null | undefined) => {
   const convex = useConvex();
   const startTimeRef = useRef<number>(Date.now());
   const lastEventRef = useRef<GameEvent | null>(null);
+  const [event, setEvent] = useState<GameEvent | null>(null)
   const [gameEvents, setGameEvents] = useState<GameEvent[]>([])
-  const { createEvent } = useEventSubscriber([], []);
-  const gameEvent: any = useQuery(api.events.getByGame, { gameId: game?.gameId, battleId });
+  // const { createEvent } = useEventSubscriber([], []);
+  const gameEvent: any = useQuery(api.events.getByGame, { gameId: game?.gameId, battleId, replay: isReplay });
 
-  const processMatchSolved = useCallback((data: any) => {
+
+  const processMatchSolved = (gevent: GameEvent) => {
 
     if (!game) return;
-    for (let res of data) {
-      const id = res.id;
+
+    for (let res of gevent.data) {
+
+      console.log(JSON.parse(JSON.stringify({ pid, cells: game.cells })))
       game.cells = gameEngine.applyMatches(game.cells, res);
       game.cells.sort((a, b) => {
         if (a.row !== b.row) return a.row - b.row;
         else return a.column - b.column;
       });
-      // console.log(JSON.parse(JSON.stringify(gameRef.current)))
-      createEvent({
-        name: "matchSolved",
-        data: res,
-        topic: "animation",
-        delay: (id - 1) * 200,
-      })
+      console.log(JSON.parse(JSON.stringify({ pid, cells: game.cells })))
     }
-  }, [game, createEvent])
+  }
 
-  const processSwapped = useCallback((data: any) => {
+  const processSwapped = useCallback((gevent: GameEvent) => {
 
     if (!game) return;
 
-    if (data.candy) {
-      const candy = game.cells.find((c) => c.id === data.candy.id);
+    if (gevent.data.candy) {
+      const candy = game.cells.find((c) => c.id === gevent.data.candy.id);
       if (candy)
-        Object.assign(candy, data.candy);
+        Object.assign(candy, gevent.data.candy);
     }
-    if (data.target) {
-      const target = game.cells.find((c) => c.id === data.target.id);
+    if (gevent.data.target) {
+      const target = game.cells.find((c) => c.id === gevent.data.target.id);
       if (target)
-        Object.assign(target, data.target);
+        Object.assign(target, gevent.data.target);
     }
-    if (data) {
-      createEvent({
-        name: "candySwapped",
-        data: data,
-        topic: "animation",
-        delay: 20,
-      });
-    }
-  }, [game, createEvent])
+
+
+  }, [game])
 
   useEffect(() => {
     if (gameEvent && !isReplay) {
-      console.log(gameEvent)
-      const name = gameEvent.name;
-      switch (name) {
-        case "matchSolved":
-          processMatchSolved(gameEvent.data)
-          break;
-        case "cellSwapped":
-          processSwapped(gameEvent.data)
-          break;
-        default:
-          break;
+      const oevent = gameEvents.find((e) => e.id === gameEvent.id);
+      if (!oevent) {
+        const name = gameEvent.name;
+        switch (name) {
+          case "matchSolved":
+            processMatchSolved(gameEvent)
+            break;
+          case "cellSwapped":
+            processSwapped(gameEvent)
+            break;
+          default:
+            break;
+        }
+        gameEvents.push(gameEvent)
+      } else {
+        console.log("event already processed with id:" + gameEvent.id)
       }
+
     }
   }, [gameEvent]);
 
   useEffect(() => {
     const loadEvents = async () => {
+      console.log("loading events:" + game?.gameId)
       if (game?.gameId) {
         const events = await convex.query(api.events.findAllByGame, {
           gameId: game?.gameId,
         });
+        console.log(events)
         if (events) {
           startTimeRef.current = Date.now();
           setGameEvents(events)
         }
       }
     }
-    if (game && isReplay)
+    if (game && convex && isReplay)
       loadEvents();
 
-  }, [isReplay, game])
+  }, [isReplay, convex, game])
 
   useEffect(() => {
     if (gameEvents?.length === 0 || !gameEvents) return
@@ -104,16 +104,21 @@ const useGamePlayHandler = (battleId: string | undefined, game: GameModel | null
       const pastEvents = gameEvents.filter((event) => event.steptime && event.steptime > stepTime && event.steptime <= pastTime).sort((a, b) => a.steptime - b.steptime)
       if (pastEvents?.length > 0) {
         lastEventRef.current = pastEvents[0]
+        console.log(pastEvents[0])
         switch (pastEvents[0].name) {
           case "matchSolved":
-            processMatchSolved(pastEvents[0].data)
+            processMatchSolved(pastEvents[0])
             break;
           case "cellSwapped":
-            processSwapped(pastEvents[0].data)
+            processSwapped(pastEvents[0])
             break;
           default:
             break;
         }
+
+        setTimeout(() => {
+          setEvent(pastEvents[0])
+        }, 10,)
       }
 
     }, 200)
@@ -122,6 +127,6 @@ const useGamePlayHandler = (battleId: string | undefined, game: GameModel | null
     };
 
   }, [gameEvents])
-
+  return { gameEvent: isReplay ? event : gameEvent }
 }
 export default useGamePlayHandler

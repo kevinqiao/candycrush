@@ -1,21 +1,21 @@
-import { useAction, useConvex } from "convex/react";
-import { useCallback, useEffect } from "react";
+import { useAction } from "convex/react";
+import { useCallback } from "react";
 import { api } from "../convex/_generated/api";
 import { Id } from "../convex/_generated/dataModel";
+import { usePageManager } from "./PageManager";
+import { useUserManager } from "./UserManager";
 
 
 const useTournamentManager = () => {
-
-  const convex = useConvex();
+  const { openPage } = usePageManager()
+  const { uid, name } = useUserManager();
   const joinTournament = useAction(api.tournamentService.joinTournament);
   const joinTournamentByType = useAction(api.tournamentService.joinTournamentByType);
   const findMyTournaments = useAction(api.tournamentService.findMyTournaments);
 
-
-  useEffect(() => {
-
-  }, [convex]);
-
+  const checkAuth = (act: string): boolean => {
+    return uid ? true : false
+  }
   const join = useCallback(
     async (tid: string, cid: number) => {
       const tournamentId = tid as Id<"tournament">;
@@ -25,9 +25,13 @@ const useTournamentManager = () => {
   );
   const joinByType = useCallback(
     async (cid: number) => {
-      await joinTournamentByType({ cid, uid: "kqiao" })
+      if (checkAuth("joinByType"))
+        await joinTournamentByType({ cid, uid: "kqiao" })
+      else
+        openPage({ name: "signin", data: null })
+
     },
-    []
+    [uid]
   );
   const listActives = useCallback(
     async () => {

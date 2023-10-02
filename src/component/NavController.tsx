@@ -19,6 +19,9 @@ const getIndex = (name: string) => {
     case "tournamentHome":
       index = 0;
       break;
+    case "accountHome":
+      index = 3;
+      break;
     default:
       break;
   }
@@ -41,7 +44,6 @@ const NavController: React.FC = () => {
   }, []);
   useEffect(() => {
     if (mainRef.current != null && pages?.length > 0) {
-      console.log("moving...");
       const tl = gsap.timeline();
       tl.to(mainRef.current, { duration: 0.1, autoAlpha: 0, x: -2 * width });
       tl.to(mainRef.current, { duration: 2, autoAlpha: 1, ease: "back.out(1.2)" });
@@ -89,13 +91,14 @@ const NavController: React.FC = () => {
   }, []);
 
   useEffect(() => {
-    if (currentPage) {
+    if (currentPage && !currentPage.initial) {
       const page = pages?.find((p) => p.name === currentPage.name);
+      console.log(page?.index);
       if (page) {
         gsap.to(mainRef.current, { duration: 1, autoAlpha: 1, x: -page.index * width });
       }
     }
-  }, [currentPage]);
+  }, [currentPage, pages]);
   const currentIndex = () => {
     if (currentPage && pages) {
       const page = pages.find((p) => p.name === currentPage.name);

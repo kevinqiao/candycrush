@@ -13,7 +13,7 @@ const play = (cells: CellItem[], candyMap: Map<Number, CandyModel>, tl: any, mod
                     ease: 'power2.out',
                     onComplete: function () {
                         if (mode) setTimeout(() => {
-                            console.log("remove sprite id:" + c.id)
+                            // console.log("remove sprite id:" + c.id)
                             candyMap.delete(c.id);
                             candy.sprite.destroy()
                         }, 350);

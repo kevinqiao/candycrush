@@ -10,8 +10,6 @@
   
   .popup {
     position: fixed;
-    top: 50%;
-    left: 50%;
     background-color: white;
     border: 1px solid black;
     padding: 0px;

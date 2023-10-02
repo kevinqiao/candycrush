@@ -1,6 +1,6 @@
 export interface GameEvent {
+    id: string;
     name: string;
     data: any;
-    uid?: string;
-    gameId?: string;
+    steptime: number;
 }

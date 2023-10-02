@@ -4,7 +4,7 @@ import StackController from "./component/StackController";
 import { CoordProvider } from "./service/CoordManager";
 import { EventProvider } from "./service/EventManager";
 import { PageProvider } from "./service/PageManager";
-import UserEventHandler from "./service/UserEventHandler";
+import { UserProvider } from "./service/UserManager";
 
 const convex = new ConvexReactClient("https://dazzling-setter-839.convex.cloud");
 function App() {
@@ -28,13 +28,14 @@ function App() {
   };
   const Providers = FlattenedProviderTree([
     [CoordProvider],
-    [EventProvider],
-    [PageProvider],
     [ConvexProvider, { client: convex }],
+    [EventProvider],
+    [UserProvider],
+    [PageProvider],
   ]);
   return (
     <Providers>
-      <UserEventHandler />
+      {/* <UserEventHandler /> */}
       <NavController />
       <StackController />
     </Providers>

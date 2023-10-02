@@ -14,8 +14,7 @@ export const list = query({
 export const getByUser = query({
   args: { uid: v.string() },
   handler: async (ctx, args) => {
-    // Grab the most recent messages.
-    // const events = await ctx.db.query("events").order("desc").first();
+    if (args.uid === "###") return;
     const events = await ctx.db
       .query("events")
       .filter((q) => q.and(q.eq(q.field("uid"), args.uid), q.gte(q.field("_creationTime"), Date.now() - 2000))).order("desc")
@@ -25,9 +24,10 @@ export const getByUser = query({
   },
 });
 export const getByGame = query({
-  args: { gameId: v.optional(v.string()), battleId: v.optional(v.string()) },
+  args: { gameId: v.optional(v.string()), battleId: v.optional(v.string()), replay: v.optional(v.boolean()) },
   handler: async (ctx, args) => {
-    if (args.gameId && args.battleId) {
+
+    if (!args.replay && args.gameId && args.battleId) {
 
       const bid = args.battleId as Id<"battle">
       const battle = await ctx.db.get(bid);
@@ -46,6 +46,7 @@ export const getByGame = query({
 export const findAllByGame = query({
   args: { gameId: v.string() },
   handler: async (ctx, args) => {
+
     if (args.gameId !== "0000") {
       const events = await ctx.db
         .query("events")

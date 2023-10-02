@@ -1,33 +1,64 @@
-import gsap from "gsap";
 import React, { useEffect, useRef } from "react";
-import useCoord from "../service/CoordManager";
+import useEventSubscriber from "../service/EventManager";
+import { PageItem, usePageManager } from "../service/PageManager";
+import useStackAnimation from "./StackAnimation";
 import "./popup.css";
 interface PopupProps {
   zIndex: number;
+  page: string;
+  position: { page: string; top: number; left: number; width: number; height: number; direction: number } | null;
   render: (togglePopup: () => void) => React.ReactNode;
 }
 
-const StackPop: React.FC<PopupProps> = ({ zIndex, render }) => {
-  const { sceneW, sceneH, height } = useCoord();
+const StackPop: React.FC<PopupProps> = ({ zIndex, position, render }) => {
   const popupRef = useRef<HTMLDivElement>(null);
-  const maskRef = useRef(null);
+  const maskRef = useRef<HTMLDivElement>(null);
+  const StackAnimation = useStackAnimation({
+    scene: popupRef,
+    mask: maskRef,
+    position,
+  });
+
+  const { stacks, openPage, popPage } = usePageManager();
+  const { event } = useEventSubscriber(["closePage"], []);
   useEffect(() => {
-    if (!popupRef.current) return;
-    const tl = gsap.timeline();
-    tl.to(popupRef.current, { duration: 0.1, scale: 0.4, x: 0 - sceneW / 2, y: 0 - height / 2 });
-    tl.to(popupRef.current, { autoAlpha: 1, scale: 1, duration: 0.4, ease: "back.out(1.4)" });
-    // gsap.to(popupRef.current, { autoAlpha: 1, scale: 1, duration: 0.3, ease: "back.out(1.4)" });
-    gsap.to(maskRef.current, { autoAlpha: 0.7, duration: 0.3 });
-    return () => {};
+    if (event?.data.name === position?.page) {
+      togglePopup();
+    }
+  }, [event]);
+
+  useEffect(() => {
+    StackAnimation.play();
   }, []);
   const togglePopup = () => {
-    gsap.to(popupRef.current, { autoAlpha: 0, scale: 0.4, duration: 0.3, ease: "back.in(1.1)" });
-    gsap.to(maskRef.current, { autoAlpha: 0, duration: 0.3 });
+    StackAnimation.stop();
+    if (position) {
+      if (position.page === "signin") {
+        const spage = stacks.find((s: PageItem) => s.name === "signin");
+        if (spage) {
+          setTimeout(() => popPage(["signin"]), 700);
+          setTimeout(() => openPage(spage.data), 850);
+        }
+      } else setTimeout(() => popPage([position.page]), 800);
+    }
   };
+
   return (
     <>
       <div ref={maskRef} className="mask" style={{ zIndex, opacity: 0 }}></div>
-      <div className="popup" ref={popupRef} style={{ width: sceneW, height: height, zIndex: zIndex + 1, opacity: 0 }}>
+
+      <div
+        className="popup"
+        ref={popupRef}
+        style={{
+          top: position?.top,
+          left: position?.left,
+          width: position?.width,
+          height: position?.height,
+          zIndex: zIndex + 1,
+          opacity: 0,
+        }}
+      >
         {render(togglePopup)}
       </div>
     </>

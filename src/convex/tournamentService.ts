@@ -31,7 +31,7 @@ export const joinTournament = action({
 export const joinTournamentByType = action({
     args: { cid: v.number(), uid: v.string() },
     handler: async (ctx, { cid, uid }) => {
-        console.log("join tournament by type:" + cid)
+        // console.log("join tournament by type:" + cid)
         const tid = await ctx.runMutation(internal.tournaments.create, { cid, startTime: 0, endTime: 0 });
 
         if (tid) {

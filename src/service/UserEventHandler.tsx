@@ -7,7 +7,7 @@ import { usePageManager } from "./PageManager";
 
 const UserEventHandler: React.FC = () => {
   const { createEvent } = useEventSubscriber([], []);
-  const { pushPage } = usePageManager();
+  const { openPage } = usePageManager();
   const userEvent: any = useQuery(api.events.getByUser, { uid: "kqiao" });
 
   const processBattleCreate = useCallback(
@@ -23,13 +23,12 @@ const UserEventHandler: React.FC = () => {
   );
 
   useEffect(() => {
-    console.log(userEvent);
     if (userEvent) {
       const name = userEvent.name;
       switch (name) {
         case "battleCreated":
           const battle = userEvent.data as BattleModel;
-          pushPage({ name: "battlePlay", data: battle });
+          openPage({ name: "battlePlay", data: battle });
 
           // processBattleCreate(userEvent.data);
           break;
@@ -38,7 +37,7 @@ const UserEventHandler: React.FC = () => {
           break;
       }
     }
-  }, [processBattleCreate, userEvent]);
+  }, [userEvent, openPage]);
 
   return <div></div>;
 };
