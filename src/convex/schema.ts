@@ -3,6 +3,7 @@ import { v } from "convex/values";
 
 export default defineSchema({
     games: defineTable({
+        battleId: v.string(),
         ref: v.optional(v.string()),
         lastCellId: v.number(),
         cells: v.any(),
@@ -25,21 +26,12 @@ export default defineSchema({
     battle: defineTable({
         type: v.number(),
         tournamentId: v.id("tournament"),
-        games: v.any(),
         lastUpdate: v.optional(v.number()),
         endTime: v.optional(v.number()),
         status: v.number(),//0-open 1-settled
         seed: v.optional(v.string())
     }),
-    mybattle: defineTable({
-        uid: v.string(),
-        battleId: v.string(),
-        tournamentId: v.id("tournament"),
-        game: v.string(),
-        lastUpdate: v.optional(v.number()),
-        status: v.number(),//0-open 1-settled
-        score: v.number()
-    }),
+
     tournament: defineTable({
         cid: v.number(),
         startTime: v.number(),
@@ -55,17 +47,22 @@ export default defineSchema({
         status: v.number(),
         lastUpdate: v.optional(v.number())
     }),
-    user: defineTable({
-        uid: v.string(),
-        name: v.string(),
-        channel: v.number(),
-        email: v.optional(v.string()),
-        level: v.number(),
-        exp: v.number(),
-        status: v.optional(v.number())//0-active 1-removed
-    }).index("by_uid", ["uid"]),
+    // account: defineTable({
+    //     uname: v.string(),
+    //     channel: v.optional(v.number()),
+    //     email: v.optional(v.string()),
+    //     status: v.optional(v.number())//0-active 1-removed
+    // }),
 
     leaderboard: defineTable({
+        tournamentId: v.string(),
+        uid: v.string(),
+        points: v.number(),
+        lastUpdate: v.number(),
+        reward: v.optional(v.any())
+    }).index("by_points", ["points"]),
+
+    score: defineTable({
         tournamentId: v.string(),
         uid: v.string(),
         points: v.number(),

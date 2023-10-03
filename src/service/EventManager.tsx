@@ -24,10 +24,10 @@ export const EventProvider = ({ children }: { children: React.ReactNode }) => {
 };
 
 const useEventSubscriber = (selectors: string[], topics: string[]) => {
-  const { uid, name } = useUserManager();
+  const { user } = useUserManager();
   const [event, setEvent] = useState<EventModel | null>(null);
   const { subject } = useContext(EventContext);
-  const userEvent: any = useQuery(api.events.getByUser, { uid: uid ?? "###" });
+  const userEvent: any = useQuery(api.events.getByUser, { uid: user?.uid ?? "###" });
   useEffect(() => {
     if (userEvent) {
       setEvent(userEvent);

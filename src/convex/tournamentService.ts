@@ -43,12 +43,11 @@ export const joinTournamentByType = action({
                     battle_type = tdef.battleType;
             }
             console.log("tournamentId:" + tid + " type:" + battle_type)
+            const battle = { tournamentId: tid, type: BATTLE_TYPE.SOLO, status: 0 };
+            const battleId = await ctx.runMutation(internal.battle.create, battle);
             const cells = gameEngine.initGame();
 
-            const gameId: string = await ctx.runMutation(internal.games.create, { game: { uid: uid, cells, lastCellId: cells.length + 1 } });
-
-            const battle = { tournamentId: tid, games: [gameId], type: BATTLE_TYPE.SOLO, status: 0 };
-            const battleId = await ctx.runMutation(internal.battle.create, battle);
+            const gameId: string = await ctx.runMutation(internal.games.create, { game: { uid: uid, battleId, cells, lastCellId: cells.length + 1 } });
 
             await ctx.runMutation(internal.events.create, {
                 name: "battleCreated", uid: "kqiao", data: { id: battleId, games: [gameId], tournamentId: tid, type: battle_type }
@@ -69,6 +68,7 @@ export const findMyTournaments = action({
 export const findMyBattles = action({
     args: { uid: v.string() },
     handler: async (ctx, { uid }) => {
+
         const battles: any = await ctx.runQuery(internal.battle.allBattles, { uid })
         return battles
     }

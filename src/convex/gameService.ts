@@ -16,6 +16,7 @@ export const initGame = action({
         await ctx.runMutation(internal.events.create, {
             name: "gameInited", uid: "kqiao", gameId, data: { gameId, cells }
         });
+
     }
 })
 export const swipeCell = action({

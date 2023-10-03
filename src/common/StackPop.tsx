@@ -1,6 +1,7 @@
 import React, { useEffect, useRef } from "react";
 import useEventSubscriber from "../service/EventManager";
 import { PageItem, usePageManager } from "../service/PageManager";
+import { useUserManager } from "../service/UserManager";
 import useStackAnimation from "./StackAnimation";
 import "./popup.css";
 interface PopupProps {
@@ -18,7 +19,7 @@ const StackPop: React.FC<PopupProps> = ({ zIndex, position, render }) => {
     mask: maskRef,
     position,
   });
-
+  const { user } = useUserManager();
   const { stacks, openPage, popPage } = usePageManager();
   const { event } = useEventSubscriber(["closePage"], []);
   useEffect(() => {
@@ -26,6 +27,9 @@ const StackPop: React.FC<PopupProps> = ({ zIndex, position, render }) => {
       togglePopup();
     }
   }, [event]);
+  useEffect(() => {
+    if (user && position?.page === "signin") togglePopup();
+  }, [user]);
 
   useEffect(() => {
     StackAnimation.play();

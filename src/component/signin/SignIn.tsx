@@ -1,8 +1,8 @@
 import PageProps from "../../model/PageProps";
-import { useUserManager } from "../../service/UserManager";
+import useUserAuth from "../auth/provider/UserAuth";
 
 const SignIn: React.FC<PageProps> = ({ data, position }) => {
-  const { signin } = useUserManager();
+  const { login } = useUserAuth();
   return (
     <>
       <div
@@ -25,7 +25,7 @@ const SignIn: React.FC<PageProps> = ({ data, position }) => {
             backgroundColor: "blue",
             color: "white",
           }}
-          onClick={() => signin("kqiao", "12345")}
+          onClick={() => login("kqiao", "kevin qiao")}
         >
           SignIn
         </div>

@@ -8,13 +8,13 @@ import { useUserManager } from "./UserManager";
 
 const useTournamentManager = () => {
   const { openPage } = usePageManager()
-  const { uid, name } = useUserManager();
+  const { user } = useUserManager();
   const joinTournament = useAction(api.tournamentService.joinTournament);
   const joinTournamentByType = useAction(api.tournamentService.joinTournamentByType);
   const findMyTournaments = useAction(api.tournamentService.findMyTournaments);
 
   const checkAuth = (act: string): boolean => {
-    return uid ? true : false
+    return user.uid ? true : false
   }
   const join = useCallback(
     async (tid: string, cid: number) => {
@@ -31,7 +31,7 @@ const useTournamentManager = () => {
         openPage({ name: "signin", data: null })
 
     },
-    [uid]
+    [user]
   );
   const listActives = useCallback(
     async () => {

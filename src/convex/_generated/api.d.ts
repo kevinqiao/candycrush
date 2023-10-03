@@ -14,6 +14,7 @@ import type {
   FilterApi,
   FunctionReference,
 } from "convex/server";
+import type * as account from "../account";
 import type * as asset from "../asset";
 import type * as battle from "../battle";
 import type * as crons from "../crons";
@@ -21,8 +22,10 @@ import type * as events from "../events";
 import type * as games from "../games";
 import type * as gameService from "../gameService";
 import type * as leaderboard from "../leaderboard";
+import type * as score from "../score";
 import type * as tournaments from "../tournaments";
 import type * as tournamentService from "../tournamentService";
+import type * as UserService from "../UserService";
 
 /**
  * A utility for referencing Convex functions in your app's API.
@@ -33,6 +36,7 @@ import type * as tournamentService from "../tournamentService";
  * ```
  */
 declare const fullApi: ApiFromModules<{
+  account: typeof account;
   asset: typeof asset;
   battle: typeof battle;
   crons: typeof crons;
@@ -40,8 +44,10 @@ declare const fullApi: ApiFromModules<{
   games: typeof games;
   gameService: typeof gameService;
   leaderboard: typeof leaderboard;
+  score: typeof score;
   tournaments: typeof tournaments;
   tournamentService: typeof tournamentService;
+  UserService: typeof UserService;
 }>;
 export declare const api: FilterApi<
   typeof fullApi,

@@ -70,9 +70,10 @@ const PageContext = createContext<IPageContext>({
 export const PageProvider = ({ children }: { children: React.ReactNode }) => {
   const [state, dispatch] = React.useReducer(reducer, initialState);
   const { event } = useEventSubscriber(["battleCreated"], []);
-  const { uid, name } = useUserManager();
+  const { user } = useUserManager();
+
   const authCheck = (pageCfg: PageConfig) => {
-    if (pageCfg.auth && !uid) {
+    if (pageCfg.auth && !user) {
       return false;
     } else return true;
   };
