@@ -1,26 +1,18 @@
 import BattleModel from "../../model/Battle";
+import { BATTLE_TYPE } from "../../model/Constants";
 import PageProps from "../../model/PageProps";
-import { GameProvider } from "../../service/GameManager";
-import GamePlay from "./GamePlay";
+import SoloBattle from "./SoloBattle";
+import SyncBattle from "./SyncBattle";
 
 const BattlePlay: React.FC<PageProps> = ({ data, position }) => {
   const battle = data as BattleModel;
+  console.log(battle);
 
   return (
     <div style={{ width: position?.width, height: position?.height, backgroundColor: "blue" }}>
       <div style={{ height: 50 }} />
-      <GameProvider battleId={battle.id} gameId={battle.games[0]} isReplay={false} pid={"mirror"}>
-        <div key={"b1"} style={{ display: "flex", justifyContent: "flex-end", width: "100%", paddingRight: "50px" }}>
-          {position ? <GamePlay width={position.width * 0.4} height={position.height * 0.27} pid="mirror" /> : null}
-          <div style={{ width: 50 }} />
-        </div>
-      </GameProvider>
-      <div style={{ height: 30 }} />
-      <GameProvider battleId={battle.id} gameId={battle.games[0]} isReplay={false} pid={"origin"}>
-        <div key={"b2"} style={{ display: "flex", justifyContent: "center", width: "100%" }}>
-          {position ? <GamePlay width={position.width * 0.8} height={position.height * 0.6} pid="origin" /> : null}
-        </div>
-      </GameProvider>
+      {battle.type === BATTLE_TYPE.SOLO ? <SoloBattle battle={battle} position={position} /> : null}
+      {battle.type === BATTLE_TYPE.SYNC ? <SyncBattle battle={battle} position={position} /> : null}
     </div>
   );
 };

@@ -1,14 +1,11 @@
 import { useEffect, useState } from "react";
 import BattleModel from "../../model/Battle";
 import useEventSubscriber from "../../service/EventManager";
-import useTournamentManager from "../../service/TournamentManager";
 
 const BattleHome: React.FC = () => {
   const [battle, setBattle] = useState<BattleModel>();
   const { event, createEvent } = useEventSubscriber(["battleCreated"], ["user"]);
   const [gameId, setGameId] = useState<string | null>();
-
-  const { join } = useTournamentManager();
 
   console.log("battle home");
   useEffect(() => {
@@ -30,7 +27,6 @@ const BattleHome: React.FC = () => {
               backgroundColor: "red",
               color: "white",
             }}
-            onClick={() => join("1", 0)}
           >
             Join
           </div>

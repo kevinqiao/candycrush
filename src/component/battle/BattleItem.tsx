@@ -8,16 +8,22 @@ const BattleItem: React.FC<Props> = ({ battle }) => {
   const { openPage } = usePageManager();
 
   return (
-    <div className="tournament-item">
+    <div className="battle-item">
       <span style={{ fontSize: "20px", color: "black" }}>Battle({battle.type})</span>
-      <div
-        className="play-btn"
-        onClick={(e) => {
-          openPage({ name: "battleReplay", data: { battleId: battle.id, gameId: battle.games[0] } });
-        }}
-      >
-        RePlay
-      </div>
+      {battle?.games?.map((g) => (
+        <div
+          key={g.gameId}
+          className="play-btn"
+          onClick={(e) =>
+            openPage({
+              name: "gameReplay",
+              data: { battleId: battle.id, gameId: g.gameId },
+            })
+          }
+        >
+          RePlay({g.uid})
+        </div>
+      ))}
     </div>
   );
 };

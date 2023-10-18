@@ -1,5 +1,4 @@
 import React, { createContext, useCallback, useContext, useEffect } from "react";
-import BattleModel from "../model/Battle";
 import { NavPages, StackPages } from "../model/PageCfg";
 import useEventSubscriber from "./EventManager";
 import { useUserManager } from "./UserManager";
@@ -15,7 +14,7 @@ export interface PageConfig {
 export interface PageItem {
   name: string;
   data?: any;
-  initial?: boolean; //when app load, if need to init this page or not
+  isInitial?: boolean; //when app load, if need to init this page or not
 }
 interface IPageContext {
   stacks: PageItem[];
@@ -29,7 +28,7 @@ interface IPageContext {
 const initialState = {
   stacks: [],
   prevPage: null,
-  currentPage: { name: "battleHome", initial: true },
+  currentPage: { name: "battleHome", isInitial: true },
 };
 
 const actions = {
@@ -46,12 +45,15 @@ const reducer = (state: any, action: any) => {
       const item = action.data;
       return Object.assign({}, state, { stacks: [...state.stacks, item] });
     case actions.PAGE_POP:
-      const ps = state.stacks.filter((p: PageItem) => !action.data.includes(p.name));
-      return Object.assign({}, state, { stacks: ps });
+      if (action.data.length === 0) return Object.assign({}, state, { stacks: [] });
+      else {
+        const ps = state.stacks.filter((p: PageItem) => !action.data.includes(p.name));
+        return Object.assign({}, state, { stacks: ps });
+      }
     case actions.PAGE_CHANGE:
       return Object.assign({}, state, {
         prevPage: state.currentPage,
-        currentPage: { ...action.data.page, initial: undefined },
+        currentPage: { ...action.data.page, isInitial: false },
       });
     default:
       return state;
@@ -69,7 +71,7 @@ const PageContext = createContext<IPageContext>({
 
 export const PageProvider = ({ children }: { children: React.ReactNode }) => {
   const [state, dispatch] = React.useReducer(reducer, initialState);
-  const { event } = useEventSubscriber(["battleCreated"], []);
+  const { event, createEvent } = useEventSubscriber(["battleCreated", "openPage"], []);
   const { user } = useUserManager();
 
   const authCheck = (pageCfg: PageConfig) => {
@@ -82,14 +84,41 @@ export const PageProvider = ({ children }: { children: React.ReactNode }) => {
     if (event) {
       switch (event.name) {
         case "battleCreated":
-          const battle = event.data as BattleModel;
-          dispatch({ type: actions.PAGE_PUSH, data: { name: "battlePlay", data: battle } });
+          dispatch({ type: actions.PAGE_PUSH, data: { name: "battlePlay", data: event.data } });
+          break;
+        case "openPage":
+          openPage(event.data);
           break;
         default:
           break;
       }
     }
   }, [event]);
+
+  const openPage = useCallback(
+    (page: PageItem) => {
+      let scfg: PageConfig | undefined = StackPages.find((p) => p.name === page.name);
+      if (scfg) {
+        if (!authCheck(scfg)) {
+          dispatch({ type: actions.PAGE_PUSH, data: { name: "signin", data: page } });
+        } else dispatch({ type: actions.PAGE_PUSH, data: page });
+      } else {
+        let ncfg = NavPages.find((p) => p.name === page.name);
+        if (ncfg) {
+          const curPage = NavPages.find((p) => p.name === state.currentPage.name);
+          let contextChanged = false;
+          if (curPage?.context !== ncfg.context) {
+            contextChanged = true;
+            createEvent({ name: "closeAllPop", data: null, delay: 4 });
+          }
+
+          if (!authCheck(ncfg)) dispatch({ type: actions.PAGE_PUSH, data: { name: "signin", data: page } });
+          else dispatch({ type: actions.PAGE_CHANGE, data: { page, contextChanged } });
+        }
+      }
+    },
+    [user]
+  );
   const value = {
     stacks: state.stacks,
     prevPage: state.prevPage,
@@ -100,18 +129,7 @@ export const PageProvider = ({ children }: { children: React.ReactNode }) => {
     popPage: useCallback((pages: string[]) => {
       dispatch({ type: actions.PAGE_POP, data: pages });
     }, []),
-    openPage: (page: PageItem) => {
-      let cfg: PageConfig | undefined = StackPages.find((p) => p.name === page.name);
-      if (cfg) {
-        if (!authCheck(cfg)) {
-          dispatch({ type: actions.PAGE_PUSH, data: { name: "signin", data: page } });
-        } else dispatch({ type: actions.PAGE_PUSH, data: page });
-      } else {
-        cfg = NavPages.find((p) => p.name === page.name);
-        if (cfg && !authCheck(cfg)) dispatch({ type: actions.PAGE_PUSH, data: { name: "signin", data: page } });
-        else dispatch({ type: actions.PAGE_CHANGE, data: { page } });
-      }
-    },
+    openPage,
   };
 
   return <PageContext.Provider value={value}>{children}</PageContext.Provider>;

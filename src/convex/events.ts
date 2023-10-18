@@ -1,33 +1,53 @@
 import { v } from "convex/values";
 import { Id } from "./_generated/dataModel";
-import { internalMutation, query } from "./_generated/server";
+import { internalMutation, internalQuery, mutation, query } from "./_generated/server";
 
 export const list = query({
   args: {},
   handler: async (ctx) => {
     // Grab the most recent messages.
-    const events = await ctx.db.query("events").order("desc").first();
+    const events = await ctx.db.query("events").order("desc").collect();
 
     return events
+  },
+});
+export const getGameInitEvent = internalQuery({
+  args: { gameId: v.string() },
+  handler: async (ctx, args) => {
+    const event = await ctx.db
+      .query("events")
+      .filter((q) => q.and(q.eq(q.field("gameId"), args.gameId), q.eq(q.field("name"), "gameInited")))
+      .first();
+    return event
+  },
+});
+export const findGameInitEvent = query({
+  args: { gameId: v.string() },
+  handler: async (ctx, args) => {
+    const event = await ctx.db
+      .query("events")
+      .filter((q) => q.and(q.eq(q.field("gameId"), args.gameId), q.eq(q.field("name"), "gameInited")))
+      .first();
+    return event
   },
 });
 export const getByUser = query({
   args: { uid: v.string() },
-  handler: async (ctx, args) => {
-    if (args.uid === "###") return;
+  handler: async (ctx, { uid }) => {
+    if (uid === "###") return;
+    const user = await ctx.db.query(("user")).filter((q) => q.eq(q.field("uid"), uid)).first();
     const events = await ctx.db
       .query("events")
-      .filter((q) => q.and(q.eq(q.field("uid"), args.uid), q.gte(q.field("_creationTime"), Date.now() - 2000))).order("desc")
+      .filter((q) => q.and(q.eq(q.field("uid"), uid), q.gt(q.field("_creationTime"), user?.lastUpdate ?? Date.now()))).order("desc")
       .first();
-
     return events
   },
 });
 export const getByGame = query({
-  args: { gameId: v.optional(v.string()), battleId: v.optional(v.string()), replay: v.optional(v.boolean()) },
+  args: { gameId: v.optional(v.string()), battleId: v.optional(v.string()), laststep: v.number() },
   handler: async (ctx, args) => {
 
-    if (!args.replay && args.gameId && args.battleId) {
+    if (args.laststep >= 0 && args.gameId && args.battleId) {
 
       const bid = args.battleId as Id<"battle">
       const battle = await ctx.db.get(bid);
@@ -35,7 +55,7 @@ export const getByGame = query({
 
         const event = await ctx.db
           .query("events")
-          .filter((q) => q.and(q.eq(q.field("gameId"), args.gameId), q.neq(q.field("name"), "gameInited"))).order("desc")
+          .filter((q) => q.and(q.eq(q.field("gameId"), args.gameId), q.gt(q.field("steptime"), args.laststep))).order("asc")
           .first();
 
         return Object.assign({}, event, { id: event?._id, _creationTime: undefined, _id: undefined })
@@ -58,7 +78,45 @@ export const findAllByGame = query({
     }
   },
 });
+export const findStepEvents = query({
+  args: { gameId: v.string(), start: v.number(), end: v.number() },
+  handler: async (ctx, { gameId, start, end }) => {
+    // console.log(start + ":" + end)
+    const events = await ctx.db
+      .query("events")
+      .filter((q) => q.and(q.eq(q.field("gameId"), gameId), q.gt(q.field("steptime"), start), q.lte(q.field("steptime"), end))).order("asc")
+      .collect();
+
+    return events
+  },
+});
+export const getStepEvents = internalQuery({
+  args: { gameId: v.string(), start: v.number(), end: v.number() },
+  handler: async (ctx, { gameId, start, end }) => {
+    const events = await ctx.db
+      .query("events")
+      .filter((q) => q.and(q.eq(q.field("gameId"), gameId), q.gt(q.field("steptime"), start), q.lte(q.field("steptime"), end))).order("asc")
+      .collect();
+    return events
+  },
+});
+export const findGameEvents = internalQuery({
+  args: { gameId: v.string() },
+  handler: async (ctx, args) => {
+    const events = await ctx.db
+      .query("events")
+      .filter((q) => q.eq(q.field("gameId"), args.gameId)).order("asc").collect();
+    return events
+  },
+});
 export const create = internalMutation({
+  args: { name: v.string(), uid: v.optional(v.string()), steptime: v.optional(v.number()), gameId: v.optional(v.string()), data: v.any() },
+  handler: async (ctx, { name, uid, gameId, steptime, data }) => {
+    await ctx.db.insert("events", { name, uid, gameId, steptime, data });
+    return
+  },
+});
+export const screate = mutation({
   args: { name: v.string(), uid: v.optional(v.string()), steptime: v.optional(v.number()), gameId: v.optional(v.string()), data: v.any() },
   handler: async (ctx, { name, uid, gameId, steptime, data }) => {
     await ctx.db.insert("events", { name, uid, gameId, steptime, data });

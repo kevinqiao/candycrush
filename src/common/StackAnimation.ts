@@ -9,7 +9,6 @@ interface StackProps {
 }
 const useStackAnimation = ({ scene, mask, position }: StackProps) => {
     const { width } = useCoord();
-
     const play = useCallback(() => {
         if (!scene || !position) {
             return

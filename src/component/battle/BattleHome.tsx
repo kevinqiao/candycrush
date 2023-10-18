@@ -6,12 +6,7 @@ import BattleItem from "./BattleItem";
 const BattleHome: React.FC = () => {
   const { width, height } = useCoord();
   const battles = useQuery(api.battle.findMyBattles, { uid: "kqiao" });
-  // const [battles, setBattles] = useState<any[]>([]);
 
-  // const { getMyBattles } = useBattleManager();
-  // useEffect(() => {
-  //   getMyBattles().then((ts) => setBattles(ts));
-  // }, [getMyBattles]);
   return (
     <div
       style={{

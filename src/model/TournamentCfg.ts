@@ -1,10 +1,16 @@
 import { BATTLE_TYPE } from "./Constants";
-
-export const tournamentDefs = [
+export interface TournamentDef {
+    id: number;
+    participants: number;
+    battleType: number;
+    battleTime: number;
+    entryCost: { assetId: number; amount: number }[];
+    rewards: { rank: number; assetId: number; amount: number }[];
+}
+export const tournamentDefs: TournamentDef[] = [
     {
         id: 1,
-        type: 1,
-        participants: 5,
+        participants: 1,
         battleType: BATTLE_TYPE.SOLO,
         battleTime: 300000,
         entryCost: [{ assetId: 1, amount: 100 }, { assetId: 2, amount: 100 }],
@@ -12,7 +18,6 @@ export const tournamentDefs = [
     },
     {
         id: 2,
-        type: 2,
         participants: 2,
         battleTime: 300000,
         battleType: BATTLE_TYPE.SYNC,

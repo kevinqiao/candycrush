@@ -28,3 +28,4 @@ export const STACK_PAGE_DIRECTION = {
     RIGHT: 2,
     CENTER: 0
 }
+export const BATTLE_DURATION = 180000

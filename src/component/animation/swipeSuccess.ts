@@ -10,7 +10,7 @@ const play = (candy: CellItem, target: CellItem, candyMap: Map<Number, CandyMode
         const candySprite = candyMap.get(candy.id)?.sprite
         const targetSprite = candyMap.get(target.id)?.sprite
         if (candySprite && targetSprite) {
-
+            console.log("swipe success")
             tl.to(
                 targetSprite,
                 {

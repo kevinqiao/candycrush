@@ -7,12 +7,14 @@ import { MOVE_DIRECTION } from "../model/Constants";
 import * as gameEngine from "../service/GameEngine";
 import useAnimationManager from "./AnimationManager";
 import { useGameManager } from "./GameManager";
+import { useUserManager } from "./UserManager";
 
 
 
 const useSceneManager = (scene: PIXI.Application | undefined, textures: { id: number; texture: PIXI.Texture }[] | undefined, pid: string | undefined) => {
     const cellsRef = useRef<CellItem[] | null>(null)
-    const { isReplay, gameId, cells, gameEvent, swapCell } = useGameManager();
+    const { isReplay, uid, gameId, cells, gameEvent, swapCell } = useGameManager();
+    const { user } = useUserManager();
     const dragRef = useRef<{ startX: number; startY: number; cellId: number }>({ startX: 0, startY: 0, cellId: -1 });
     const candyMapRef = useRef(new Map<number, CandyModel>());
     const cellW = scene ? Math.floor(scene.view.width / Constant.COLUMN) : 0;
@@ -110,12 +112,16 @@ const useSceneManager = (scene: PIXI.Application | undefined, textures: { id: nu
 
     useEffect(() => {
 
+
         if (gameEvent?.name === "cellSwapped") {
             const { candy, target } = gameEvent.data
             animationManager.swipeSuccess(candy, target)
         } else if (gameEvent?.name === "matchSolved") {
-
+            let count = 0;
+            console.log(uid + ":" + user?.uid)
             for (let res of gameEvent.data) {
+                // if (isReplay || !user || user.uid !== uid)
+                //     count++;
                 // const res: { direction: number; toCreate: CellItem[] } = gameEvent.data;
                 const size = res.toCreate.length;
                 res.toCreate.forEach((cell: CellItem) => {
@@ -125,7 +131,9 @@ const useSceneManager = (scene: PIXI.Application | undefined, textures: { id: nu
                     if (sprite)
                         candyMapRef.current.set(cell.id, { id: cell.id, sprite })
                 })
-                animationManager.solveMatch(res, 1)
+                setTimeout(() =>
+                    animationManager.solveMatch(res, 1), count * 300 + 10)
+                count++
             }
         }
     }, [gameEvent])

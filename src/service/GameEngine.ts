@@ -1,7 +1,10 @@
+import seedrandom from 'seedrandom';
 import { CellItem } from "../model/CellItem";
 import { MATCH_DIRECTION, MOVE_DIRECTION } from "../model/Constants";
 import { MatchModel } from "../model/MatchModel";
 import candy_textures from "../model/candy_textures";
+import * as RandomUtil from "../util/RandomUtil";
+
 const COLUMN = 7;
 const ROW = 8;
 let cellId: number = COLUMN * ROW + 1;
@@ -152,14 +155,16 @@ export const getMatches = (cells: CellItem[]): MatchModel[] | undefined => {
 
 }
 export const initGame = () => {
+    const seed = RandomUtil.getRandomSeed(10);
+    const rng = seedrandom(seed)
     // const cellTypes = Array.from({ length: 6 }, (_, k) => k);
     const cells: CellItem[] = [];
-    let cellId: number = 1;
+    let lastCellId: number = 1;
     for (let y = 0; y < ROW; y++) {
         for (let x = 0; x < COLUMN; x++) {
             let asset = -1;
             while (true) {
-                const index = Math.floor(Math.random() * (candy_textures.length - 10));
+                const index = Math.floor(rng() * (candy_textures.length - 10));
                 asset = candy_textures[index]['id'] ?? 0;
                 if (x >= 2) {
                     const x0 = cells.find((c) => c.row === y && c.column === x - 1);
@@ -178,10 +183,10 @@ export const initGame = () => {
                 break;
             }
 
-            cells.push({ id: cellId++, row: y, column: x, asset });
+            cells.push({ id: lastCellId++, row: y, column: x, asset });
         }
     }
-    return cells;
+    return { lastCellId, cells, seed };
 }
 
 export const processMatches = (cells: CellItem[], matches: MatchModel[]) => {
@@ -217,15 +222,24 @@ export const processMatches = (cells: CellItem[], matches: MatchModel[]) => {
     return results;
 
 }
+
 export const applyMatches = (
-    cells: CellItem[],
-    results: { toMove?: CellItem[]; toRemove?: CellItem[]; toCreate?: CellItem[] }
+    game: { matched: { asset: number; quantity: number }[]; cells: CellItem[] },
+    results: { id?: number; toMove?: CellItem[]; toRemove?: CellItem[]; toCreate?: CellItem[] }
 ) => {
-    let resovledCells: CellItem[] = JSON.parse(JSON.stringify(cells));
+
+    let resovledCells: CellItem[] = JSON.parse(JSON.stringify(game.cells));
+    let rematched: { asset: number; quantity: number }[] = JSON.parse(JSON.stringify(game.matched));
     // console.log(JSON.parse(JSON.stringify(cells)))
     if (results.toRemove) {
         const rids: number[] = results.toRemove.map((c) => c.id);
         resovledCells = resovledCells.filter((c) => !rids.includes(c.id));
+        for (let r of results.toRemove) {
+            const mitem = rematched.find((m: { asset: number; quantity: number }) => m.asset === r.asset);
+            if (mitem) mitem.quantity++;
+            else rematched.push({ asset: r.asset, quantity: 1 });
+        }
+
     }
     // console.log(JSON.parse(JSON.stringify(resovledCells)))
     if (results.toMove) {
@@ -238,8 +252,9 @@ export const applyMatches = (
         resovledCells.push(...results.toCreate);
     }
     // console.log(JSON.parse(JSON.stringify(resovledCells)))
-    return resovledCells;
-};
-
+    return {
+        cells: resovledCells, matched: rematched
+    };
+}
 
 

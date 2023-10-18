@@ -14,17 +14,19 @@ import type {
   FilterApi,
   FunctionReference,
 } from "convex/server";
-import type * as account from "../account";
 import type * as asset from "../asset";
 import type * as battle from "../battle";
+import type * as battleService from "../battleService";
+import type * as bgames from "../bgames";
 import type * as crons from "../crons";
 import type * as events from "../events";
 import type * as games from "../games";
+import type * as gameseed from "../gameseed";
 import type * as gameService from "../gameService";
 import type * as leaderboard from "../leaderboard";
-import type * as score from "../score";
 import type * as tournaments from "../tournaments";
 import type * as tournamentService from "../tournamentService";
+import type * as user from "../user";
 import type * as UserService from "../UserService";
 
 /**
@@ -36,17 +38,19 @@ import type * as UserService from "../UserService";
  * ```
  */
 declare const fullApi: ApiFromModules<{
-  account: typeof account;
   asset: typeof asset;
   battle: typeof battle;
+  battleService: typeof battleService;
+  bgames: typeof bgames;
   crons: typeof crons;
   events: typeof events;
   games: typeof games;
+  gameseed: typeof gameseed;
   gameService: typeof gameService;
   leaderboard: typeof leaderboard;
-  score: typeof score;
   tournaments: typeof tournaments;
   tournamentService: typeof tournamentService;
+  user: typeof user;
   UserService: typeof UserService;
 }>;
 export declare const api: FilterApi<

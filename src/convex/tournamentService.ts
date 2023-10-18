@@ -14,7 +14,7 @@ export const joinTournament = action({
             if (tdef)
                 battle_type = tdef.battleType;
         }
-        const cells = gameEngine.initGame();
+        const { cells } = gameEngine.initGame();
 
         const gameId: string = await ctx.runMutation(internal.games.create, { game: { uid: args.uid, cells, lastCellId: cells.length + 1 } });
         const battle = { tournamentId: args.tournamentId, games: [gameId], type: BATTLE_TYPE.SOLO, status: 0 };
@@ -28,34 +28,80 @@ export const joinTournament = action({
 
     }
 })
-export const joinTournamentByType = action({
+export const joinTournamentByGroup = action({
     args: { cid: v.number(), uid: v.string() },
     handler: async (ctx, { cid, uid }) => {
-        // console.log("join tournament by type:" + cid)
-        const tid = await ctx.runMutation(internal.tournaments.create, { cid, startTime: 0, endTime: 0 });
 
-        if (tid) {
+        const tournamentDef = tournamentDefs.find((t) => t.id === cid);
+        if (tournamentDef?.battleType === BATTLE_TYPE.SOLO) {
+            const tcid: string = tournamentDef.id + ""
+            const tid = await ctx.runMutation(internal.tournaments.create, { cid, startTime: 0, endTime: 0 });
 
-            let battle_type = BATTLE_TYPE.SOLO;
-            if (cid > 0) {
-                const tdef = tournamentDefs.find((t) => t.id === cid);
-                if (tdef)
-                    battle_type = tdef.battleType;
+            if (tid) {
+                const battle = { tournamentId: tid, type: tournamentDef.battleType, status: 0 };
+                const battleId = await ctx.runMutation(internal.battle.create, battle);
+                const games = [];
+                let gameInited = tournamentDef.participants === 1 ? await ctx.runMutation(internal.gameService.createInitGame, { uid }) : await ctx.runQuery(internal.gameService.findInitGame, { uid, trend: 1 });
+
+                if (gameInited) {
+                    const gameId: string = await ctx.runMutation(internal.games.create, { game: { uid, battleId, tcid, ...gameInited, _id: undefined, _creationTime: undefined, gameId: undefined } });
+                    games.push({ uid, gameId });
+                    await ctx.runMutation(internal.events.create, {
+                        name: "gameInited", gameId, data: { gameId, ...gameInited }
+                    });
+                    for (let i = 1; i < tournamentDef.participants; i++) {
+                        const opponent = i + ""
+                        const gameId: string = await ctx.runMutation(internal.games.create, { game: { uid: opponent, seed: gameInited.seed, tcid, battleId, ref: gameInited['_id'] } });
+                        games.push({ uid: opponent, gameId });
+                    }
+                    await ctx.runMutation(internal.events.create, {
+                        name: "battleCreated", uid, data: { games, id: battleId, ...battle }
+                    });
+
+                }
+
             }
-            console.log("tournamentId:" + tid + " type:" + battle_type)
-            const battle = { tournamentId: tid, type: BATTLE_TYPE.SOLO, status: 0 };
-            const battleId = await ctx.runMutation(internal.battle.create, battle);
-            const cells = gameEngine.initGame();
+        }
+    }
+})
+export const joinTournamentByOneToOne = action({
+    args: { cid: v.number(), uid: v.string() },
+    handler: async (ctx, { cid, uid }) => {
+        console.log("pvp with cid:" + cid + ":" + uid)
+        const tournamentDef = tournamentDefs.find((t) => t.id === cid);
+        if (tournamentDef?.battleType === BATTLE_TYPE.SYNC) {
 
-            const gameId: string = await ctx.runMutation(internal.games.create, { game: { uid: uid, battleId, cells, lastCellId: cells.length + 1 } });
+            const tid = await ctx.runMutation(internal.tournaments.create, { cid, startTime: 0, endTime: 0 });
 
-            await ctx.runMutation(internal.events.create, {
-                name: "battleCreated", uid: "kqiao", data: { id: battleId, games: [gameId], tournamentId: tid, type: battle_type }
-            });
-            await ctx.runMutation(internal.events.create, {
-                name: "gameInited", uid: "kqiao", gameId, data: { gameId, cells }
-            });
+            if (tid) {
 
+                const battle = { tournamentId: tid, type: tournamentDef.battleType, status: 0 };
+                const battleId = await ctx.runMutation(internal.battle.create, battle);
+                const games = [];
+                let gameInited = await ctx.runQuery(internal.gameService.findInitGame, { uid, trend: 1 })
+
+                if (gameInited) {
+
+                    const gameId: string = await ctx.runMutation(internal.games.create, { game: { uid, battleId, tcid: cid + "", ...gameInited, gameId: undefined } });
+                    games.push({ uid, gameId });
+                    //get opponents
+                    const opponent = "1";
+                    const opponentGameId: string = await ctx.runMutation(internal.games.create, { game: { uid: opponent, battleId, tcid: cid + "", ...gameInited, gameId: undefined, ref: gameInited['gameId'] } });
+                    games.push({ uid: opponent, gameId: opponentGameId })
+
+                    await ctx.runMutation(internal.events.create, {
+                        name: "gameInited", gameId, data: { gameId, ...gameInited }
+                    });
+
+                    await ctx.runMutation(internal.bgames.create, {
+                        gameId: opponentGameId, ref: gameInited['gameId']
+                    });
+                    await ctx.runMutation(internal.events.create, {
+                        name: "battleCreated", uid, data: { games, id: battleId, ...battle }
+                    });
+                }
+
+            }
         }
     }
 })

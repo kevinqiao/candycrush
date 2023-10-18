@@ -1,13 +1,14 @@
 import { useRef } from "react";
+import { TournamentDef } from "../../model/TournamentCfg";
 import useTournamentManager from "../../service/TournamentManager";
 import "./tournament.css";
 interface Props {
-  data: any;
+  tournament: TournamentDef;
 }
-const TournamentItem: React.FC<Props> = ({ data }) => {
+const TournamentItem: React.FC<Props> = ({ tournament }) => {
   const itemRef = useRef(null);
 
-  const { join, joinByType } = useTournamentManager();
+  const { join } = useTournamentManager();
   // useEffect(() => {
   //   if (itemRef.current) {
   //     const hammer = new Hammer(itemRef.current);
@@ -20,12 +21,12 @@ const TournamentItem: React.FC<Props> = ({ data }) => {
   // }, [itemRef.current, moveLeft, moveRight]);
   return (
     <div ref={itemRef} className="tournament-item">
-      <span style={{ fontSize: "20px", color: "black" }}>Tournament({data.type})</span>
+      <span style={{ fontSize: "20px", color: "black" }}>Tournament({tournament.id})</span>
       <div
         className="play-btn"
         onClick={(e) => {
           console.log("play clicked in item");
-          joinByType(data.id);
+          join(tournament);
         }}
       >
         Play

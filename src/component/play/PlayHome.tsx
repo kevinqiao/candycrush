@@ -1,8 +1,4 @@
-import useTournamentManager from "../../service/TournamentManager";
-
 const PlayHome: React.FC = () => {
-  const { join } = useTournamentManager();
-
   return (
     <>
       <div style={{ width: "100%", height: "100vh", backgroundColor: "green" }}>
@@ -17,7 +13,6 @@ const PlayHome: React.FC = () => {
               backgroundColor: "red",
               color: "white",
             }}
-            onClick={() => join("###", 1)}
           >
             Join
           </div>

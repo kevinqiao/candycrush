@@ -21,9 +21,9 @@ const StackPop: React.FC<PopupProps> = ({ zIndex, position, render }) => {
   });
   const { user } = useUserManager();
   const { stacks, openPage, popPage } = usePageManager();
-  const { event } = useEventSubscriber(["closePage"], []);
+  const { event } = useEventSubscriber(["closePage", "closeAllPop"], []);
   useEffect(() => {
-    if (event?.data.name === position?.page) {
+    if (event?.name === "closeAllPop" || event?.data.name === position?.page) {
       togglePopup();
     }
   }, [event]);

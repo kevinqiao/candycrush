@@ -10,8 +10,12 @@ const useAnimationManager = (candiesMapRef: any, cellW: number, pid: string | un
   // const { cellW } = useCoord();
 
   const swipeSuccess = async (candy: CellItem, target: CellItem) => {
-    if (candy && target)
+    const ids = Array.from(candiesMapRef.current.keys()) as number[]
+    ids.sort((a, b) => a - b);
+    // console.log(ids)
+    if (candy && target) {
       playSwipeSuccess(candy, target, candiesMapRef.current, cellW);
+    }
   }
 
   const swipeFail = async (candy: CellItem, target: CellItem) => {
@@ -20,6 +24,8 @@ const useAnimationManager = (candiesMapRef: any, cellW: number, pid: string | un
   };
 
   const solveMatch = async (res: { toMove: CellItem[], toRemove: CellItem[], toCreate?: CellItem[] }, mode: number) => {
+    const ids = Array.from(candiesMapRef.current.keys()) as number[]
+    ids.sort((a, b) => a - b);
 
     const timeline = gsap.timeline();
     const { toMove, toRemove, toCreate } = res;

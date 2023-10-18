@@ -21,7 +21,7 @@ const TournamentHome: React.FC = () => {
       }}
     >
       {tournaments.map((t) => (
-        <TournamentItem key={t.id} data={t} />
+        <TournamentItem key={t.id} tournament={t} />
       ))}
       {/* {Array.from({ length: 25 }, (_, k) => k).map((p, index) => (
         <TournamentItem key={p} />

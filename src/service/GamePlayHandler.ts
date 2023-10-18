@@ -3,7 +3,6 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { api } from "../convex/_generated/api";
 import { GameEvent } from "../model/GameEvent";
 import { GameModel } from "../model/GameModel";
-import * as gameEngine from "./GameEngine";
 // export interface GameEvent {
 //   id: string;
 //   name: string;
@@ -17,7 +16,7 @@ const useGamePlayHandler = (battleId: string | undefined, game: GameModel | null
   const [event, setEvent] = useState<GameEvent | null>(null)
   const [gameEvents, setGameEvents] = useState<GameEvent[]>([])
   // const { createEvent } = useEventSubscriber([], []);
-  const gameEvent: any = useQuery(api.events.getByGame, { gameId: game?.gameId, battleId, replay: isReplay });
+  const gameEvent: any = useQuery(api.events.getByGame, { gameId: game?.gameId, battleId, laststep: -1 });
 
 
   const processMatchSolved = (gevent: GameEvent) => {
@@ -27,11 +26,7 @@ const useGamePlayHandler = (battleId: string | undefined, game: GameModel | null
     for (let res of gevent.data) {
 
       console.log(JSON.parse(JSON.stringify({ pid, cells: game.cells })))
-      game.cells = gameEngine.applyMatches(game.cells, res);
-      game.cells.sort((a, b) => {
-        if (a.row !== b.row) return a.row - b.row;
-        else return a.column - b.column;
-      });
+
       console.log(JSON.parse(JSON.stringify({ pid, cells: game.cells })))
     }
   }

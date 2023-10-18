@@ -18,6 +18,6 @@
     "isolatedModules": true,
     "noEmit": true
   },
-  "include": ["./**/*"],
+  "include": ["./**/*", "../service/leaderboard.ts"],
   "exclude": ["./_generated"]
 }

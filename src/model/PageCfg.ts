@@ -1,21 +1,72 @@
+export const NavContext = [
+    {
+        name: "playcenter",
+        uri: "./PlayCenter",
+    }, {
+        name: "membercenter",
+        uri: "./MemberCenter",
+    }
+]
 export const NavPages = [
     {
         name: "tournamentHome",
+        context: "playcenter",
         uri: "./tournament/TournamentHome",
-        auth:true
+        cache: 0,
+        auth: true
     },
     {
         name: "playHome",
+        context: "playcenter",
         uri: "./play/PlayHome",
+        cache: 0
     },
     {
         name: "battleHome",
+        context: "playcenter",
         uri: "./battle/BattleHome",
+        cache: 0
     }
     ,
     {
         name: "accountHome",
+        context: "playcenter",
         uri: "./signin/AccountHome",
+        cache: 0
+    }
+    ,
+    {
+        name: "test",
+        context: "playcenter",
+        uri: "./signin/AccountHome",
+        cache: 0
+    },
+    {
+        name: "market",
+        context: "membercenter",
+        uri: "./member/Market",
+    },
+    {
+        name: "transaction",
+        context: "membercenter",
+        uri: "./member/Transaction",
+    },
+    {
+        name: "reward",
+        context: "membercenter",
+        uri: "./member/Reward",
+    }
+    ,
+    {
+        name: "help",
+        context: "membercenter",
+        uri: "./member/Help",
+    }
+    ,
+    {
+        name: "membership",
+        context: "membercenter",
+        uri: "./member/Membership",
     }
 ]
 export const StackPages = [
@@ -38,6 +89,13 @@ export const StackPages = [
         name: "battleReplay",
         uri: "./play/ReplayBattle",
         direction: 2,
+        width: 500,
+        height: 1,
+    },
+    {
+        name: "gameReplay",
+        uri: "./play/ReplayGame",
+        direction: 0,
         width: 500,
         height: 1,
     }
