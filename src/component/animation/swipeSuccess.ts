@@ -10,22 +10,27 @@ const play = (candy: CellItem, target: CellItem, candyMap: Map<Number, CandyMode
         const candySprite = candyMap.get(candy.id)?.sprite
         const targetSprite = candyMap.get(target.id)?.sprite
         if (candySprite && targetSprite) {
-            console.log("swipe success")
+            console.log("swipe success;")
+            const tx = target.column * cellW + Math.floor(cellW / 2);
+            const ty = target.row * cellW + Math.floor(cellW / 2);
+            console.log(tx + ":" + ty + ":" + target.column + ":" + cellW)
             tl.to(
                 targetSprite,
                 {
-                    x: target.column * cellW + Math.floor(cellW / 2),
-                    y: target.row * cellW + Math.floor(cellW / 2),
-                    duration: 0.4,
+                    x: tx,
+                    y: ty,
+                    duration: 0.3,
                     ease: 'power2.out',
                 }, 0)
-
+            const cx = candy.column * cellW + Math.floor(cellW / 2);
+            const cy = candy.row * cellW + Math.floor(cellW / 2);
+            console.log(cx + ":" + cy + ":" + candy.column + ":" + cellW)
             tl.to(
                 candySprite,
                 {
-                    x: candy.column * cellW + Math.floor(cellW / 2),
-                    y: candy.row * cellW + Math.floor(cellW / 2),
-                    duration: 0.4,
+                    x: cx,
+                    y: cy,
+                    duration: 0.3,
                     ease: 'power2.out',
                 }, 0);
             tl.play();

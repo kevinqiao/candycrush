@@ -4,8 +4,9 @@ const play = (cells: CellItem[], candyMap: Map<Number, CandyModel>, cellW: numbe
 
     // const tl = gsap.timeline();
     cells.forEach((c) => {
-        const candy = candyMap.get(c.id)
+        const candy = candyMap.get(c.id);
         if (candy) {
+            // Object.assign(candy.data, c)
             const sprite = candy.sprite
             if (sprite)
                 tl.to(
@@ -15,7 +16,7 @@ const play = (cells: CellItem[], candyMap: Map<Number, CandyModel>, cellW: numbe
                         y: c.row * cellW + Math.floor(cellW / 2),
                         duration: 0.2,
                         ease: 'power2.out',
-                    }, 0.3)
+                    }, 0.2)
         }
     })
 

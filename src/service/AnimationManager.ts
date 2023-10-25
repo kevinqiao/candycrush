@@ -5,41 +5,41 @@ import playRemove from "../component/animation/removeCandies";
 import playSwipeFail from "../component/animation/swipeFail";
 import playSwipeSuccess from "../component/animation/swipeSuccess";
 import { CellItem } from "../model/CellItem";
-const useAnimationManager = (candiesMapRef: any, cellW: number, pid: string | undefined) => {
+const useAnimationManager = (candiesMapRef: any, cellWRef: React.MutableRefObject<number>, pid: string | undefined) => {
   // const { event } = useEventSubscriber(["gameInited", "matchSolved", "candySwapped"], [game ? game.gameId : "animation"]);
   // const { cellW } = useCoord();
 
   const swipeSuccess = async (candy: CellItem, target: CellItem) => {
+
     const ids = Array.from(candiesMapRef.current.keys()) as number[]
     ids.sort((a, b) => a - b);
     // console.log(ids)
     if (candy && target) {
-      playSwipeSuccess(candy, target, candiesMapRef.current, cellW);
+      playSwipeSuccess(candy, target, candiesMapRef.current, cellWRef.current);
     }
   }
 
   const swipeFail = async (candy: CellItem, target: CellItem) => {
     if (candy && target)
-      playSwipeFail(candy, target, candiesMapRef.current, cellW);
+      playSwipeFail(candy, target, candiesMapRef.current, cellWRef.current);
   };
 
-  const solveMatch = async (res: { toMove: CellItem[], toRemove: CellItem[], toCreate?: CellItem[] }, mode: number) => {
-    const ids = Array.from(candiesMapRef.current.keys()) as number[]
-    ids.sort((a, b) => a - b);
+  const solveMatch = async (res: { toMove?: CellItem[]; toRemove?: CellItem[]; toCreate?: CellItem[] }, timeline: any) => {
 
-    const timeline = gsap.timeline();
+
     const { toMove, toRemove, toCreate } = res;
-    if (toMove?.length > 0) {
-      playMove(toMove, candiesMapRef.current, cellW, timeline);
+    if (toRemove && timeline) {
+      playRemove(toRemove, candiesMapRef.current, timeline);
     }
-    if (toRemove) {
-      playRemove(toRemove, candiesMapRef.current, timeline, mode);
-    }
-    if (toCreate) {
-      playCreate(toCreate, candiesMapRef.current, cellW, timeline);
+    if (toMove && timeline) {
+      playMove(toMove, candiesMapRef.current, cellWRef.current, timeline);
     }
 
-    timeline.play();
+    if (toCreate && timeline) {
+      playCreate(toCreate, candiesMapRef.current, cellWRef.current, timeline);
+    }
+
+
 
   }
   // useEffect(() => {
@@ -50,7 +50,20 @@ const useAnimationManager = (candiesMapRef: any, cellW: number, pid: string | un
   //   }
 
   // }, [event])
-  return { solveMatch, swipeSuccess, swipeFail };
+  const solveMatches = (matches: any[]) => {
+    const master = gsap.timeline();
+    let count = 0;
+    for (let match of matches) {
+      console.log("match id:" + match.id)
+      const tl = gsap.timeline();
+      solveMatch(match, tl);
+      master.add(tl, "+=" + count * 0.3);
+      count++
+    }
+    master.play()
+
+  }
+  return { solveMatches, swipeSuccess, swipeFail };
 };
 export default useAnimationManager;
 

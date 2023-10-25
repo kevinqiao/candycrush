@@ -1,11 +1,18 @@
-import { useQuery } from "convex/react";
+import { useConvex } from "convex/react";
+import { useEffect, useState } from "react";
 import { api } from "../../convex/_generated/api";
 import BattleModel from "../../model/Battle";
 import useCoord from "../../service/CoordManager";
+import { useUserManager } from "../../service/UserManager";
 import BattleItem from "./BattleItem";
 const BattleHome: React.FC = () => {
   const { width, height } = useCoord();
-  const battles = useQuery(api.battle.findMyBattles, { uid: "kqiao" });
+  const { user } = useUserManager();
+  const [battles, setBattles] = useState<any[]>();
+  const convex = useConvex();
+  useEffect(() => {
+    if (user) convex.query(api.battle.findMyBattles, { uid: user.uid }).then((bs) => setBattles(bs));
+  }, [convex, user]);
 
   return (
     <div

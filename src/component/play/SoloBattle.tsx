@@ -1,8 +1,8 @@
 import BattleModel from "../../model/Battle";
 import { GameProvider } from "../../service/GameManager";
 import { useUserManager } from "../../service/UserManager";
+import BattleConsole from "./console/BattleConsole";
 import GamePlay from "./GamePlay";
-import SoloConsole from "./SoloConsole";
 
 const SoloBattle = ({ battle, position }: { battle: BattleModel; position: any }) => {
   const { user } = useUserManager();
@@ -15,7 +15,7 @@ const SoloBattle = ({ battle, position }: { battle: BattleModel; position: any }
           <>
             <div style={{ display: "flex", justifyContent: "center", width: "100%", height: position.height * 0.3 }}>
               <div style={{ width: "50%" }}>
-                <SoloConsole />
+                <BattleConsole />
               </div>
             </div>
             <div style={{ height: 10 }} />

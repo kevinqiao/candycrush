@@ -1,6 +1,33 @@
 import { v } from "convex/values";
+import * as gameEngine from "../service/GameEngine";
 import { internalMutation, internalQuery, query } from "./_generated/server";
-
+export const findBattle = query({
+  args: { battleId: v.id("battle") },
+  handler: async (ctx, { battleId }) => {
+    const battle = await ctx.db.get(battleId);
+    if (battle) {
+      const games = await ctx.db
+        .query("games")
+        .filter((q) => q.eq(q.field("battleId"), battleId))
+        .collect();
+      const gamescores: {
+        player: { uid: string; name: string };
+        gameId: string;
+        score: { base: number; goal: number; time: number };
+      }[] = [];
+      for (const game of games) {
+        const score = gameEngine.getScore(game);
+        const user = await ctx.db.query("user").filter((q) => q.eq(q.field("uid"), game.uid)).first();
+        const gamescore: any = { gameId: game._id, score };
+        if (user)
+          gamescore.player = { uid: user.uid, name: user.name };
+        gamescores.push(gamescore)
+      }
+      const pasttime = (Date.now() - battle._creationTime);
+      return Object.assign({}, battle, { battleId: battle?._id, _id: undefined, _creationTime: undefined, pasttime, gamescores });
+    }
+  },
+});
 export const create = internalMutation({
   args: { tournamentId: v.id("tournament"), type: v.number(), status: v.number() },
   handler: async (ctx, { tournamentId, type, status }) => {
@@ -36,7 +63,7 @@ export const findMyBattles = query({
   args: { uid: v.string() },
   handler: async (ctx, { uid }) => {
     const battles = await ctx.db
-      .query("battle").order("desc").take(20);
+      .query("battle").order("desc").take(5);
     const mybattles = [];
     for (let battle of battles) {
       const games = await ctx.db.query("games").filter((q) => q.eq(q.field("battleId"), battle._id)).order("asc").collect();

@@ -18,7 +18,7 @@ export default defineSchema({
         counts: v.number()
     }),
     games: defineTable({
-        tcid: v.string(),
+        tcid: v.string(),//tournament type(config) id
         battleId: v.string(),
         ref: v.optional(v.string()),
         seed: v.string(),
@@ -30,11 +30,13 @@ export default defineSchema({
         lastUpdate: v.optional(v.number()),
         endTime: v.optional(v.number()),
         result: v.optional(v.number()),
-        status: v.optional(v.number())
+        status: v.optional(v.number()),
+        score: v.optional(v.any())
     }),
     events: defineTable({
         name: v.string(),
         gameId: v.optional(v.string()),
+        lastCellId: v.optional(v.number()),
         uid: v.optional(v.string()),
         steptime: v.optional(v.number()),
         data: v.any(),

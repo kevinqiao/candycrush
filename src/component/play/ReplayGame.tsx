@@ -1,7 +1,7 @@
 import PageProps from "../../model/PageProps";
 import { GameProvider } from "../../service/GameManager";
+import GameConsole from "./console/GameConsole";
 import GamePlay from "./GamePlay";
-import ReplayConsole from "./ReplayConsole";
 
 const ReplayGame: React.FC<PageProps> = ({ data, position }) => {
   const { battleId, gameId } = data;
@@ -12,7 +12,7 @@ const ReplayGame: React.FC<PageProps> = ({ data, position }) => {
         <GameProvider battleId={battleId} gameId={gameId + ""} isReplay={true} pid={"replay"}>
           <div style={{ display: "flex", justifyContent: "center", width: "100%", height: position.height * 0.3 }}>
             <div style={{ width: "50%" }}>
-              <ReplayConsole />
+              <GameConsole />
             </div>
           </div>
           <div style={{ height: 50 }}></div>

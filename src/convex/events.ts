@@ -110,9 +110,9 @@ export const findGameEvents = internalQuery({
   },
 });
 export const create = internalMutation({
-  args: { name: v.string(), uid: v.optional(v.string()), steptime: v.optional(v.number()), gameId: v.optional(v.string()), data: v.any() },
-  handler: async (ctx, { name, uid, gameId, steptime, data }) => {
-    await ctx.db.insert("events", { name, uid, gameId, steptime, data });
+  args: { name: v.string(), uid: v.optional(v.string()), steptime: v.optional(v.number()), lastCellId: v.optional(v.number()), gameId: v.optional(v.string()), data: v.any() },
+  handler: async (ctx, { name, uid, gameId, steptime, lastCellId, data }) => {
+    await ctx.db.insert("events", { name, uid, gameId, steptime, lastCellId, data });
     return
   },
 });

@@ -1,4 +1,4 @@
-import { useGameManager } from "../../service/GameManager";
+import { useGameManager } from "../../../service/GameManager";
 
 const ReplayConsole: React.FC = () => {
   const { matched } = useGameManager();

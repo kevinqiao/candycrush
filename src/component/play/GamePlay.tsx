@@ -2,6 +2,7 @@ import * as PIXI from "pixi.js";
 import { useEffect, useMemo, useRef, useState } from "react";
 import candy_texture_defs from "../../model/candy_textures";
 import useSceneManager from "../../service/SceneManager";
+import { useGameManager } from "../../service/GameManager";
 interface Props {
   width: number;
   height: number;
