@@ -4,7 +4,7 @@ import { useBattleManager } from "../../../service/BattleManager";
 const BattleConsole: React.FC = () => {
   const { gamescores } = useBattleManager();
   const [pasttime, setPasttime] = useState(0);
-  console.log(gamescores);
+  // console.log(gamescores);
   const timerDiv = useMemo(() => {
     return <div style={{ height: 30 }}>{pasttime > 0 ? <div>Timer:{pasttime}</div> : <div />}</div>;
   }, [pasttime]);

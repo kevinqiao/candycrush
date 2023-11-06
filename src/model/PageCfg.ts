@@ -40,7 +40,15 @@ export const NavPages = [
         context: "playcenter",
         uri: "./signin/AccountHome",
         cache: 0
-    },
+    }
+    ,
+    {
+        name: "texture",
+        context: "playcenter",
+        uri: "./test/TexturePlay",
+    }
+    ,
+
     {
         name: "market",
         context: "membercenter",
@@ -65,6 +73,12 @@ export const NavPages = [
     ,
     {
         name: "membership",
+        context: "membercenter",
+        uri: "./member/Membership",
+    }
+    ,
+    {
+        name: "texture",
         context: "membercenter",
         uri: "./member/Membership",
     }

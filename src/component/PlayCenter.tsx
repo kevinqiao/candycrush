@@ -13,7 +13,7 @@ const pageIndexs = [
   { name: "playHome", index: 1 },
   { name: "battleHome", index: 2 },
   { name: "accountHome", index: 3 },
-  { name: "test", index: 4 },
+  { name: "texture", index: 4 },
 ];
 
 const PlayCenter: React.FC = () => {
@@ -27,6 +27,7 @@ const PlayCenter: React.FC = () => {
     const ps: { name: string; index: number; component: any }[] = [];
     for (let p of pageIndexs) {
       const page = NavPages.find((n) => n.name === p.name);
+      // console.log(page);
       if (page) {
         const c = lazy(() => import(`${page.uri}`));
         ps.push({ name: p.name, index: p.index, component: React.memo(c) });

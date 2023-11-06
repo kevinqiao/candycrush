@@ -1,5 +1,6 @@
 import * as PIXI from "pixi.js";
 import { useCallback, useEffect, useRef } from "react";
+import useSmeshManager from "../component/animation/smesh/SmeshManager";
 import { CandyModel } from "../model/CandyModel";
 import { CellItem } from "../model/CellItem";
 import * as Constant from "../model/Constants";
@@ -7,6 +8,7 @@ import { MOVE_DIRECTION } from "../model/Constants";
 import useAnimationManager from "./AnimationManager";
 import * as gameEngine from "./GameEngine";
 import { useGameManager } from "./GameManager";
+
 
 const getSwipeTarget = (cellItem: CellItem, direction: number, cells: CellItem[]): CellItem | undefined => {
 
@@ -40,89 +42,66 @@ const getSwipeTarget = (cellItem: CellItem, direction: number, cells: CellItem[]
 
 const useSceneManager = (scene: PIXI.Application | undefined, textures: { id: number; texture: PIXI.Texture }[] | undefined, pid: string | undefined) => {
 
-    const { isReplay, gameEvent, gameId, lastCellId, findFreeCandies, swapCell } = useGameManager();
-    const freeCandiesRef = useRef<CellItem[]>([])
-    const dragRef = useRef<{ startX: number; startY: number; cellId: number }>({ startX: 0, startY: 0, cellId: -1 });
+    const { isReplay, gameEvent, gameId, lastCellId, findFreeCandies, swapCell, smash } = useGameManager();
+    // const freeCandiesRef = useRef<CellItem[]>([])
+    const dragRef = useRef<{ startX: number; startY: number; animation: number, cellId: number }>({ startX: 0, startY: 0, cellId: -1, animation: 0 });
     const candyMapRef = useRef(new Map<number, CandyModel>());
     const cellWRef = useRef<number>(0);
-    const animationManager = useAnimationManager(candyMapRef, cellWRef, pid);
+    const animationManager = useAnimationManager(textures, candyMapRef, cellWRef, pid);
+    const smeshManager = useSmeshManager(textures, candyMapRef, cellWRef, pid);
+
+    // useEffect(() => {
+    //     if (gameId && lastCellId > 0)
+    //         findFreeCandies(gameId ?? "0", 50).then((fc: any) => {
+    //             if (fc) {
+    //                 freeCandiesRef.current = fc;
+    //             }
+    //         })
 
 
-    useEffect(() => {
-        if (gameId && lastCellId > 0)
-            findFreeCandies(gameId ?? "0", 50).then((fc) => {
-                if (fc) {
-                    console.log(fc)
-                    freeCandiesRef.current = fc;
-                }
-            })
+    // }, [gameId, lastCellId, findFreeCandies]);
 
 
-    }, [gameId, lastCellId, findFreeCandies]);
     useEffect(() => {
         if (scene?.view)
             cellWRef.current = Math.floor(scene.view.width / Constant.COLUMN);
     }, [scene])
-    const startSwipe = useCallback(async (pointer: PointerEvent, cid: number) => {
+    const log = () => {
+        const cells: CellItem[] = Array.from(candyMapRef.current.values()).map((v) => v.data);
+        cells.sort((a, b) => {
+            if (a.row !== b.row)
+                return a.row - b.row
+            else
+                return a.column - b.column
+        })
+        console.log(JSON.parse(JSON.stringify(cells)))
+    }
+    const swipe = (direction: number, candyId: number) => {
+        const cells: CellItem[] = Array.from(candyMapRef.current.values()).map((v) => v.data);
+        const candy = cells.find((c) => c.id === candyId);
 
-        const drag = dragRef.current;
+        if (candy) {
 
-        if (drag?.cellId && cid === drag.cellId) {
-
-            const deltaX = pointer.x - drag.startX;
-            const deltaY = pointer.y - drag.startY;
-
-            let direction = 0;
-            if (Math.abs(deltaX) > Math.abs(deltaY) && Math.abs(deltaX) > 10)
-                direction = deltaX > 0 ? MOVE_DIRECTION.RIGHT : MOVE_DIRECTION.LEFT;
-            else if (Math.abs(deltaY) > 10)
-                direction = deltaY > 0 ? MOVE_DIRECTION.DOWN : MOVE_DIRECTION.UP;
-            console.log("direction:" + direction)
-            if (direction) {
-
-                drag.cellId = -1;
-                const cells: CellItem[] = Array.from(candyMapRef.current.values()).map((v) => v.data);
-                const candy = cells.find((c) => c.id === cid);
-
-                if (candy) {
-
-                    const target = getSwipeTarget(candy, direction, cells);
-                    if (target) {
-
-                        if (gameEngine.checkSwipe(candy.id, target.id, cells)) {
-                            // const c = JSON.parse(JSON.stringify(candy));
-                            // const t = JSON.parse(JSON.stringify(target));
-                            // [c.row, t.row] = [t.row, c.row];
-                            // [c.column, t.column] = [t.column, c.column]
-                            [candy.row, target.row] = [target.row, candy.row];
-                            [candy.column, target.column] = [target.column, candy.column]
-                            animationManager.swipeSuccess(candy, target);
-
-                            // const matches = gameEngine.getMatches(cells)
-                            // if (matches) {
-                            //     const result = gameEngine.processMatches(cells, matches);
-                            //     if (result) {
-                            //         animationManager.solveMatch(result, 1);
-                            //     }
-                            // }
-                            swapCell(candy.id, target.id);
-                        } else {
-                            cells.sort((a, b) => {
-                                if (a.row !== b.row)
-                                    return a.row - b.row
-                                else
-                                    return a.column - b.column
-                            })
-                            console.log(cells)
-                            animationManager.swipeFail(candy, target)
-                        }
-                    }
-
+            const target = getSwipeTarget(candy, direction, cells);
+            if (target) {
+                if (gameEngine.checkSwipe(candy.id, target.id, cells)) {
+                    // animationManager.startSwipe(candy, target);
+                    swapCell(candy.id, target.id)
+                } else {
+                    cells.sort((a, b) => {
+                        if (a.row !== b.row)
+                            return a.row - b.row
+                        else
+                            return a.column - b.column
+                    })
+                    console.log(cells)
+                    animationManager.cancelSwipe(candy, target)
                 }
-
             }
+
         }
-    }, [gameId])
+    }
+
 
     const createCandySprite = useCallback((cell: CellItem, x: number, y: number): PIXI.Sprite | null => {
 
@@ -145,16 +124,42 @@ const useSceneManager = (scene: PIXI.Application | undefined, textures: { id: nu
                     drag.startY = event.y;
                     drag.cellId = cell.id;
                 });
-                sprite.on("pointermove", (event: PointerEvent) => startSwipe(event, cell.id));
+                // sprite.on("pointermove", (event: PointerEvent) => {
+                //     const drag = dragRef.current;
+                //     const deltaX = event.x - drag.startX;
+                //     const deltaY = event.y - drag.startY;
+                //     let direction = 0;
+                //     if (Math.abs(deltaX) > Math.abs(deltaY) && Math.abs(deltaX) > 10)
+                //         direction = deltaX > 0 ? MOVE_DIRECTION.RIGHT : MOVE_DIRECTION.LEFT;
+                //     else if (Math.abs(deltaY) > 10)
+                //         direction = deltaY > 0 ? MOVE_DIRECTION.DOWN : MOVE_DIRECTION.UP;
+                //     drag.direction = direction
+                //     console.log("moving.." + drag.direction)
+                // });
                 sprite.on("pointerup", (event: PointerEvent) => {
                     const drag = dragRef.current;
-                    drag.cellId = -1
+                    const deltaX = event.x - drag.startX;
+                    const deltaY = event.y - drag.startY;
+                    let direction = 0;
+                    if (Math.abs(deltaX) > Math.abs(deltaY) && Math.abs(deltaX) > 10)
+                        direction = deltaX > 0 ? MOVE_DIRECTION.RIGHT : MOVE_DIRECTION.LEFT;
+                    else if (Math.abs(deltaY) > 10)
+                        direction = deltaY > 0 ? MOVE_DIRECTION.DOWN : MOVE_DIRECTION.UP;
+                    console.log("direction:" + direction)
+                    if (direction > 0) {
+                        console.log(cell)
+                        swipe(direction, drag.cellId)
+                    } else {
+                        console.log("smash happend")
+                        smash(drag.cellId)
+                    }
+                    // drag.cellId = -1
                 });
             }
             return sprite;
         }
         return null;
-    }, [isReplay, scene, gameId, startSwipe, textures])
+    }, [isReplay, scene, gameId, textures])
 
     const initCandies = (cells: CellItem[]) => {
         const cellW = cellWRef.current;
@@ -171,51 +176,47 @@ const useSceneManager = (scene: PIXI.Application | undefined, textures: { id: nu
     }
 
     useEffect(() => {
-
+        console.log(gameEvent)
         if (gameEvent?.name === "initGame") {
             const { cells } = gameEvent.data;
-            initCandies(cells)
+            initCandies(JSON.parse(JSON.stringify(cells)))
         } else if (gameEvent?.name === "cellSwapped") {
-            // const { candy, target } = gameEvent.data
-            // const c = candyMapRef.current.get(candy.id);
-            // if (c?.data.column !== candy.column)
-            //     animationManager.swipeSuccess(candy, target)
-        } else if (gameEvent?.name === "matchSolved") {
-
+            // log();
             const cellW = cellWRef.current;
-            for (let res of gameEvent.data) {
+            const data: { candy: CellItem; target: CellItem; results: { toChange: CellItem[]; toCreate: CellItem[]; toMove: CellItem[]; toRemove: CellItem[] }[] } = gameEvent.data;
+            // const candy = candyMapRef.current.get(data.candy.id)?.data
+            // const target = candyMapRef.current.get(data.target.id)?.data
+            // if (candy && target) {
+            //     Object.assign(candy, data.candy);
+            //     Object.assign(target, data.target)
+            // }
+            // console.log(JSON.parse(JSON.stringify(candy)))
+            // console.log(JSON.parse(JSON.stringify(target)))
+            // log();
+            for (let res of data.results) {
                 const size = res.toCreate.length;
                 res.toCreate.forEach((cell: CellItem) => {
                     const x = cell.column * cellW + Math.floor(cellW / 2);
                     const y = -cellW * (size - cell.row) - Math.floor(cellW / 2);
                     const sprite = createCandySprite(cell, x, y);
                     if (sprite)
-                        candyMapRef.current.set(cell.id, { id: cell.id, sprite, data: cell })
-                })
-                console.log(JSON.parse(JSON.stringify(res.toMove)))
-                res.toMove.forEach((cell: CellItem) => {
-                    const candy = candyMapRef.current.get(cell.id);
-                    if (candy) {
-                        console.log(JSON.parse(JSON.stringify(candy.data)))
-                        console.log(JSON.parse(JSON.stringify(cell)))
-                        Object.assign(candy.data, cell)
-                    }
+                        candyMapRef.current.set(cell.id, { id: cell.id, sprite, data: JSON.parse(JSON.stringify(cell)) })
                 })
             }
-            const cells: CellItem[] = Array.from(candyMapRef.current.values()).map((v) => v.data);
-            cells.sort((a, b) => {
-                if (a.row !== b.row)
-                    return a.row - b.row
-                else
-                    return a.column - b.column
-            })
-            animationManager.solveMatches(gameEvent.data)
-            // for (let i = 0; i < gameEvent.data.length; i++) {
-            //     const res = gameEvent.data[i];
-            //     setTimeout(() =>
-            //         animationManager.solveMatch(res, 1), i * 10 + 10)
-
-            // }
+            animationManager.solveSwipe(data)
+        } else if (gameEvent?.name === "cellSmeshed") {
+            const data: { candy: CellItem; target: CellItem; results: { toChange: CellItem[]; toCreate: CellItem[]; toMove: CellItem[]; toRemove: CellItem[] }[] } = gameEvent.data;
+            const cellW = cellWRef.current;
+            for (let res of data.results) {
+                res.toCreate.forEach((cell: CellItem) => {
+                    const x = cell.column * cellW + Math.floor(cellW / 2);
+                    const y = -cellW;
+                    const sprite = createCandySprite(cell, x, y);
+                    if (sprite)
+                        candyMapRef.current.set(cell.id, { id: cell.id, sprite, data: cell })
+                })
+            }
+            animationManager.solveSmesh(gameEvent.data)
         }
     }, [gameEvent])
 

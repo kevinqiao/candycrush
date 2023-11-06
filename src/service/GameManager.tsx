@@ -4,8 +4,6 @@ import { api } from "../convex/_generated/api";
 import { Id } from "../convex/_generated/dataModel";
 import { CellItem } from "../model/CellItem";
 import { GameEvent } from "../model/GameEvent";
-import { useBattleManager } from "./BattleManager";
-
 interface IGameContext {
   starttime: number;
   isReplay: boolean;
@@ -18,7 +16,8 @@ interface IGameContext {
   status: number;
   score: { base: number; goal: number; time: number };
   gameEvent?: GameEvent | null;
-  swapCell: (candyId: number, targetId: number) => void;
+  swapCell: (candyId: number, targetId: number) => Promise<any>;
+  smash: (candyId: number) => void;
   findFreeCandies: (gameId: string, quantity: number) => Promise<CellItem[]>;
 }
 const GameContext = createContext<IGameContext>({
@@ -33,7 +32,8 @@ const GameContext = createContext<IGameContext>({
   status: 0,
   score: { base: 0, goal: 0, time: 0 },
   gameEvent: null,
-  swapCell: (candyId: number, targetId: number) => null,
+  swapCell: async (candyId: number, targetId: number) => null,
+  smash: (candyId: number) => null,
   findFreeCandies: async (gameId: string, quantity: number) => [],
 });
 const initialState = {
@@ -52,8 +52,48 @@ const actions = {
   APPLY_MATCH: "APPLY_MATCH",
   INIT_GAME: "INIT_GAME",
   SWAP_CELL: "SWAP_CELL",
+  APPLY_SMASH: "APPLY_SMASH",
 };
+const applyProcess = (
+  res: { toCreate: CellItem[]; toRemove: CellItem[]; toMove: CellItem[]; score?: number },
+  state: any
+) => {
+  state.cells.sort((a: CellItem, b: CellItem) => {
+    if (a.row === b.row) return a.column - b.column;
+    else return a.row - b.row;
+  });
+  const { toCreate, toRemove, toMove, score } = res;
+  // let recells = state.cells;
+  if (toRemove) {
+    const rids: number[] = toRemove.map((c: CellItem) => c.id);
+    state.cells = state.cells.filter((c: CellItem) => !rids.includes(c.id));
+    for (let r of toRemove) {
+      const mitem = state.matched.find((m: { asset: number; quantity: number }) => m.asset === r.asset);
+      if (mitem) mitem.quantity++;
+      else state.matched.push({ asset: r.asset, quantity: 1 });
+    }
+  }
+  if (toCreate) {
+    state.cells.push(...toCreate);
+  }
+  console.log(JSON.parse(JSON.stringify(state.cells)));
+  if (toMove) {
+    for (let m of toMove) {
+      const cell = state.cells.find((c: CellItem) => c.id === m.id);
+      if (cell) Object.assign(cell, m);
+      else state.cells.push(m);
+    }
+  }
 
+  if (state.score) {
+    Object.assign(state.score, { base: score });
+  } else state.score = { base: score, goal: 0, time: 0 };
+  state.cells.sort((a: CellItem, b: CellItem) => {
+    if (a.row === b.row) return a.column - b.column;
+    else return a.row - b.row;
+  });
+  console.log(JSON.parse(JSON.stringify(state.cells)));
+};
 const reducer = (state: any, action: any) => {
   switch (action.type) {
     case actions.INIT_GAME:
@@ -62,55 +102,44 @@ const reducer = (state: any, action: any) => {
       return Object.assign({}, state, { matched: [] }, action.data, { starttime });
 
     case actions.SWAP_CELL:
-      const { candy, target } = action.data.data;
+      const { candy, target, results } = action.data.data;
+      // console.log(JSON.parse(JSON.stringify(candy)));
+      // console.log(JSON.parse(JSON.stringify(target)));
+      // console.log(state.cells);
       const scandy = state.cells.find((c: CellItem) => c.id === candy.id);
       if (scandy) Object.assign(scandy, candy);
       const starget = state.cells.find((c: CellItem) => c.id === target.id);
       if (starget) Object.assign(starget, target);
+      const { lastCellId, steptime } = action.data;
+      console.log("last cellid:" + lastCellId);
+      results.forEach((result: { toCreate: CellItem[]; toRemove: CellItem[]; toMove: CellItem[]; score?: number }) =>
+        applyProcess(result, state)
+      );
       state.cells.sort((a: CellItem, b: CellItem) => {
         if (a.row === b.row) return a.column - b.column;
         else return a.row - b.row;
       });
-      return Object.assign({}, state, { cells: state.cells, laststep: action.data.steptime });
-    case actions.APPLY_MATCH:
-      let recells = state.cells;
-      // console.log(JSON.parse(JSON.stringify({ pid: state.pid, recells })));
-
-      for (let res of action.data.data) {
-        // console.log(res);
-        const { toCreate, toRemove, toMove, score } = res;
-
-        if (toRemove) {
-          const rids: number[] = toRemove.map((c: CellItem) => c.id);
-          recells = recells.filter((c: CellItem) => !rids.includes(c.id));
-          for (let r of toRemove) {
-            const mitem = state.matched.find((m: { asset: number; quantity: number }) => m.asset === r.asset);
-            if (mitem) mitem.quantity++;
-            else state.matched.push({ asset: r.asset, quantity: 1 });
-          }
-        }
-        if (toMove) {
-          for (let m of toMove) {
-            const move = recells.find((c: CellItem) => c.id === m.id);
-            if (move) Object.assign(move, m);
-          }
-        }
-        if (toCreate) {
-          recells.push(...toCreate);
-        }
-        if (state.score) {
-          Object.assign(state.score, { base: score });
-        } else state.score = { base: score, goal: 0, time: 0 };
-        recells.sort((a: CellItem, b: CellItem) => {
-          if (a.row === b.row) return a.column - b.column;
-          else return a.row - b.row;
-        });
-
-        // console.log(JSON.parse(JSON.stringify({ pid: state.pid, recells })));
-      }
-
+      console.log(JSON.parse(JSON.stringify(state.cells)));
       return Object.assign({}, state, {
-        cells: recells,
+        cells: [...state.cells],
+        lastCellId,
+        matched: [...state.matched],
+        laststep: steptime,
+        score: { ...state.score },
+      });
+    case actions.APPLY_SMASH:
+      console.log(action.data.data);
+      const res = action.data.data.results;
+      res.forEach((result: { toCreate: CellItem[]; toRemove: CellItem[]; toMove: CellItem[]; score?: number }) =>
+        applyProcess(result, state)
+      );
+      // state.cells.sort((a: CellItem, b: CellItem) => {
+      //   if (a.row === b.row) return a.column - b.column;
+      //   else return a.row - b.row;
+      // });
+      // // console.log(JSON.parse(JSON.stringify(state.cells)));
+      return Object.assign({}, state, {
+        cells: [...state.cells],
         lastCellId: action.data.lastCellId,
         matched: [...state.matched],
         laststep: action.data.steptime,
@@ -140,9 +169,9 @@ export const GameProvider = ({
   const [gameEvent, setGameEvent] = useState<GameEvent | null>(null);
   const [gameEvents, setGameEvents] = useState<GameEvent[]>([]);
 
-  const { updateScore } = useBattleManager();
+  // const { updateScore } = useBattleManager();
 
-  const event: GameEvent | undefined | null = useQuery(api.events.getByGame, {
+  const events: GameEvent[] | undefined | null = useQuery(api.events.getByGame, {
     gameId: state.gameId ?? undefined,
     battleId,
     laststep: isReplay ? -1 : state.laststep,
@@ -150,17 +179,30 @@ export const GameProvider = ({
 
   const convex = useConvex();
   const swap = useAction(api.gameService.swipeCell);
-
+  const smash = useAction(api.gameService.smash);
   useEffect(() => {
-    if (event) setGameEvent(event);
-  }, [event]);
+    if (events) {
+      console.log(events);
+      let count = 0;
+      for (let event of events) {
+        setTimeout(() => setGameEvent(event), 10 * count++);
+      }
+    }
+  }, [events]);
   useEffect(() => {
     const sync = async () => {
       const g: any | null = await convex.query(api.games.findGame, {
         gameId: gameId as Id<"games">,
       });
+
       if (g) {
-        dispatch({ type: actions.INIT_GAME, data: { pid, isReplay, ...g } });
+        g.cells.sort((a: CellItem, b: CellItem) => {
+          if (a.row === b.row) return a.column - b.column;
+          else return a.row - b.row;
+        });
+
+        const laststep = g.pasttime;
+        dispatch({ type: actions.INIT_GAME, data: { pid, isReplay, ...g, laststep } });
         setGameEvent({ id: "0", steptime: 0, name: "initGame", data: g });
       }
     };
@@ -180,23 +222,16 @@ export const GameProvider = ({
   }, [gameId, convex]);
   useEffect(() => {
     if (gameEvent) {
-      console.log(gameEvent);
       const event = gameEvent as GameEvent;
-      if (event.steptime > state.laststep) {
+      if (event.steptime >= state.laststep) {
         const name = event.name;
-        switch (name) {
-          case "matchSolved":
-            dispatch({ type: actions.APPLY_MATCH, data: event });
-            const res = event.data;
-            res.sort((a: any, b: any) => b.score - a.score);
-            console.log("update battle console score");
-            if (res?.length > 0) updateScore(gameId, res[0].score);
-            break;
-          case "cellSwapped":
-            dispatch({ type: actions.SWAP_CELL, data: event });
-            break;
-          default:
-            break;
+        if (name === "cellSmeshed") {
+          dispatch({ type: actions.APPLY_SMASH, data: event });
+        } else if (name === "matchSolved") {
+          dispatch({ type: actions.APPLY_MATCH, data: event });
+        } else if (name === "cellSwapped") {
+          console.log(JSON.parse(JSON.stringify(state.cells)));
+          dispatch({ type: actions.SWAP_CELL, data: event });
         }
       }
     }
@@ -217,6 +252,10 @@ export const GameProvider = ({
           switch (pastEvents[0].name) {
             case "matchSolved":
               dispatch({ type: actions.APPLY_MATCH, data: pastEvents[0] });
+              setGameEvent(pastEvents[0]);
+              break;
+            case "cellSmeshed":
+              dispatch({ type: actions.APPLY_SMASH, data: pastEvents[0] });
               setGameEvent(pastEvents[0]);
               break;
             case "cellSwapped":
@@ -261,8 +300,15 @@ export const GameProvider = ({
     lastCellId: state.lastCellId,
     gameEvent,
     swapCell: useCallback(
-      async (candyId: number, targetId: number) => {
-        if (!isReplay) swap({ gameId: state.gameId as Id<"games">, candyId: candyId, targetId: targetId });
+      async (candyId: number, targetId: number): Promise<any> => {
+        swap({ gameId: state.gameId as Id<"games">, candyId: candyId, targetId: targetId });
+      },
+      [state.gameId, isReplay, swap]
+    ),
+    smash: useCallback(
+      async (candyId: number) => {
+        console.log("smesh candy:" + candyId);
+        if (!isReplay) smash({ gameId: state.gameId as Id<"games">, candyId: candyId });
       },
       [state.gameId, isReplay, swap]
     ),

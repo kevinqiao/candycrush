@@ -1,10 +1,8 @@
 import { useConvex } from "convex/react";
 import { useEffect, useState } from "react";
 import { api } from "../../convex/_generated/api";
-import BattleModel from "../../model/Battle";
 import useCoord from "../../service/CoordManager";
 import { useUserManager } from "../../service/UserManager";
-import BattleItem from "./BattleItem";
 const BattleHome: React.FC = () => {
   const { width, height } = useCoord();
   const { user } = useUserManager();
@@ -24,7 +22,7 @@ const BattleHome: React.FC = () => {
         overflowX: "hidden",
       }}
     >
-      {battles && battles.map((t: BattleModel) => <BattleItem key={t.id} battle={t} />)}
+      {/* {battles && battles.map((t: BattleModel) => <BattleItem key={t.id} battle={t} />)} */}
     </div>
   );
 };

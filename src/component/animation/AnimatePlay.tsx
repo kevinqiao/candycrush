@@ -1,20 +1,17 @@
 import * as PIXI from "pixi.js";
 import { useEffect, useMemo, useRef, useState } from "react";
 import candy_texture_defs from "../../model/candy_textures";
-import useSceneManager from "../../service/SceneManager";
+import useCollectCandies from "./CollectCandies ";
 interface Props {
   width: number;
   height: number;
   pid?: string;
 }
-const GamePlay: React.FC<Props> = ({ width, height, pid }) => {
+const AnimatePlay: React.FC<Props> = ({ width, height }) => {
   const sceneContainerRef = useRef<HTMLDivElement | null>(null);
   const [scene, setScene] = useState<PIXI.Application>();
   const [candy_textures, setCandyTextures] = useState<{ id: number; texture: PIXI.Texture }[]>();
-
-  // const { gameEvent } = useGamePlayHandler(battleId, game, isReplay ?? false, pid);
-
-  useSceneManager(scene, candy_textures, pid);
+  const { playCollect } = useCollectCandies(scene);
 
   useEffect(() => {
     // Initialize PixiJS Application
@@ -23,7 +20,7 @@ const GamePlay: React.FC<Props> = ({ width, height, pid }) => {
       height,
       backgroundAlpha: 0,
     } as any);
-    // (app.view as any).style.pointerEvents = 'none';
+    (app.view as any).style.pointerEvents = "none";
     if (sceneContainerRef.current) {
       sceneContainerRef.current.appendChild(app.view as unknown as Node);
       const baseTexture = PIXI.BaseTexture.from("assets/assets_candy.png");
@@ -48,4 +45,4 @@ const GamePlay: React.FC<Props> = ({ width, height, pid }) => {
   // return <div ref={sceneContainerRef} style={{ width, height }}></div>;
 };
 
-export default GamePlay;
+export default AnimatePlay;

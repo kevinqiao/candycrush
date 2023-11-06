@@ -65,7 +65,7 @@ export const BattleProvider = ({ battleId, children }: { battleId: string; child
         dispatch({ type: actions.INIT_BATTLE, data: { ...b, starttime: Date.now() - b.pasttime } });
       }
     };
-    sync();
+    // sync();
   }, [battleId, convex]);
 
   const value = {
@@ -83,6 +83,9 @@ export const BattleProvider = ({ battleId, children }: { battleId: string; child
 
   return <BattleContext.Provider value={value}> {children} </BattleContext.Provider>;
 };
+
 export const useBattleManager = () => {
   return useContext(BattleContext);
 };
+
+export default BattleProvider;

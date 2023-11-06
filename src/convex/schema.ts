@@ -45,6 +45,10 @@ export default defineSchema({
         gameId: v.string(),
         cells: v.any(),
     }),
+    glog: defineTable({
+        name: v.string(),
+        data: v.any(),
+    }),
     battle: defineTable({
         type: v.number(),
         tournamentId: v.id("tournament"),

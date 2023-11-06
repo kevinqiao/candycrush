@@ -24,6 +24,7 @@
     "web-vitals": "^2.1.4"
   },
   "scripts": {
+    "hello": "node src/test/TestEngine.js",
     "start": "react-scripts start",
     "build": "react-scripts build",
     "test": "react-scripts test",
@@ -53,6 +54,7 @@
     "@types/hammerjs": "^2.0.41",
     "@types/pixi.js": "^5.0.0",
     "@types/seedrandom": "^3.0.6",
-    "jest": "^27.5.1"
+    "jest": "^27.5.1",
+    "ts-node": "^10.9.1"
   }
 }

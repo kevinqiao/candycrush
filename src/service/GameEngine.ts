@@ -1,111 +1,217 @@
 import seedrandom from 'seedrandom';
 import { CellItem } from "../model/CellItem";
-import { MATCH_DIRECTION, MOVE_DIRECTION } from "../model/Constants";
-import { MatchModel } from '../model/MatchModel';
+import { CANDY_MATCH_TYPE } from '../model/Constants';
 import candy_textures from "../model/candy_textures";
 import * as Utils from "../util/Utils";
 
 const COLUMN = 7;
 const ROW = 8;
-
-
-function getMatchType(verticalMatch: Match, horizontalMatch: Match): 'T' | 'L' | null {
-    // Check if they intersect at a non-endpoint for the vertical match
-    const verticalIntersectionAtEnd = horizontalMatch.start.row === verticalMatch.start.row || horizontalMatch.start.row === verticalMatch.end.row;
-
-    // Check if they intersect at a non-endpoint for the horizontal match
-    const horizontalIntersectionAtEnd = verticalMatch.start.column === horizontalMatch.start.column || verticalMatch.start.column === horizontalMatch.end.column;
-
-    if (verticalIntersectionAtEnd && horizontalIntersectionAtEnd) {
-        return null;  // This isn't a T or L match
-    }
-
-    if (verticalMatch.units.length > 3 || horizontalMatch.units.length > 3) {
-        return 'T';
-    }
-
-    return 'L';
-}
-
-
-
-type Match = {
+export type Match = {
+    type: number;//0-LINE  1-T 2-L 
+    size: number;
+    status?: number;
+    items: MatchItem[]
+};
+export type MatchItem = {
     units: CellItem[];
     start: { row: number; column: number };
     end: { row: number; column: number };
     orientation: 'horizontal' | 'vertical';
+    status?: number;//0-active 1-inactive
 };
 
-export const findMatches = (grid: CellItem[][]): Match[] => {
+
+
+export const findMatches = (grid: CellItem[][]): MatchItem[] => {
+
     const rows = grid.length;
     const columns = grid[0].length;
-    const matches: Match[] = [];
-
+    const matches: MatchItem[] = [];
     for (let row = 0; row < rows; row++) {
         let col = 0;
+        let start = grid[row][0];
+        let units: CellItem[] = [];
         while (col < columns) {
-            const unit = grid[row][col];
-
-            // Check horizontal matches
-            if (col < columns - 2 && !unit.status &&
-                unit.asset === grid[row][col + 1].asset &&
-                unit.asset === grid[row][col + 2].asset) {
-                const matchUnits: CellItem[] = [];
-                let offset = 0;
-                while (col + offset < columns && unit.asset === grid[row][col + offset].asset) {
-                    matchUnits.push(grid[row][col + offset]);
-                    offset++;
+            if (!grid[row][col])
+                console.log("row:" + row + ";col:" + col + " is null")
+            if (grid[row][col].asset === start.asset) {
+                units.push(grid[row][col])
+            } else {
+                if (units.length >= 3) {
+                    matches.push({ units: [...units], start: { row: start.row, column: start.column }, end: { row: row, column: col - 1 }, orientation: "horizontal" })
                 }
-
-                matches.push({
-                    units: matchUnits,
-                    start: { row: row, column: col },
-                    end: { row: row, column: col + offset - 1 },
-                    orientation: 'horizontal'
-                });
-
-                col += offset; // Move the column pointer by the size of the match
-                continue; // Skip to the next iteration to avoid rechecking this column
+                start = grid[row][col]
+                units = [start]
             }
-
             col++; // Move to the next column if no match was found
+        }
+        if (units.length >= 3) {
+            matches.push({ units: [...units], start: { row: start.row, column: start.column }, end: { row: row, column: col - 1 }, orientation: "horizontal" })
         }
     }
 
     for (let col = 0; col < columns; col++) {
         let row = 0;
+        let start = grid[0][col];
+        let units: CellItem[] = [];
         while (row < rows) {
-            const unit = grid[row][col];
-
-            // Check vertical matches
-            if (row < rows - 2 && !unit.status &&
-                unit.asset === grid[row + 1][col].asset &&
-                unit.asset === grid[row + 2][col].asset) {
-                const matchUnits: CellItem[] = [];
-                let offset = 0;
-                while (row + offset < rows && unit.asset === grid[row + offset][col].asset) {
-                    matchUnits.push(grid[row + offset][col]);
-                    offset++;
+            // console.log(col + "," + row + ";" + grid[row][col].asset + ":" + start.asset + ":" + units.length)
+            if (grid[row][col].asset === start.asset) {
+                units.push(grid[row][col])
+            } else {
+                if (units.length >= 3) {
+                    matches.push({ units: [...units], start: { row: start.row, column: start.column }, end: { row: row - 1, column: col }, orientation: "vertical" })
                 }
-
-                matches.push({
-                    units: matchUnits,
-                    start: { row: row, column: col },
-                    end: { row: row + offset - 1, column: col },
-                    orientation: 'vertical'
-                });
-
-                row += offset; // Move the row pointer by the size of the match
-                continue; // Skip to the next iteration to avoid rechecking this row
+                start = grid[row][col]
+                units = [start]
             }
-
-            row++; // Move to the next row if no match was found
+            row++; // Move to the next column if no match was found
+        }
+        if (units.length >= 3) {
+            matches.push({ units: [...units], start: { row: start.row, column: start.column }, end: { row: row - 1, column: col }, orientation: "vertical" })
         }
     }
 
     return matches;
 }
 
+export const checkMatches = (cells: CellItem[]): any => {
+    // const result: { id: number; toCreate: CellItem[]; toMove: CellItem[]; toRemove: CellItem[] }[] = [];
+    const grid: CellItem[][] = Array.from({ length: ROW }, () => Array(COLUMN).fill(null));
+    // Populate the two-dimensional array
+    for (const unit of cells) {
+        grid[unit.row][unit.column] = unit;
+    }
+
+    const allmatches: MatchItem[] = findMatches(grid);
+    const matches4: Match[] = getMatchPlus4(allmatches);
+    matches4.forEach((m) => m.status = 1);
+
+    const specials: Match[] = getSpecials(allmatches);
+    specials.forEach((m) => {
+        m.items.forEach((item) => item.status = 1)
+    });
+
+    const matches3: MatchItem[] = allmatches.filter((m) => {
+        const us = m.units.filter((u) => u.status);
+        if (!m.status && us.length === 0 && m.units.length === 3)
+            return true;
+        else
+            return false;
+    })
+    const matches: Match[] = [];
+    for (let m of matches3) {
+        m.status = 1;
+        m.units.forEach((u) => u.status = 1);
+        matches.push({ type: CANDY_MATCH_TYPE.LINE, size: 3, items: [m] })
+    }
+    matches.push(...matches4);
+    matches.push(...specials)
+    return matches
+}
+
+export const getMatchPlus4 = (matches: MatchItem[]): Match[] => {
+    const matches4: Match[] = [];
+    const m4 = matches.filter((m) => m.units.length >= 4).sort((a, b) => {
+        return b.units.length - a.units.length
+    })
+    // console.log(m4)
+    for (let m of m4) {
+        const munits = m.units.filter((u) => u.status);
+        // console.log(munits.length)
+        if (munits.length > 0) {
+
+            let start = m.start;
+            munits.sort((a, b) => (a.row + a.column) - (b.row + b.column));
+            for (let unit of munits) {
+
+                const num = m.orientation === "horizontal" ? unit.column - start.column : unit.row - start.row;
+                // console.log("num:" + num + " " + m.orientation)
+                if (num >= 3) {
+                    const row = m.orientation === "horizontal" ? unit.row : unit.row - 1;
+                    const column = m.orientation === "horizontal" ? unit.column - 1 : unit.column;
+                    const units = m.units.filter((u) => (u.row + u.column) <= (row + column) && (u.row + u.column) >= (start.row + start.column));
+                    const nmatch = {
+                        units,
+                        start,
+                        end: { row, column },
+                        orientation: m.orientation
+                    }
+
+                    if (num >= 4) {
+                        matches4.push({ type: CANDY_MATCH_TYPE.LINE, size: units.length, items: [nmatch] })
+                        nmatch.units.forEach((u) => u.status = 1);
+                    } else {
+                        matches.push(nmatch);
+                    }
+                }
+                if (unit.column < m.end.column || unit.row < m.end.row)
+                    start = { row: m.orientation === "horizontal" ? unit.row : unit.row + 1, column: m.orientation === "horizontal" ? unit.column + 1 : unit.column }
+            }
+            const num = m.orientation === "horizontal" ? m.end.column - start.column : m.end.row - start.row;
+            // console.log("num1:" + num)
+            if (num >= 2) {
+                const units = m.units.filter((u) => (u.row + u.column) <= (m.end.row + m.end.column) && (u.row + u.column) >= (start.row + start.column));
+                const nmatch = {
+                    units,
+                    start,
+                    end: m.end,
+                    orientation: m.orientation
+                }
+                // console.log(nmatch)
+                if (num > 3) {
+                    matches4.push({ type: CANDY_MATCH_TYPE.LINE, size: units.length, items: [nmatch] })
+                    nmatch.units.forEach((u) => u.status = 1);
+                } else {
+                    matches.push(nmatch);
+                }
+            }
+        } else {
+            m.units.forEach((u) => u.status = 1);
+            matches4.push({ type: CANDY_MATCH_TYPE.LINE, size: m.units.length, items: [m] })
+        }
+    }
+    return matches4;
+
+}
+export const getSpecials = (matches: MatchItem[]): Match[] => {
+    const matches3: MatchItem[] = matches.filter((m) => {
+        const us = m.units.filter((u) => u.status);
+        if (!m.status && us.length === 0 && m.units.length === 3)
+            return true;
+        else
+            return false;
+    })
+    const specials: Match[] = [];
+    const vmatches: MatchItem[] = matches3.filter(m => m.orientation === 'vertical');
+    const hmatches: MatchItem[] = matches3.filter(m => m.orientation === 'horizontal');
+    for (const vmatch of vmatches) {
+        if (vmatch.units.filter((u) => !u.status).length === 3) {
+            for (const hmatch of hmatches) {
+                const len = hmatch.units.filter((u) => !u.status).length;
+                if (len === 3 && hmatch.start.row >= vmatch.start.row &&
+                    hmatch.start.row <= vmatch.end.row &&
+                    vmatch.start.column >= hmatch.start.column &&
+                    vmatch.start.column <= hmatch.end.column) {
+                    const verticalAtEndpoint = hmatch.start.row === vmatch.end.row && (hmatch.start.column === vmatch.end.column ||
+                        hmatch.end.column === vmatch.end.column);
+
+                    const verticalAtStartpoint = hmatch.start.row === vmatch.start.row && (hmatch.start.column === vmatch.start.column ||
+                        hmatch.end.column === vmatch.start.column);
+                    console.log(verticalAtEndpoint + ":" + verticalAtStartpoint)
+                    const mtype = verticalAtEndpoint || verticalAtStartpoint ? CANDY_MATCH_TYPE.LMODEL : CANDY_MATCH_TYPE.TMODEL;
+
+                    if (mtype) {
+                        specials.push({ type: mtype, size: 5, items: [vmatch, hmatch] });
+                        vmatch.units.forEach((u) => u.status = 1)
+                        hmatch.units.forEach((u) => u.status = 1);
+                    }
+                }
+            }
+        }
+    }
+    return specials
+}
 export const checkSwipe = (candyId: number, targetId: number, cells: CellItem[]): boolean => {
     let matched = false;
     const candies: CellItem[] = JSON.parse(JSON.stringify(cells));
@@ -128,7 +234,6 @@ export const checkSwipe = (candyId: number, targetId: number, cells: CellItem[])
                     matched = true;
                     break;
                 }
-
             }
 
         }
@@ -151,233 +256,8 @@ export const checkSwipe = (candyId: number, targetId: number, cells: CellItem[])
     return matched;
 }
 
-export const getSwipeTarget = (cellItem: CellItem, direction: number, cells: CellItem[]): CellItem | undefined => {
 
-    let target;
-    if (cellItem) {
-        switch (direction) {
-            //right move
-            case MOVE_DIRECTION.RIGHT:
-                target = cells.find((c) => c.row === cellItem.row && c.column === cellItem.column + 1);
-                break;
-            //down move
-            case MOVE_DIRECTION.DOWN:
-                target = cells.find((c) => c.row === cellItem.row + 1 && c.column === cellItem.column);
-                break;
-            //left move
-            case MOVE_DIRECTION.LEFT:
-                target = cells.find((c) => c.row === cellItem.row && c.column === cellItem.column - 1);
-                break;
-            //up move
-            case MOVE_DIRECTION.UP:
-                target = cells.find((c) => c.row === cellItem.row - 1 && c.column === cellItem.column);
-                break;
-            default:
-                break;
-        }
-    }
-
-    return target;
-
-}
-export const getMatches = (cells: CellItem[]): MatchModel[] | undefined => {
-
-    const horMatches: MatchModel[] = [];
-    const verMatches: MatchModel[] = []
-
-    // Check for horizontal matches
-    for (let y = 0; y < ROW; y++) {
-        let start = cells.find((c) => c.row === y && c.column === 0);
-        let count = 0;
-
-        for (let x = 0; x < COLUMN - 1; x++) {
-            const cur = cells.find((c) => c.row === y && c.column === x);
-            const next = cells.find((c) => c.row === y && c.column === x + 1);
-            if (cur && next) {
-                if (!start)
-                    start = cur;
-                if (next.asset === cur.asset) {
-                    count++;
-                } else {
-                    if (count >= 2) {
-                        horMatches.push({ start: start, end: cur, size: count + 1, direction: MATCH_DIRECTION.HORIZATION, asset: cur.asset })
-                    }
-                    start = next;
-                    count = 0;
-                }
-            }
-
-        }
-        if (start && count >= 2) {
-            const cur = cells.find((c) => c.column === COLUMN - 1 && c.row === y);
-            if (cur)
-                horMatches.push({ start: start, end: cur, size: count + 1, direction: MATCH_DIRECTION.HORIZATION, asset: cur.asset })
-        }
-
-    }
-
-    // Check for vertical matches
-    for (let x = 0; x < COLUMN; x++) {
-        let start: CellItem | null = null;
-        let count = 0;
-
-        for (let y = 0; y < ROW - 1; y++) {
-
-            const cur = cells.find((c) => c.row === y && c.column === x);
-            const next = cells.find((c) => c.row === y + 1 && c.column === x);
-
-            if (cur && next) {
-                if (!start)
-                    start = cur;
-                if (next.asset === cur.asset) {
-                    count++;
-                } else {
-                    if (count >= 2) {
-                        verMatches.push({ start: start, end: cur, size: count + 1, direction: MATCH_DIRECTION.VERTICAL, asset: cur.asset })
-                    }
-                    start = next;
-                    count = 0;
-                }
-            }
-
-        }
-        if (start && count >= 2) {
-            const cur = cells.find((c) => c.row === ROW - 1 && c.column === x);
-            if (cur)
-                verMatches.push({ start: start, end: cur, size: count + 1, direction: MATCH_DIRECTION.VERTICAL, asset: cur.asset })
-        }
-    }
-
-    return [...horMatches, ...verMatches]
-
-}
-
-
-function handleMatch(grid: CellItem[][]) {
-
-    const match4: Match[] = [];
-    const matchSpecials: { type: string, matches: Match[] }[] = [];
-    while (true) {
-        const matches: Match[] = findMatches(grid);
-
-        //check for more than 4 connect
-        const mplus4 = matches.filter((m) => m.units.length >= 4);
-        if (mplus4.length === 0)
-            break;
-        mplus4.sort((a, b) => {
-            return a.units.length - b.units.length
-        })
-        for (let match of mplus4) {
-            if (match4.length === 0) {
-                match4.push(match);
-                match.units.forEach((u) => u.status = 1)
-            } else {
-                const cs = match4.filter((m) => {
-                    if (m.orientation === match.orientation)
-                        return false
-                    else {
-                        const vmatch = m.orientation === "vertical" ? m : match;
-                        const hmatch = m.orientation === "horizontal" ? m : match;
-                        if (hmatch.start.row >= vmatch.start.row &&
-                            hmatch.start.row <= vmatch.end.row &&
-                            vmatch.start.column >= hmatch.start.column &&
-                            vmatch.start.column <= hmatch.end.column)
-                            return true;
-                        return false;
-                    }
-                })
-                if (cs.length === 0) {
-                    match4.push(match);
-                    match.units.forEach((u) => u.status = 1)
-                }
-            }
-        }
-    }
-    // Check for T or L
-    while (true) {
-        let nospecial = true;
-        const matches: Match[] = findMatches(grid);
-        if (matches.length === 0)
-            break;
-        for (const verticalMatch of matches.filter(m => m.orientation === 'vertical')) {
-            for (const horizontalMatch of matches.filter(m => m.orientation === 'horizontal')) {
-                if (horizontalMatch.start.row >= verticalMatch.start.row &&
-                    horizontalMatch.start.row <= verticalMatch.end.row &&
-                    verticalMatch.start.column >= horizontalMatch.start.column &&
-                    verticalMatch.start.column <= horizontalMatch.end.column) {
-                    const matchType = getMatchType(verticalMatch, horizontalMatch);
-                    if (matchType) {
-                        matchSpecials.push({ type: matchType, matches: [horizontalMatch, verticalMatch] });
-                        verticalMatch.units.forEach((u) => u.status = 1)
-                        horizontalMatch.units.forEach((u) => u.status = 1)
-                        nospecial = false
-                    }
-                }
-            }
-        }
-        if (nospecial)
-            break;
-    }
-
-    const match3: Match[] = findMatches(grid);
-
-}
-
-export const processSwapped = (game: any, freeCanides: CellItem[]) => {
-    // { cells: CellItem[]; lastCellId: number; seed: string; matched: { asset: number; quantity: number }[] }
-
-    const allResults: any[] = [];
-    let count = 0;
-    while (true) {
-        count++;
-        const matches: MatchModel[] | undefined = getMatches(game.cells);
-
-        if (matches && matches.length > 0) {
-
-            const rs = processMatches(game.cells, matches);
-
-            if (rs?.toRemove) {
-                const toCreate: CellItem[] = [];
-                for (let i = 0; i < COLUMN; i++) {
-                    const size = rs.toRemove.filter((c) => c.column === i).length;
-                    for (let j = 0; j < size; j++) {
-                        // const random = RandomUtil.getNthRandom(game.seed, game.lastCellId ?? 0);
-                        // const index = Math.floor(random * (candy_textures.length - 10));
-                        // const asset = candy_textures[index]["id"] ?? 0;
-                        const candy = freeCanides.find((f) => f.id === game.lastCellId);
-                        if (candy) {
-                            candy.column = i;
-                            candy.row = j;
-                            toCreate.push(candy);
-                            game.lastCellId++;
-                        }
-
-                        // const cell = {
-                        //     asset,
-                        //     column: i,
-                        //     id: game.lastCellId ? game.lastCellId++ : 0,
-                        //     row: j,
-                        // };
-                        // toCreate.push(cell);
-                    }
-                }
-                rs['toCreate'] = toCreate;
-            }
-            // console.log(rs)
-            const res = applyMatches({ cells: game.cells, matched: game.matched ?? [] }, rs);
-            game.cells = res.cells;
-            game.matched = res.matched;
-
-            allResults.push({ id: count, ...rs, score: res.score });
-
-        } else {
-            break;
-        }
-    }
-    return allResults
-}
-export const initGame = () => {
-    const seed = Utils.getRandomSeed(10);
+export const createGame = (seed: string) => {
     const rng = seedrandom(seed)
     // const cellTypes = Array.from({ length: 6 }, (_, k) => k);
     const cells: CellItem[] = [];
@@ -411,73 +291,81 @@ export const initGame = () => {
     return { lastCellId, cells, seed };
 }
 
-export const processMatches = (cells: CellItem[], matches: MatchModel[]) => {
-    let results: { toRemove?: CellItem[], toMove?: CellItem[], toCreate?: CellItem[] } = {};
-    const allRemoves: CellItem[] = [];
-    const ucells = JSON.parse(JSON.stringify(cells));
-    for (let match of matches) {
+export const initGame = () => {
+    const seed = Utils.getRandomSeed(10);
+    return createGame(seed)
+    // const rng = seedrandom(seed)
+    // // const cellTypes = Array.from({ length: 6 }, (_, k) => k);
+    // const cells: CellItem[] = [];
+    // let lastCellId: number = 1;
+    // for (let y = 0; y < ROW; y++) {
+    //     for (let x = 0; x < COLUMN; x++) {
+    //         let asset = -1;
+    //         while (true) {
+    //             const index = Math.floor(rng() * (candy_textures.length - 10));
+    //             asset = candy_textures[index]['id'] ?? 0;
+    //             if (x >= 2) {
+    //                 const x0 = cells.find((c) => c.row === y && c.column === x - 1);
+    //                 const x1 = cells.find((c) => c.row === y && c.column === x - 2);
+    //                 if (x0?.asset === asset && x1?.asset === asset) {
+    //                     continue;
+    //                 }
+    //             }
+    //             if (y >= 2) {
+    //                 const y0 = cells.find((c) => c.row === y - 1 && c.column === x);
+    //                 const y1 = cells.find((c) => c.row === y - 2 && c.column === x);
+    //                 if (y0?.asset === asset && y1?.asset === asset) {
+    //                     continue;
+    //                 }
+    //             }
+    //             break;
+    //         }
 
-        let removes: CellItem[] = ucells.filter(
-            (c: CellItem) =>
-                c.row >= match.start.row &&
-                c.row <= match.end.row &&
-                c.column >= match.start.column &&
-                c.column <= match.end.column && !allRemoves.some((a) => a.id === c.id)
-        )
-        allRemoves.push(...removes)
-    }
-
-    for (let r of allRemoves) {
-        r.status = 1;
-        let moves: CellItem[] = ucells.filter((c: CellItem) => c.status !== 1 && c.column === r.column && c.row < r.row);
-        moves.forEach((m: CellItem) => {
-            m.row = m.row + 1;
-            m.status = 2
-        })
-
-    }
-
-    results.toRemove = allRemoves;
-    results.toMove = ucells.filter((u: CellItem) => u.status === 2).sort((a: CellItem, b: CellItem) => {
-        return a.column - b.column
-    });
-    return results;
-
+    //         cells.push({ id: lastCellId++, row: y, column: x, asset });
+    //     }
+    // }
+    // return { lastCellId, cells, seed };
 }
+
 
 export const applyMatches = (
-    game: { matched: { asset: number; quantity: number }[]; cells: CellItem[] },
-    results: { id?: number; toMove?: CellItem[]; toRemove?: CellItem[]; toCreate?: CellItem[] }
+    gameObj: { matched: { asset: number; quantity: number }[]; cells: CellItem[] },
+    results: { id?: number; toMove?: CellItem[]; toChange?: CellItem[]; toRemove?: CellItem[]; toCreate?: CellItem[] }
 ) => {
-
-    let resovledCells: CellItem[] = JSON.parse(JSON.stringify(game.cells));
-    let rematched: { asset: number; quantity: number }[] = JSON.parse(JSON.stringify(game.matched));
-    // console.log(JSON.parse(JSON.stringify(cells)))
-    if (results.toRemove) {
-        const rids: number[] = results.toRemove.map((c) => c.id);
-        resovledCells = resovledCells.filter((c) => !rids.includes(c.id));
-        for (let r of results.toRemove) {
-            const mitem = rematched.find((m: { asset: number; quantity: number }) => m.asset === r.asset);
-            if (mitem) mitem.quantity++;
-            else rematched.push({ asset: r.asset, quantity: 1 });
-        }
-
+    const game: { matched: { asset: number; quantity: number }[]; cells: CellItem[] } = JSON.parse(JSON.stringify(gameObj))
+    const { toRemove, toMove, toChange, toCreate } = results;
+    if (toRemove) {
+        game.cells = game.cells.filter((c) => toRemove.findIndex((r) => r.id === c.id) < 0)
     }
-    // console.log(JSON.parse(JSON.stringify(resovledCells)))
-    if (results.toMove) {
-        for (let m of results.toMove) {
-            const move = resovledCells.find((c) => c.id === m.id);
-            if (move) Object.assign(move, m);
-        }
+    if (toChange) {
+        toChange.forEach((c) => {
+            const cell = game.cells.find((s) => s.id === c.id);
+            if (cell)
+                Object.assign(cell, c);
+            console.log(cell)
+        })
     }
-    if (results.toCreate) {
-        resovledCells.push(...results.toCreate);
+    if (toMove) {
+        toMove.forEach((c) => {
+            const cell = game.cells.find((s) => s.id === c.id);
+            if (cell)
+                Object.assign(cell, c);
+        })
     }
-    const score = rematched.reduce((total, a) => total + a.quantity, 0)
-    // console.log(JSON.parse(JSON.stringify(resovledCells)))
-    return {
-        cells: resovledCells, matched: rematched, score
-    };
+    if (toCreate) {
+        game.cells = [...game.cells, ...toCreate]
+    }
+    return game
 }
+export const getScore = (game: any) => {
+    const score: { base: number; goal: number; time: number } = { base: 0, goal: 0, time: 0 };
+    if (game.score)
+        Object.assign(score, game.score);
+    else if (game.matched) {
+        score.base = game.matched.reduce((s: number, a: { asset: number; quantity: number }) => s + a.quantity, 0);
+    }
+    return score;
+}
+
 
 

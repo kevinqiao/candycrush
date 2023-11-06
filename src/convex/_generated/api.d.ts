@@ -23,6 +23,7 @@ import type * as events from "../events";
 import type * as games from "../games";
 import type * as gameseed from "../gameseed";
 import type * as gameService from "../gameService";
+import type * as glog from "../glog";
 import type * as leaderboard from "../leaderboard";
 import type * as tournaments from "../tournaments";
 import type * as tournamentService from "../tournamentService";
@@ -47,6 +48,7 @@ declare const fullApi: ApiFromModules<{
   games: typeof games;
   gameseed: typeof gameseed;
   gameService: typeof gameService;
+  glog: typeof glog;
   leaderboard: typeof leaderboard;
   tournaments: typeof tournaments;
   tournamentService: typeof tournamentService;

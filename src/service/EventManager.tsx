@@ -30,7 +30,7 @@ const useEventSubscriber = (selectors: string[], topics: string[]) => {
   const userEvent: any = useQuery(api.events.getByUser, { uid: user?.uid ?? "###" });
   useEffect(() => {
     if (userEvent) {
-      console.log(userEvent);
+      // console.log(userEvent);
       setEvent(userEvent);
     }
   }, [userEvent]);

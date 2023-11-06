@@ -13,9 +13,9 @@ const play = (cells: CellItem[], candyMap: Map<Number, CandyModel>, cellW: numbe
                     {
                         x: c.column * cellW + Math.floor(cellW / 2),
                         y: c.row * cellW + Math.floor(cellW / 2),
-                        duration: 0.2,
+                        duration: 0.4,
                         ease: 'power2.out',
-                    }, 0.2)
+                    }, 0.4)
         }
     })
 

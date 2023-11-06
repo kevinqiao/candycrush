@@ -28,4 +28,21 @@ export const STACK_PAGE_DIRECTION = {
     RIGHT: 2,
     CENTER: 0
 }
+export const CANDY_CONN = {
+    HORIZONTAL: 28,
+    VERTICAL: 29
+}
+export const CANDY_SMASH_TYPE = {
+    LINE: 1,
+    EXPLODE: 2,
+    FLY: 3,
+    SQUASH: 4,
+    DIG: 5,
+    OTHER: 6
+}
+export const CANDY_MATCH_TYPE = {
+    LINE: 0,
+    TMODEL: 1,
+    LMODEL: 2,
+}
 export const BATTLE_DURATION = 180000
