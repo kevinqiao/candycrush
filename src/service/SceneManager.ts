@@ -1,6 +1,5 @@
 import * as PIXI from "pixi.js";
 import { useCallback, useEffect, useRef } from "react";
-import useSmeshManager from "../component/animation/smesh/SmeshManager";
 import { CandyModel } from "../model/CandyModel";
 import { CellItem } from "../model/CellItem";
 import * as Constant from "../model/Constants";
@@ -40,26 +39,13 @@ const getSwipeTarget = (cellItem: CellItem, direction: number, cells: CellItem[]
 
 }
 
-const useSceneManager = (scene: PIXI.Application | undefined, textures: { id: number; texture: PIXI.Texture }[] | undefined, pid: string | undefined) => {
+const useSceneManager = (scene: PIXI.Application | undefined, textures: { id: number; texture: PIXI.Texture }[] | undefined) => {
 
-    const { isReplay, gameEvent, gameId, lastCellId, findFreeCandies, swapCell, smash } = useGameManager();
-    // const freeCandiesRef = useRef<CellItem[]>([])
+    const { isReplay, gameEvent, gameId, swapCell, smash } = useGameManager();
     const dragRef = useRef<{ startX: number; startY: number; animation: number, cellId: number }>({ startX: 0, startY: 0, cellId: -1, animation: 0 });
     const candyMapRef = useRef(new Map<number, CandyModel>());
     const cellWRef = useRef<number>(0);
-    const animationManager = useAnimationManager(textures, candyMapRef, cellWRef, pid);
-    const smeshManager = useSmeshManager(textures, candyMapRef, cellWRef, pid);
-
-    // useEffect(() => {
-    //     if (gameId && lastCellId > 0)
-    //         findFreeCandies(gameId ?? "0", 50).then((fc: any) => {
-    //             if (fc) {
-    //                 freeCandiesRef.current = fc;
-    //             }
-    //         })
-
-
-    // }, [gameId, lastCellId, findFreeCandies]);
+    const animationManager = useAnimationManager(textures, candyMapRef, cellWRef);
 
 
     useEffect(() => {
@@ -184,15 +170,7 @@ const useSceneManager = (scene: PIXI.Application | undefined, textures: { id: nu
             // log();
             const cellW = cellWRef.current;
             const data: { candy: CellItem; target: CellItem; results: { toChange: CellItem[]; toCreate: CellItem[]; toMove: CellItem[]; toRemove: CellItem[] }[] } = gameEvent.data;
-            // const candy = candyMapRef.current.get(data.candy.id)?.data
-            // const target = candyMapRef.current.get(data.target.id)?.data
-            // if (candy && target) {
-            //     Object.assign(candy, data.candy);
-            //     Object.assign(target, data.target)
-            // }
-            // console.log(JSON.parse(JSON.stringify(candy)))
-            // console.log(JSON.parse(JSON.stringify(target)))
-            // log();
+
             for (let res of data.results) {
                 const size = res.toCreate.length;
                 res.toCreate.forEach((cell: CellItem) => {

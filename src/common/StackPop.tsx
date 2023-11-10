@@ -34,6 +34,7 @@ const StackPop: React.FC<PopupProps> = ({ zIndex, position, render }) => {
   useEffect(() => {
     StackAnimation.play();
   }, []);
+
   const togglePopup = () => {
     StackAnimation.stop();
     if (position) {

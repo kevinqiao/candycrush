@@ -16,7 +16,7 @@ const useGamePlayHandler = (battleId: string | undefined, game: GameModel | null
   const [event, setEvent] = useState<GameEvent | null>(null)
   const [gameEvents, setGameEvents] = useState<GameEvent[]>([])
   // const { createEvent } = useEventSubscriber([], []);
-  const gameEvent: any = useQuery(api.events.getByGame, { gameId: game?.gameId, battleId, laststep: -1 });
+  const gameEvent: any = useQuery(api.events.getByGame, { gameId: game?.gameId, laststep: -1 });
 
 
   const processMatchSolved = (gevent: GameEvent) => {

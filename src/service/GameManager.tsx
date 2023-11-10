@@ -151,13 +151,11 @@ const reducer = (state: any, action: any) => {
   }
 };
 export const GameProvider = ({
-  battleId,
   gameId,
   isReplay,
   pid,
   children,
 }: {
-  battleId: string;
   gameId: string;
   isReplay: boolean;
   pid?: string;
@@ -173,7 +171,6 @@ export const GameProvider = ({
 
   const events: GameEvent[] | undefined | null = useQuery(api.events.getByGame, {
     gameId: state.gameId ?? undefined,
-    battleId,
     laststep: isReplay ? -1 : state.laststep,
   });
 

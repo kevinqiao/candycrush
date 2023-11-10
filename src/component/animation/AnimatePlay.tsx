@@ -1,18 +1,24 @@
 import * as PIXI from "pixi.js";
 import { useEffect, useMemo, useRef, useState } from "react";
 import candy_texture_defs from "../../model/candy_textures";
+import useEventSubscriber from "../../service/EventManager";
+import useDimension from "../../util/useDimension";
 import useCollectCandies from "./CollectCandies ";
 interface Props {
   width: number;
   height: number;
   pid?: string;
 }
-const AnimatePlay: React.FC<Props> = ({ width, height }) => {
+const AnimatePlay: React.FC = () => {
   const sceneContainerRef = useRef<HTMLDivElement | null>(null);
   const [scene, setScene] = useState<PIXI.Application>();
   const [candy_textures, setCandyTextures] = useState<{ id: number; texture: PIXI.Texture }[]>();
-  const { playCollect } = useCollectCandies(scene);
-
+  const { playCollect } = useCollectCandies(scene, candy_textures);
+  const { event } = useEventSubscriber(["candyRemoved"], []);
+  const { width, height } = useDimension(sceneContainerRef);
+  useEffect(() => {
+    if (event) playCollect(event.data);
+  }, [event]);
   useEffect(() => {
     // Initialize PixiJS Application
     const app = new PIXI.Application({

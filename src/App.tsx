@@ -1,4 +1,6 @@
 import { ConvexProvider, ConvexReactClient } from "convex/react";
+import { gsap } from "gsap";
+import MotionPathPlugin from "gsap/MotionPathPlugin";
 import NavController from "./component/NavController";
 import StackController from "./component/StackController";
 import MainMenu from "./component/menu/MainMenu";
@@ -6,7 +8,8 @@ import { CoordProvider } from "./service/CoordManager";
 import { EventProvider } from "./service/EventManager";
 import { PageProvider } from "./service/PageManager";
 import { UserProvider } from "./service/UserManager";
-
+// Register the plugin once globally
+gsap.registerPlugin(MotionPathPlugin);
 const convex = new ConvexReactClient("https://dazzling-setter-839.convex.cloud");
 function App() {
   console.log("app init");

@@ -2,6 +2,7 @@ import { useConvex } from "convex/react";
 import React, { createContext, useCallback, useContext, useEffect } from "react";
 import { api } from "../convex/_generated/api";
 import { Id } from "../convex/_generated/dataModel";
+import BattleModel from "../model/Battle";
 import { useUserManager } from "./UserManager";
 interface GameScore {
   player: { uid: string; name: string };
@@ -51,14 +52,14 @@ const reducer = (state: any, action: any) => {
       return state;
   }
 };
-export const BattleProvider = ({ battleId, children }: { battleId: string; children: React.ReactNode }) => {
+export const BattleProvider = ({ battle, children }: { battle: BattleModel; children: React.ReactNode }) => {
   const [state, dispatch] = React.useReducer(reducer, initialState);
   const { user } = useUserManager();
   const convex = useConvex();
   useEffect(() => {
     const sync = async () => {
       const b: any | null = await convex.query(api.battle.findBattle, {
-        battleId: battleId as Id<"battle">,
+        battleId: battle.id as Id<"battle">,
       });
       if (b) {
         console.log(b);
@@ -66,7 +67,7 @@ export const BattleProvider = ({ battleId, children }: { battleId: string; child
       }
     };
     // sync();
-  }, [battleId, convex]);
+  }, [battle, convex]);
 
   const value = {
     starttime: state.starttime,

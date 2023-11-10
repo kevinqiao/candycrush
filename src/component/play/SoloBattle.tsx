@@ -5,46 +5,46 @@ import AnimatePlay from "../animation/AnimatePlay";
 import BattleConsole from "./console/BattleConsole";
 import GamePlay from "./GamePlay";
 
-const SoloBattle = ({ battle, position }: { battle: BattleModel; position: any }) => {
+const SoloBattle = ({ battle, width, height }: { battle: BattleModel; width: number; height: number }) => {
   const { user } = useUserManager();
-  const playerGame = user ? battle?.games?.find((g) => g.uid === user.uid) : null;
+ 
 
   return (
     <>
-      {playerGame && (
-        <GameProvider battleId={battle.id} gameId={playerGame.gameId} isReplay={false} pid={"origin"}>
-          <>
-            <div style={{ display: "flex", justifyContent: "center", width: "100%", height: position.height * 0.3 }}>
-              <div style={{ width: "50%" }}>
-                <BattleConsole />
-              </div>
-            </div>
-            <div style={{ height: 10 }} />
+      <div style={{ position: "absolute", top: 10, left: 100, width: width * 0.5, height: height * 0.3 }}>
+        <BattleConsole />
+      </div>
 
-            <div
-              key={"b2"}
-              style={{ display: "flex", justifyContent: "center", width: "100%", backgroundColor: "transparent" }}
-            >
-              {position ? <GamePlay width={position.width * 0.8} height={position.height * 0.6} pid="origin" /> : null}
-            </div>
+      <GameProvider gameId={battle.games[0].gameId} isReplay={false} pid={"origin"}>
+        <div
+          key={"b2"}
+          style={{
+            position: "absolute",
+            top: height * 0.4,
+            left: 50,
+            width: width * 0.8,
+            height: height * 0.6,
+            backgroundColor: "transparent",
+          }}
+        >
+          <GamePlay />
+        </div>
+      </GameProvider>
 
-            <div
-              key={"a2"}
-              style={{
-                position: "absolute",
-                top: 0,
-                left: 0,
-                height: "100%",
-                width: "100%",
-                backgroundColor: "transparent",
-                pointerEvents: "none",
-              }}
-            >
-              <AnimatePlay width={position.width} height={position.height} />
-            </div>
-          </>
-        </GameProvider>
-      )}
+      <div
+        key={"a2"}
+        style={{
+          position: "absolute",
+          top: 0,
+          left: 0,
+          height: "100%",
+          width: "100%",
+          backgroundColor: "transparent",
+          pointerEvents: "none",
+        }}
+      >
+        <AnimatePlay />
+      </div>
     </>
   );
 };

@@ -7,7 +7,6 @@ import playSwipeFail from "../component/animation/swipeFail";
 import playSwipeSuccess from "../component/animation/swipeSuccess";
 import { CandyModel } from "../model/CandyModel";
 import { CellItem } from "../model/CellItem";
-import useEventSubscriber from "./EventManager";
 import { Match, checkMatches } from "./GameEngine";
 const getSwipeToChange = (cells: CellItem[]): { toChange: CellItem[]; toRemove: CellItem[] } => {
   const matches: Match[] = checkMatches(cells);
@@ -34,13 +33,13 @@ const getSwipeToChange = (cells: CellItem[]): { toChange: CellItem[]; toRemove: 
 
   return { toChange, toRemove };
 };
+
 const useAnimationManager = (
   textures: { id: number; texture: PIXI.Texture }[] | undefined,
   candiesMapRef: any,
   cellWRef: React.MutableRefObject<number>,
-  pid: string | undefined
 ) => {
-  const { createEvent } = useEventSubscriber([], []);
+
   const { playRemove } = useRemoveCandies();
   const startSwipe = async (candy: CellItem, target: CellItem) => {
     const master = gsap.timeline();

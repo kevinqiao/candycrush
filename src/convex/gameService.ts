@@ -78,7 +78,8 @@ const processMatch = (game: any, matches: Match[]): { toMove: CellItem[]; toRemo
 
     const toChange: CellItem[] = [];
     const toMove: CellItem[] = [];
-    const toCreate: CellItem[] = []
+    const toCreate: CellItem[] = [];
+    const toRemove: CellItem[] = [];
 
     matches.filter((match) => match.size > 3).forEach((m) => {
         m.items[0].units.sort((a, b) => (a.row + a.column) - (b.row + b.column));
@@ -96,10 +97,11 @@ const processMatch = (game: any, matches: Match[]): { toMove: CellItem[]; toRemo
 
     })
 
-    const toRemove: CellItem[] = game.cells.filter((c: CellItem) => c.status && c.status > 0);
-    for (let r of toRemove) {
+    const removes: CellItem[] = game.cells.filter((c: CellItem) => c.status && c.status > 0);
+    for (let r of removes) {
         const candy = getFreeCandy(game.seed, game.lastCellId++);
         if (candy) {
+            toRemove.push(JSON.parse(JSON.stringify(r)))
             candy.column = r.column;
             candy.row = -1;
             toCreate.push(JSON.parse(JSON.stringify(candy)));

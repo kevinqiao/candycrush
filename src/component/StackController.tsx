@@ -22,8 +22,8 @@ const StackController = () => {
   const getPosition = (pname: string) => {
     const pageCfg = StackPages.find((s) => s.name === pname);
     if (pageCfg) {
-      const w = pageCfg.width <= 1 ? width : pageCfg.width;
-      const h = pageCfg.height <= 1 ? height : pageCfg.height;
+      const w = pageCfg.width <= 1 ? width * pageCfg.width : pageCfg.width;
+      const h = pageCfg.height <= 1 ? height * pageCfg.height : pageCfg.height;
       const position = { page: pname, top: 0, left: 0, width: w, height: h, direction: pageCfg.direction };
       return position;
     }
@@ -37,7 +37,7 @@ const StackController = () => {
           const SelectedComponent: FunctionComponent<PageProps> = p.component;
           return (
             <Suspense fallback={<div>Loading...</div>}>
-              <SelectedComponent data={page.data} position={getPosition(page.name)} />
+              <SelectedComponent data={page.data} />
             </Suspense>
           );
         }

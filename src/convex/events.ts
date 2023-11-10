@@ -1,5 +1,4 @@
 import { v } from "convex/values";
-import { Id } from "./_generated/dataModel";
 import { internalMutation, internalQuery, mutation, query } from "./_generated/server";
 
 export const list = query({
@@ -44,23 +43,16 @@ export const getByUser = query({
   },
 });
 export const getByGame = query({
-  args: { gameId: v.optional(v.string()), battleId: v.optional(v.string()), laststep: v.number() },
+  args: { gameId: v.optional(v.string()), laststep: v.number() },
   handler: async (ctx, args) => {
     console.log("last step:" + args.laststep)
-    if (args.laststep >= 0 && args.gameId && args.battleId) {
+    if (args.laststep >= 0 && args.gameId) {
+      const events = await ctx.db
+        .query("events")
+        .filter((q) => q.and(q.eq(q.field("gameId"), args.gameId), q.gt(q.field("steptime"), args.laststep))).order("asc")
+        .collect();
+      return events.map((event) => Object.assign({}, event, { id: event?._id, _creationTime: undefined, _id: undefined }))
 
-      const bid = args.battleId as Id<"battle">
-      const battle = await ctx.db.get(bid);
-      if (battle) {
-
-        const events = await ctx.db
-          .query("events")
-          .filter((q) => q.and(q.eq(q.field("gameId"), args.gameId), q.gt(q.field("steptime"), args.laststep))).order("asc")
-          .collect();
-        return events.map((event) => Object.assign({}, event, { id: event?._id, _creationTime: undefined, _id: undefined }))
-        // events.forEach((event) => Object.assign({}, event, { id: event?._id, _creationTime: undefined, _id: undefined }))
-        // return events
-      }
     }
   },
 });
