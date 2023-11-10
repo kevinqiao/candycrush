@@ -12,12 +12,14 @@ interface GameScore {
 interface IBattleContext {
   starttime: number;
   type: number;
+  battle: BattleModel | null;
   gamescores: GameScore[];
   updateScore: (gameId: string, score: number) => void;
 }
 const BattleContext = createContext<IBattleContext>({
   starttime: Date.now(),
   type: 0,
+  battle: null,
   gamescores: [],
   updateScore: (gameId: string, score: number) => null,
 });
@@ -72,6 +74,7 @@ export const BattleProvider = ({ battle, children }: { battle: BattleModel; chil
   const value = {
     starttime: state.starttime,
     type: state.type,
+    battle,
     gamescores: state.gamescores,
     updateScore: useCallback(
       (gameId: string, score: number) => {

@@ -39,7 +39,7 @@ const getSwipeTarget = (cellItem: CellItem, direction: number, cells: CellItem[]
 
 }
 
-const useSceneManager = (scene: PIXI.Application | undefined, textures: { id: number; texture: PIXI.Texture }[] | undefined) => {
+const useGameViewModel = (scene: PIXI.Application | undefined, textures: { id: number; texture: PIXI.Texture }[] | undefined) => {
 
     const { isReplay, gameEvent, gameId, swapCell, smash } = useGameManager();
     const dragRef = useRef<{ startX: number; startY: number; animation: number, cellId: number }>({ startX: 0, startY: 0, cellId: -1, animation: 0 });
@@ -199,6 +199,6 @@ const useSceneManager = (scene: PIXI.Application | undefined, textures: { id: nu
     }, [gameEvent])
 
 }
-export default useSceneManager
+export default useGameViewModel
 
 

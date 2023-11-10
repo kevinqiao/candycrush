@@ -18,7 +18,7 @@ const ReplayBattle: React.FC<PageProps> = ({ data, position }) => {
               height: position.height * 0.6,
             }}
           >
-            <GamePlay />
+            {/* <GamePlay /> */}
           </div>
         ) : null}
       </GameProvider>

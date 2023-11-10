@@ -1,25 +1,66 @@
-import { useRef } from "react";
-import BattleModel from "../../model/Battle";
-import { BATTLE_TYPE } from "../../model/Constants";
-import PageProps from "../../model/PageProps";
-import BattleProvider from "../../service/BattleManager";
-import useDimension from "../../util/useDimension";
-import SoloBattle from "./SoloBattle";
+import { GameProvider } from "../../service/GameManager";
+import { useSceneManager } from "../../service/SceneManager";
+import AnimatePlay from "../animation/AnimatePlay";
+import GamePlay from "./GamePlay";
+import BattleConsole from "./console/BattleConsole";
 
-const BattlePlay: React.FC<PageProps> = ({ data }) => {
-  const eleRef = useRef<HTMLDivElement | null>(null);
-  const battle = data as BattleModel;
-  const { width, height } = useDimension(eleRef);
-
+const BattlePlay = () => {
+  const { consoleScene, gameScenes, animateScene } = useSceneManager();
   return (
-    <div ref={eleRef} style={{ width: "100%", height: "100%", backgroundColor: "blue" }}>
-      <BattleProvider battle={data}>
-        <>
-          {battle.type === BATTLE_TYPE.SOLO ? <SoloBattle battle={battle} width={width} height={height} /> : null}
-          {/* {battle.type === BATTLE_TYPE.SYNC ? <SyncBattle battle={battle} position={position} /> : null} */}
-        </>
-      </BattleProvider>
-    </div>
+    <>
+      {consoleScene ? (
+        <div
+          style={{
+            position: "absolute",
+            top: consoleScene.y,
+            left: consoleScene.x,
+            width: consoleScene.width,
+            height: consoleScene.height,
+          }}
+        >
+          <BattleConsole scene={consoleScene} />
+        </div>
+      ) : null}
+
+      {Array.from(gameScenes.keys()).map((gameId) => {
+        const scene = gameScenes.get(gameId);
+        if (scene)
+          return (
+            <GameProvider gameId={gameId} isReplay={false} pid={"origin"}>
+              <div
+                key={"b2"}
+                style={{
+                  position: "absolute",
+                  top: scene.y,
+                  left: scene.x,
+                  width: scene.width,
+                  height: scene.height,
+                  backgroundColor: "transparent",
+                }}
+              >
+                <GamePlay scene={scene} />
+              </div>
+            </GameProvider>
+          );
+      })}
+
+      {animateScene ? (
+        <div
+          key={"a2"}
+          style={{
+            position: "absolute",
+            top: animateScene.y,
+            left: animateScene.x,
+            height: animateScene.height,
+            width: animateScene.width,
+            backgroundColor: "transparent",
+            pointerEvents: "none",
+          }}
+        >
+          <AnimatePlay scene={animateScene} />
+        </div>
+      ) : null}
+    </>
   );
 };
 

@@ -1,29 +1,30 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef } from "react";
 import { useBattleManager } from "../../../service/BattleManager";
-
-const BattleConsole: React.FC = () => {
+import { SceneModel } from "../../../service/SceneManager";
+interface Props {
+  scene: SceneModel;
+}
+const BattleConsole: React.FC<Props> = ({ scene }) => {
+  const sceneContainerRef = useRef<HTMLDivElement | null>(null);
   const { gamescores } = useBattleManager();
-  const [pasttime, setPasttime] = useState(0);
-  // console.log(gamescores);
-  const timerDiv = useMemo(() => {
-    return <div style={{ height: 30 }}>{pasttime > 0 ? <div>Timer:{pasttime}</div> : <div />}</div>;
-  }, [pasttime]);
-  const scoreDiv = useMemo(() => {
-    return gamescores.map((s: any) => (
-      <div key={s.gameId} style={{ height: 30 }}>
-        <div>
-          Player:{s.player.name} Score:{s.score.base}
-        </div>{" "}
-      </div>
-    ));
-  }, [gamescores]);
-
-  return (
-    <div style={{ height: "100%", width: "100%", backgroundColor: "white" }}>
-      <div style={{ height: 15 }}></div>
-      {scoreDiv}
-    </div>
-  );
+  useEffect(() => {
+    if (sceneContainerRef.current && scene) sceneContainerRef.current.appendChild(scene.app.view as unknown as Node);
+  }, [scene]);
+  const render = useMemo(() => {
+    return (
+      <div
+        ref={sceneContainerRef}
+        style={{
+          width: "100%",
+          height: "100%",
+          margin: 0,
+          border: 0,
+          backgroundColor: "transparent",
+        }}
+      ></div>
+    );
+  }, []);
+  return <>{render}</>;
 };
 
 export default BattleConsole;

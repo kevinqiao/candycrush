@@ -15,12 +15,13 @@ export const NavPages = [
         cache: 0,
         auth: true
     },
+
     {
         name: "playHome",
         context: "playcenter",
-        uri: "./play/PlayHome",
-        cache: 0
+        uri: "./test/TexturePlay",
     },
+
     {
         name: "battleHome",
         context: "playcenter",
@@ -93,7 +94,7 @@ export const StackPages = [
     },
     {
         name: "battlePlay",
-        uri: "./play/BattlePlay",
+        uri: "./play/BattleHome",
         auth: true,
         direction: 0,
         width: 550,

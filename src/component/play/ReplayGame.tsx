@@ -1,7 +1,6 @@
 import PageProps from "../../model/PageProps";
 import { GameProvider } from "../../service/GameManager";
 import GameConsole from "./console/GameConsole";
-import GamePlay from "./GamePlay";
 
 const ReplayGame: React.FC<PageProps> = ({ data, position }) => {
   const { battleId, gameId } = data;
@@ -24,7 +23,7 @@ const ReplayGame: React.FC<PageProps> = ({ data, position }) => {
               height: position.height * 0.7,
             }}
           >
-            {position ? <GamePlay /> : null}
+            {/* {position ? <GamePlay /> : null} */}
           </div>
         </GameProvider>
       ) : null}
