@@ -8,7 +8,7 @@ const ReplayGame: React.FC<PageProps> = ({ data, position }) => {
   return (
     <div style={{ width: position?.width, height: position?.height, backgroundColor: "blue" }}>
       {position ? (
-        <GameProvider gameId={gameId + ""} isReplay={true} pid={"replay"}>
+        <GameProvider gameId={gameId + ""}>
           <div style={{ display: "flex", justifyContent: "center", width: "100%", height: position.height * 0.3 }}>
             <div style={{ width: "50%" }}>
               <GameConsole />

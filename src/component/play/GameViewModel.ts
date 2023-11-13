@@ -1,12 +1,13 @@
 import * as PIXI from "pixi.js";
 import { useCallback, useEffect, useRef } from "react";
-import { CandyModel } from "../model/CandyModel";
-import { CellItem } from "../model/CellItem";
-import * as Constant from "../model/Constants";
-import { MOVE_DIRECTION } from "../model/Constants";
-import useAnimationManager from "./AnimationManager";
-import * as gameEngine from "./GameEngine";
-import { useGameManager } from "./GameManager";
+import { CellItem } from "../../model/CellItem";
+import * as Constant from "../../model/Constants";
+import { MOVE_DIRECTION } from "../../model/Constants";
+import useAnimationManager from "../../service/AnimationManager";
+import { useBattleManager } from "../../service/BattleManager";
+import * as gameEngine from "../../service/GameEngine";
+import { useGameManager } from "../../service/GameManager";
+import { SceneModel, useSceneManager } from "../../service/SceneManager";
 
 
 const getSwipeTarget = (cellItem: CellItem, direction: number, cells: CellItem[]): CellItem | undefined => {
@@ -39,31 +40,20 @@ const getSwipeTarget = (cellItem: CellItem, direction: number, cells: CellItem[]
 
 }
 
-const useGameViewModel = (scene: PIXI.Application | undefined, textures: { id: number; texture: PIXI.Texture }[] | undefined) => {
+const useGameViewModel = (scene: SceneModel | undefined) => {
+    // const { app, textures, candies } = scene;
+    const { gameEvent, gameId, swapCell, smash } = useGameManager();
+    const { battle } = useBattleManager();
+    const { textures } = useSceneManager();
 
-    const { isReplay, gameEvent, gameId, swapCell, smash } = useGameManager();
     const dragRef = useRef<{ startX: number; startY: number; animation: number, cellId: number }>({ startX: 0, startY: 0, cellId: -1, animation: 0 });
-    const candyMapRef = useRef(new Map<number, CandyModel>());
-    const cellWRef = useRef<number>(0);
-    const animationManager = useAnimationManager(textures, candyMapRef, cellWRef);
 
+    const animationManager = useAnimationManager(scene?.textures, scene?.candies, scene?.cwidth ?? 0);
 
-    useEffect(() => {
-        if (scene?.view)
-            cellWRef.current = Math.floor(scene.view.width / Constant.COLUMN);
-    }, [scene])
-    const log = () => {
-        const cells: CellItem[] = Array.from(candyMapRef.current.values()).map((v) => v.data);
-        cells.sort((a, b) => {
-            if (a.row !== b.row)
-                return a.row - b.row
-            else
-                return a.column - b.column
-        })
-        console.log(JSON.parse(JSON.stringify(cells)))
-    }
     const swipe = (direction: number, candyId: number) => {
-        const cells: CellItem[] = Array.from(candyMapRef.current.values()).map((v) => v.data);
+        if (!scene?.candies) return;
+        // const cells: CellItem[] = Array.from(candyMapRef.current.values()).map((v) => v.data);
+        const cells: CellItem[] = Array.from(scene?.candies.values()).map((v) => v.data);
         const candy = cells.find((c) => c.id === candyId);
 
         if (candy) {
@@ -92,18 +82,17 @@ const useGameViewModel = (scene: PIXI.Application | undefined, textures: { id: n
     const createCandySprite = useCallback((cell: CellItem, x: number, y: number): PIXI.Sprite | null => {
 
         const texture = textures?.find((d) => d.id === cell.asset);
-        if (gameId && texture && scene?.stage) {
+        if (gameId && texture && scene?.app?.stage && scene.cwidth) {
 
             const sprite = new PIXI.Sprite(texture.texture);
             sprite.anchor.set(0.5);
-            sprite.width = cellWRef.current;
-            sprite.height = cellWRef.current;
+            sprite.width = scene.cwidth;
+            sprite.height = scene.cwidth;
             sprite.x = x;
             sprite.y = y;
-            scene.stage.addChild(sprite);
-
+            scene?.app.stage.addChild(sprite);
             sprite.eventMode = 'static';
-            if (!isReplay) {
+            if (battle?.type !== Constant.BATTLE_TYPE.REPLAY) {
                 sprite.on("pointerdown", (event: PointerEvent) => {
                     const drag = dragRef.current;
                     drag.startX = event.x;
@@ -145,58 +134,48 @@ const useGameViewModel = (scene: PIXI.Application | undefined, textures: { id: n
             return sprite;
         }
         return null;
-    }, [isReplay, scene, gameId, textures])
+    }, [scene, gameId, scene?.textures])
 
     const initCandies = (cells: CellItem[]) => {
-        const cellW = cellWRef.current;
-        Array.from(candyMapRef.current.values()).forEach((s) => s.sprite.destroy());
-        candyMapRef.current = new Map<number, CandyModel>();
-        if (cells)
+        const cwidth = scene && typeof scene.cwidth !== 'undefined' ? scene.cwidth : 0;
+
+        if (scene && cells && scene.candies && cwidth)
             cells.forEach((c) => {
-                const x = c.column * cellW + Math.floor(cellW / 2);
-                const y = c.row * cellW + Math.floor(cellW / 2);
+                const x = c.column * cwidth + Math.floor(cwidth / 2);
+                const y = c.row * cwidth + Math.floor(cwidth / 2);
                 const sprite = createCandySprite(c, x, y);
                 if (sprite)
-                    candyMapRef.current.set(c.id, { id: c.id, sprite, data: c })
+                    scene.candies?.set(c.id, { id: c.id, sprite, data: c })
             })
     }
 
     useEffect(() => {
-        console.log(gameEvent)
+
         if (gameEvent?.name === "initGame") {
             const { cells } = gameEvent.data;
             initCandies(JSON.parse(JSON.stringify(cells)))
         } else if (gameEvent?.name === "cellSwapped") {
             // log();
-            const cellW = cellWRef.current;
+            // const cellW = cellWRef.current;
             const data: { candy: CellItem; target: CellItem; results: { toChange: CellItem[]; toCreate: CellItem[]; toMove: CellItem[]; toRemove: CellItem[] }[] } = gameEvent.data;
 
             for (let res of data.results) {
                 const size = res.toCreate.length;
-                res.toCreate.forEach((cell: CellItem) => {
-                    const x = cell.column * cellW + Math.floor(cellW / 2);
-                    const y = -cellW * (size - cell.row) - Math.floor(cellW / 2);
-                    const sprite = createCandySprite(cell, x, y);
-                    if (sprite)
-                        candyMapRef.current.set(cell.id, { id: cell.id, sprite, data: JSON.parse(JSON.stringify(cell)) })
-                })
+                const cwidth = scene && typeof scene.cwidth !== 'undefined' ? scene.cwidth : 0;
+                if (cwidth)
+                    res.toCreate.forEach((cell: CellItem) => {
+                        const x = cell.column * cwidth + Math.floor(cwidth / 2);
+                        const y = -cwidth * (size - cell.row) - Math.floor(cwidth / 2);
+                        const sprite = createCandySprite(cell, x, y);
+                        if (sprite && scene?.candies)
+                            scene.candies.set(cell.id, { id: cell.id, sprite, data: JSON.parse(JSON.stringify(cell)) })
+                    })
             }
             animationManager.solveSwipe(data)
         } else if (gameEvent?.name === "cellSmeshed") {
-            const data: { candy: CellItem; target: CellItem; results: { toChange: CellItem[]; toCreate: CellItem[]; toMove: CellItem[]; toRemove: CellItem[] }[] } = gameEvent.data;
-            const cellW = cellWRef.current;
-            for (let res of data.results) {
-                res.toCreate.forEach((cell: CellItem) => {
-                    const x = cell.column * cellW + Math.floor(cellW / 2);
-                    const y = -cellW;
-                    const sprite = createCandySprite(cell, x, y);
-                    if (sprite)
-                        candyMapRef.current.set(cell.id, { id: cell.id, sprite, data: cell })
-                })
-            }
-            animationManager.solveSmesh(gameEvent.data)
+
         }
-    }, [gameEvent])
+    }, [gameEvent, scene])
 
 }
 export default useGameViewModel

@@ -3,10 +3,11 @@ import React, { createContext, useCallback, useContext, useEffect, useRef, useSt
 import { api } from "../convex/_generated/api";
 import { Id } from "../convex/_generated/dataModel";
 import { CellItem } from "../model/CellItem";
+import { BATTLE_TYPE } from "../model/Constants";
 import { GameEvent } from "../model/GameEvent";
+import { useBattleManager } from "./BattleManager";
 interface IGameContext {
   starttime: number;
-  isReplay: boolean;
   uid: string | null;
   gameId: string | null;
   cells: CellItem[] | null;
@@ -22,7 +23,6 @@ interface IGameContext {
 }
 const GameContext = createContext<IGameContext>({
   starttime: 0,
-  isReplay: false,
   uid: null,
   gameId: null,
   cells: [],
@@ -150,28 +150,19 @@ const reducer = (state: any, action: any) => {
       return state;
   }
 };
-export const GameProvider = ({
-  gameId,
-  isReplay,
-  pid,
-  children,
-}: {
-  gameId: string;
-  isReplay: boolean;
-  pid?: string;
-  children: React.ReactNode;
-}) => {
+export const GameProvider = ({ gameId, children }: { gameId: string; children: React.ReactNode }) => {
   const [state, dispatch] = React.useReducer(reducer, initialState);
   const startTimeRef = useRef<number>(Date.now());
   const lastEventRef = useRef<any>({ steptime: 0 });
   const [gameEvent, setGameEvent] = useState<GameEvent | null>(null);
   const [gameEvents, setGameEvents] = useState<GameEvent[]>([]);
+  const { battle } = useBattleManager();
 
   // const { updateScore } = useBattleManager();
 
   const events: GameEvent[] | undefined | null = useQuery(api.events.getByGame, {
     gameId: state.gameId ?? undefined,
-    laststep: isReplay ? -1 : state.laststep,
+    laststep: battle?.type === 3 ? -1 : state.laststep,
   });
 
   const convex = useConvex();
@@ -199,7 +190,7 @@ export const GameProvider = ({
         });
 
         const laststep = g.pasttime;
-        dispatch({ type: actions.INIT_GAME, data: { pid, isReplay, ...g, laststep } });
+        dispatch({ type: actions.INIT_GAME, data: { ...g, laststep } });
         setGameEvent({ id: "0", steptime: 0, name: "initGame", data: g });
       }
     };
@@ -209,12 +200,12 @@ export const GameProvider = ({
       });
       if (g) {
         startTimeRef.current = Date.now();
-        dispatch({ type: actions.INIT_GAME, data: { pid, isReplay, gameId, ...g, pasttime: 0 } });
+        dispatch({ type: actions.INIT_GAME, data: { gameId, ...g, pasttime: 0 } });
         setGameEvent({ id: "0", steptime: 0, name: "initGame", data: g });
       }
     };
     if (gameId && convex) {
-      isReplay ? loadInit() : sync();
+      battle?.type === BATTLE_TYPE.REPLAY ? loadInit() : sync();
     }
   }, [gameId, convex]);
   useEffect(() => {
@@ -281,8 +272,8 @@ export const GameProvider = ({
         }
       }
     };
-    if (state.gameId && convex && isReplay) loadEvents();
-  }, [isReplay, convex, state.gameId]);
+    if (state.gameId && convex && battle?.type === BATTLE_TYPE.REPLAY) loadEvents();
+  }, [convex, state.gameId]);
 
   const value = {
     score: state.score,
@@ -300,14 +291,13 @@ export const GameProvider = ({
       async (candyId: number, targetId: number): Promise<any> => {
         swap({ gameId: state.gameId as Id<"games">, candyId: candyId, targetId: targetId });
       },
-      [state.gameId, isReplay, swap]
+      [state.gameId, battle, swap]
     ),
     smash: useCallback(
       async (candyId: number) => {
-        console.log("smesh candy:" + candyId);
-        if (!isReplay) smash({ gameId: state.gameId as Id<"games">, candyId: candyId });
+        if (battle?.type !== BATTLE_TYPE.REPLAY) smash({ gameId: state.gameId as Id<"games">, candyId: candyId });
       },
-      [state.gameId, isReplay, swap]
+      [state.gameId, battle, swap]
     ),
     findFreeCandies: useCallback(async (gameId: string, quantity: number) => {
       const candies: CellItem[] = await convex.query(api.gameService.findFreeCandies, {

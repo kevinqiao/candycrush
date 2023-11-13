@@ -13,7 +13,8 @@ export const MATCH_DIRECTION = {
 export const BATTLE_TYPE = {
     SOLO: 0,
     SYNC: 1,
-    TURN: 2
+    TURN: 2,
+    REPLAY: 3
 }
 
 export const GAME_MODE = {

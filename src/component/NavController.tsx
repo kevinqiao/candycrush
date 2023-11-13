@@ -8,7 +8,6 @@ const NavController = () => {
   const { currentPage } = usePageManager();
 
   useEffect(() => {
-    console.log(currentPage);
     if (currentPage) {
       const pcfg = NavPages.find((p) => p.name === currentPage.name);
       const ctx = NavContext.find((p) => p.name === pcfg?.context);

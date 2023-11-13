@@ -1,9 +1,6 @@
 import { useConvex } from "convex/react";
-import React, { createContext, useCallback, useContext, useEffect } from "react";
-import { api } from "../convex/_generated/api";
-import { Id } from "../convex/_generated/dataModel";
+import React, { createContext, useCallback, useContext } from "react";
 import BattleModel from "../model/Battle";
-import { useUserManager } from "./UserManager";
 interface GameScore {
   player: { uid: string; name: string };
   gameId: string;
@@ -56,20 +53,20 @@ const reducer = (state: any, action: any) => {
 };
 export const BattleProvider = ({ battle, children }: { battle: BattleModel; children: React.ReactNode }) => {
   const [state, dispatch] = React.useReducer(reducer, initialState);
-  const { user } = useUserManager();
   const convex = useConvex();
-  useEffect(() => {
-    const sync = async () => {
-      const b: any | null = await convex.query(api.battle.findBattle, {
-        battleId: battle.id as Id<"battle">,
-      });
-      if (b) {
-        console.log(b);
-        dispatch({ type: actions.INIT_BATTLE, data: { ...b, starttime: Date.now() - b.pasttime } });
-      }
-    };
-    // sync();
-  }, [battle, convex]);
+
+  // useEffect(() => {
+  //   const sync = async () => {
+  //     const b: any | null = await convex.query(api.battle.findBattle, {
+  //       battleId: battle.id as Id<"battle">,
+  //     });
+  //     if (b) {
+  //       console.log(b);
+  //       dispatch({ type: actions.INIT_BATTLE, data: { ...b, starttime: Date.now() - b.pasttime } });
+  //     }
+  //   };
+  //   // sync();
+  // }, [battle, convex]);
 
   const value = {
     starttime: state.starttime,

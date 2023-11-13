@@ -1,19 +1,47 @@
-import { useEffect, useMemo, useRef } from "react";
-import useGameViewModel from "../../service/GameViewModel";
-import { SceneModel } from "../../service/SceneManager";
+import * as PIXI from "pixi.js";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { CandyModel } from "../../model/CandyModel";
+import { COLUMN } from "../../model/Constants";
+import { SceneModel, useSceneManager } from "../../service/SceneManager";
+import useDimension from "../../util/useDimension";
+import useGameViewModel from "./GameViewModel";
 interface Props {
-  scene: SceneModel;
+  gameId: string;
 }
-const GamePlay: React.FC<Props> = ({ scene }) => {
+const GamePlay: React.FC<Props> = ({ gameId }) => {
+  const [gameScene, setGameScene] = useState<SceneModel>();
   const sceneContainerRef = useRef<HTMLDivElement | null>(null);
+  const { scenes } = useSceneManager();
+  const { width, height } = useDimension(sceneContainerRef);
 
   // const [scene, setScene] = useState<PIXI.Application>();
   // const [candy_textures, setCandyTextures] = useState<{ id: number; texture: PIXI.Texture }[]>();
 
-  useGameViewModel(scene.app, scene.textures);
+  useGameViewModel(gameScene);
   useEffect(() => {
-    if (sceneContainerRef.current) sceneContainerRef.current.appendChild(scene.app.view as unknown as Node);
-  }, [scene]);
+    if (sceneContainerRef.current && gameId) {
+      const scene = scenes.get(gameId);
+      if (!scene && width > 0 && height > 0) {
+        const scene = {
+          app: new PIXI.Application({
+            width: width,
+            height: height,
+            backgroundAlpha: 0,
+          }),
+          x: 0,
+          y: 0,
+          width: width,
+          height: height,
+          cwidth: Math.floor(width / COLUMN),
+          cheight: Math.floor(width / COLUMN),
+          candies: new Map<number, CandyModel>(),
+        };
+        scenes.set(gameId, scene);
+        setGameScene(scene);
+        sceneContainerRef.current.appendChild(scene.app.view as unknown as Node);
+      }
+    }
+  }, [scenes, gameId, width, height]);
   // const { width, height } = useDimension(sceneContainerRef);
 
   // useEffect(() => {
@@ -41,7 +69,7 @@ const GamePlay: React.FC<Props> = ({ scene }) => {
   //     if (app) app.destroy(true);
   //   };
   // }, [width, height]);
-  
+
   const render = useMemo(() => {
     return (
       <div

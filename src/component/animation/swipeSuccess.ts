@@ -2,8 +2,6 @@ import { CandyModel } from "../../model/CandyModel";
 import { CellItem } from "../../model/CellItem";
 
 const play = (candy: CellItem, target: CellItem, candyMap: Map<Number, CandyModel>, cellW: number, tl: any) => {
-    // console.log(JSON.parse(JSON.stringify(candy)))
-    // console.log(JSON.parse(JSON.stringify(target)))
 
     const candySprite = candyMap.get(candy.id)?.sprite
     const targetSprite = candyMap.get(target.id)?.sprite

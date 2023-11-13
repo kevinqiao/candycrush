@@ -1,46 +1,35 @@
+import * as PIXI from "pixi.js";
 import { useEffect, useMemo, useRef } from "react";
-import { SceneModel } from "../../service/SceneManager";
-interface Props {
-  scene: SceneModel;
-}
-const AnimatePlay: React.FC<Props> = ({ scene }) => {
-  const sceneContainerRef = useRef<HTMLDivElement | null>(null);
-  useEffect(() => {
-    if (sceneContainerRef.current) sceneContainerRef.current.appendChild(scene.app.view as unknown as Node);
-  }, [scene]);
-  // const [scene, setScene] = useState<PIXI.Application>();
-  // const [candy_textures, setCandyTextures] = useState<{ id: number; texture: PIXI.Texture }[]>();
-  // const { playCollect } = useCollectCandies(scene, candy_textures);
-  // const { event } = useEventSubscriber(["candyRemoved"], []);
-  // const { width, height } = useDimension(sceneContainerRef);
-  // useEffect(() => {
-  //   if (event) playCollect(event.data);
-  // }, [event]);
-  // useEffect(() => {
-  //   // Initialize PixiJS Application
-  //   const app = new PIXI.Application({
-  //     width,
-  //     height,
-  //     backgroundAlpha: 0,
-  //   } as any);
-  //   (app.view as any).style.pointerEvents = "none";
-  //   if (sceneContainerRef.current) {
-  //     sceneContainerRef.current.appendChild(app.view as unknown as Node);
-  //     const baseTexture = PIXI.BaseTexture.from("assets/assets_candy.png");
-  //     const frameSize = 100;
-  //     const candy_textures = candy_texture_defs.map((c) => {
-  //       const rect = new PIXI.Rectangle(c.x, c.y, frameSize, frameSize);
-  //       const texture = new PIXI.Texture(baseTexture, rect);
-  //       return { id: c.id, texture };
-  //     });
+import { CandyModel } from "../../model/CandyModel";
+import { useSceneManager } from "../../service/SceneManager";
+import useDimension from "../../util/useDimension";
 
-  //     setCandyTextures(candy_textures);
-  //   }
-  //   setScene(app);
-  //   return () => {
-  //     app.destroy(true);
-  //   };
-  // }, [width, height]);
+const AnimatePlay: React.FC = () => {
+  const sceneContainerRef = useRef<HTMLDivElement | null>(null);
+  const { scenes } = useSceneManager();
+  const { width, height } = useDimension(sceneContainerRef);
+
+  useEffect(() => {
+    if (sceneContainerRef.current) {
+      const scene = scenes.get("battle");
+      if (!scene && width > 0 && height > 0) {
+        const scene = {
+          app: new PIXI.Application({
+            width: width * 0.8,
+            height: height * 0.6,
+            backgroundAlpha: 0,
+          }),
+          x: 0,
+          y: 0,
+          width: width,
+          height: height,
+          candies: new Map<number, CandyModel>(),
+        };
+        scenes.set("battle", scene);
+        sceneContainerRef.current.appendChild(scene.app.view as unknown as Node);
+      }
+    }
+  }, [scenes, width, height]);
   const render = useMemo(() => {
     return (
       <div
@@ -56,7 +45,6 @@ const AnimatePlay: React.FC<Props> = ({ scene }) => {
     );
   }, []);
   return <>{render}</>;
-  // return <div ref={sceneContainerRef} style={{ width, height }}></div>;
 };
 
 export default AnimatePlay;
