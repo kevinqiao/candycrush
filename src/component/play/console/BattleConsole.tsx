@@ -1,12 +1,13 @@
 import * as PIXI from "pixi.js";
 import { useEffect, useMemo, useRef } from "react";
 import { CandyModel } from "../../../model/CandyModel";
-import { SceneModel, useSceneManager } from "../../../service/SceneManager";
+import { useSceneManager } from "../../../service/SceneManager";
 import useDimension from "../../../util/useDimension";
 interface Props {
-  scene: SceneModel;
+  top: number;
+  left: number;
 }
-const BattleConsole: React.FC = () => {
+const BattleConsole: React.FC<Props> = ({ top, left }) => {
   const sceneContainerRef = useRef<HTMLDivElement | null>(null);
   const { scenes } = useSceneManager();
   const { width, height } = useDimension(sceneContainerRef);
@@ -21,8 +22,8 @@ const BattleConsole: React.FC = () => {
             height: height * 0.6,
             backgroundAlpha: 0,
           }),
-          x: 0,
-          y: 0,
+          x: left,
+          y: top,
           width: width,
           height: height,
           candies: new Map<number, CandyModel>(),

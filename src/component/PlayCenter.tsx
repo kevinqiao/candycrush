@@ -10,10 +10,10 @@ import PlayMenu from "./menu/PlayMenu";
 const colors = ["red", "green", "blue", "orange", "white"];
 const pageIndexs = [
   { name: "tournamentHome", index: 0 },
-  { name: "playHome", index: 1 },
+  { name: "textureList", index: 1 },
   { name: "battleHome", index: 2 },
   { name: "accountHome", index: 3 },
-  { name: "texture", index: 4 },
+  { name: "texturePlay", index: 4 },
 ];
 
 const PlayCenter: React.FC = () => {

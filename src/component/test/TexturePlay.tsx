@@ -4,6 +4,7 @@ import { MotionPathPlugin } from "gsap/MotionPathPlugin";
 import * as PIXI from "pixi.js";
 import { useEffect, useMemo, useRef, useState } from "react";
 import useCoord from "../../service/CoordManager";
+import useCollectCandies from "./CollectCandies";
 
 interface Props {
   width: number;
@@ -14,6 +15,7 @@ gsap.registerPlugin(MotionPathPlugin);
 const TexturePlay: React.FC = () => {
   const sceneContainerRef = useRef<HTMLDivElement | null>(null);
   const [scene, setScene] = useState<PIXI.Application>();
+  const { playCollect } = useCollectCandies();
   const pieceRefs = useRef<PIXI.Sprite[]>([]);
   const [candy_textures, setCandyTextures] = useState<{ id: number; texture: PIXI.Texture }[]>([]);
   const { width, height } = useCoord();
@@ -111,11 +113,11 @@ const TexturePlay: React.FC = () => {
         // Add an event listener for the pointerdown event
         sprite.anchor.set(0.5);
         sprite.x = 225;
-        sprite.y = 225;
+        sprite.y = 725;
 
-        const pieces = createPieces(app, sprite, 4);
-        // console.log(pieces.length);
-        pieceRefs.current = pieces;
+        // const pieces = createPieces(app, sprite, 4);
+        // // console.log(pieces.length);
+        // pieceRefs.current = pieces;
         // pieceRefs.current.push(...createPieces(app, sprite, 10));
         sprite.on("pointerdown", (event: PointerEvent) => {
           const cell: PIXI.Sprite = event.target as PIXI.Sprite;
@@ -131,40 +133,28 @@ const TexturePlay: React.FC = () => {
       app.destroy(true);
     };
   }, [width, height]);
-  const playCollect = (sprite: PIXI.Sprite) => {
-    const tl = gsap.timeline(); // Set ease for the entire timeline
-    const x = sprite.x;
-    const y = sprite.y;
-    console.log(x + ":" + y);
-    // tl.to(sprite, {
-    //   duration: 1,
-    //   motionPath: {
-    //     path: [{ x: 500, y: 300 }],
-    //   },
-    // }).to(sprite.scale, { x: 1.2, y: 1.2, duration: 3 });
-    // gsap.to(sprite, {
-    //   duration: 1,
-    //   motionPath: {
-    //     path: [{ x: 500, y: 300 }],
-    //   },
-    //   scale: 1.2,
-    // });
-    tl.to(sprite, {
-      duration: 1,
-      motionPath: {
-        path: [{ x: x + 200, y: y + 300 }],
-      },
-    })
-      .to(sprite, {
-        duration: 1,
-        motionPath: {
-          path: [{ x: x + 300, y: y + 100 }],
-        },
-        scale: 0,
-      })
-      .to(sprite.scale, { x: 1.2, y: 1.2, duration: 3 });
-    tl.play();
-  };
+  // const playCollect = (sprite: PIXI.Sprite) => {
+  //   const tl = gsap.timeline(); // Set ease for the entire timeline
+  //   const x = sprite.x;
+  //   const y = sprite.y;
+  //   console.log(x + ":" + y);
+
+  //   tl.to(sprite, {
+  //     duration: 1,
+  //     motionPath: {
+  //       path: [{ x: x + 200, y: y + 300 }],
+  //     },
+  //   })
+  //     .to(sprite, {
+  //       duration: 1,
+  //       motionPath: {
+  //         path: [{ x: x + 300, y: y + 100 }],
+  //       },
+  //       scale: 0,
+  //     })
+  //     .to(sprite.scale, { x: 1.2, y: 1.2, duration: 3 });
+  //   tl.play();
+  // };
   const render = useMemo(() => {
     return <div ref={sceneContainerRef} style={{ width, height }}></div>;
   }, []);

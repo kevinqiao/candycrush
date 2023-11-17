@@ -9,7 +9,7 @@ interface Props {
   pid?: string;
 }
 
-const TexturePlay: React.FC = () => {
+const TextureList: React.FC = () => {
   const sceneContainerRef = useRef<HTMLDivElement | null>(null);
   const [scene, setScene] = useState<PIXI.Application>();
   const [candy_textures, setCandyTextures] = useState<{ id: number; texture: PIXI.Texture }[]>([]);
@@ -146,4 +146,4 @@ const TexturePlay: React.FC = () => {
   // return <div ref={sceneContainerRef} style={{ width, height }}></div>;
 };
 
-export default TexturePlay;
+export default TextureList;

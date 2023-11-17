@@ -21,6 +21,11 @@ export const NavPages = [
         context: "playcenter",
         uri: "./test/TexturePlay",
     },
+    {
+        name: "textureList",
+        context: "playcenter",
+        uri: "./test/TextureList",
+    },
 
     {
         name: "battleHome",
@@ -44,7 +49,7 @@ export const NavPages = [
     }
     ,
     {
-        name: "texture",
+        name: "texturePlay",
         context: "playcenter",
         uri: "./test/TexturePlay",
     }

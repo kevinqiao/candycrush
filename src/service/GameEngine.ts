@@ -20,7 +20,32 @@ export type MatchItem = {
     status?: number;//0-active 1-inactive
 };
 
-
+export const getSwipeResult = (candyId: number, targetId: number, cells: CellItem[]): { toChange: CellItem[], toRemove: CellItem[] } => {
+    const results: { toChange: CellItem[], toRemove: CellItem[] } = { toChange: [], toRemove: [] }
+    const candy = cells.find((c: CellItem) => c.id === candyId);
+    const target = cells.find((c: CellItem) => c.id === targetId);
+    if (!candy || !target) return results;
+    [candy.row, target.row] = [target.row, candy.row];
+    [candy.column, target.column] = [target.column, candy.column];
+    const matches: Match[] = checkMatches(cells)
+    matches.filter((match) => match.size > 3).forEach((m) => {
+        m.items[0].units.sort((a, b) => (a.row + a.column) - (b.row + b.column));
+        const start = m.items[0].units[0];
+        const end = m.items[0].units[m.items[0].units.length - 1];
+        results.toRemove.push(Object.assign({}, start, { id: -1 }))
+        if (m.items[0].orientation === "horizontal") {
+            [start.column, end.column] = [end.column, start.column]
+            end.asset = 28;
+        } else {
+            [start.row, end.row] = [end.row, start.row]
+            end.asset = 29;
+        }
+        end.status = 0;
+        results.toChange.push(JSON.parse(JSON.stringify(end)))
+    })
+    results.toRemove.push(...cells.filter((c: CellItem) => c.status && c.status > 0))
+    return results
+}
 
 export const findMatches = (grid: CellItem[][]): MatchItem[] => {
 
@@ -75,30 +100,21 @@ export const findMatches = (grid: CellItem[][]): MatchItem[] => {
     return matches;
 }
 
-export const checkMatches = (cells: CellItem[]): any => {
+export const checkMatches = (cells: CellItem[]): Match[] => {
+    cells.sort((a, b) => a.row !== b.row ? a.row - b.row : a.column - b.column)
+    console.log(JSON.parse(JSON.stringify(cells)))
     // const result: { id: number; toCreate: CellItem[]; toMove: CellItem[]; toRemove: CellItem[] }[] = [];
     const grid: CellItem[][] = Array.from({ length: ROW }, () => Array(COLUMN).fill(null));
-    // Populate the two-dimensional array
     for (const unit of cells) {
+        // console.log(unit.row + ":" + unit.column + ":" + unit.asset)
         grid[unit.row][unit.column] = unit;
     }
 
     const allmatches: MatchItem[] = findMatches(grid);
     const matches4: Match[] = getMatchPlus4(allmatches);
-    matches4.forEach((m) => m.status = 1);
-
     const specials: Match[] = getSpecials(allmatches);
-    specials.forEach((m) => {
-        m.items.forEach((item) => item.status = 1)
-    });
 
-    const matches3: MatchItem[] = allmatches.filter((m) => {
-        const us = m.units.filter((u) => u.status);
-        if (!m.status && us.length === 0 && m.units.length === 3)
-            return true;
-        else
-            return false;
-    })
+    const matches3: MatchItem[] = allmatches.filter((m) => !m.status)
     const matches: Match[] = [];
     for (let m of matches3) {
         m.status = 1;
@@ -109,71 +125,50 @@ export const checkMatches = (cells: CellItem[]): any => {
     matches.push(...specials)
     return matches
 }
-
 export const getMatchPlus4 = (matches: MatchItem[]): Match[] => {
     const matches4: Match[] = [];
-    const m4 = matches.filter((m) => m.units.length >= 4).sort((a, b) => {
-        return b.units.length - a.units.length
-    })
-    // console.log(m4)
-    for (let m of m4) {
-        const munits = m.units.filter((u) => u.status);
-        // console.log(munits.length)
-        if (munits.length > 0) {
-
-            let start = m.start;
-            munits.sort((a, b) => (a.row + a.column) - (b.row + b.column));
-            for (let unit of munits) {
-
-                const num = m.orientation === "horizontal" ? unit.column - start.column : unit.row - start.row;
-                // console.log("num:" + num + " " + m.orientation)
-                if (num >= 3) {
-                    const row = m.orientation === "horizontal" ? unit.row : unit.row - 1;
-                    const column = m.orientation === "horizontal" ? unit.column - 1 : unit.column;
-                    const units = m.units.filter((u) => (u.row + u.column) <= (row + column) && (u.row + u.column) >= (start.row + start.column));
-                    const nmatch = {
-                        units,
-                        start,
-                        end: { row, column },
-                        orientation: m.orientation
-                    }
-
-                    if (num >= 4) {
-                        matches4.push({ type: CANDY_MATCH_TYPE.LINE, size: units.length, items: [nmatch] })
-                        nmatch.units.forEach((u) => u.status = 1);
-                    } else {
-                        matches.push(nmatch);
+    while (true) {
+        const m4 = matches.filter((m) => !m.status && m.units.length >= 4).sort((a, b) => {
+            return b.units.length - a.units.length
+        })
+        if (m4.length === 0)
+            break;
+        for (let m of m4) {
+            const ms: number[] = [];
+            m.units.forEach((u, index) => {
+                if (u.status)
+                    ms.push(index)
+            })
+            if (ms.length > 0) {
+                for (let i = 0; i < ms.length; i++) {
+                    const len = ms[i + 1] - ms[i];
+                    if (len >= 2) {
+                        const units = m.units.slice(ms[i], ms[i + 1])
+                        const item = {
+                            units,
+                            start: { row: units[0].row, column: units[0].column },
+                            end: { row: units[len - 1].row, column: units[len - 1].column },
+                            orientation: m.orientation
+                        }
+                        if (len === 2) {
+                            matches.push(item)
+                        } else {
+                            item.units.forEach((u) => u.status = 1)
+                            matches4.push({ type: CANDY_MATCH_TYPE.LINE, size: units.length, items: [item] });
+                        }
                     }
                 }
-                if (unit.column < m.end.column || unit.row < m.end.row)
-                    start = { row: m.orientation === "horizontal" ? unit.row : unit.row + 1, column: m.orientation === "horizontal" ? unit.column + 1 : unit.column }
+            } else {
+                m.units.forEach((u) => u.status = 1)
+                matches4.push({ type: CANDY_MATCH_TYPE.LINE, size: m.units.length, items: [m] });
             }
-            const num = m.orientation === "horizontal" ? m.end.column - start.column : m.end.row - start.row;
-            // console.log("num1:" + num)
-            if (num >= 2) {
-                const units = m.units.filter((u) => (u.row + u.column) <= (m.end.row + m.end.column) && (u.row + u.column) >= (start.row + start.column));
-                const nmatch = {
-                    units,
-                    start,
-                    end: m.end,
-                    orientation: m.orientation
-                }
-                // console.log(nmatch)
-                if (num > 3) {
-                    matches4.push({ type: CANDY_MATCH_TYPE.LINE, size: units.length, items: [nmatch] })
-                    nmatch.units.forEach((u) => u.status = 1);
-                } else {
-                    matches.push(nmatch);
-                }
-            }
-        } else {
-            m.units.forEach((u) => u.status = 1);
-            matches4.push({ type: CANDY_MATCH_TYPE.LINE, size: m.units.length, items: [m] })
+            m.status = 1;
         }
     }
-    return matches4;
+    return matches4
 
 }
+
 export const getSpecials = (matches: MatchItem[]): Match[] => {
     const matches3: MatchItem[] = matches.filter((m) => {
         const us = m.units.filter((u) => u.status);
@@ -202,6 +197,8 @@ export const getSpecials = (matches: MatchItem[]): Match[] => {
                     const mtype = verticalAtEndpoint || verticalAtStartpoint ? CANDY_MATCH_TYPE.LMODEL : CANDY_MATCH_TYPE.TMODEL;
 
                     if (mtype) {
+                        vmatch.status = 1;
+                        hmatch.status = 1;
                         specials.push({ type: mtype, size: 5, items: [vmatch, hmatch] });
                         vmatch.units.forEach((u) => u.status = 1)
                         hmatch.units.forEach((u) => u.status = 1);

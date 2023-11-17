@@ -7,8 +7,10 @@ import useDimension from "../../util/useDimension";
 import useGameViewModel from "./GameViewModel";
 interface Props {
   gameId: string;
+  top: number;
+  left: number;
 }
-const GamePlay: React.FC<Props> = ({ gameId }) => {
+const GamePlay: React.FC<Props> = ({ gameId, top, left }) => {
   const [gameScene, setGameScene] = useState<SceneModel>();
   const sceneContainerRef = useRef<HTMLDivElement | null>(null);
   const { scenes } = useSceneManager();
@@ -28,8 +30,8 @@ const GamePlay: React.FC<Props> = ({ gameId }) => {
             height: height,
             backgroundAlpha: 0,
           }),
-          x: 0,
-          y: 0,
+          x: left,
+          y: top,
           width: width,
           height: height,
           cwidth: Math.floor(width / COLUMN),

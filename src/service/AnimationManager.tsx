@@ -1,14 +1,14 @@
 import { gsap } from "gsap";
-import * as PIXI from "pixi.js";
 import { createContext, useContext } from "react";
+import useCollectCandies from "../component/animation/CollectCandies";
 import playChange from "../component/animation/changeCandies";
 import playMove from "../component/animation/moveCandies";
 import useRemoveCandies from "../component/animation/removeCandies";
 import playSwipeFail from "../component/animation/swipeFail";
 import playSwipeSuccess from "../component/animation/swipeSuccess";
-import { CandyModel } from "../model/CandyModel";
 import { CellItem } from "../model/CellItem";
 import { Match, checkMatches } from "./GameEngine";
+import { useSceneManager } from "./SceneManager";
 const getSwipeToChange = (cells: CellItem[]): { toChange: CellItem[]; toRemove: CellItem[] } => {
   const matches: Match[] = checkMatches(cells);
   const toChange: CellItem[] = [];
@@ -53,100 +53,134 @@ export const AnimateProvider = ({ children }: { children: React.ReactNode }) => 
   };
   return <AnimateContext.Provider value={value}> {children} </AnimateContext.Provider>;
 };
-const useAnimationManager = (
-  textures: { id: number; texture: PIXI.Texture }[] | undefined,
-  candies: any,
-  cellW: number
-) => {
-  const { animates } = useContext(AnimateContext);
-  const { playRemove } = useRemoveCandies();
-  const startSwipe = async (candy: CellItem, target: CellItem) => {
-    const master = gsap.timeline();
-    const sl = gsap.timeline();
-    const ml = gsap.timeline();
-    master.add(sl).add(ml)[(candy.row, target.row)] = [target.row, candy.row];
-    [candy.column, target.column] = [target.column, candy.column];
-    playSwipeSuccess(candy, target, candies, cellW, sl);
 
-    const cells: CellItem[] = Array.from(candies.values()).map((v) => (v as CandyModel).data);
-    const { toChange, toRemove } = getSwipeToChange(cells);
-    if (toChange && toChange.length > 0) {
-      toChange.forEach((c) => {
-        const candy = candies.get(c.id);
-        const texture = textures?.find((t) => t.id === c.asset);
-        if (texture) {
-          Object.assign(candy.data, c);
-          candy.sprite.texture = texture.texture;
-        }
-      });
-      playChange(toChange, candies, cellW, ml);
-    }
-    if (toRemove && toRemove.length > 0) {
-      playRemove(toRemove, candies, ml);
-    }
+const useAnimationManager = () => {
+  const { textures, scenes } = useSceneManager();
+  const { animates } = useContext(AnimateContext);
+  const { playCollect } = useCollectCandies();
+  const { playRemove } = useRemoveCandies();
+
+  const startSwipe = async (
+    gameId: string,
+    candy: CellItem,
+    target: CellItem
+    // res: { toChange?: CellItem[]; toMove?: CellItem[]; toRemove?: CellItem[]; toCreate?: CellItem[] }
+  ) => {
+    const master = gsap.timeline();
+    const scene = scenes.get(gameId);
+    if (!scene || !scene.candies || !scene.cwidth) return;
+    [candy.row, target.row] = [target.row, candy.row];
+    [candy.column, target.column] = [target.column, candy.column];
+    const sl = gsap.timeline();
+    master.add(sl);
+    playSwipeSuccess(candy, target, scene.candies, scene.cwidth, sl);
+    const ml = gsap.timeline();
+    master.add(ml, ">");
+    // const { toChange, toRemove } = res;
+    // if (scene?.candies && scene?.cwidth && toChange && toChange.length > 0) {
+    //   playChange(toChange, textures, scene.candies, scene.cwidth, ml);
+    // }
+    // if (scene?.candies && toRemove && toRemove.length > 0) {
+    //   playRemove(toRemove, scene.candies, ml);
+    //   ml.call(
+    //     () => {
+    //       const cl = gsap.timeline();
+    //       playCollect(gameId, toRemove, cl);
+    //       cl.play();
+    //     },
+    //     [],
+    //     ">"
+    //   );
+    // }
     master.play();
   };
-
-  const cancelSwipe = async (candy: CellItem, target: CellItem) => {
-    if (candy && target) playSwipeFail(candy, target, candies, cellW);
+  const cancelSwipe = async (gameId: string, candy: CellItem, target: CellItem) => {
+    const scene = scenes.get(gameId);
+    if (scene?.candies && scene?.cwidth && candy && target) playSwipeFail(candy, target, scene.candies, scene.cwidth);
   };
 
   const solveMatch = async (
+    gameId: string,
     res: { toChange?: CellItem[]; toMove?: CellItem[]; toRemove?: CellItem[]; toCreate?: CellItem[] },
     timeline: any
   ) => {
-    const rl = gsap.timeline();
+    const scene = scenes.get(gameId);
+
     const ml = gsap.timeline();
-    timeline.add(rl).add(ml, "+=0.1");
-
+    timeline.add(ml, ">");
     const { toChange, toMove, toRemove } = res;
-    if (toChange && toChange.length > 0) {
-      toChange.forEach((c) => {
-        const candy = candies.get(c.id);
-        const texture = textures?.find((t) => t.id === c.asset);
-        if (texture) {
-          // const sprite = new PIXI.Sprite(texture.texture);
-          Object.assign(candy.data, c);
-          candy.sprite.texture = texture.texture;
-        }
-      });
-      playChange(toChange, candies, cellW, rl);
+    if (scene?.candies && scene?.cwidth && toChange && toChange.length > 0) {
+      playChange(toChange, textures, scene.candies, scene.cwidth, ml);
     }
-    if (toRemove && toRemove.length > 0) {
-      playRemove(toRemove, candies, rl);
+    if (scene?.candies && toRemove && toRemove.length > 0) {
+      playRemove(toRemove, scene.candies, ml);
+      ml.call(
+        () => {
+          const cl = gsap.timeline();
+          playCollect(gameId, toRemove, cl);
+          cl.play();
+        },
+        [],
+        ">-0.1"
+      );
     }
 
-    if (toMove) {
-      playMove(toMove, candies, cellW, ml);
+    if (toMove && scene?.candies && scene.cwidth) {
+      playMove(toMove, scene.candies, scene.cwidth, ml);
     }
   };
 
-  const solveSwipe = (data: {
-    candy: CellItem;
-    target: CellItem;
-    results: { toChange: CellItem[]; toCreate: CellItem[]; toMove: CellItem[]; toRemove: CellItem[] }[];
-  }) => {
-    const master = gsap.timeline();
-    const candy = candies.get(data.candy.id)?.data;
-    const target = candies.get(data.target.id)?.data;
-    if (target && candy) {
+  const solveSwipe = (
+    gameId: string,
+    data: {
+      candy: CellItem;
+      target: CellItem;
+      results: { toChange: CellItem[]; toCreate: CellItem[]; toMove: CellItem[]; toRemove: CellItem[] }[];
+    }
+  ) => {
+    console.log(data.results);
+    const scene = scenes.get(gameId);
+    if (scene?.candies) {
+      const cells = Array.from(scene.candies.values()).map((c) => c.data);
+      cells.sort((a, b) => (a.row !== b.row ? a.row - b.row : a.column - b.column));
+      console.log(JSON.parse(JSON.stringify(cells)));
+    }
+
+    const master = gsap.timeline({
+      onComplete: () => {
+        if (scene?.candies) {
+          const cells = Array.from(scene.candies.values()).map((c) => c.data);
+          cells.sort((a, b) => (a.row !== b.row ? a.row - b.row : a.column - b.column));
+          console.log(JSON.parse(JSON.stringify(cells)));
+        }
+      },
+    });
+    const candy = scene?.candies?.get(data.candy.id)?.data;
+    const target = scene?.candies?.get(data.target.id)?.data;
+    if (target && candy && scene?.candies && scene?.cwidth) {
       Object.assign(candy, data.candy);
       Object.assign(target, data.target);
       const sl = gsap.timeline();
-      playSwipeSuccess(data.candy, data.target, candies, cellW, sl);
+      playSwipeSuccess(data.candy, data.target, scene.candies, scene.cwidth, sl);
       master.add(sl);
     }
-    const ml = gsap.timeline();
-    master.add(ml);
-    data.results.forEach((res) => solveMatch(res, ml));
+    data.results.forEach((res) => {
+      const ml = gsap.timeline();
+      master.add(ml, ">");
+      solveMatch(gameId, res, ml);
+    });
     master.play();
   };
-  const solveSmesh = (data: {
-    candyId: number;
-    results: { toChange: CellItem[]; toCreate: CellItem[]; toMove: CellItem[]; toRemove: CellItem[] }[];
-  }) => {
+
+  const solveSmesh = (
+    gameId: string,
+    data: {
+      candyId: number;
+      results: { toChange: CellItem[]; toCreate: CellItem[]; toMove: CellItem[]; toRemove: CellItem[] }[];
+    }
+  ) => {
     const sl = gsap.timeline();
-    data.results.forEach((res) => solveMatch(res, sl));
+    data.results.forEach((res) => solveMatch(gameId, res, sl));
     sl.play();
   };
   return { solveSwipe, solveSmesh, startSwipe, cancelSwipe };

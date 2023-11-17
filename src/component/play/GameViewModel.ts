@@ -48,33 +48,37 @@ const useGameViewModel = (scene: SceneModel | undefined) => {
 
     const dragRef = useRef<{ startX: number; startY: number; animation: number, cellId: number }>({ startX: 0, startY: 0, cellId: -1, animation: 0 });
 
-    const animationManager = useAnimationManager(scene?.textures, scene?.candies, scene?.cwidth ?? 0);
+    const animationManager = useAnimationManager();
 
     const swipe = (direction: number, candyId: number) => {
-        if (!scene?.candies) return;
+        if (!scene?.candies || !gameId) return;
         // const cells: CellItem[] = Array.from(candyMapRef.current.values()).map((v) => v.data);
         const cells: CellItem[] = Array.from(scene?.candies.values()).map((v) => v.data);
         const candy = cells.find((c) => c.id === candyId);
-
         if (candy) {
-
             const target = getSwipeTarget(candy, direction, cells);
             if (target) {
-                if (gameEngine.checkSwipe(candy.id, target.id, cells)) {
-                    // animationManager.startSwipe(candy, target);
+                const ncells = JSON.parse(JSON.stringify(cells));
+                const ncandy = ncells.find((c: CellItem) => c.id === candy.id);
+                const ntarget = ncells.find((c: CellItem) => c.id === target.id);
+                [ncandy.row, ntarget.row] = [ntarget.row, ncandy.row];
+                [ncandy.column, ntarget.column] = [ntarget.column, ncandy.column];
+                const grid: CellItem[][] = Array.from({ length: Constant.ROW }, () => Array(Constant.COLUMN).fill(null));
+                for (const unit of ncells) {
+                    // console.log(unit.row + ":" + unit.column + ":" + unit.asset)
+                    grid[unit.row][unit.column] = unit;
+                }
+                const matches = gameEngine.findMatches(grid)
+                // const results: { toRemove: CellItem[], toChange: CellItem[] } = gameEngine.getSwipeResult(candy.id, target.id, JSON.parse(JSON.stringify(cells)));
+
+                // if (results.toChange.length > 0 || results.toRemove.length > 0) {
+                if (matches?.length > 0) {
+                    animationManager.startSwipe(gameId, candy, target)
                     swapCell(candy.id, target.id)
                 } else {
-                    cells.sort((a, b) => {
-                        if (a.row !== b.row)
-                            return a.row - b.row
-                        else
-                            return a.column - b.column
-                    })
-                    console.log(cells)
-                    animationManager.cancelSwipe(candy, target)
+                    animationManager.cancelSwipe(gameId ?? "", candy, target)
                 }
             }
-
         }
     }
 
@@ -122,10 +126,8 @@ const useGameViewModel = (scene: SceneModel | undefined) => {
                         direction = deltaY > 0 ? MOVE_DIRECTION.DOWN : MOVE_DIRECTION.UP;
                     console.log("direction:" + direction)
                     if (direction > 0) {
-                        console.log(cell)
                         swipe(direction, drag.cellId)
                     } else {
-                        console.log("smash happend")
                         smash(drag.cellId)
                     }
                     // drag.cellId = -1
@@ -157,6 +159,7 @@ const useGameViewModel = (scene: SceneModel | undefined) => {
         } else if (gameEvent?.name === "cellSwapped") {
             // log();
             // const cellW = cellWRef.current;
+            console.log(gameEvent)
             const data: { candy: CellItem; target: CellItem; results: { toChange: CellItem[]; toCreate: CellItem[]; toMove: CellItem[]; toRemove: CellItem[] }[] } = gameEvent.data;
 
             for (let res of data.results) {
@@ -171,8 +174,23 @@ const useGameViewModel = (scene: SceneModel | undefined) => {
                             scene.candies.set(cell.id, { id: cell.id, sprite, data: JSON.parse(JSON.stringify(cell)) })
                     })
             }
-            animationManager.solveSwipe(data)
+            if (gameId)
+                animationManager.solveSwipe(gameId, data)
         } else if (gameEvent?.name === "cellSmeshed") {
+            const data: { candyId: number; results: { toChange: CellItem[]; toCreate: CellItem[]; toMove: CellItem[]; toRemove: CellItem[] }[] } = gameEvent.data;
+            for (let res of data.results) {
+                const cwidth = scene && typeof scene.cwidth !== 'undefined' ? scene.cwidth : 0;
+                if (cwidth)
+                    res.toCreate.forEach((cell: CellItem) => {
+                        const x = cell.column * cwidth + Math.floor(cwidth / 2);
+                        const y = -cwidth;
+                        const sprite = createCandySprite(cell, x, y);
+                        if (sprite && scene?.candies)
+                            scene.candies.set(cell.id, { id: cell.id, sprite, data: JSON.parse(JSON.stringify(cell)) })
+                    })
+            }
+            if (gameId)
+                animationManager.solveSmesh(gameId, data)
 
         }
     }, [gameEvent, scene])

@@ -4,7 +4,7 @@ import { CandyModel } from "../../model/CandyModel";
 import { useSceneManager } from "../../service/SceneManager";
 import useDimension from "../../util/useDimension";
 
-const AnimatePlay: React.FC = () => {
+const BattleScene: React.FC = () => {
   const sceneContainerRef = useRef<HTMLDivElement | null>(null);
   const { scenes } = useSceneManager();
   const { width, height } = useDimension(sceneContainerRef);
@@ -15,8 +15,8 @@ const AnimatePlay: React.FC = () => {
       if (!scene && width > 0 && height > 0) {
         const scene = {
           app: new PIXI.Application({
-            width: width * 0.8,
-            height: height * 0.6,
+            width: width,
+            height: height,
             backgroundAlpha: 0,
           }),
           x: 0,
@@ -25,6 +25,14 @@ const AnimatePlay: React.FC = () => {
           height: height,
           candies: new Map<number, CandyModel>(),
         };
+        const background = new PIXI.Graphics();
+        background.beginFill(0x000000, 0.5); // 0x000000 为黑色，0.5 为透明度
+        background.drawRect(0, 0, scene.app.renderer.width, scene.app.renderer.height);
+        background.endFill();
+
+        // 将背景 Sprite 添加到舞台
+        scene.app.stage.addChild(background);
+        scene.app.stage.removeChild(background);
         scenes.set("battle", scene);
         sceneContainerRef.current.appendChild(scene.app.view as unknown as Node);
       }
@@ -47,4 +55,4 @@ const AnimatePlay: React.FC = () => {
   return <>{render}</>;
 };
 
-export default AnimatePlay;
+export default BattleScene;

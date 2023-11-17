@@ -8,7 +8,7 @@ const MainMenu: React.FC = () => {
     <div
       style={{
         position: "fixed",
-        zIndex: 1000,
+        zIndex: 100,
         top: 20,
         right: 10,
         width: 70,

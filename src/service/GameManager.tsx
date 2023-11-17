@@ -278,7 +278,6 @@ export const GameProvider = ({ gameId, children }: { gameId: string; children: R
   const value = {
     score: state.score,
     starttime: state.starttime,
-    isReplay: state.isReplay,
     uid: state.uid,
     gameId: state.gameId,
     status: state.status,

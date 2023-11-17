@@ -73,12 +73,12 @@ const PlayMenu: React.FC = () => {
 
             {/* 不规则形状2 */}
             <polygon
-              id="menu-playHome"
+              id="menu-textureList"
               points="100,0 200,0 175,50 75,50"
               fill={"grey"}
               stroke="white"
               strokeWidth={1}
-              onClick={() => openPage({ name: "playHome", data: {} })}
+              onClick={() => openPage({ name: "textureList", data: {} })}
             />
 
             {/* 不规则形状3 */}
@@ -101,12 +101,12 @@ const PlayMenu: React.FC = () => {
             />
             {/* 不规则形状5 */}
             <polygon
-              id="menu-test"
+              id="menu-texturePlay"
               points="400,0 500,0 500,50 375,50"
               fill={"grey"}
               stroke="white"
               strokeWidth={1}
-              onClick={() => openPage({ name: "texture", data: {} })}
+              onClick={() => openPage({ name: "texturePlay", data: {} })}
             />
           </svg>
 

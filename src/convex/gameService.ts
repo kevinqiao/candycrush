@@ -13,65 +13,69 @@ const getFreeCandy = (seed: string, cellId: number) => {
     return candy
 }
 const processSmash = (game: any, cellId: number): { cell: CellItem, toRemove: CellItem[]; toCreate: CellItem[], toMove: CellItem[] } => {
-    let removed: CellItem[] = [];
-    const created: CellItem[] = [];
-    let moved: CellItem[] = [];
-    const cell: CellItem = game.cells.find((c: CellItem) => c.id === cellId);
-    console.log("process smesh on candy:" + cellId)
+    let toRemove: CellItem[] = [];
+    const toCreate: CellItem[] = [];
+    const toMove: CellItem[] = [];
+    const cell: CellItem = JSON.parse(JSON.stringify(game.cells.find((c: CellItem) => c.id === cellId)));
+    console.log("process smesh on candy:" + cell.id + "; asset:" + cell.asset)
     console.log(cell.asset)
 
     if (cell.asset === 28) {
-        removed = game.cells.filter((c: CellItem) => c.row === cell.row);
-        for (let r of removed) {
+        toRemove = game.cells.filter((c: CellItem) => c.row === cell.row);
+        for (let r of toRemove) {
             r.status = 1;
             const candy = getFreeCandy(game.seed, game.lastCellId++);
             if (candy) {
                 candy.column = r.column;
                 candy.row = -1;
-                created.push(candy);
+                toCreate.push(JSON.parse(JSON.stringify(candy)));
                 game.cells.push(candy)
             }
         }
-        moved = game.cells.filter((c: CellItem) => c.row < cell.row);
+        const moved = game.cells.filter((c: CellItem) => c.row < cell.row);
         if (moved.length > 0) {
             moved.forEach((m: CellItem) => {
                 m.row = m.row + 1;
+                toMove.push(JSON.parse(JSON.stringify(m)));
             })
         }
     } else if (cell.asset === 29) {
-        removed = game.cells.filter((c: CellItem) => c.column === cell.column);
-        for (let r of removed) {
+        toRemove = game.cells.filter((c: CellItem) => c.column === cell.column);
+        for (let r of toRemove) {
             r.status = 1;
             const candy = getFreeCandy(game.seed, game.lastCellId++);
-
             if (candy) {
                 candy.column = r.column;
                 candy.row = r.row;
-                created.push(candy);
+                toCreate.push(candy);
+                toMove.push(candy)
                 game.cells.push(candy)
             }
         }
     } else if (cell.asset === 30) {
-        removed = game.cells.filter((c: CellItem) => c.row <= cell.row + 1 && c.row >= cell.row - 1 && c.column >= cell.column - 1 && c.column <= cell.column + 1);
-        for (let r of removed) {
+        toRemove = game.cells.filter((c: CellItem) => c.row <= cell.row + 1 && c.row >= cell.row - 1 && c.column >= cell.column - 1 && c.column <= cell.column + 1);
+        for (let r of toRemove) {
             r.status = 1;
             const candy = getFreeCandy(game.seed, game.lastCellId++);
             if (candy) {
                 candy.column = r.column;
                 candy.row = -1;
-                created.push(candy);
+                toCreate.push(JSON.parse(JSON.stringify(candy)));
                 game.cells.push(candy)
             }
+            const moves = game.cells.filter((c: CellItem) => c.column === r.column && c.row < r.row);
+            if (moves.length > 0) {
+                moves.forEach((m: CellItem) => {
+                    m.row = m.row + 1;
+                    if (toMove.findIndex((a) => a.id === m.id) < 0)
+                        toMove.push(m)
+                })
+            }
         }
-        moved = game.cells.filter((c: CellItem) => c.row < cell.row - 1 && c.column >= cell.column - 1 && c.column <= cell.column + 1);
-        if (moved.length > 0) {
-            moved.forEach((m: CellItem) => {
-                m.row = m.row + 1;
-            })
-        }
+
     }
     game.cells = game.cells.filter((c: CellItem) => !c.status)
-    return { cell, toCreate: created, toMove: moved, toRemove: removed };
+    return { cell, toCreate, toMove, toRemove };
 
 }
 const processMatch = (game: any, matches: Match[]): { toMove: CellItem[]; toRemove: CellItem[]; toCreate: CellItem[]; toChange: CellItem[] } | null => {
@@ -85,6 +89,7 @@ const processMatch = (game: any, matches: Match[]): { toMove: CellItem[]; toRemo
         m.items[0].units.sort((a, b) => (a.row + a.column) - (b.row + b.column));
         const start = m.items[0].units[0];
         const end = m.items[0].units[m.items[0].units.length - 1];
+        toRemove.push(Object.assign({}, start, { id: -1 }))
         if (m.items[0].orientation === "horizontal") {
             [start.column, end.column] = [end.column, start.column]
             end.asset = 28;
@@ -98,6 +103,7 @@ const processMatch = (game: any, matches: Match[]): { toMove: CellItem[]; toRemo
     })
 
     const removes: CellItem[] = game.cells.filter((c: CellItem) => c.status && c.status > 0);
+    removes.sort((a, b) => (a.row + a.column) - (b.row + b.column))
     for (let r of removes) {
         const candy = getFreeCandy(game.seed, game.lastCellId++);
         if (candy) {
@@ -108,7 +114,7 @@ const processMatch = (game: any, matches: Match[]): { toMove: CellItem[]; toRemo
             game.cells.push(candy)
         }
 
-        const moves = game.cells.filter((c: CellItem) => c.column === r.column && c.row < r.row);
+        const moves = game.cells.filter((c: CellItem) => c.column === r.column && c.row < r.row && !c.status);
         if (moves.length > 0) {
             moves.forEach((m: CellItem) => {
                 m.row = m.row + 1;
@@ -123,7 +129,7 @@ const processMatch = (game: any, matches: Match[]): { toMove: CellItem[]; toRemo
     }
     game.cells = game.cells.filter((c: CellItem) => !c.status);
 
-    const res = { toRemove, toChange, toMove: JSON.parse(JSON.stringify(toMove.filter((c) => !c.status))), toCreate }
+    const res = { toRemove, toChange, toMove, toCreate }
     return res
 
 }
@@ -183,11 +189,10 @@ export const swipeCell = action({
             const results: { toChange: CellItem[]; toCreate?: CellItem[]; toMove: CellItem[]; toRemove: CellItem[] }[] = [];
             const data = { candy: JSON.parse(JSON.stringify(candy)), target: JSON.parse(JSON.stringify(target)), results };
 
-            let count = 0;
+
             while (true) {
-                count++;
                 const matches: Match[] = checkMatches(game.cells);
-                if (matches.length === 0 || count > 10)
+                if (matches.length === 0)
                     break;
                 const result: { toChange: CellItem[]; toCreate: CellItem[]; toMove: CellItem[]; toRemove: CellItem[] } | null = processMatch(game, matches);
                 if (result)

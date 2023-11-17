@@ -5,7 +5,7 @@ import { useBattleManager } from "../../service/BattleManager";
 import { GameProvider } from "../../service/GameManager";
 import { useSceneManager } from "../../service/SceneManager";
 import useDimension from "../../util/useDimension";
-import AnimatePlay from "../animation/AnimatePlay";
+import BattleScene from "./BattleScene";
 import GamePlay from "./GamePlay";
 import BattleConsole from "./console/BattleConsole";
 
@@ -14,7 +14,7 @@ const BattlePlay = () => {
   const eleRef = useRef<HTMLDivElement | null>(null);
   const { width, height } = useDimension(eleRef);
   const { textures } = useSceneManager();
-
+  console.log(width + ":" + height);
   useEffect(() => {
     if (textures?.length === 0) {
       const baseTexture = PIXI.BaseTexture.from("assets/assets_candy.png");
@@ -44,7 +44,7 @@ const BattlePlay = () => {
           backgroundColor: "transparent",
         }}
       >
-        <BattleConsole />
+        <BattleConsole top={10} left={50} />
       </div>
       {playerGameId ? (
         <GameProvider key={playerGameId} gameId={playerGameId}>
@@ -53,13 +53,13 @@ const BattlePlay = () => {
             style={{
               position: "absolute",
               top: height * 0.35,
-              left: width * 0.1,
-              width: width * 0.8,
+              left: width * 0.15,
+              width: width * 0.7,
               height: height * 0.6,
               backgroundColor: "transparent",
             }}
           >
-            <GamePlay gameId={playerGameId} />
+            <GamePlay gameId={playerGameId} top={height * 0.35} left={width * 0.15} />
           </div>
         </GameProvider>
       ) : null}
@@ -76,7 +76,7 @@ const BattlePlay = () => {
           pointerEvents: "none",
         }}
       >
-        <AnimatePlay />
+        <BattleScene />
       </div>
     </div>
   );

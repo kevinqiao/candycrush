@@ -63,7 +63,7 @@ export const findMyBattles = query({
   args: { uid: v.string() },
   handler: async (ctx, { uid }) => {
     const battles = await ctx.db
-      .query("battle").order("desc").take(5);
+      .query("battle").order("desc").take(2);
     const mybattles = [];
     for (let battle of battles) {
       const games = await ctx.db.query("games").filter((q) => q.eq(q.field("battleId"), battle._id)).order("asc").collect();
