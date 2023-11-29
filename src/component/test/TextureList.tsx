@@ -12,7 +12,7 @@ interface Props {
 const TextureList: React.FC = () => {
   const sceneContainerRef = useRef<HTMLDivElement | null>(null);
   const [scene, setScene] = useState<PIXI.Application>();
-  const [candy_textures, setCandyTextures] = useState<{ id: number; texture: PIXI.Texture }[]>([]);
+  const [candyTextures, setCandyTextures] = useState<{ id: number; texture: PIXI.Texture }[]>([]);
   const { width, height } = useCoord();
   const createPiece = () => {
     const graphics = new PIXI.Graphics();
@@ -47,8 +47,8 @@ const TextureList: React.FC = () => {
     const app = new PIXI.Application({
       width,
       height,
-      transparent: true,
-      backgroundAlpha: 0,
+      // transparent: true,
+      // backgroundAlpha: 0,
     } as any);
 
     if (sceneContainerRef.current) {
@@ -70,8 +70,16 @@ const TextureList: React.FC = () => {
 
   useEffect(() => {
     let count = 0;
-    if (scene && candy_texture_defs) {
-      for (let texture of candy_textures) {
+    if (scene && candyTextures) {
+      const piece = createPiece();
+      if (piece) {
+        const sprite = new PIXI.Sprite(piece);
+        sprite.anchor.set(0.5);
+        sprite.x = 225;
+        sprite.y = (Math.floor(count / 7) + 5) * 50 + 225;
+        scene.stage.addChild(sprite);
+      }
+      for (let texture of candyTextures) {
         const sprite = new PIXI.Sprite(texture.texture);
         sprite.anchor.set(0.5);
         sprite.width = 50;
@@ -81,7 +89,7 @@ const TextureList: React.FC = () => {
         scene.stage.addChild(sprite);
         count++;
       }
-      const texture28 = candy_textures.find((c) => c.id === 28);
+      const texture28 = candyTextures.find((c) => c.id === 28);
       if (texture28) {
         for (let i = 0; i < 7; i++) {
           const sprite = new PIXI.Sprite(texture28.texture);
@@ -93,7 +101,7 @@ const TextureList: React.FC = () => {
           scene.stage.addChild(sprite);
         }
       }
-      const texture29 = candy_textures.find((c) => c.id === 29);
+      const texture29 = candyTextures.find((c) => c.id === 29);
       if (texture29) {
         for (let i = 0; i < 7; i++) {
           const sprite = new PIXI.Sprite(texture29.texture);
@@ -105,7 +113,7 @@ const TextureList: React.FC = () => {
           scene.stage.addChild(sprite);
         }
       }
-      const texture30 = candy_textures.find((c) => c.id === 30);
+      const texture30 = candyTextures.find((c) => c.id === 30);
       if (texture30) {
         for (let i = 0; i < 7; i++) {
           const sprite = new PIXI.Sprite(texture30.texture);
@@ -117,7 +125,7 @@ const TextureList: React.FC = () => {
           scene.stage.addChild(sprite);
         }
       }
-      const texture31 = candy_textures.find((c) => c.id === 31);
+      const texture31 = candyTextures.find((c) => c.id === 31);
       if (texture31) {
         for (let i = 0; i < 7; i++) {
           const sprite = new PIXI.Sprite(texture31.texture);
@@ -129,16 +137,8 @@ const TextureList: React.FC = () => {
           scene.stage.addChild(sprite);
         }
       }
-      const piece = createPiece();
-      if (piece) {
-        const sprite = new PIXI.Sprite(piece);
-        sprite.anchor.set(0.5);
-        sprite.x = 225;
-        sprite.y = (Math.floor(count / 7) + 5) * 50 + 225;
-        scene.stage.addChild(sprite);
-      }
     }
-  }, [candy_textures, scene]);
+  }, [candyTextures, scene]);
   const render = useMemo(() => {
     return <div ref={sceneContainerRef} style={{ width, height }}></div>;
   }, []);

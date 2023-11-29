@@ -1,12 +1,12 @@
 import { gsap } from "gsap/gsap-core";
-import { CandyModel } from "../../model/CandyModel";
 import { CellItem } from "../../model/CellItem";
-const play = (candy: CellItem, target: CellItem, candyMap: Map<Number, CandyModel>, cellW: number) => {
+import { CandySprite } from "../pixi/CandySprite";
+const play = (candy: CellItem, target: CellItem, candyMap: Map<Number, CandySprite>, cellW: number) => {
     const candyTimeline = gsap.timeline();
     const targetTimeline = gsap.timeline();
     if (target && candy) {
-        const candySprite = candyMap.get(candy.id)?.sprite
-        const targetSprite = candyMap.get(target.id)?.sprite
+        const candySprite = candyMap.get(candy.id)
+        const targetSprite = candyMap.get(target.id)
         if (candySprite && targetSprite) {
             if (candy && target) {
                 targetTimeline.to(

@@ -106,7 +106,7 @@ const PlayMenu: React.FC = () => {
               fill={"grey"}
               stroke="white"
               strokeWidth={1}
-              onClick={() => openPage({ name: "texturePlay", data: {} })}
+              onClick={() => openPage({ name: "avatarList", data: {} })}
             />
           </svg>
 

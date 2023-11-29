@@ -1,57 +1,67 @@
 import * as PIXI from "pixi.js";
-import { useEffect, useMemo, useRef } from "react";
-import { CandyModel } from "../../model/CandyModel";
-import { useSceneManager } from "../../service/SceneManager";
-import useDimension from "../../util/useDimension";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { SCENE_NAME } from "../../model/Constants";
+import { SceneModel, useSceneManager } from "../../service/SceneManager";
+import useBattleAnimate from "../animation/battle/BattleAnimate";
 
-const BattleScene: React.FC = () => {
+const BattleScene = () => {
   const sceneContainerRef = useRef<HTMLDivElement | null>(null);
-  const { scenes } = useSceneManager();
-  const { width, height } = useDimension(sceneContainerRef);
-
+  const { scenesUpdated, scenes, stageScene } = useSceneManager();
+  const [battleScene, setBattleScene] = useState<SceneModel | null>(null);
+  const { playBattleMatching } = useBattleAnimate();
+  const [dimension, setDimension] = useState<{ top: number; left: number; width: number; height: number }>({
+    top: 0,
+    left: 0,
+    width: 0,
+    height: 0,
+  });
   useEffect(() => {
-    if (sceneContainerRef.current) {
-      const scene = scenes.get("battle");
-      if (!scene && width > 0 && height > 0) {
-        const scene = {
-          app: new PIXI.Application({
-            width: width,
-            height: height,
-            backgroundAlpha: 0,
-          }),
-          x: 0,
-          y: 0,
-          width: width,
-          height: height,
-          candies: new Map<number, CandyModel>(),
-        };
-        const background = new PIXI.Graphics();
-        background.beginFill(0x000000, 0.5); // 0x000000 为黑色，0.5 为透明度
-        background.drawRect(0, 0, scene.app.renderer.width, scene.app.renderer.height);
-        background.endFill();
-
-        // 将背景 Sprite 添加到舞台
-        scene.app.stage.addChild(background);
-        scene.app.stage.removeChild(background);
-        scenes.set("battle", scene);
-        sceneContainerRef.current.appendChild(scene.app.view as unknown as Node);
+    if (scenes && scenesUpdated && scenesUpdated.includes(SCENE_NAME.BATTLE_HOME)) {
+      const scene = scenes.get(SCENE_NAME.BATTLE_HOME);
+      if (scene) {
+        if (!battleScene) {
+          setBattleScene(scene);
+        }
+        setDimension({ top: scene.y, left: scene.x, width: scene.width, height: scene.height });
       }
     }
-  }, [scenes, width, height]);
+  }, [scenesUpdated, scenes, battleScene]);
+  useEffect(() => {
+    if (sceneContainerRef.current && battleScene) {
+      const app = battleScene.app as PIXI.Application;
+      sceneContainerRef.current.appendChild(app.view as unknown as Node);
+      stageScene(SCENE_NAME.BATTLE_HOME, sceneContainerRef.current);
+    }
+  }, [sceneContainerRef, battleScene, stageScene]);
+
+  useEffect(() => {
+    if (battleScene) {
+      // const background = new PIXI.Graphics();
+      // background.beginFill(0x000000, 0); // 0x000000 为黑色，0.5 为透明度
+      // background.drawRect(0, 0, battleScene.width, battleScene.height);
+      // background.endFill();
+      // (battleScene.app as PIXI.Application).stage.addChild(background);
+    }
+  }, [battleScene]);
+
   const render = useMemo(() => {
     return (
       <div
         ref={sceneContainerRef}
         style={{
-          width: "100%",
-          height: "100%",
+          position: "absolute",
+          top: dimension.top,
+          left: dimension.left,
+          width: dimension.width,
+          height: dimension.height,
           margin: 0,
           border: 0,
           backgroundColor: "transparent",
+          pointerEvents: "none",
         }}
       ></div>
     );
-  }, []);
+  }, [battleScene]);
   return <>{render}</>;
 };
 

@@ -1,12 +1,11 @@
-import { CandyModel } from "../../model/CandyModel";
 import { CellItem } from "../../model/CellItem";
+import { CandySprite } from "../pixi/CandySprite";
 
-const play = (candy: CellItem, target: CellItem, candyMap: Map<Number, CandyModel>, cellW: number, tl: any) => {
+const play = (candy: CellItem, target: CellItem, candyMap: Map<Number, CandySprite>, cellW: number, tl: any) => {
 
-    const candySprite = candyMap.get(candy.id)?.sprite
-    const targetSprite = candyMap.get(target.id)?.sprite
+    const candySprite = candyMap.get(candy.id)
+    const targetSprite = candyMap.get(target.id)
     if (candySprite && targetSprite) {
-
         const tx = target.column * cellW + Math.floor(cellW / 2);
         const ty = target.row * cellW + Math.floor(cellW / 2);
         console.log(tx + ":" + ty + ":" + target.column + ":" + cellW)

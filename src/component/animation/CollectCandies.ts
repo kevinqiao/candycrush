@@ -6,7 +6,7 @@ import { SceneModel, useSceneManager } from "../../service/SceneManager";
 const useCollectCandies = () => {
     const { scenes, textures } = useSceneManager();
     const playCollect = (gameId: string, cells: CellItem[], timeline: any) => {
-      
+
         const gameScene: SceneModel | undefined = scenes.get(gameId);
         const battleScene: SceneModel | undefined = scenes.get("battle");
         const cwidth = gameScene?.cwidth;
@@ -24,8 +24,8 @@ const useCollectCandies = () => {
                     const y = gameScene.y + cwidth * cell.row + Math.floor(cwidth / 2);
                     sprite.x = x;
                     sprite.y = y;
-                    const controlPoint = { x: x + 20, y: y - cwidth + 40 }
-                    battleScene.app.stage.addChild(sprite);
+                    const controlPoint = { x: x + 20, y: y - cwidth + 40 };
+                    (battleScene.app as PIXI.Application).stage.addChild(sprite);
                     const target = { x: battleScene.x + 100, y: 100 }
                     cl.to(sprite, {
                         x: controlPoint.x,

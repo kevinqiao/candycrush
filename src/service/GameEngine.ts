@@ -4,8 +4,8 @@ import { CANDY_MATCH_TYPE } from '../model/Constants';
 import candy_textures from "../model/candy_textures";
 import * as Utils from "../util/Utils";
 
-const COLUMN = 7;
-const ROW = 8;
+// const COLUMN = 7;
+// const ROW = 8;
 export type Match = {
     type: number;//0-LINE  1-T 2-L 
     size: number;
@@ -20,14 +20,20 @@ export type MatchItem = {
     status?: number;//0-active 1-inactive
 };
 
-export const getSwipeResult = (candyId: number, targetId: number, cells: CellItem[]): { toChange: CellItem[], toRemove: CellItem[] } => {
+export const getSwipeResult = (candyId: number, targetId: number, cells: CellItem[], row: number, column: number): { toChange: CellItem[], toRemove: CellItem[] } => {
     const results: { toChange: CellItem[], toRemove: CellItem[] } = { toChange: [], toRemove: [] }
     const candy = cells.find((c: CellItem) => c.id === candyId);
     const target = cells.find((c: CellItem) => c.id === targetId);
     if (!candy || !target) return results;
     [candy.row, target.row] = [target.row, candy.row];
     [candy.column, target.column] = [target.column, candy.column];
-    const matches: Match[] = checkMatches(cells)
+    cells.sort((a, b) => a.row !== b.row ? a.row - b.row : a.column - b.column)
+    const grid: CellItem[][] = Array.from({ length: row }, () => Array(column).fill(null));
+    for (const unit of cells) {
+        // console.log(unit.row + ":" + unit.column + ":" + unit.asset)
+        grid[unit.row][unit.column] = unit;
+    }
+    const matches: Match[] = checkMatches(grid)
     matches.filter((match) => match.size > 3).forEach((m) => {
         m.items[0].units.sort((a, b) => (a.row + a.column) - (b.row + b.column));
         const start = m.items[0].units[0];
@@ -46,7 +52,57 @@ export const getSwipeResult = (candyId: number, targetId: number, cells: CellIte
     results.toRemove.push(...cells.filter((c: CellItem) => c.status && c.status > 0))
     return results
 }
+export const checkSwipe = (grid: CellItem[][]): boolean => {
 
+    const rows = grid.length;
+    const columns = grid[0].length;
+    for (let row = 0; row < rows; row++) {
+        let col = 0;
+        let start = grid[row][0];
+        let units: CellItem[] = [];
+        while (col < columns) {
+            if (!grid[row][col])
+                console.log("row:" + row + ";col:" + col + " is null")
+            if (grid[row][col].asset === start.asset) {
+                units.push(grid[row][col])
+            } else {
+                if (units.length >= 3) {
+                    return true;
+                }
+                start = grid[row][col]
+                units = [start]
+            }
+            col++; // Move to the next column if no match was found
+        }
+        if (units.length >= 3) {
+            return true
+        }
+    }
+
+    for (let col = 0; col < columns; col++) {
+        let row = 0;
+        let start = grid[0][col];
+        let units: CellItem[] = [];
+        while (row < rows) {
+            // console.log(col + "," + row + ";" + grid[row][col].asset + ":" + start.asset + ":" + units.length)
+            if (grid[row][col].asset === start.asset) {
+                units.push(grid[row][col])
+            } else {
+                if (units.length >= 3) {
+                    return true;
+                }
+                start = grid[row][col]
+                units = [start]
+            }
+            row++; // Move to the next column if no match was found
+        }
+        if (units.length >= 3) {
+            return true;
+        }
+    }
+
+    return false;
+}
 export const findMatches = (grid: CellItem[][]): MatchItem[] => {
 
     const rows = grid.length;
@@ -100,15 +156,7 @@ export const findMatches = (grid: CellItem[][]): MatchItem[] => {
     return matches;
 }
 
-export const checkMatches = (cells: CellItem[]): Match[] => {
-    cells.sort((a, b) => a.row !== b.row ? a.row - b.row : a.column - b.column)
-    console.log(JSON.parse(JSON.stringify(cells)))
-    // const result: { id: number; toCreate: CellItem[]; toMove: CellItem[]; toRemove: CellItem[] }[] = [];
-    const grid: CellItem[][] = Array.from({ length: ROW }, () => Array(COLUMN).fill(null));
-    for (const unit of cells) {
-        // console.log(unit.row + ":" + unit.column + ":" + unit.asset)
-        grid[unit.row][unit.column] = unit;
-    }
+export const checkMatches = (grid: CellItem[][]): Match[] => {
 
     const allmatches: MatchItem[] = findMatches(grid);
     const matches4: Match[] = getMatchPlus4(allmatches);
@@ -209,61 +257,20 @@ export const getSpecials = (matches: MatchItem[]): Match[] => {
     }
     return specials
 }
-export const checkSwipe = (candyId: number, targetId: number, cells: CellItem[]): boolean => {
-    let matched = false;
-    const candies: CellItem[] = JSON.parse(JSON.stringify(cells));
-    const candy: CellItem | undefined = candies.find((c) => c.id === candyId);
-    const target: CellItem | undefined = candies.find((c) => c.id === targetId);
-    if (candy && target && candies) {
-        [candy.row, target.row] = [target.row, candy.row];
-        [candy.column, target.column] = [target.column, candy.column];
-
-        // Check for horizontal matches
-        for (let y = 0; y < ROW; y++) {
-            let matchStart = candies.find((c) => c.row === y && c.column === 0)
-
-            for (let x = 1; x < COLUMN; x++) {
-                const current = candies.find((c) => c.row === y && c.column === x);
-                if (current?.asset !== matchStart?.asset) {
-                    matchStart = current
-                }
-                if (current && matchStart && current.column - matchStart.column >= 2) {
-                    matched = true;
-                    break;
-                }
-            }
-
-        }
-        // Check for vertical matches
-        for (let x = 0; x < COLUMN; x++) {
-            let matchStart = candies.find((c) => c.row === 0 && c.column === x);
-            for (let y = 1; y < ROW; y++) {
-                const current = candies.find((c) => c.row === y && c.column === x);
-                if (current?.asset !== matchStart?.asset) {
-                    matchStart = current
-                }
-
-                if (current && matchStart && (current?.row - matchStart?.row >= 2)) {
-                    matched = true;
-                    break;
-                }
-            }
-        }
-    }
-    return matched;
-}
 
 
-export const createGame = (seed: string) => {
+
+export const createGame = (row: number, column: number, seed: string) => {
     const rng = seedrandom(seed)
     // const cellTypes = Array.from({ length: 6 }, (_, k) => k);
     const cells: CellItem[] = [];
     let lastCellId: number = 1;
-    for (let y = 0; y < ROW; y++) {
-        for (let x = 0; x < COLUMN; x++) {
+    for (let y = 0; y < row; y++) {
+        for (let x = 0; x < column; x++) {
             let asset = -1;
             while (true) {
-                const index = Math.floor(rng() * (candy_textures.length - 10));
+                const index = Math.floor(rng() * 10);
+                console.log("index:" + index)
                 asset = candy_textures[index]['id'] ?? 0;
                 if (x >= 2) {
                     const x0 = cells.find((c) => c.row === y && c.column === x - 1);
@@ -288,40 +295,9 @@ export const createGame = (seed: string) => {
     return { lastCellId, cells, seed };
 }
 
-export const initGame = () => {
+export const initGame = (row: number, column: number) => {
     const seed = Utils.getRandomSeed(10);
-    return createGame(seed)
-    // const rng = seedrandom(seed)
-    // // const cellTypes = Array.from({ length: 6 }, (_, k) => k);
-    // const cells: CellItem[] = [];
-    // let lastCellId: number = 1;
-    // for (let y = 0; y < ROW; y++) {
-    //     for (let x = 0; x < COLUMN; x++) {
-    //         let asset = -1;
-    //         while (true) {
-    //             const index = Math.floor(rng() * (candy_textures.length - 10));
-    //             asset = candy_textures[index]['id'] ?? 0;
-    //             if (x >= 2) {
-    //                 const x0 = cells.find((c) => c.row === y && c.column === x - 1);
-    //                 const x1 = cells.find((c) => c.row === y && c.column === x - 2);
-    //                 if (x0?.asset === asset && x1?.asset === asset) {
-    //                     continue;
-    //                 }
-    //             }
-    //             if (y >= 2) {
-    //                 const y0 = cells.find((c) => c.row === y - 1 && c.column === x);
-    //                 const y1 = cells.find((c) => c.row === y - 2 && c.column === x);
-    //                 if (y0?.asset === asset && y1?.asset === asset) {
-    //                     continue;
-    //                 }
-    //             }
-    //             break;
-    //         }
-
-    //         cells.push({ id: lastCellId++, row: y, column: x, asset });
-    //     }
-    // }
-    // return { lastCellId, cells, seed };
+    return createGame(row, column, seed)
 }
 
 

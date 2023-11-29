@@ -26,6 +26,11 @@ export const NavPages = [
         context: "playcenter",
         uri: "./test/TextureList",
     },
+    {
+        name: "avatarList",
+        context: "playcenter",
+        uri: "./test/AvatarList",
+    },
 
     {
         name: "battleHome",

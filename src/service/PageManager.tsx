@@ -75,6 +75,7 @@ export const PageProvider = ({ children }: { children: React.ReactNode }) => {
   const { user } = useUserManager();
 
   const authCheck = (pageCfg: PageConfig) => {
+    console.log(user);
     if (pageCfg.auth && !user) {
       return false;
     } else return true;
@@ -83,9 +84,9 @@ export const PageProvider = ({ children }: { children: React.ReactNode }) => {
   useEffect(() => {
     if (event) {
       switch (event.name) {
-        case "battleCreated":
-          dispatch({ type: actions.PAGE_PUSH, data: { name: "battlePlay", data: event.data } });
-          break;
+        // case "battleCreated":
+        //   dispatch({ type: actions.PAGE_PUSH, data: { name: "battlePlay", data: event.data } });
+        //   break;
         case "openPage":
           openPage(event.data);
           break;
@@ -99,9 +100,7 @@ export const PageProvider = ({ children }: { children: React.ReactNode }) => {
     (page: PageItem) => {
       let scfg: PageConfig | undefined = StackPages.find((p) => p.name === page.name);
       if (scfg) {
-        if (!authCheck(scfg)) {
-          dispatch({ type: actions.PAGE_PUSH, data: { name: "signin", data: page } });
-        } else dispatch({ type: actions.PAGE_PUSH, data: page });
+        dispatch({ type: actions.PAGE_PUSH, data: page });
       } else {
         let ncfg = NavPages.find((p) => p.name === page.name);
         if (ncfg) {
@@ -111,13 +110,11 @@ export const PageProvider = ({ children }: { children: React.ReactNode }) => {
             contextChanged = true;
             createEvent({ name: "closeAllPop", data: null, delay: 4 });
           }
-
-          if (!authCheck(ncfg)) dispatch({ type: actions.PAGE_PUSH, data: { name: "signin", data: page } });
-          else dispatch({ type: actions.PAGE_CHANGE, data: { page, contextChanged } });
+          dispatch({ type: actions.PAGE_CHANGE, data: { page, contextChanged } });
         }
       }
     },
-    [user]
+    [dispatch]
   );
   const value = {
     stacks: state.stacks,

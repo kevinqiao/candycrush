@@ -47,3 +47,9 @@ export const CANDY_MATCH_TYPE = {
     LMODEL: 2,
 }
 export const BATTLE_DURATION = 180000
+export const SCENE_NAME = {
+    BATTLE_LOADING: "loading_battle",
+    BATTLE_MATCHING: "matching_battle",
+    BATTLE_CONSOLE: "battle_console",
+    BATTLE_HOME: "battle_home",
+}

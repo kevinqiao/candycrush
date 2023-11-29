@@ -15,5 +15,21 @@
     padding: 0px;
 
   }
+  .closePopBtn{
+    background-color: rgba(242, 80, 169, 0.5); 
+    color:beige;
+    display: flex;
+    z-index: 10000;
+    justify-content: center;
+    align-items: center;
+    position: fixed;
+  
+    top: 0;
+    right: 0;
+    height:30px;
+    width:100px;
+    font-size: 10px;
+    cursor:pointer
+  }
   
   

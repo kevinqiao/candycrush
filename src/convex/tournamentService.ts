@@ -4,6 +4,9 @@ import { tournamentDefs } from "../model/TournamentCfg";
 import * as gameEngine from "../service/GameEngine";
 import { internal } from "./_generated/api";
 import { action } from "./_generated/server";
+
+const COLUMN = 7;
+const ROW = 8;
 export const joinTournament = action({
     args: { tournamentId: v.id("tournament"), cid: v.number(), uid: v.string() },
     handler: async (ctx, args) => {
@@ -14,13 +17,13 @@ export const joinTournament = action({
             if (tdef)
                 battle_type = tdef.battleType;
         }
-        const { cells } = gameEngine.initGame();
+        const { cells } = gameEngine.initGame(ROW, COLUMN);
 
         const gameId: string = await ctx.runMutation(internal.games.create, { game: { uid: args.uid, cells, lastCellId: cells.length + 1 } });
         const battle = { tournamentId: args.tournamentId, games: [gameId], type: BATTLE_TYPE.SOLO, status: 0 };
         const battleId = await ctx.runMutation(internal.battle.create, battle);
         await ctx.runMutation(internal.events.create, {
-            name: "battleCreated", uid: "kqiao", data: { id: battleId, games: [gameId], tournamentId: args.tournamentId, type: battle_type }
+            name: "battleCreated", uid: "kqiao", data: { id: battleId, games: [gameId], tournamentId: args.tournamentId, type: battle_type, column: COLUMN, row: ROW }
         });
         await ctx.runMutation(internal.events.create, {
             name: "gameInited", uid: "kqiao", gameId, data: { gameId, cells }
@@ -55,7 +58,7 @@ export const joinTournamentByGroup = action({
                         games.push({ uid: opponent, gameId });
                     }
                     await ctx.runMutation(internal.events.create, {
-                        name: "battleCreated", uid, data: { games, id: battleId, ...battle }
+                        name: "battleCreated", uid, data: { games, id: battleId, ...battle, column: COLUMN, row: ROW }
                     });
 
                 }
@@ -75,7 +78,7 @@ export const joinTournamentByOneToOne = action({
 
             if (tid) {
 
-                const battle = { tournamentId: tid, type: tournamentDef.battleType, status: 0 };
+                const battle = { tournamentId: tid, type: tournamentDef.battleType, status: 0, column: COLUMN, row: ROW };
                 const battleId = await ctx.runMutation(internal.battle.create, battle);
                 const games = [];
                 let gameInited = await ctx.runQuery(internal.gameService.findInitGame, { uid, trend: 1 })

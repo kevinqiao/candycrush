@@ -7,9 +7,9 @@ interface GameScore {
   score: { base: number; goal: number; time: number };
 }
 interface IBattleContext {
+  battle: BattleModel | null;
   starttime: number;
   type: number;
-  battle: BattleModel | null;
   gamescores: GameScore[];
   updateScore: (gameId: string, score: number) => void;
 }
@@ -34,7 +34,7 @@ const actions = {
 const reducer = (state: any, action: any) => {
   switch (action.type) {
     case actions.INIT_BATTLE:
-      return Object.assign({}, state, action.data);
+      return Object.assign({}, state, { battle: action.data });
     case actions.SCORE_UPDATE:
       const { gameId, score } = action.data;
       if (gameId && score) {
@@ -51,7 +51,7 @@ const reducer = (state: any, action: any) => {
       return state;
   }
 };
-export const BattleProvider = ({ battle, children }: { battle: BattleModel; children: React.ReactNode }) => {
+export const BattleProvider = ({ battle, children }: { battle: BattleModel | null; children: React.ReactNode }) => {
   const [state, dispatch] = React.useReducer(reducer, initialState);
   const convex = useConvex();
 

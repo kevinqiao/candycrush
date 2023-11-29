@@ -1,26 +1,26 @@
-import { CandyModel } from "../../model/CandyModel";
 import { CellItem } from "../../model/CellItem";
-const play = (cells: CellItem[], candyMap: Map<Number, CandyModel>, cellW: number, tl: any) => {
+import { CandySprite } from "../pixi/CandySprite";
+const useMoveCandies = () => {
+    const playMove = (cells: CellItem[], candyMap: Map<Number, CandySprite>, cellW: number, tl: any) => {
 
-    // const tl = gsap.timeline();
-    cells.forEach((c) => {
-        const candy = candyMap.get(c.id);
-        if (candy) {
-            Object.assign(candy.data, c)
-            const sprite = candy.sprite
-            if (sprite)
+        // const tl = gsap.timeline();
+        cells.forEach((c) => {
+            const candy = candyMap.get(c.id);
+            if (candy) {
                 tl.to(
-                    sprite,
+                    candy,
                     {
                         x: c.column * cellW + Math.floor(cellW / 2),
                         y: c.row * cellW + Math.floor(cellW / 2),
                         duration: 0.4,
                         ease: 'power2.out',
-                    },"<")
-        }
-    })
+                    }, "<")
+            }
+        })
 
-    // tl.play();
+        // tl.play();
 
+    }
+    return { playMove }
 }
-export default play
+export default useMoveCandies

@@ -12,12 +12,14 @@
   z-index: 1;
 }
 .closePopBtn{
-  background-color: rgba(80, 110, 242, 0.5); 
+  background-color: rgba(242, 80, 169, 0.5); 
   color:beige;
   display: flex;
+  z-index: 10000;
   justify-content: center;
   align-items: center;
   position: fixed;
+
   top: 0;
   right: 0;
   height:30px;

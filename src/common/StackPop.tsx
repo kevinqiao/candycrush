@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from "react";
+import React, { ReactNode, useEffect, useRef } from "react";
 import useEventSubscriber from "../service/EventManager";
 import { PageItem, usePageManager } from "../service/PageManager";
 import { useUserManager } from "../service/UserManager";
@@ -8,10 +8,10 @@ interface PopupProps {
   zIndex: number;
   page: string;
   position: { page: string; top: number; left: number; width: number; height: number; direction: number } | null;
-  render: (togglePopup: () => void) => React.ReactNode;
+  children: ReactNode;
 }
 
-const StackPop: React.FC<PopupProps> = ({ zIndex, position, render }) => {
+const StackPop: React.FC<PopupProps> = ({ zIndex, position, children }) => {
   const popupRef = useRef<HTMLDivElement>(null);
   const maskRef = useRef<HTMLDivElement>(null);
   const StackAnimation = useStackAnimation({
@@ -64,7 +64,15 @@ const StackPop: React.FC<PopupProps> = ({ zIndex, position, render }) => {
           opacity: 0,
         }}
       >
-        {render(togglePopup)}
+        {children}
+        <div
+          className="closePopBtn"
+          onClick={() => {
+            togglePopup();
+          }}
+        >
+          Cancel
+        </div>
       </div>
     </>
   );

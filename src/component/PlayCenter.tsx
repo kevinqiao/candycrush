@@ -13,7 +13,7 @@ const pageIndexs = [
   { name: "textureList", index: 1 },
   { name: "battleHome", index: 2 },
   { name: "accountHome", index: 3 },
-  { name: "texturePlay", index: 4 },
+  { name: "avatarList", index: 4 },
 ];
 
 const PlayCenter: React.FC = () => {

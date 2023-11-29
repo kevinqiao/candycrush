@@ -1,6 +1,4 @@
-import { useAction } from "convex/react";
-import React, { createContext, useCallback, useContext, useEffect } from "react";
-import { api } from "../convex/_generated/api";
+import React, { createContext, useCallback, useContext } from "react";
 import useEventSubscriber from "./EventManager";
 interface User {
   uid: string;
@@ -50,28 +48,25 @@ const UserContext = createContext<IUserContext>({
 
 export const UserProvider = ({ children }: { children: React.ReactNode }) => {
   const [state, dispatch] = React.useReducer(reducer, initialState);
-  const authByToken = useAction(api.UserService.authByToken);
+  // const authByToken = useAction(api.UserService.authByToken);
   const { createEvent } = useEventSubscriber([], []);
-  useEffect(() => {
-    const userJSON = localStorage.getItem("user");
-    if (userJSON) {
-      const user = JSON.parse(userJSON);
-      console.log(user);
+  // useEffect(() => {
+  //   const userJSON = localStorage.getItem("user");
+  //   if (userJSON) {
+  //     const user = JSON.parse(userJSON);
+  //     console.log(user);
 
-      authByToken({ uid: user.uid, token: "12345" }).then((u: any) => {
-        dispatch({ type: actions.AUTH_COMPLETE, data: u });
-        if (u.battle) createEvent({ name: "battleCreated", data: u.battle, delay: 10 });
-      });
-    }
-  }, []);
+  //     authByToken({ uid: user.uid, token: "12345" }).then((u: any) => {
+  //       dispatch({ type: actions.AUTH_COMPLETE, data: u });
+  //       if (u.battle) createEvent({ name: "battleCreated", data: u.battle, delay: 10 });
+  //     });
+  //   }
+  // }, []);
   const value = {
     user: state.user,
     authComplete: useCallback((user: User) => {
       localStorage.setItem("user", JSON.stringify({ uid: user.uid, token: "12345" }));
       dispatch({ type: actions.AUTH_COMPLETE, data: user });
-      console.log(user);
-      if (user.battle) createEvent({ name: "battleCreated", data: user.battle, delay: 10 });
-      // createEvent({ name: "closePage", topic: "page", data: { name: "signin" }, delay: 10 });
     }, []),
 
     signout: useCallback(() => {

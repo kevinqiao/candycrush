@@ -26,10 +26,10 @@ export const CoordProvider = ({ children }: { children: ReactNode }) => {
       mainMenuTop,
       mainMenuLeft,
       mainMenuRatio,
-      sceneW,
-      sceneH,
-      cellW,
-      cellH: cellW,
+      // sceneW,
+      // sceneH,
+      // cellW,
+      // cellH: cellW,
       isMobile,
     };
     setValue(v);

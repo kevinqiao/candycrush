@@ -50,30 +50,10 @@ const StackController = () => {
     <>
       {stacks.map((p, index) => {
         const position = getPosition(p.name);
-
         return (
-          <StackPop
-            key={p.name + "stack"}
-            page={p.name}
-            zIndex={(index + 1) * 200}
-            position={position}
-            render={(togglePopup) => {
-              return (
-                <>
-                  <div
-                    className="closePopBtn"
-                    onClick={() => {
-                      togglePopup();
-                      setTimeout(() => popPage([p.name]), 1000);
-                    }}
-                  >
-                    Cancel
-                  </div>
-                  {renderPage(p)}
-                </>
-              );
-            }}
-          />
+          <StackPop key={p.name + "stack"} page={p.name} zIndex={(index + 1) * 200} position={position}>
+            {renderPage(p)}
+          </StackPop>
         );
       })}
     </>

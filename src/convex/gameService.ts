@@ -5,9 +5,13 @@ import { Match, applyMatches, checkMatches, initGame } from "../service/GameEngi
 import * as Utils from "../util/Utils";
 import { internal } from "./_generated/api";
 import { action, internalMutation, internalQuery, query } from "./_generated/server";
+
+const COLUMN = 7;
+const ROW = 8;
 const getFreeCandy = (seed: string, cellId: number) => {
     const random = Utils.getNthRandom(seed, cellId);
-    const index = Math.floor(random * (candy_textures.length - 10));
+    // const index = Math.floor(random * (candy_textures.length - 10));
+    const index = Math.floor(random * 10);
     const asset = candy_textures[index]["id"] ?? 0;
     const candy = { id: cellId, asset, column: -1, row: -1 };
     return candy
@@ -17,8 +21,6 @@ const processSmash = (game: any, cellId: number): { cell: CellItem, toRemove: Ce
     const toCreate: CellItem[] = [];
     const toMove: CellItem[] = [];
     const cell: CellItem = JSON.parse(JSON.stringify(game.cells.find((c: CellItem) => c.id === cellId)));
-    console.log("process smesh on candy:" + cell.id + "; asset:" + cell.asset)
-    console.log(cell.asset)
 
     if (cell.asset === 28) {
         toRemove = game.cells.filter((c: CellItem) => c.row === cell.row);
@@ -157,7 +159,7 @@ export const findInitGame = internalQuery({
 export const createInitGame = internalMutation({
     args: { uid: v.string() },
     handler: async (ctx, { uid }) => {
-        const game = initGame();
+        const game = initGame(ROW, COLUMN);
         const gameseed = await ctx.db.query("gameseeds")
             .filter((q) => q.eq(q.field("seed"), game.seed)).first()
         if (!gameseed) {
@@ -182,16 +184,17 @@ export const swipeCell = action({
             [candy.column, target.column] = [target.column, candy.column];
             let steptime = Math.round(Date.now() - game['_creationTime']);
 
-            // await ctx.runMutation(internal.events.create, {
-            //     name: "cellSwapped", gameId: args.gameId, steptime, data: { candy, target }
-            // })
-
             const results: { toChange: CellItem[]; toCreate?: CellItem[]; toMove: CellItem[]; toRemove: CellItem[] }[] = [];
             const data = { candy: JSON.parse(JSON.stringify(candy)), target: JSON.parse(JSON.stringify(target)), results };
 
 
             while (true) {
-                const matches: Match[] = checkMatches(game.cells);
+                game.cells.sort((a: CellItem, b: CellItem) => a.row !== b.row ? a.row - b.row : a.column - b.column)
+                const grid: CellItem[][] = Array.from({ length: ROW }, () => Array(COLUMN).fill(null));
+                for (const unit of game.cells) {
+                    grid[unit.row][unit.column] = unit;
+                }
+                const matches: Match[] = checkMatches(grid);
                 if (matches.length === 0)
                     break;
                 const result: { toChange: CellItem[]; toCreate: CellItem[]; toMove: CellItem[]; toRemove: CellItem[] } | null = processMatch(game, matches);
@@ -236,21 +239,22 @@ export const smash = action({
             const smashRes: { cell: CellItem; toCreate: CellItem[]; toMove: CellItem[]; toRemove: CellItem[] } = processSmash(game, candyId);
             if (smashRes) {
                 console.log("smash results with candy:" + smashRes.cell.id + " asset:" + smashRes.cell.asset)
-                // await ctx.runMutation(internal.events.create, {
-                //     name: "cellSmashed", gameId: gameId, lastCellId: game.lastCellId, steptime, data: smashRes
-                // })
+
                 const results = [];
                 results.push(smashRes)
-                let count = 0;
                 while (true) {
-                    count++;
-                    const matches: any | null = checkMatches(game.cells);
-                    if (matches.length === 0 || count > 10)
+                    game.cells.sort((a: CellItem, b: CellItem) => a.row !== b.row ? a.row - b.row : a.column - b.column)
+                    const grid: CellItem[][] = Array.from({ length: ROW }, () => Array(COLUMN).fill(null));
+                    for (const unit of game.cells) {
+                        grid[unit.row][unit.column] = unit;
+                    }
+                    const matches: any | null = checkMatches(grid);
+                    if (matches.length === 0)
                         break;
                     const result: any = processMatch(game, matches);
                     results.push(result)
                 }
-                console.log("count:" + count + ";" + results.length)
+
 
                 game.cells.sort((a: CellItem, b: CellItem) => {
                     if (a.row !== b.row)

@@ -4,12 +4,14 @@ import MotionPathPlugin from "gsap/MotionPathPlugin";
 import NavController from "./component/NavController";
 import StackController from "./component/StackController";
 import MainMenu from "./component/menu/MainMenu";
+import AuthCheck from "./component/signin/AuthCheck";
 import { CoordProvider } from "./service/CoordManager";
 import { EventProvider } from "./service/EventManager";
 import { PageProvider } from "./service/PageManager";
 import { UserProvider } from "./service/UserManager";
 // Register the plugin once globally
 gsap.registerPlugin(MotionPathPlugin);
+// gsap.registerPlugin(TransformPlugin);
 const convex = new ConvexReactClient("https://dazzling-setter-839.convex.cloud");
 function App() {
   console.log("app init");
@@ -34,12 +36,13 @@ function App() {
   const Providers = FlattenedProviderTree([
     [CoordProvider],
     [ConvexProvider, { client: convex }],
-    [EventProvider],
     [UserProvider],
+    [EventProvider],
     [PageProvider],
   ]);
   return (
     <Providers>
+      <AuthCheck />
       <MainMenu />
       <NavController />
       {/* <PlayCenter /> */}

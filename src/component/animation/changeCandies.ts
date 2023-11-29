@@ -1,24 +1,20 @@
 import * as PIXI from "pixi.js";
-import { CandyModel } from "../../model/CandyModel";
 import { CellItem } from "../../model/CellItem";
-const play = (cells: CellItem[], textures: { id: number; texture: PIXI.Texture }[], candyMap: Map<Number, CandyModel>, cellW: number, tl: any) => {
+import { CandySprite } from "../pixi/CandySprite";
+const useChangeCandies = () => {
+    const playChange = (cells: CellItem[], textures: { id: number; texture: PIXI.Texture }[], candyMap: Map<Number, CandySprite>, cellW: number, tl: any) => {
 
-    cells.forEach((c) => {
-        //   const candy = scene?.candies?.get(c.id);
-
-        const candy = candyMap.get(c.id);
-        if (candy) {
-            // Object.assign(candy.data, c)
-            const sprite = candy.sprite
-            if (sprite)
+        cells.forEach((c) => {
+            const candy = candyMap.get(c.id);
+            if (candy) {
                 tl.to(
-                    sprite,
+                    candy,
                     {
                         onStart: () => {
                             const texture = textures?.find((t) => t.id === c.asset);
                             if (texture && candy) {
-                                Object.assign(candy.data, c);
-                                candy.sprite.texture = texture.texture;
+                                // Object.assign(candy.data, c);
+                                candy.texture = texture.texture;
                             }
                         },
                         x: c.column * cellW + Math.floor(cellW / 2),
@@ -26,8 +22,10 @@ const play = (cells: CellItem[], textures: { id: number; texture: PIXI.Texture }
                         duration: 0.3,
                         ease: 'power2.out',
                     }, "<")
-        }
-    })
+            }
+        })
 
+    }
+    return { playChange }
 }
-export default play
+export default useChangeCandies

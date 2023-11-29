@@ -1,5 +1,5 @@
 import { v } from "convex/values";
-import { BATTLE_TYPE } from "../model/Constants";
+import { BATTLE_TYPE, COLUMN, ROW } from "../model/Constants";
 import { internal } from "./_generated/api";
 import { Id } from "./_generated/dataModel";
 import { action } from "./_generated/server";
@@ -30,7 +30,7 @@ export const authByToken = action({
                         b['games'] = games.map((g) => ({ uid: g.uid, gameId: g._id }))
                 } else
                     b["games"] = [{ uid: uid, gameId: game._id }]
-                user['battle'] = b;
+                user['battle'] = { ...b, column: COLUMN, row: ROW };
             }
             await ctx.runMutation(internal.user.update, { id: user["_id"], data: {} })
         }

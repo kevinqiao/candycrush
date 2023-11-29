@@ -118,6 +118,30 @@ const candy_textures = [
         x: 300,
         y: 400,
         type: 5
+    },
+    {
+        id: 41,
+        x: 0,
+        y: 300,
+        type: 6
+    },
+    {
+        id: 42,
+        x: 100,
+        y: 300,
+        type: 6
+    },
+    {
+        id: 43,
+        x: 200,
+        y: 300,
+        type: 6
+    },
+    {
+        id: 44,
+        x: 300,
+        y: 300,
+        type: 6
     }
 ]
 export default candy_textures

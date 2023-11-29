@@ -11,7 +11,7 @@ interface IGameContext {
   uid: string | null;
   gameId: string | null;
   cells: CellItem[] | null;
-  matched: [];
+  matched: { asset: number; quantity: number }[];
   laststep: number;
   lastCellId: number;
   status: number;
@@ -55,18 +55,20 @@ const actions = {
   APPLY_SMASH: "APPLY_SMASH",
 };
 const applyProcess = (
-  res: { toCreate: CellItem[]; toRemove: CellItem[]; toMove: CellItem[]; score?: number },
+  res: { toCreate: CellItem[]; toChange: CellItem[]; toRemove: CellItem[]; toMove: CellItem[]; score?: number },
   state: any
 ) => {
   state.cells.sort((a: CellItem, b: CellItem) => {
     if (a.row === b.row) return a.column - b.column;
     else return a.row - b.row;
   });
-  const { toCreate, toRemove, toMove, score } = res;
+  const { toCreate, toChange, toRemove, toMove, score } = res;
   // let recells = state.cells;
   if (toRemove) {
     const rids: number[] = toRemove.map((c: CellItem) => c.id);
-    state.cells = state.cells.filter((c: CellItem) => !rids.includes(c.id));
+    const acells: CellItem[] = state.cells.filter((c: CellItem) => !rids.includes(c.id));
+    state.cells.length = 0;
+    state.cells.push(...acells);
     for (let r of toRemove) {
       const mitem = state.matched.find((m: { asset: number; quantity: number }) => m.asset === r.asset);
       if (mitem) mitem.quantity++;
@@ -76,7 +78,13 @@ const applyProcess = (
   if (toCreate) {
     state.cells.push(...toCreate);
   }
-  console.log(JSON.parse(JSON.stringify(state.cells)));
+  if (toChange) {
+    toChange.forEach((c) => {
+      const cell = state.cells.find((s: CellItem) => s.id === c.id);
+      Object.assign(cell, c);
+    });
+  }
+
   if (toMove) {
     for (let m of toMove) {
       const cell = state.cells.find((c: CellItem) => c.id === m.id);
@@ -92,54 +100,59 @@ const applyProcess = (
     if (a.row === b.row) return a.column - b.column;
     else return a.row - b.row;
   });
-  console.log(JSON.parse(JSON.stringify(state.cells)));
 };
 const reducer = (state: any, action: any) => {
   switch (action.type) {
     case actions.INIT_GAME:
-      console.log(action.data.pasttime);
       const starttime = Date.now() - action.data.pasttime;
+      // state.cells.push(...action.data.cells);
       return Object.assign({}, state, { matched: [] }, action.data, { starttime });
 
     case actions.SWAP_CELL:
       const { candy, target, results } = action.data.data;
-      // console.log(JSON.parse(JSON.stringify(candy)));
-      // console.log(JSON.parse(JSON.stringify(target)));
-      // console.log(state.cells);
       const scandy = state.cells.find((c: CellItem) => c.id === candy.id);
       if (scandy) Object.assign(scandy, candy);
       const starget = state.cells.find((c: CellItem) => c.id === target.id);
       if (starget) Object.assign(starget, target);
       const { lastCellId, steptime } = action.data;
       console.log("last cellid:" + lastCellId);
-      results.forEach((result: { toCreate: CellItem[]; toRemove: CellItem[]; toMove: CellItem[]; score?: number }) =>
-        applyProcess(result, state)
+      results.forEach(
+        (result: {
+          toCreate: CellItem[];
+          toChange: CellItem[];
+          toRemove: CellItem[];
+          toMove: CellItem[];
+          score?: number;
+        }) => applyProcess(result, state)
       );
       state.cells.sort((a: CellItem, b: CellItem) => {
         if (a.row === b.row) return a.column - b.column;
         else return a.row - b.row;
       });
-      console.log(JSON.parse(JSON.stringify(state.cells)));
+
       return Object.assign({}, state, {
-        cells: [...state.cells],
         lastCellId,
         matched: [...state.matched],
         laststep: steptime,
         score: { ...state.score },
       });
     case actions.APPLY_SMASH:
-      console.log(action.data.data);
       const res = action.data.data.results;
-      res.forEach((result: { toCreate: CellItem[]; toRemove: CellItem[]; toMove: CellItem[]; score?: number }) =>
-        applyProcess(result, state)
+      res.forEach(
+        (result: {
+          toCreate: CellItem[];
+          toChange: CellItem[];
+          toRemove: CellItem[];
+          toMove: CellItem[];
+          score?: number;
+        }) => applyProcess(result, state)
       );
-      // state.cells.sort((a: CellItem, b: CellItem) => {
-      //   if (a.row === b.row) return a.column - b.column;
-      //   else return a.row - b.row;
-      // });
+      state.cells.sort((a: CellItem, b: CellItem) => {
+        if (a.row === b.row) return a.column - b.column;
+        else return a.row - b.row;
+      });
       // // console.log(JSON.parse(JSON.stringify(state.cells)));
       return Object.assign({}, state, {
-        cells: [...state.cells],
         lastCellId: action.data.lastCellId,
         matched: [...state.matched],
         laststep: action.data.steptime,
@@ -158,8 +171,6 @@ export const GameProvider = ({ gameId, children }: { gameId: string; children: R
   const [gameEvents, setGameEvents] = useState<GameEvent[]>([]);
   const { battle } = useBattleManager();
 
-  // const { updateScore } = useBattleManager();
-
   const events: GameEvent[] | undefined | null = useQuery(api.events.getByGame, {
     gameId: state.gameId ?? undefined,
     laststep: battle?.type === 3 ? -1 : state.laststep,
@@ -170,7 +181,6 @@ export const GameProvider = ({ gameId, children }: { gameId: string; children: R
   const smash = useAction(api.gameService.smash);
   useEffect(() => {
     if (events) {
-      console.log(events);
       let count = 0;
       for (let event of events) {
         setTimeout(() => setGameEvent(event), 10 * count++);
@@ -238,10 +248,10 @@ export const GameProvider = ({ gameId, children }: { gameId: string; children: R
         if (pastEvents?.length > 0) {
           lastEventRef.current = pastEvents[0];
           switch (pastEvents[0].name) {
-            case "matchSolved":
-              dispatch({ type: actions.APPLY_MATCH, data: pastEvents[0] });
-              setGameEvent(pastEvents[0]);
-              break;
+            // case "matchSolved":
+            //   dispatch({ type: actions.APPLY_MATCH, data: pastEvents[0] });
+            //   setGameEvent(pastEvents[0]);
+            //   break;
             case "cellSmeshed":
               dispatch({ type: actions.APPLY_SMASH, data: pastEvents[0] });
               setGameEvent(pastEvents[0]);

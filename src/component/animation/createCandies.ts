@@ -1,21 +1,19 @@
-import { CandyModel } from "../../model/CandyModel";
 import { CellItem } from "../../model/CellItem";
-const play = (cells: CellItem[], candyMap: Map<Number, CandyModel>, cellW: number, tl: any) => {
+import { CandySprite } from "../pixi/CandySprite";
+const play = (cells: CellItem[], candyMap: Map<Number, CandySprite>, cellW: number, tl: any) => {
 
     // const tl = gsap.timeline();
     cells.forEach((c) => {
         const candy = candyMap.get(c.id)
         if (candy) {
-            const sprite = candy.sprite
-            if (sprite)
-                tl.to(
-                    sprite,
-                    {
-                        x: c.column * cellW + Math.floor(cellW / 2),
-                        y: c.row * cellW + Math.floor(cellW / 2),
-                        duration: 0.4,
-                        ease: 'power2.out',
-                    }, "<")
+            tl.to(
+                candy,
+                {
+                    x: c.column * cellW + Math.floor(cellW / 2),
+                    y: c.row * cellW + Math.floor(cellW / 2),
+                    duration: 0.4,
+                    ease: 'power2.out',
+                }, "<")
         }
     })
 
