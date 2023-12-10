@@ -1,4 +1,5 @@
 import seedrandom from 'seedrandom';
+import goals from "../component/play/goals";
 import { CellItem } from "../model/CellItem";
 import { CANDY_MATCH_TYPE } from '../model/Constants';
 import candy_textures from "../model/candy_textures";
@@ -330,15 +331,50 @@ export const applyMatches = (
     }
     return game
 }
-export const getScore = (game: any) => {
-    const score: { base: number; goal: number; time: number } = { base: 0, goal: 0, time: 0 };
-    if (game.score)
-        Object.assign(score, game.score);
-    else if (game.matched) {
-        score.base = game.matched.reduce((s: number, a: { asset: number; quantity: number }) => s + a.quantity, 0);
-    }
-    return score;
+
+export const countBaseScore = (matched: { asset: number, quantity: number }[]): number => {
+    if (matched)
+        return matched.reduce((s: number, a: { asset: number; quantity: number }) => s + a.quantity, 0);
+    return 0;
 }
+
+export const countGoalAndScore = (results: any[], matched: { asset: number; quantity: number }[], goalId: number) => {
+    let from = matched.reduce((s: number, a: { asset: number; quantity: number }) => s + a.quantity, 0);
+    const goalModel = goals.find((g: { id: number, goal: { asset: number, quantity: number }[] }) => g.id === goalId);
+
+    if (goalModel) {
+        const preGoal = goalModel.goal.map((g) => {
+            const m = matched.find((m) => m.asset === g.asset);
+            const quantity = m ? g.quantity - m.quantity : g.quantity;
+            return { asset: g.asset, quantity };
+        })
+        const gassets = goalModel.goal.map((g) => g.asset);
+        for (let res of results) {
+            const { toRemove }: { toRemove: CellItem[] } = res;
+            const toCollect: CellItem[] = toRemove.filter((c: CellItem) => gassets.includes(c.asset));
+            if (toCollect.length > 0) {
+                res.toCollect = toCollect;
+                const toGoal: { asset: number; start: number; end: number }[] = [];
+                for (let g of preGoal) {
+                    const size = toCollect.filter((c) => c.asset === g.asset).length;
+                    if (size > 0) {
+                        const end = Math.max(g.quantity - size, 0);
+                        toGoal.push({ asset: g.asset, start: g.quantity, end });
+                        g.quantity = end
+                    }
+                }
+                res.toGoal = toGoal;
+            }
+            const to = from + toRemove.length;
+            res.toScore = { from, to }
+            from = to;
+        }
+    }
+
+}
+
+
+
 
 
 

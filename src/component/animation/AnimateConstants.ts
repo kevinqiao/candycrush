@@ -6,7 +6,8 @@ export const ANIMATE_NAME = {
     CANDY_SMESHED: "candy_smeshed",
     CANDY_SWAPPED: "candy_swapped",
     SWIPE_SUCCESS: "swipe_success",
-    SWIPE_FAIL: "swipe_fail"
+    SWIPE_FAIL: "swipe_fail",
+    GOAL_COLLECT: "goal_collect"
 }
 export const ANIMATE_EVENT_TYPE = {
     CREATE: 0,

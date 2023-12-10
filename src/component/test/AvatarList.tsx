@@ -1,5 +1,6 @@
 import * as PIXI from "pixi.js";
 import { useEffect, useMemo, useRef, useState } from "react";
+import candy_texture_defs from "../../model/candy_textures";
 import useCoord from "../../service/CoordManager";
 import { Avatar } from "../pixi/Avatar";
 import { ARRAY_TYPE, AvatarBar } from "../pixi/AvatarBar";
@@ -15,6 +16,7 @@ const AvatarList: React.FC = () => {
   const sceneContainerRef = useRef<HTMLDivElement | null>(null);
   const [scene, setScene] = useState<PIXI.Application>();
   const [textures, setTextures] = useState<PIXI.Texture[]>([]);
+  const [candyTextures, setCandyTextures] = useState<{ id: number; texture: PIXI.Texture }[]>([]);
   const { width, height } = useCoord();
   const createPiece = () => {
     const graphics = new PIXI.Graphics();
@@ -43,9 +45,17 @@ const AvatarList: React.FC = () => {
       // return sprite;
     }
   };
+  const loadCandyTextures = () => {
+    const baseTexture = PIXI.BaseTexture.from("assets/assets_candy.png");
+    const frameSize = 100;
+    const all = candy_texture_defs.map((c) => {
+      const rect = new PIXI.Rectangle(c.x, c.y, frameSize, frameSize);
+      const texture = new PIXI.Texture(baseTexture, rect);
+      return { id: c.id, texture };
+    });
+    setCandyTextures(all);
+  };
   useEffect(() => {
-    // Initialize PixiJS Application
-    console.log(width + ":" + height);
     const app = new PIXI.Application({
       width,
       height,
@@ -70,13 +80,30 @@ const AvatarList: React.FC = () => {
         }
         setTextures(textureList);
       }
+      loadCandyTextures();
     }
     setScene(app);
     return () => {
       app.destroy(true);
     };
   }, [width, height]);
-
+  // useEffect(() => {
+  //   console.log(candyTextures.length);
+  //   if (scene && candyTextures.length > 0) {
+  //     const texture = candyTextures.find((t) => t.id === 1);
+  //     if (texture) {
+  //       console.log("sprite texture");
+  //       const candy = new PIXI.Sprite(texture.texture);
+  //       candy.anchor.set(0.5);
+  //       candy.width = 50;
+  //       candy.height = 50;
+  //       candy.x = 200;
+  //       candy.y = 300;
+  //       scene.stage.addChild(candy);
+  //       console.log("add candy to scene");
+  //     }
+  //   }
+  // }, [scene, candyTextures]);
   useEffect(() => {
     let count = 0;
     if (scene) {
@@ -90,6 +117,7 @@ const AvatarList: React.FC = () => {
         scene.stage.addChild(sprite);
         count++;
       }
+      // const candy = new CandySprite(textures[0], 1, 160, 60);
       const candy = new CandySprite(textures[0], 1, 160, 60);
       candy.x = 200;
       candy.y = 600;
@@ -97,12 +125,26 @@ const AvatarList: React.FC = () => {
       candy.height = 50;
       scene.stage.addChild(candy);
 
-      const avatar = new AvatarBar(textures[0], "500", 160, 60, ARRAY_TYPE.HORIZATION_LEFT);
+      const avatar = new AvatarBar({
+        avatarTexture: textures[0],
+        uid: "1",
+        name: "500",
+        width: 110,
+        height: 40,
+        arrayType: ARRAY_TYPE.HORIZATION_LEFT,
+      });
       avatar.x = 500;
       avatar.y = 500;
       scene.stage.addChild(avatar);
 
-      const opponent = new AvatarBar(textures[0], "500", 160, 60, ARRAY_TYPE.HORIZATION_RIGHT);
+      const opponent = new AvatarBar({
+        avatarTexture: textures[0],
+        uid: "1",
+        name: "500",
+        width: 110,
+        height: 40,
+        arrayType: ARRAY_TYPE.HORIZATION_RIGHT,
+      });
       // opponent.setArrayType(ARRAY_TYPE.HORIZATION_RIGHT);
       opponent.x = 660;
       opponent.y = 500;
@@ -118,15 +160,20 @@ const AvatarList: React.FC = () => {
       });
       profile.changeTxTStyle(textStyle);
 
-      // const text = new PIXI.Text("Blue Text", textStyle);
-
-      // // Position the text (optional)
-      // text.x = width - text.width;
-      // text.y = 300;
-
-      // scene.stage.addChild(text);
+      if (candyTextures.length > 0) {
+        const texture = candyTextures.find((t) => t.id === 1);
+        console.log("sprite texture");
+        const candy = new PIXI.Sprite(texture?.texture);
+        candy.anchor.set(0.5);
+        candy.width = 50;
+        candy.height = 50;
+        candy.x = 200;
+        candy.y = 300;
+        scene.stage.addChild(candy);
+        console.log("add candy to scene");
+      }
     }
-  }, [textures, scene]);
+  }, [candyTextures, textures, scene]);
   const render = useMemo(() => {
     return <div ref={sceneContainerRef} style={{ width, height }}></div>;
   }, []);

@@ -11,7 +11,7 @@ const colors = ["red", "green", "blue", "orange", "white"];
 const pageIndexs = [
   { name: "tournamentHome", index: 0 },
   { name: "textureList", index: 1 },
-  { name: "battleHome", index: 2 },
+  { name: "goalPanel", index: 2 },
   { name: "accountHome", index: 3 },
   { name: "avatarList", index: 4 },
 ];

@@ -16,7 +16,7 @@ export const findBattle = query({
         score: { base: number; goal: number; time: number };
       }[] = [];
       for (const game of games) {
-        const score = gameEngine.getScore(game);
+        const score = gameEngine.countBaseScore(game.matched);
         const user = await ctx.db.query("user").filter((q) => q.eq(q.field("uid"), game.uid)).first();
         const gamescore: any = { gameId: game._id, score };
         if (user)
@@ -29,9 +29,9 @@ export const findBattle = query({
   },
 });
 export const create = internalMutation({
-  args: { tournamentId: v.id("tournament"), type: v.number(), status: v.number() },
-  handler: async (ctx, { tournamentId, type, status }) => {
-    return await ctx.db.insert("battle", { tournamentId, type, status });
+  args: { tournamentId: v.id("tournament"), type: v.number(), status: v.number(), column: v.number(), row: v.number(), goal: v.optional(v.number()), chunk: v.optional(v.number()) },
+  handler: async (ctx, { tournamentId, type, status, column, row, goal, chunk }) => {
+    return await ctx.db.insert("battle", { tournamentId, type, status, row, column, goal, chunk });
   },
 });
 

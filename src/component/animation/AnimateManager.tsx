@@ -1,6 +1,6 @@
 import * as PIXI from "pixi.js";
 import { createContext, useCallback, useContext, useRef, useState } from "react";
-import { SceneModel } from "../../service/SceneManager";
+import { SceneModel } from "../../model/SceneModel";
 import { useBattleAnimateHandler } from "./BattleAnimateHandler";
 import { useGameAnimateHandler } from "./GameAnimateHandler";
 export interface AnimateElement {
@@ -9,6 +9,7 @@ export interface AnimateElement {
   ele: HTMLDivElement | PIXI.Container | PIXI.Sprite | SceneModel;
 }
 export interface Animate {
+  id: number;
   name: string;
   gameId?: string;
   timeline?: any;
@@ -23,11 +24,12 @@ export interface IAnimateContext {
   animateEvent: AnimateEvent | null;
   createAnimate: (animate: Animate) => void;
   updateAnimate: (name: string, data: any) => void;
-  removeAnimate: (name: string) => void;
+  removeAnimate: (time: number) => void;
   checkIfAnimate: (gameId: string) => boolean;
 }
 export interface AnimateEvent {
   name: string;
+  animateId: number;
   type?: number; //0-create 1-update
   time?: number;
   eles?: AnimateElement[];
@@ -38,7 +40,7 @@ const AnimateContext = createContext<IAnimateContext>({
   animateEvent: null,
   createAnimate: (animate: Animate) => null,
   updateAnimate: (name: string, data: any) => null,
-  removeAnimate: (name: string) => null,
+  removeAnimate: (time: number) => null,
   checkIfAnimate: (gameId: string) => false,
 });
 
@@ -49,26 +51,24 @@ export const AnimateProvider = ({ children }: { children: React.ReactNode }) => 
   const createAnimate = useCallback((animate: Animate) => {
     Object.assign(animate, { starttime: Date.now() });
     animatesRef.current.push(animate);
-    setAnimateEvent({ name: animate.name, type: 0 });
+    setAnimateEvent({ name: animate.name, animateId: animate.id, type: 0 });
   }, []);
   const updateAnimate = (name: string, data: any) => {
     const animate = animatesRef.current.find((a) => a.name === name);
     if (animate) {
       Object.assign(animate, data);
-      setAnimateEvent({ name: animate.name, type: 1, data });
+      setAnimateEvent({ name: animate.name, animateId: animate.id, type: 1, data });
     }
   };
-  const removeAnimate = (name: string) => {
-    const as = animatesRef.current.filter((a) => a.name !== name);
+  const removeAnimate = (id: number) => {
+    const as = animatesRef.current.filter((a) => a.id !== id);
     animatesRef.current.length = 0;
     animatesRef.current.push(...as);
-    setAnimateEvent({ name, type: 2 });
   };
   const checkIfAnimate = useCallback(
     (gameId: string) => {
       const ganimate = animatesRef.current.find((a) => a.gameId === gameId && !a.status);
       if (ganimate) {
-        console.log(ganimate.name);
         return true;
       }
       return false;

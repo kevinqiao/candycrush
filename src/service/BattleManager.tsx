@@ -1,85 +1,46 @@
-import { useConvex } from "convex/react";
-import React, { createContext, useCallback, useContext } from "react";
+import React, { createContext, useContext, useEffect, useRef } from "react";
+import { ANIMATE_NAME } from "../component/animation/AnimateConstants";
+import { useAnimateManager } from "../component/animation/AnimateManager";
 import BattleModel from "../model/Battle";
-interface GameScore {
-  player: { uid: string; name: string };
-  gameId: string;
-  score: { base: number; goal: number; time: number };
-}
+
 interface IBattleContext {
   battle: BattleModel | null;
+  load: number; //0-new 1-reload
   starttime: number;
-  type: number;
-  gamescores: GameScore[];
-  updateScore: (gameId: string, score: number) => void;
 }
 const BattleContext = createContext<IBattleContext>({
   starttime: Date.now(),
-  type: 0,
+  load: 0,
   battle: null,
-  gamescores: [],
-  updateScore: (gameId: string, score: number) => null,
 });
-const initialState = {
-  starttime: Date.now(),
-  type: 0,
-  gamescores: [],
-};
 
-const actions = {
-  INIT_BATTLE: "INIT_BATTLE",
-  SCORE_UPDATE: "SCORE_UPDATE",
-};
-
-const reducer = (state: any, action: any) => {
-  switch (action.type) {
-    case actions.INIT_BATTLE:
-      return Object.assign({}, state, { battle: action.data });
-    case actions.SCORE_UPDATE:
-      const { gameId, score } = action.data;
-      if (gameId && score) {
-        const gamescore = state.gamescores.find((s: GameScore) => s.gameId === gameId);
-
-        if (gamescore) {
-          gamescore.score.base = score;
-          console.log(gamescore);
-          return Object.assign({}, state, { gamescores: [...state.gamescores] });
-        }
-      }
-      break;
-    default:
-      return state;
-  }
-};
-export const BattleProvider = ({ battle, children }: { battle: BattleModel | null; children: React.ReactNode }) => {
-  const [state, dispatch] = React.useReducer(reducer, initialState);
-  const convex = useConvex();
-
-  // useEffect(() => {
-  //   const sync = async () => {
-  //     const b: any | null = await convex.query(api.battle.findBattle, {
-  //       battleId: battle.id as Id<"battle">,
-  //     });
-  //     if (b) {
-  //       console.log(b);
-  //       dispatch({ type: actions.INIT_BATTLE, data: { ...b, starttime: Date.now() - b.pasttime } });
-  //     }
-  //   };
-  //   // sync();
-  // }, [battle, convex]);
-
+export const BattleProvider = ({
+  battle,
+  load,
+  children,
+}: {
+  battle: BattleModel | null;
+  load: number;
+  children: React.ReactNode;
+}) => {
+  const startTimeRef = useRef<number>(Date.now());
+  const { createAnimate } = useAnimateManager();
+  useEffect(() => {
+    createAnimate({ id: Date.now(), name: ANIMATE_NAME.BATTLE_SEARCH });
+  }, []);
+  useEffect(() => {
+    if (battle) {
+      const past = Date.now() - startTimeRef.current;
+      setTimeout(
+        () => createAnimate({ id: Date.now(), name: ANIMATE_NAME.BATTLE_MATCHED, data: battle }),
+        past > 5000 ? 0 : 5000 - past
+      );
+    }
+  }, [battle]);
   const value = {
-    starttime: state.starttime,
-    type: state.type,
+    starttime: startTimeRef.current,
     battle,
-    gamescores: state.gamescores,
-    updateScore: useCallback(
-      (gameId: string, score: number) => {
-        console.log(gameId + ":" + score);
-        dispatch({ type: actions.SCORE_UPDATE, data: { gameId, score } });
-      },
-      [dispatch]
-    ),
+    load,
   };
 
   return <BattleContext.Provider value={value}> {children} </BattleContext.Provider>;

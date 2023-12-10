@@ -16,11 +16,13 @@ const getFreeCandy = (seed: string, cellId: number) => {
     const candy = { id: cellId, asset, column: -1, row: -1 };
     return candy
 }
-const processSmash = (game: any, cellId: number): { cell: CellItem, toRemove: CellItem[]; toCreate: CellItem[], toMove: CellItem[] } => {
+const processSmash = (game: any, cellId: number): { cell: CellItem, toRemove: CellItem[]; toCreate: CellItem[], toMove: CellItem[] } | null => {
     let toRemove: CellItem[] = [];
     const toCreate: CellItem[] = [];
     const toMove: CellItem[] = [];
-    const cell: CellItem = JSON.parse(JSON.stringify(game.cells.find((c: CellItem) => c.id === cellId)));
+    const candy = game.cells.find((c: CellItem) => c.id === cellId);
+    if (!candy) return null;
+    const cell: CellItem = JSON.parse(JSON.stringify(candy));
 
     if (cell.asset === 28) {
         toRemove = game.cells.filter((c: CellItem) => c.row === cell.row);
@@ -76,22 +78,29 @@ const processSmash = (game: any, cellId: number): { cell: CellItem, toRemove: Ce
         }
 
     }
+    for (let r of toRemove) {
+        const mitem = game.matched.find((m: { asset: number; quantity: number }) => m.asset === r.asset);
+        if (mitem) mitem.quantity++;
+        else game.matched.push({ asset: r.asset, quantity: 1 });
+    }
     game.cells = game.cells.filter((c: CellItem) => !c.status)
     return { cell, toCreate, toMove, toRemove };
 
 }
+
 const processMatch = (game: any, matches: Match[]): { toMove: CellItem[]; toRemove: CellItem[]; toCreate: CellItem[]; toChange: CellItem[] } | null => {
 
-    const toChange: CellItem[] = [];
-    const toMove: CellItem[] = [];
+    const changed: CellItem[] = [];
+    const moved: CellItem[] = [];
     const toCreate: CellItem[] = [];
-    const toRemove: CellItem[] = [];
+
+    // const removed: CellItem[] = [];
 
     matches.filter((match) => match.size > 3).forEach((m) => {
         m.items[0].units.sort((a, b) => (a.row + a.column) - (b.row + b.column));
         const start = m.items[0].units[0];
         const end = m.items[0].units[m.items[0].units.length - 1];
-        toRemove.push(Object.assign({}, start, { id: -1 }))
+        // removed.push(Object.assign({}, start, { id: -1 }))
         if (m.items[0].orientation === "horizontal") {
             [start.column, end.column] = [end.column, start.column]
             end.asset = 28;
@@ -100,19 +109,18 @@ const processMatch = (game: any, matches: Match[]): { toMove: CellItem[]; toRemo
             end.asset = 29;
         }
         end.status = 0;
-        toChange.push(JSON.parse(JSON.stringify(end)))
+        changed.push(end)
 
     })
 
-    const removes: CellItem[] = game.cells.filter((c: CellItem) => c.status && c.status > 0);
-    removes.sort((a, b) => (a.row + a.column) - (b.row + b.column))
-    for (let r of removes) {
+    const removed: CellItem[] = game.cells.filter((c: CellItem) => c.status && c.status > 0);
+    removed.sort((a, b) => (a.row + a.column) - (b.row + b.column))
+    for (let r of removed) {
         const candy = getFreeCandy(game.seed, game.lastCellId++);
         if (candy) {
-            toRemove.push(JSON.parse(JSON.stringify(r)))
             candy.column = r.column;
             candy.row = -1;
-            toCreate.push(JSON.parse(JSON.stringify(candy)));
+            toCreate.push(candy);
             game.cells.push(candy)
         }
 
@@ -120,8 +128,8 @@ const processMatch = (game: any, matches: Match[]): { toMove: CellItem[]; toRemo
         if (moves.length > 0) {
             moves.forEach((m: CellItem) => {
                 m.row = m.row + 1;
-                if (toMove.findIndex((a) => a.id === m.id) < 0)
-                    toMove.push(m)
+                if (moved.findIndex((a) => a.id === m.id) < 0)
+                    moved.push(m)
             })
         }
 
@@ -131,6 +139,9 @@ const processMatch = (game: any, matches: Match[]): { toMove: CellItem[]; toRemo
     }
     game.cells = game.cells.filter((c: CellItem) => !c.status);
 
+    const toMove = JSON.parse(JSON.stringify(moved))
+    const toRemove = JSON.parse(JSON.stringify(removed));
+    const toChange = JSON.parse(JSON.stringify(changed));
     const res = { toRemove, toChange, toMove, toCreate }
     return res
 
@@ -235,9 +246,8 @@ export const smash = action({
             if (!game.matched)
                 game.matched = [];
             let steptime = Math.round(Date.now() - game['_creationTime']);
-
-            const smashRes: { cell: CellItem; toCreate: CellItem[]; toMove: CellItem[]; toRemove: CellItem[] } = processSmash(game, candyId);
-            if (smashRes) {
+            const smashRes: { cell: CellItem; toCreate: CellItem[]; toMove: CellItem[]; toRemove: CellItem[] } | null = processSmash(game, candyId);
+            if (smashRes != null) {
                 console.log("smash results with candy:" + smashRes.cell.id + " asset:" + smashRes.cell.asset)
 
                 const results = [];

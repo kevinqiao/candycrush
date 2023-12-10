@@ -7,19 +7,22 @@ export const ARRAY_TYPE = {
 }
 export class AvatarBar extends PIXI.Container {
     name: string;
+    uid: string;
     private avatar: PIXI.Sprite;
     private text: PIXI.Text;
     private bar: PIXI.Graphics;
-    constructor(avatarTexture: PIXI.Texture, name: string, width: number, height: number, arrayType: number) {
+    constructor(props: { avatarTexture: PIXI.Texture; uid: string; name?: string; width: number; height: number; arrayType: number }) {
         super();
-        this.name = name;
+        const { avatarTexture, uid, name, width, height, arrayType } = props;
+        this.uid = uid;
+        this.name = name ?? "";
         this.width = width;
         this.height = height;
 
         const radius = Math.floor(height / 2);
         this.bar = new PIXI.Graphics();
         const barX = arrayType === ARRAY_TYPE.HORIZATION_LEFT ? radius : 0;
-        const barY = radius * 0.2;
+        const barY = radius * 0.4;
         const bwidth = width - radius;
         this.bar.beginFill(0x00ff00, 1); // 0x000000 为黑色，0.5 为透明度
         this.bar.drawRoundedRect(barX, barY, bwidth, height * 0.8, 5);
@@ -53,5 +56,9 @@ export class AvatarBar extends PIXI.Container {
     changeTxTStyle = (style: any) => {
         this.text.style = new PIXI.TextStyle(style)
     }
+    setUid = (uid: string) => {
+        this.uid = uid
+    }
+
 
 }

@@ -31,7 +31,11 @@ export const NavPages = [
         context: "playcenter",
         uri: "./test/AvatarList",
     },
-
+    {
+        name: "goalPanel",
+        context: "playcenter",
+        uri: "./play/console/GoalPanel",
+    },
     {
         name: "battleHome",
         context: "playcenter",

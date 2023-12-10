@@ -36,8 +36,8 @@ export const getByUser = query({
     if (uid === "###") return;
     const user = await ctx.db.query(("user")).filter((q) => q.eq(q.field("uid"), uid)).first();
     const events = await ctx.db
-      .query("events")
-      .filter((q) => q.and(q.eq(q.field("uid"), uid), q.gt(q.field("_creationTime"), user?.lastUpdate ?? Date.now()))).order("desc")
+      .query("events").withIndex("by_uid", (q) => q.eq("uid", uid))
+      .filter((q) => q.gt(q.field("_creationTime"), user?.lastUpdate ?? Date.now())).order("desc")
       .first();
     return events
   },
@@ -45,11 +45,10 @@ export const getByUser = query({
 export const getByGame = query({
   args: { gameId: v.optional(v.string()), laststep: v.number() },
   handler: async (ctx, args) => {
-    console.log("last step:" + args.laststep)
     if (args.laststep >= 0 && args.gameId) {
       const events = await ctx.db
-        .query("events")
-        .filter((q) => q.and(q.eq(q.field("gameId"), args.gameId), q.gt(q.field("steptime"), args.laststep))).order("asc")
+        .query("events").withIndex("by_game", (q) => q.eq("gameId", args.gameId))
+        .filter((q) => q.gt(q.field("steptime"), args.laststep)).order("desc")
         .collect();
       return events.map((event) => Object.assign({}, event, { id: event?._id, _creationTime: undefined, _id: undefined }))
 

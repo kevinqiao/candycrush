@@ -1,56 +1,64 @@
 import * as PIXI from "pixi.js";
 import { CellItem } from "../../../model/CellItem";
-import { SceneModel } from "../../../service/SceneManager";
+import { GameScene } from "../../../model/SceneModel";
+
 type Texture = {
     id: number;
     texture: PIXI.Texture;
 }
-export const playChange = (toChange: CellItem[], gameScene: SceneModel, textures: Texture[], tl: any) => {
+export const playChange = (toChange: CellItem[], gameScene: GameScene, textures: Texture[], tl: any) => {
     const candyMap = gameScene.candies;
     const cwidth = gameScene.cwidth;
     if (candyMap && cwidth) {
         toChange.forEach((c) => {
             const candy = candyMap.get(c.id);
             if (candy) {
+                const cx = c.column * cwidth + Math.floor(cwidth / 2);
+                const cy = c.row * cwidth + Math.floor(cwidth / 2);
+                candy.column = c.column;
+                candy.row = c.row;
                 tl.to(
                     candy,
                     {
                         onStart: () => {
                             const texture = textures?.find((t) => t.id === c.asset);
                             if (texture && candy) {
-                                console.log("texture:" + c.asset)
                                 candy.texture = texture.texture;
                             }
                         },
-                        x: c.column * cwidth + Math.floor(cwidth / 2),
-                        y: c.row * cwidth + Math.floor(cwidth / 2),
-                        duration: 0.3,
+                        x: cx,
+                        y: cy,
+                        duration: 0.1,
                         ease: 'power2.out',
                     }, "<")
             }
         })
     }
 }
-export const playMove = (toMove: CellItem[], gameScene: SceneModel, textures: Texture[], tl: any) => {
+export const playMove = (toMove: CellItem[], gameScene: GameScene, textures: Texture[], tl: any) => {
     const candyMap = gameScene.candies;
     const cwidth = gameScene.cwidth;
     if (candyMap && cwidth)
         toMove.forEach((c) => {
             const candy = candyMap.get(c.id);
             if (candy) {
+                const cx = c.column * cwidth + Math.floor(cwidth / 2);
+                const cy = c.row * cwidth + Math.floor(cwidth / 2);
+                candy.column = c.column;
+                candy.row = c.row;
                 tl.to(
                     candy,
                     {
-                        x: c.column * cwidth + Math.floor(cwidth / 2),
-                        y: c.row * cwidth + Math.floor(cwidth / 2),
-                        duration: 0.4,
+                        x: cx,
+                        y: cy,
+                        duration: 1,
                         ease: 'power2.out',
                     }, "<")
             }
         })
 }
 
-export const playRemove = (toRemove: CellItem[], gameScene: SceneModel, textures: Texture[], tl: any) => {
+export const playRemove = (toRemove: CellItem[], gameScene: GameScene, textures: Texture[], tl: any) => {
     const candyMap = gameScene.candies;
     if (candyMap)
         toRemove.forEach((c) => {
@@ -61,7 +69,7 @@ export const playRemove = (toRemove: CellItem[], gameScene: SceneModel, textures
                     candy,
                     {
                         alpha: 0,
-                        duration: 0.3,
+                        duration: 1,
                         ease: 'power2.out',
                         onComplete: function () {
                             candy.destroy()

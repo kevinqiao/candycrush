@@ -32,7 +32,7 @@ const useTournamentManager = () => {
       openPage({ name: "signin", data: null })
       return;
     }
-    console.log(tournament)
+
     if (tournament?.battleType === BATTLE_TYPE.SOLO) {
       await joinTournamentByGroup({ cid: tournament.id, uid: user.uid })
     } else if (tournament?.battleType === BATTLE_TYPE.SYNC)

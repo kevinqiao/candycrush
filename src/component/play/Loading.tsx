@@ -20,7 +20,7 @@ const Loading = () => {
           type: 1,
         };
         scenes.set(SCENE_NAME.BATTLE_LOADING, scene);
-        stageScene(SCENE_NAME.BATTLE_LOADING, sceneContainerRef.current);
+        stageScene(SCENE_NAME.BATTLE_LOADING, scene);
       }
     }
   }, [sceneContainerRef, scenes, width, height, stageScene]);

@@ -51,5 +51,10 @@ export const SCENE_NAME = {
     BATTLE_LOADING: "loading_battle",
     BATTLE_MATCHING: "matching_battle",
     BATTLE_CONSOLE: "battle_console",
-    BATTLE_HOME: "battle_home",
+    BATTLE_GROUND: "battle_ground",
+    BATTLE_SCENE: "battle_scene"
+}
+export const SCENE_TYPE = {
+    PIXI_APPLICATION: 0,
+    HTML_DIVELEMENT: 1
 }

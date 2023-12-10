@@ -1,5 +1,7 @@
-import React, { createContext, useCallback, useContext } from "react";
-import useEventSubscriber from "./EventManager";
+import { useAction } from "convex/react";
+import React, { createContext, useCallback, useContext, useEffect } from "react";
+import { api } from "../convex/_generated/api";
+import { usePageManager } from "./PageManager";
 interface User {
   uid: string;
   token: string;
@@ -47,9 +49,23 @@ const UserContext = createContext<IUserContext>({
 });
 
 export const UserProvider = ({ children }: { children: React.ReactNode }) => {
+  const { openPage } = usePageManager();
   const [state, dispatch] = React.useReducer(reducer, initialState);
-  // const authByToken = useAction(api.UserService.authByToken);
-  const { createEvent } = useEventSubscriber([], []);
+  const authByToken = useAction(api.UserService.authByToken);
+
+  useEffect(() => {
+    const userJSON = localStorage.getItem("user");
+    if (userJSON) {
+      const user = JSON.parse(userJSON);
+      authByToken({ uid: user.uid, token: "12345" }).then((u: any) => {
+        if (u) {
+          localStorage.setItem("user", JSON.stringify({ uid: user.uid, token: "12345" }));
+          dispatch({ type: actions.AUTH_COMPLETE, data: user });
+          if (u.battle) openPage({ name: "battlePlay", data: { act: "load", battle: u.battle } });
+        }
+      });
+    }
+  }, []);
   // useEffect(() => {
   //   const userJSON = localStorage.getItem("user");
   //   if (userJSON) {

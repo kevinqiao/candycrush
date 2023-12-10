@@ -1,26 +1,20 @@
-import { ReactNode, useEffect, useMemo, useRef } from "react";
-import { SCENE_NAME } from "../../model/Constants";
-import { useBattleManager } from "../../service/BattleManager";
+import { ReactNode, useCallback } from "react";
 import { useSceneManager } from "../../service/SceneManager";
 
 const BattlePlay = ({ children }: { children: ReactNode }) => {
-  const { battle } = useBattleManager();
-  const { scenesStaged } = useSceneManager();
-  const isOpenRef = useRef<boolean>(false);
-  console.log(scenesStaged);
-  useEffect(() => {
-    const battleScenes = [SCENE_NAME.BATTLE_CONSOLE, SCENE_NAME.BATTLE_HOME];
-    const gameIds = battle?.games.map((g) => g.gameId);
-    if (gameIds) battleScenes.push(...gameIds);
-    if (battle && !isOpenRef.current && battleScenes.every((scene) => scenesStaged.includes(scene))) {
-      isOpenRef.current = true;
+  const { containerBound } = useSceneManager();
+  const load = useCallback((sceneEle: HTMLDivElement | null) => {
+    console.log(containerBound);
+    if (sceneEle) {
+      const { width, height } = sceneEle?.getBoundingClientRect();
+      console.log(width + ":" + height);
     }
-  }, [scenesStaged, battle]);
-
-  const render = useMemo(() => {
-    return <div style={{ width: "100%", height: "100%", backgroundColor: "blue" }}>{children}</div>;
   }, []);
-  return <>{render}</>;
+  return (
+    <div ref={load} style={{ position: "relative", width: "100%", height: "100%" }}>
+      {children}
+    </div>
+  );
 };
 
 export default BattlePlay;

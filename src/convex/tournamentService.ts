@@ -20,7 +20,7 @@ export const joinTournament = action({
         const { cells } = gameEngine.initGame(ROW, COLUMN);
 
         const gameId: string = await ctx.runMutation(internal.games.create, { game: { uid: args.uid, cells, lastCellId: cells.length + 1 } });
-        const battle = { tournamentId: args.tournamentId, games: [gameId], type: BATTLE_TYPE.SOLO, status: 0 };
+        const battle = { tournamentId: args.tournamentId, games: [gameId], type: BATTLE_TYPE.SOLO, status: 0, goal: 1, column: COLUMN, row: ROW };
         const battleId = await ctx.runMutation(internal.battle.create, battle);
         await ctx.runMutation(internal.events.create, {
             name: "battleCreated", uid: "kqiao", data: { id: battleId, games: [gameId], tournamentId: args.tournamentId, type: battle_type, column: COLUMN, row: ROW }
@@ -41,13 +41,13 @@ export const joinTournamentByGroup = action({
             const tid = await ctx.runMutation(internal.tournaments.create, { cid, startTime: 0, endTime: 0 });
 
             if (tid) {
-                const battle = { tournamentId: tid, type: tournamentDef.battleType, status: 0 };
+                const battle = { tournamentId: tid, type: tournamentDef.battleType, status: 0, column: COLUMN, row: ROW, goal: 1, chunk: 10 };
                 const battleId = await ctx.runMutation(internal.battle.create, battle);
                 const games = [];
                 let gameInited = tournamentDef.participants === 1 ? await ctx.runMutation(internal.gameService.createInitGame, { uid }) : await ctx.runQuery(internal.gameService.findInitGame, { uid, trend: 1 });
 
                 if (gameInited) {
-                    const gameId: string = await ctx.runMutation(internal.games.create, { game: { uid, battleId, tcid, ...gameInited, _id: undefined, _creationTime: undefined, gameId: undefined } });
+                    const gameId: string = await ctx.runMutation(internal.games.create, { game: { uid, battleId, tcid, ...gameInited, _id: undefined, _creationTime: undefined, gameId: undefined, chunk: battle.chunk, goal: battle.goal } });
                     games.push({ uid, gameId });
                     await ctx.runMutation(internal.events.create, {
                         name: "gameInited", gameId, data: { gameId, ...gameInited }
@@ -78,7 +78,7 @@ export const joinTournamentByOneToOne = action({
 
             if (tid) {
 
-                const battle = { tournamentId: tid, type: tournamentDef.battleType, status: 0, column: COLUMN, row: ROW };
+                const battle = { tournamentId: tid, type: tournamentDef.battleType, status: 0, goal: 1, column: COLUMN, row: ROW };
                 const battleId = await ctx.runMutation(internal.battle.create, battle);
                 const games = [];
                 let gameInited = await ctx.runQuery(internal.gameService.findInitGame, { uid, trend: 1 })

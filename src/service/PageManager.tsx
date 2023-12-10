@@ -1,7 +1,6 @@
 import React, { createContext, useCallback, useContext, useEffect } from "react";
 import { NavPages, StackPages } from "../model/PageCfg";
 import useEventSubscriber from "./EventManager";
-import { useUserManager } from "./UserManager";
 export interface PageConfig {
   name: string;
   uri: string;
@@ -72,14 +71,6 @@ const PageContext = createContext<IPageContext>({
 export const PageProvider = ({ children }: { children: React.ReactNode }) => {
   const [state, dispatch] = React.useReducer(reducer, initialState);
   const { event, createEvent } = useEventSubscriber(["battleCreated", "openPage"], []);
-  const { user } = useUserManager();
-
-  const authCheck = (pageCfg: PageConfig) => {
-    console.log(user);
-    if (pageCfg.auth && !user) {
-      return false;
-    } else return true;
-  };
 
   useEffect(() => {
     if (event) {

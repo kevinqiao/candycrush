@@ -1,5 +1,5 @@
 
 export default interface PageProps {
     data: any;
-    position?: { top: number; left: number; width: number; height: number } | null;
+    position?: { top: number; left: number; width: number; height: number, direction: number };
 }

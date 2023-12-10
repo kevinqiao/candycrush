@@ -1,56 +1,80 @@
 import * as PIXI from "pixi.js";
-import { useEffect, useMemo, useRef, useState } from "react";
-import { useGameManager } from "../../service/GameManager";
-import { SceneModel, useSceneManager } from "../../service/SceneManager";
-import useGameView from "./GameView";
-const GamePlay = () => {
+import { useCallback, useRef, useState } from "react";
+import { useBattleManager } from "../../service/BattleManager";
+import { useSceneManager } from "../../service/SceneManager";
+import { CandySprite } from "../pixi/CandySprite";
+import useGameScene from "./useGameScene";
+const GamePlay = ({ gameId }: { gameId: string }) => {
   const sceneContainerRef = useRef<HTMLDivElement | null>(null);
-  const { scenesUpdated, scenes, stageScene } = useSceneManager();
-  const [gameScene, setGameScene] = useState<SceneModel | null>(null);
-  const { gameId } = useGameManager();
-  const [dimension, setDimension] = useState<{ top: number; left: number; width: number; height: number }>({
-    top: 0,
-    left: 0,
-    width: 0,
-    height: 0,
-  });
-  useGameView(gameScene);
-  useEffect(() => {
-    if (scenes && gameId && scenesUpdated && scenesUpdated.includes(gameId)) {
-      const scene = scenes.get(gameId);
-      if (scene && !gameScene) {
-        console.log("gameplay scene created" + scene.x + ":" + scene.y);
-        setGameScene(scene);
-        setDimension({ top: scene.y, left: scene.x, width: scene.width, height: scene.height });
-      }
-    }
-  }, [gameId, scenesUpdated, scenes, gameScene]);
-  useEffect(() => {
-    if (gameId && sceneContainerRef.current && gameScene) {
-      const app = gameScene.app as PIXI.Application;
-      sceneContainerRef.current.appendChild(app.view as unknown as Node);
-      stageScene(gameId, sceneContainerRef.current);
-    }
-  }, [sceneContainerRef, gameScene, gameId, stageScene]);
+  const { battle } = useBattleManager();
+  const { scenes, containerBound, stageScene } = useSceneManager();
+  const [bound, setBound] = useState<{ top: number; left: number; width: number; height: number } | null>(null);
 
-  const render = useMemo(() => {
-    return (
-      <div
-        ref={sceneContainerRef}
-        style={{
-          position: "absolute",
-          top: dimension.top,
-          left: dimension.left,
-          width: dimension.width,
-          height: dimension.height,
-          margin: 0,
-          border: 0,
-          backgroundColor: "transparent",
-        }}
-      ></div>
-    );
-  }, [dimension]);
-  return <>{render}</>;
+  useGameScene();
+  // useEffect(() => {
+  //   if (!containerBound || !battle || !gameId || !sceneContainerRef.current) return;
+  //   const top = containerBound.height * 0.35;
+  //   const left = containerBound.width * 0.15;
+  //   const width = containerBound.width * 0.7;
+  //   const height = containerBound.height * 0.6;
+  //   const cwidth = Math.floor(width / battle.column);
+  //   const cheight = Math.floor(width / battle.column);
+  //   const candies = new Map<number, CandySprite>();
+  //   const column = battle.column;
+  //   const row = battle.row;
+  //   const app = new PIXI.Application({
+  //     width: width,
+  //     height: height,
+  //     backgroundAlpha: 0,
+  //   });
+  //   const scene = { x: left, y: top, app, width, height, cwidth, cheight, candies, column, row };
+  //   sceneContainerRef.current.appendChild(app.view as unknown as Node);
+  //   stageScene(gameId, scene);
+  //   setBound({ top, left, width, height });
+  // }, [sceneContainerRef, battle, containerBound, gameId, stageScene]);
+
+  const load = useCallback((el: HTMLDivElement) => {
+    // const battlePlay = scenes.get(SCENE_NAME.BATTLE_PLAY);
+
+    let app: PIXI.Application | null = null;
+    if (battle && containerBound && !sceneContainerRef.current) {
+      sceneContainerRef.current = el;
+      const left = containerBound.width * 0.15;
+      const top = containerBound.height * 0.35;
+      const width = containerBound.width * 0.7;
+      const height = containerBound.height * 0.6;
+      const cwidth = Math.floor(width / battle.column);
+      const cheight = Math.floor(width / battle.column);
+      app = new PIXI.Application({
+        width,
+        height,
+        backgroundAlpha: 0,
+      });
+
+      const candies = new Map<number, CandySprite>();
+      const column = battle.column;
+      const row = battle.row;
+      const scene = { x: left, y: top, app, width, height, cwidth, cheight, candies, column, row };
+      el.appendChild(app.view as unknown as Node);
+      stageScene(gameId, scene);
+      setBound({ top, left, width, height });
+    }
+  }, []);
+  return (
+    <div
+      ref={load}
+      style={{
+        position: "absolute",
+        top: bound?.top,
+        left: bound?.left,
+        width: bound?.width,
+        height: bound?.height,
+        margin: 0,
+        border: 0,
+        backgroundColor: "transparent",
+      }}
+    ></div>
+  );
 };
 
 export default GamePlay;

@@ -1,38 +1,19 @@
 import { useEffect, useRef } from "react";
 import { SCENE_NAME } from "../../model/Constants";
-import { useBattleManager } from "../../service/BattleManager";
 import { useSceneManager } from "../../service/SceneManager";
 import useDimension from "../../util/useDimension";
-import { ANIMATE_NAME } from "../animation/AnimateConstants";
-import { useAnimateManager } from "../animation/AnimateManager";
-import { AnimateElement } from "../animation/AnimationManager";
+import Avatar from "./common/Avatar";
 
 const SearchOpponent = () => {
   const sceneContainerRef = useRef<HTMLDivElement | null>(null);
   const searchRef = useRef<HTMLDivElement | null>(null);
   const foundRef = useRef<HTMLDivElement | null>(null);
   const vsRef = useRef<HTMLDivElement | null>(null);
+  const playerAvatarRef = useRef<HTMLDivElement | null>(null);
+  const opponentAvatarRef = useRef<HTMLDivElement | null>(null);
   const { scenes, stageScene } = useSceneManager();
   const { width, height } = useDimension(sceneContainerRef);
-  const { battle } = useBattleManager();
-  const { createAnimate } = useAnimateManager();
 
-  useEffect(() => {
-    if (searchRef.current && vsRef.current && foundRef.current && sceneContainerRef.current) {
-      const sceneEle: AnimateElement = { name: "scene", type: 0, ele: sceneContainerRef.current };
-      const searchEle: AnimateElement = { name: "search", type: 0, ele: searchRef.current };
-      const vsEle: AnimateElement = { name: "versus", type: 0, ele: vsRef.current };
-      const foundEle: AnimateElement = { name: "found", type: 0, ele: foundRef.current };
-      const eles: AnimateElement[] = [sceneEle, searchEle, foundEle, vsEle];
-      createAnimate({ name: ANIMATE_NAME.BATTLE_SEARCH, eles });
-    }
-  }, []);
-
-  useEffect(() => {
-    if (battle) {
-      setTimeout(() => createAnimate({ name: ANIMATE_NAME.BATTLE_MATCHED, data: battle }), 5000);
-    }
-  }, [battle]);
   useEffect(() => {
     if (sceneContainerRef.current) {
       const scene = scenes.get(SCENE_NAME.BATTLE_MATCHING);
@@ -44,15 +25,19 @@ const SearchOpponent = () => {
           width: width,
           height: height,
           type: 1,
+          searchTxTEle: searchRef.current,
+          vsEle: vsRef.current,
+          foundTxTEle: foundRef.current,
+          playerAvatarEle: playerAvatarRef.current,
+          opponentAvatarEle: opponentAvatarRef.current,
         };
-        scenes.set(SCENE_NAME.BATTLE_MATCHING, scene);
-        stageScene(SCENE_NAME.BATTLE_MATCHING, sceneContainerRef.current);
+        stageScene(SCENE_NAME.BATTLE_MATCHING, scene);
       }
     }
     return () => {
       scenes.delete(SCENE_NAME.BATTLE_MATCHING);
     };
-  }, [sceneContainerRef, scenes, width, height]);
+  }, [sceneContainerRef, searchRef, vsRef, foundRef, scenes, width, height, stageScene]);
 
   return (
     <div
@@ -73,11 +58,37 @@ const SearchOpponent = () => {
       }}
     >
       <div
+        ref={playerAvatarRef}
+        style={{
+          opacity: 0,
+          position: "absolute",
+          top: height * 0.4,
+          left: -80,
+          width: 80,
+          height: 80,
+        }}
+      >
+        <Avatar />
+      </div>
+      <div
+        ref={opponentAvatarRef}
+        style={{
+          opacity: 0,
+          position: "absolute",
+          top: height * 0.4,
+          left: width,
+          width: 80,
+          height: 80,
+        }}
+      >
+        <Avatar />
+      </div>
+      <div
         ref={vsRef}
         style={{
           opacity: 0,
           position: "absolute",
-          top: height * 0.6,
+          top: height * 0.4 + 40,
           left: 0,
           display: "flex",
           justifyContent: "center",

@@ -1,57 +1,57 @@
 import * as PIXI from "pixi.js";
 import React, { createContext, useCallback, useContext, useEffect, useRef, useState } from "react";
-import { CandySprite } from "../component/pixi/CandySprite";
-import { SCENE_NAME } from "../model/Constants";
+import { GameScene, SceneModel } from "../model/SceneModel";
 import candy_texture_defs from "../model/candy_textures";
-import { useBattleManager } from "./BattleManager";
-export interface SceneModel {
-  container?: HTMLDivElement;
-  app: PIXI.Application | HTMLDivElement;
-  type?: number;
-  x: number;
-  y: number;
+interface ContainerBound {
+  top: number;
+  left: number;
   width: number;
   height: number;
-  cwidth?: number;
-  cheight?: number;
-  column?: number;
-  row?: number;
-  textures?: { id: number; texture: PIXI.Texture }[];
-  // candies?: Map<number, CandyModel>;
-  candies?: Map<number, CandySprite>;
+  direction?: number;
 }
 interface ISceneContext {
+  containerBound: ContainerBound | null;
   textures: { id: number; texture: PIXI.Texture }[];
   avatarTextures: { name: string; texture: PIXI.Texture }[];
   scenes: Map<string, SceneModel>;
-  scenesUpdated: string[] | null;
-  scenesStaged: string[];
-  stageScene: (id: string, container: HTMLDivElement) => void;
+  sceneEvent: SceneEvent | null;
+
+  updateScene: (name: string, data: any) => void;
+  stageScene: (id: string, scene: SceneModel | null) => void;
+  checkLoad: (names: string[]) => boolean;
 }
 const SceneContext = createContext<ISceneContext>({
+  containerBound: null,
   textures: [],
   avatarTextures: [],
   scenes: new Map(),
-  scenesUpdated: null,
-  scenesStaged: [],
-  stageScene: (id: string, container: HTMLDivElement) => null,
+  sceneEvent: null,
+
+  updateScene: (name: string, data: any) => null,
+  stageScene: (id: string, scene: SceneModel | null) => null,
+  checkLoad: (names: string[]) => false,
 });
+interface SceneEvent {
+  name: string;
+  type: number;
+}
+const SCENE_EVENT_TYPE = {
+  CREATE: 0,
+  UPDATE: 1,
+  REMOVE: 2,
+};
 
 export const SceneProvider = ({
-  width,
-  height,
+  containerBound,
   children,
 }: {
-  width: number;
-  height: number;
+  containerBound: ContainerBound;
   children: React.ReactNode;
 }) => {
   const scenesRef = useRef<Map<string, SceneModel>>(new Map());
   const texturesRef = useRef<{ id: number; texture: PIXI.Texture }[]>([]);
   const avatarTexturesRef = useRef<{ name: string; texture: PIXI.Texture }[]>([]);
-  const [scenesUpdated, setScenesUpdated] = useState<string[] | null>(null);
-  const [scenesStaged, setScenesStaged] = useState<string[]>([]);
-  const { battle } = useBattleManager();
+  const [sceneEvent, setSceneEvent] = useState<SceneEvent | null>(null);
 
   const loadAvatarTextures = () => {
     const baseTexture = PIXI.BaseTexture.from("assets/avatar.png");
@@ -84,84 +84,48 @@ export const SceneProvider = ({
     loadAvatarTextures();
 
     return () => {
-      for (let name of scenesRef.current.keys()) {
-        const scene = scenesRef.current.get(name);
+      for (let scene of scenesRef.current.values()) {
         if (scene && !scene.type) {
+          const gameScene = scene as GameScene;
+          if (gameScene.candies) {
+            console.log("destroy candies");
+            Array.from(gameScene.candies.values()).forEach((c) => c.destroy(true));
+          }
           (scene.app as PIXI.Application).destroy(true);
-          scene.candies?.forEach((c) => c.destroy(true));
         }
       }
     };
   }, []);
-  useEffect(() => {
-    if (battle?.games && battle.games.length > 0 && width > 0 && height > 0) {
-      const consoleScene = {
-        app: new PIXI.Application({
-          width: width * 0.5,
-          height: height * 0.2,
-          backgroundAlpha: 0,
-        }),
-        x: 100,
-        y: 20,
-        width: width * 0.5,
-        height: height * 0.2,
-        candies: new Map<number, CandySprite>(),
-      };
-      scenesRef.current.set(SCENE_NAME.BATTLE_CONSOLE, consoleScene);
-      const gameScene = {
-        app: new PIXI.Application({
-          width: width,
-          height: height,
-          backgroundAlpha: 0,
-        }),
-        y: height * 0.35,
-        x: width * 0.15,
-        width: width * 0.7,
-        height: height * 0.6,
-        column: battle.column,
-        row: battle.row,
-        cwidth: Math.floor((width * 0.7) / battle.column),
-        cheight: Math.floor((width * 0.7) / battle.column),
-        candies: new Map<number, CandySprite>(),
-      };
-      scenesRef.current.set(battle.games[0].gameId, gameScene);
-      const battleScene = {
-        app: new PIXI.Application({
-          width: width,
-          height: height,
-          backgroundAlpha: 0,
-        }),
-        x: 0,
-        y: 0,
-        width: width,
-        height: height,
-        candies: new Map<number, CandySprite>(),
-      };
-      scenesRef.current.set(SCENE_NAME.BATTLE_HOME, battleScene);
-      setScenesUpdated([SCENE_NAME.BATTLE_CONSOLE, SCENE_NAME.BATTLE_HOME, battle.games[0].gameId]);
-    }
-  }, [battle, width, height]);
 
   const value = {
+    containerBound,
     textures: texturesRef.current,
     avatarTextures: avatarTexturesRef.current,
     scenes: scenesRef.current,
-    scenesUpdated,
-    scenesStaged,
-    stageScene: useCallback((id: string, container: HTMLDivElement) => {
-      const scene = scenesRef.current.get(id);
-      if (scene && !scene.container) {
-        scene.container = container;
-        setScenesStaged((prev) => [...prev, id]);
+    sceneEvent,
+
+    updateScene: useCallback((name: string, data: any) => {
+      const scene = scenesRef.current.get(name);
+      if (scene) {
+        if (data) Object.assign(scene, data);
+        setSceneEvent({ name, type: SCENE_EVENT_TYPE.UPDATE });
       }
+    }, []),
+
+    stageScene: useCallback((id: string, scene: SceneModel | null) => {
+      if (scene && !scenesRef.current.get(id)) {
+        scenesRef.current.set(id, scene);
+        setSceneEvent({ name: id, type: SCENE_EVENT_TYPE.CREATE });
+      }
+    }, []),
+    checkLoad: useCallback((names: string[]) => {
+      return names.every((name) => Array.from(scenesRef.current.keys()).includes(name));
     }, []),
   };
 
   return <SceneContext.Provider value={value}> {children} </SceneContext.Provider>;
 };
-
 export const useSceneManager = () => {
   return useContext(SceneContext);
 };
-
 export default SceneProvider;

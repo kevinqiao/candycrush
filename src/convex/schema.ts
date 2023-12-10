@@ -31,7 +31,8 @@ export default defineSchema({
         endTime: v.optional(v.number()),
         result: v.optional(v.number()),
         status: v.optional(v.number()),
-        score: v.optional(v.any())
+        goal: v.optional(v.number()),
+        chunk: v.optional(v.number())
     }),
     events: defineTable({
         name: v.string(),
@@ -40,7 +41,7 @@ export default defineSchema({
         uid: v.optional(v.string()),
         steptime: v.optional(v.number()),
         data: v.any(),
-    }),
+    }).index("by_game", ["gameId"]).index("by_uid", ["uid"]),
     rounds: defineTable({
         gameId: v.string(),
         cells: v.any(),
@@ -55,7 +56,11 @@ export default defineSchema({
         lastupdate: v.optional(v.number()),
         stoptime: v.optional(v.number()),
         status: v.number(),//0-going 1-settled 2-cancelled
-        seed: v.optional(v.string())
+        seed: v.optional(v.string()),
+        row: v.number(),
+        column: v.number(),
+        goal: v.optional(v.number()),
+        chunk: v.optional(v.number())
     }),
 
     tournament: defineTable({

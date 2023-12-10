@@ -7,11 +7,11 @@ import "./popup.css";
 interface PopupProps {
   zIndex: number;
   page: string;
-  position: { page: string; top: number; left: number; width: number; height: number; direction: number } | null;
+  position: { top: number; left: number; width: number; height: number; direction: number };
   children: ReactNode;
 }
 
-const StackPop: React.FC<PopupProps> = ({ zIndex, position, children }) => {
+const StackPop: React.FC<PopupProps> = ({ zIndex, page, position, children }) => {
   const popupRef = useRef<HTMLDivElement>(null);
   const maskRef = useRef<HTMLDivElement>(null);
   const StackAnimation = useStackAnimation({
@@ -23,12 +23,12 @@ const StackPop: React.FC<PopupProps> = ({ zIndex, position, children }) => {
   const { stacks, openPage, popPage } = usePageManager();
   const { event } = useEventSubscriber(["closePage", "closeAllPop"], []);
   useEffect(() => {
-    if (event?.name === "closeAllPop" || event?.data.name === position?.page) {
+    if (event?.name === "closeAllPop" || event?.data.name === page) {
       togglePopup();
     }
   }, [event]);
   useEffect(() => {
-    if (user && position?.page === "signin") togglePopup();
+    if (user && page === "signin") togglePopup();
   }, [user]);
 
   useEffect(() => {
@@ -38,13 +38,13 @@ const StackPop: React.FC<PopupProps> = ({ zIndex, position, children }) => {
   const togglePopup = () => {
     StackAnimation.stop();
     if (position) {
-      if (position.page === "signin") {
+      if (page === "signin") {
         const spage = stacks.find((s: PageItem) => s.name === "signin");
         if (spage) {
           setTimeout(() => popPage(["signin"]), 700);
           setTimeout(() => openPage(spage.data), 850);
         }
-      } else setTimeout(() => popPage([position.page]), 800);
+      } else setTimeout(() => popPage([page]), 800);
     }
   };
 
@@ -56,6 +56,8 @@ const StackPop: React.FC<PopupProps> = ({ zIndex, position, children }) => {
         className="popup"
         ref={popupRef}
         style={{
+          margin: 0,
+          border: 0,
           top: position?.top,
           left: position?.left,
           width: position?.width,

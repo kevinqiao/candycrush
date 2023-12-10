@@ -1,5 +1,4 @@
 import { v } from "convex/values";
-import * as gameEngine from "../service/GameEngine";
 import { Id } from "./_generated/dataModel";
 import { internalMutation, internalQuery, mutation, query } from "./_generated/server";
 export const getInitGame = internalQuery({
@@ -39,13 +38,13 @@ export const getGame = internalQuery({
   },
 });
 export const findGame = query({
-  args: { gameId: v.id("games") },
+  args: { gameId: v.string() },
   handler: async (ctx, { gameId }) => {
-    const game = await ctx.db.get(gameId);
+    console.log("find gameid:" + gameId)
+    const game = await ctx.db.query("games").filter((q) => q.eq(q.field("_id"), gameId)).first();
     if (game) {
-      const score = gameEngine.getScore(game);
       const pasttime = (Date.now() - game._creationTime);
-      return Object.assign({}, game, { gameId: game?._id, _id: undefined, _creationTime: undefined, pasttime, score });
+      return Object.assign({}, game, { gameId: game?._id, _id: undefined, _creationTime: undefined, pasttime });
     }
   },
 });
@@ -83,7 +82,6 @@ export const list = query({
 export const create = internalMutation({
   args: { game: v.any() },
   handler: async (ctx, { game }) => {
-    console.log("game seed:" + game.seed)
     const gameId = await ctx.db.insert("games", { ...game, lastUpdate: Date.now(), laststep: 0 });
     return gameId;
   },

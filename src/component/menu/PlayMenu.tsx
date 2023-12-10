@@ -88,7 +88,7 @@ const PlayMenu: React.FC = () => {
               fill={"grey"}
               stroke="white"
               strokeWidth={1}
-              onClick={() => openPage({ name: "battleHome", data: {} })}
+              onClick={() => openPage({ name: "goalPanel", data: {} })}
             />
             {/* 不规则形状4 */}
             <polygon

@@ -7,7 +7,7 @@ interface Props {
 }
 const TournamentItem: React.FC<Props> = ({ tournament }) => {
   const itemRef = useRef(null);
-  const { openPage } = usePageManager();
+  const { stacks, openPage } = usePageManager();
   // const { join } = useTournamentManager();
   return (
     <div ref={itemRef} className="tournament-item">
@@ -15,8 +15,8 @@ const TournamentItem: React.FC<Props> = ({ tournament }) => {
       <div
         className="play-btn"
         onClick={(e) => {
-          openPage({ name: "battlePlay", data: { act: "join", tournament } });
-          // join(tournament);
+          const p = stacks.find((s) => s.name === "battlePlay");
+          if (!p) openPage({ name: "battlePlay", data: { act: "join", tournament } });
         }}
       >
         Play
