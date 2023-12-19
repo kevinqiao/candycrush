@@ -1,33 +1,32 @@
 import { v } from "convex/values";
-import * as gameEngine from "../service/GameEngine";
 import { internalMutation, internalQuery, query } from "./_generated/server";
-export const findBattle = query({
-  args: { battleId: v.id("battle") },
-  handler: async (ctx, { battleId }) => {
-    const battle = await ctx.db.get(battleId);
-    if (battle) {
-      const games = await ctx.db
-        .query("games")
-        .filter((q) => q.eq(q.field("battleId"), battleId))
-        .collect();
-      const gamescores: {
-        player: { uid: string; name: string };
-        gameId: string;
-        score: { base: number; goal: number; time: number };
-      }[] = [];
-      for (const game of games) {
-        const score = gameEngine.countBaseScore(game.matched);
-        const user = await ctx.db.query("user").filter((q) => q.eq(q.field("uid"), game.uid)).first();
-        const gamescore: any = { gameId: game._id, score };
-        if (user)
-          gamescore.player = { uid: user.uid, name: user.name };
-        gamescores.push(gamescore)
-      }
-      const pasttime = (Date.now() - battle._creationTime);
-      return Object.assign({}, battle, { battleId: battle?._id, _id: undefined, _creationTime: undefined, pasttime, gamescores });
-    }
-  },
-});
+// export const findBattle = query({
+//   args: { battleId: v.id("battle") },
+//   handler: async (ctx, { battleId }) => {
+//     const battle = await ctx.db.get(battleId);
+//     if (battle) {
+//       const games = await ctx.db
+//         .query("games")
+//         .filter((q) => q.eq(q.field("battleId"), battleId))
+//         .collect();
+//       const gamescores: {
+//         player: { uid: string; name: string };
+//         gameId: string;
+//         score: { base: number; goal: number; time: number };
+//       }[] = [];
+//       for (const game of games) {
+//         const score = gameEngine.countBaseScore(game.matched);
+//         const user = await ctx.db.query("user").filter((q) => q.eq(q.field("uid"), game.uid)).first();
+//         const gamescore: any = { gameId: game._id, score };
+//         if (user)
+//           gamescore.player = { uid: user.uid, name: user.name };
+//         gamescores.push(gamescore)
+//       }
+//       const pasttime = (Date.now() - battle._creationTime);
+//       return Object.assign({}, battle, { battleId: battle?._id, _id: undefined, _creationTime: undefined, pasttime, gamescores });
+//     }
+//   },
+// });
 export const create = internalMutation({
   args: { tournamentId: v.id("tournament"), type: v.number(), status: v.number(), column: v.number(), row: v.number(), goal: v.optional(v.number()), chunk: v.optional(v.number()) },
   handler: async (ctx, { tournamentId, type, status, column, row, goal, chunk }) => {

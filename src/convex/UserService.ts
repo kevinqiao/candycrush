@@ -24,13 +24,12 @@ export const authByToken = action({
             const game = await ctx.runQuery(internal.games.findUserGame, { uid });
             if (game) {
                 const b: any = await ctx.runQuery(internal.battle.find, { battleId: game.battleId as Id<"battle"> })
-                if (b && b.type === BATTLE_TYPE.SYNC) {
-                    const games = await ctx.runQuery(internal.games.findBattleGames, { battleId: b.id })
-                    if (games)
-                        b['games'] = games.map((g) => ({ uid: g.uid, gameId: g._id, matched: g.matched }))
-                } else
-                    b["games"] = [{ uid: uid, gameId: game._id, matched: game.matched }]
-                user['battle'] = { ...b, column: COLUMN, row: ROW };
+                const games = await ctx.runQuery(internal.games.findBattleGames, { battleId: b.id })
+                if (games)
+                    b['games'] = games.map((g) => ({ uid: g.uid, gameId: g._id, matched: g.matched }))
+
+                const pasttime = Date.now() - b.createTime ?? Date.now();
+                user['battle'] = { ...b, column: COLUMN, row: ROW, pasttime };
             }
             await ctx.runMutation(internal.user.update, { id: user["_id"], data: {} })
         }

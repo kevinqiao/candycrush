@@ -1,6 +1,7 @@
 import { useCallback, useRef } from "react";
 import { SCENE_NAME } from "../../../model/Constants";
 import { ConsoleScene } from "../../../model/SceneModel";
+import { useBattleManager } from "../../../service/BattleManager";
 import { countBaseScore } from "../../../service/GameEngine";
 import { useSceneManager } from "../../../service/SceneManager";
 import useDimension from "../../../util/useDimension";
@@ -17,6 +18,7 @@ const AvatarBar: React.FC<Props> = ({ layout, game }) => {
   const sceneContainerRef = useRef<HTMLDivElement | null>(null);
   const { width, height } = useDimension(sceneContainerRef);
   const { scenes } = useSceneManager();
+  const { battle } = useBattleManager();
 
   const calculateBackgroundPosition = () => {
     const x = 45;
@@ -37,11 +39,22 @@ const AvatarBar: React.FC<Props> = ({ layout, game }) => {
   };
   const load = useCallback(
     (type: number, el: HTMLElement | null) => {
-      if (scenes && game && el && layout === 0) {
+      if (scenes && el && battle && game) {
+        // let game = battle.games.find((g) => g.uid === user.uid);
+        // if (layout > 0) {
+        //   const gs = battle?.games.filter((g) => g.uid !== user.uid);
+        //   if (gs.length > 0) {
+        //     game = gs[0];
+        //   }
+        // }
+        // console.log("layout:" + layout);
         const consoleScene = scenes.get(SCENE_NAME.BATTLE_CONSOLE) as ConsoleScene;
-        if (consoleScene) {
+
+        if (consoleScene && game?.gameId) {
+          // setBattleGame(game);
+          const gameId = game.gameId;
           if (!consoleScene.avatarBars) consoleScene.avatarBars = [];
-          let avatarBar = consoleScene.avatarBars.find((a) => a.gameId === game.gameId);
+          let avatarBar = consoleScene.avatarBars.find((a) => a.gameId === gameId);
           if (!avatarBar) {
             avatarBar = { gameId: game.gameId, avatar: null, bar: null, score: null };
             consoleScene.avatarBars.push(avatarBar);
@@ -63,8 +76,9 @@ const AvatarBar: React.FC<Props> = ({ layout, game }) => {
         }
       }
     },
-    [game, scenes]
+    [scenes, game]
   );
+
   return (
     <div
       ref={sceneContainerRef}
@@ -80,12 +94,12 @@ const AvatarBar: React.FC<Props> = ({ layout, game }) => {
           left: layout === 0 ? height * 0.5 : 0,
           width: width - height * 0.5,
           height: height * 0.6,
-          backgroundColor: "white",
+          backgroundColor: "red",
           borderRadius: 5,
         }}
       >
-        <span ref={(el) => load(2, el)} id={layout === 0 ? game.gameId + "score" : "score"}>
-          <span>{countBaseScore(game.matched)}</span>
+        <span ref={(el) => load(2, el)}>
+          <span>{game ? countBaseScore(game.matched) : 0}</span>
         </span>
       </div>
       <div ref={(el) => load(0, el)} style={{ position: "absolute", top: 0, left: layout === 0 ? 0 : width - height }}>

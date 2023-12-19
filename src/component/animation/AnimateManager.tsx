@@ -1,6 +1,7 @@
 import * as PIXI from "pixi.js";
-import { createContext, useCallback, useContext, useRef, useState } from "react";
+import { createContext, useCallback, useContext, useMemo, useRef, useState } from "react";
 import { SceneModel } from "../../model/SceneModel";
+import { ANIMATE_EVENT_TYPE } from "./AnimateConstants";
 import { useBattleAnimateHandler } from "./BattleAnimateHandler";
 import { useGameAnimateHandler } from "./GameAnimateHandler";
 export interface AnimateElement {
@@ -13,33 +14,39 @@ export interface Animate {
   name: string;
   gameId?: string;
   timeline?: any;
-  starttime?: number;
   duration?: number;
-  status?: number; //0-open 1-complete
+  status?: number; //0-open 1-in progress 2-complete
   eles?: AnimateElement[];
   data?: any;
 }
-export interface IAnimateContext {
+export interface IAnimateHandleContext {
   animates: Animate[];
   animateEvent: AnimateEvent | null;
   createAnimate: (animate: Animate) => void;
-  updateAnimate: (name: string, data: any) => void;
+  updateAnimate: (name: number, data: any) => void;
+  removeAnimate: (time: number) => void;
+  checkIfAnimate: (gameId: string) => boolean;
+}
+export interface IAnimateContext {
+  animates: Animate[];
+  // animateEvent: AnimateEvent | null;
+  createAnimate: (animate: Animate) => void;
+  updateAnimate: (name: number, data: any) => void;
   removeAnimate: (time: number) => void;
   checkIfAnimate: (gameId: string) => boolean;
 }
 export interface AnimateEvent {
   name: string;
-  animateId: number;
+  animate: Animate;
   type?: number; //0-create 1-update
   time?: number;
-  eles?: AnimateElement[];
   data?: any;
 }
 const AnimateContext = createContext<IAnimateContext>({
   animates: [],
-  animateEvent: null,
+  // animateEvent: null,
   createAnimate: (animate: Animate) => null,
-  updateAnimate: (name: string, data: any) => null,
+  updateAnimate: (id: number, data: any) => null,
   removeAnimate: (time: number) => null,
   checkIfAnimate: (gameId: string) => false,
 });
@@ -47,23 +54,27 @@ const AnimateContext = createContext<IAnimateContext>({
 export const AnimateProvider = ({ children }: { children: React.ReactNode }) => {
   const animatesRef = useRef<Animate[]>([]);
   const [animateEvent, setAnimateEvent] = useState<AnimateEvent | null>(null);
-
+  // console.log(animatesRef.current);
+  console.log(animateEvent);
   const createAnimate = useCallback((animate: Animate) => {
-    Object.assign(animate, { starttime: Date.now() });
+    Object.assign(animate, { id: Date.now(), createTime: Date.now() });
     animatesRef.current.push(animate);
-    setAnimateEvent({ name: animate.name, animateId: animate.id, type: 0 });
+    setAnimateEvent({ name: animate.name, animate, type: ANIMATE_EVENT_TYPE.CREATE });
   }, []);
-  const updateAnimate = (name: string, data: any) => {
-    const animate = animatesRef.current.find((a) => a.name === name);
+  const updateAnimate = useCallback((id: number, data: any) => {
+    const animate = animatesRef.current.find((a) => a.id === id);
     if (animate) {
       Object.assign(animate, data);
-      setAnimateEvent({ name: animate.name, animateId: animate.id, type: 1, data });
+      setAnimateEvent({ name: animate.name, animate, type: ANIMATE_EVENT_TYPE.UPDATE, data });
     }
-  };
+  }, []);
   const removeAnimate = (id: number) => {
+    const animate = animatesRef.current.find((a) => a.id === id);
+    if (!animate) return;
     const as = animatesRef.current.filter((a) => a.id !== id);
     animatesRef.current.length = 0;
     animatesRef.current.push(...as);
+    setAnimateEvent({ name: animate.name, animate, type: ANIMATE_EVENT_TYPE.REMOVE });
   };
   const checkIfAnimate = useCallback(
     (gameId: string) => {
@@ -83,9 +94,19 @@ export const AnimateProvider = ({ children }: { children: React.ReactNode }) => 
     removeAnimate,
     checkIfAnimate,
   };
+  const cvalue = useMemo(
+    () => ({
+      animates: animatesRef.current,
+      createAnimate,
+      updateAnimate,
+      removeAnimate,
+      checkIfAnimate,
+    }),
+    [animatesRef]
+  );
   useBattleAnimateHandler(value);
   useGameAnimateHandler(value);
-  return <AnimateContext.Provider value={value}> {children} </AnimateContext.Provider>;
+  return <AnimateContext.Provider value={cvalue}> {children} </AnimateContext.Provider>;
 };
 
 export const useAnimateManager = () => {

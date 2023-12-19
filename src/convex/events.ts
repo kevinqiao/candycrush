@@ -1,4 +1,5 @@
 import { v } from "convex/values";
+import { Id } from "./_generated/dataModel";
 import { internalMutation, internalQuery, mutation, query } from "./_generated/server";
 
 export const list = query({
@@ -55,6 +56,23 @@ export const getByGame = query({
     }
   },
 });
+export const findByGame = query({
+  args: { gameId: v.optional(v.string()), laststep: v.number() },
+  handler: async (ctx, { gameId, laststep }) => {
+    if (laststep >= 0 && gameId) {
+      const game = await ctx.db.get(gameId as Id<"games">);
+      if (game && game.laststep && game.laststep > laststep) {
+        const from = laststep;
+        const to = game.laststep;
+        const events = await ctx.db
+          .query("events").withIndex("by_game", (q) => q.eq("gameId", game.ref ?? gameId))
+          .filter((q) => q.and(q.gt(q.field("steptime"), from), q.lte(q.field("steptime"), to))).order("asc")
+          .collect();
+        return events.map((event) => Object.assign({}, event, { id: event?._id, _creationTime: undefined, _id: undefined }))
+      }
+    }
+  },
+});
 export const findAllByGame = query({
   args: { gameId: v.string() },
   handler: async (ctx, args) => {
@@ -102,9 +120,9 @@ export const findGameEvents = internalQuery({
   },
 });
 export const create = internalMutation({
-  args: { name: v.string(), uid: v.optional(v.string()), steptime: v.optional(v.number()), lastCellId: v.optional(v.number()), gameId: v.optional(v.string()), data: v.any() },
-  handler: async (ctx, { name, uid, gameId, steptime, lastCellId, data }) => {
-    await ctx.db.insert("events", { name, uid, gameId, steptime, lastCellId, data });
+  args: { name: v.string(), uid: v.optional(v.string()), steptime: v.optional(v.number()), gameId: v.optional(v.string()), data: v.any() },
+  handler: async (ctx, { name, uid, gameId, steptime, data }) => {
+    await ctx.db.insert("events", { name, uid, gameId, steptime, data });
     return
   },
 });

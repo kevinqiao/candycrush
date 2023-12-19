@@ -6,7 +6,7 @@ export default defineSchema({
         gameId: v.string(),
         laststep: v.number(),
         starttime: v.number(),
-        endTime: v.number(),
+        endTime: v.optional(v.number()),
         ref: v.string(),
         status: v.number()
     }),
@@ -23,21 +23,22 @@ export default defineSchema({
         ref: v.optional(v.string()),
         seed: v.string(),
         lastCellId: v.optional(v.number()),
-        cells: v.optional(v.any()),
+        cells: v.any(),
         uid: v.string(),
         matched: v.optional(v.any()),
         laststep: v.optional(v.number()),
-        lastUpdate: v.optional(v.number()),
+        startTime: v.optional(v.number()),
         endTime: v.optional(v.number()),
-        result: v.optional(v.number()),
+        result: v.optional(v.any()),
+        score: v.optional(v.number()),
         status: v.optional(v.number()),
-        goal: v.optional(v.number()),
+        type: v.number(),//0-play 1-agent
+        goal: v.number(),
         chunk: v.optional(v.number())
-    }),
+    }).index("by_type", ["type"]).index("by_status", ["status"]),
     events: defineTable({
         name: v.string(),
         gameId: v.optional(v.string()),
-        lastCellId: v.optional(v.number()),
         uid: v.optional(v.string()),
         steptime: v.optional(v.number()),
         data: v.any(),
@@ -53,7 +54,7 @@ export default defineSchema({
     battle: defineTable({
         type: v.number(),
         tournamentId: v.id("tournament"),
-        lastupdate: v.optional(v.number()),
+        report: v.optional(v.any()),
         stoptime: v.optional(v.number()),
         status: v.number(),//0-going 1-settled 2-cancelled
         seed: v.optional(v.string()),

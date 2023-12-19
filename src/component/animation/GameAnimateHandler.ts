@@ -1,112 +1,155 @@
 import { gsap } from "gsap";
-import { useEffect } from "react";
+import { useCallback, useEffect } from "react";
 import { SCENE_NAME } from "../../model/Constants";
+import { useBattleManager } from "../../service/BattleManager";
 import { useSceneManager } from "../../service/SceneManager";
-import { ANIMATE_NAME } from "./AnimateConstants";
-import { IAnimateContext } from "./AnimateManager";
+import { ANIMATE_EVENT_TYPE, ANIMATE_NAME } from "./AnimateConstants";
+import { Animate, IAnimateHandleContext } from "./AnimateManager";
 import useBattleBoard from "./battle/BattleBoard";
 import useBattleMatching from "./battle/BattleMatching";
-import useCollectCandies from "./battle/CollectCandies";
 import useGameReady from "./game/GameReady";
 import useSolveSmesh from "./game/SolveSmesh";
 import useSolveSwap from "./game/SolveSwap";
 import useSwipeCandy from "./game/SwipeCandy";
 
-export const useGameAnimateHandler = (props: IAnimateContext) => {
+export const useGameAnimateHandler = (props: IAnimateHandleContext) => {
     const { animates, animateEvent, removeAnimate } = props;
     const { swipeSuccess, swipeFail } = useSwipeCandy(props);
     const { solveSwap } = useSolveSwap(props);
     const { solveMesh } = useSolveSmesh(props);
-    const { playCollect } = useCollectCandies();
     const { initGame } = useGameReady(props);
     const { closeBattleMatching } = useBattleMatching(props);
     const { scenes, sceneEvent } = useSceneManager();
-    const { initBoard, changeGoal } = useBattleBoard(props);
+    const { initBoard } = useBattleBoard(props);
+    const { battle } = useBattleManager();
 
-    useEffect(() => {
 
-        const animate = animates.find((a) => a.name === ANIMATE_NAME.GAME_INITED);
-        let manimate: any = null;
-        if (animate && !animate.status) {
-            const gameId = animate.data.gameId;
-            if (!scenes.get(gameId) || !scenes.get(SCENE_NAME.BATTLE_CONSOLE)) return;
-
-            if (!animate.data.load) {
-                manimate = animates.find((a) => a.name === ANIMATE_NAME.BATTLE_MATCHED);
-                if (!manimate || manimate.status !== 2)
-                    return;
+    const processGameInit = useCallback((animate: Animate) => {
+        console.log(animate)
+        if (!animate.gameId) return;
+        const timeline = gsap.timeline({
+            onComplete: () => {
+                removeAnimate(animate.id);
             }
-            const timeline = gsap.timeline({
+        });
+        animate.status = 1
+        if (!animate.data.load) {
+            const il = gsap.timeline();
+            const ml = gsap.timeline({
                 onComplete: () => {
-                    if (manimate)
-                        removeAnimate(manimate.id);
-                    removeAnimate(animate.id)
+                    const m = animates.find((a) => a.name === ANIMATE_NAME.BATTLE_MATCHED);
+                    if (m)
+                        removeAnimate(m.id)
                 }
             });
-            animate.status = 1;
-            if (!animate.data.load) {
-                const il = gsap.timeline();
-                const ml = gsap.timeline();
-                initGame(gameId, il);
-                closeBattleMatching(ml);
-                timeline.add(ml).add(il, ">-=0.8")
-            } else {
-                initGame(gameId, timeline);
-            }
-            console.log(animate.data)
-            const sl = gsap.timeline();
-            timeline.add(sl, "<");
-            initBoard(sl, animate.data)
-            timeline.play();
-
+            initGame(animate.gameId, il);
+            closeBattleMatching(ml);
+            timeline.add(ml).add(il, ">-=0.8")
+        } else {
+            initGame(animate.gameId, timeline);
         }
-    }, [animateEvent, animates, closeBattleMatching, initGame, initBoard, removeAnimate, sceneEvent, scenes])
+        const sl = gsap.timeline();
+        timeline.add(sl, "<");
+        initBoard(sl, animate.data)
+        timeline.play();
+    }, [])
+
+    const processSwipeSuccess = useCallback((animate: Animate) => {
+        if (!animate.gameId) return;
+        const { candy, target } = animate.data;
+        const timeline = gsap.timeline({
+            onComplete: () => {
+                removeAnimate(animate.id)
+            }
+        });
+
+        swipeSuccess(animate.gameId, candy, target, timeline);
+        timeline.play();
+
+    }, [])
+    const processSwipeFail = useCallback((animate: Animate) => {
+        if (!animate.gameId) return;
+        const { candyId, targetId } = animate.data;
+        const timeline = gsap.timeline({
+            onComplete: () => {
+                removeAnimate(animate.id)
+            }
+        });
+        swipeFail(animate.gameId, candyId, targetId, timeline);
+        timeline.play();
+    }, [])
+
+
+    useEffect(() => {
+        if (battle) {
+            battle.games.forEach((g) => {
+                const actives = animates.filter((a) => a.status && a.gameId === g.gameId);
+                if (actives.length === 0) {
+                    const toactives = animates.filter((a) => !a.status && a.gameId === g.gameId && (a.name === ANIMATE_NAME.CANDY_SMESHED || a.name === ANIMATE_NAME.CANDY_SWAPPED));
+                    if (toactives.length > 0) {
+                        toactives.sort((a, b) => a.id - b.id);
+                        const animate = toactives[0]
+                        animate.status = 1;
+                        const timeline = gsap.timeline({
+                            onComplete: () => {
+                                console.log("remove animate id:" + animate.id)
+                                removeAnimate(animate.id);
+                                timeline.kill()
+                            }
+                        });
+                        switch (animate.name) {
+                            case ANIMATE_NAME.CANDY_SWAPPED:
+                                solveSwap(g.gameId, animate.data, timeline);
+                                timeline.play();
+                                break;
+                            case ANIMATE_NAME.CANDY_SMESHED:
+                                solveMesh(g.gameId, animate.data, timeline);
+                                timeline.play();
+                                break;
+                            default:
+                                break;
+                        }
+
+                    }
+                }
+
+            })
+        }
+
+    }, [battle, animateEvent, animates, processGameInit, sceneEvent, removeAnimate, solveSwap, solveMesh])
+
+    useEffect(() => {
+        if (animateEvent) {
+            const ianimates = animates.filter((a) => a.name === ANIMATE_NAME.GAME_INITED);
+            if (!battle?.load) {
+                const manimate = animates.find((a) => a.name === ANIMATE_NAME.BATTLE_MATCHED);
+                if (manimate && manimate.status === 2 && ianimates.length === battle?.games.length)
+                    ianimates.forEach((animate) =>
+                        processGameInit(animate)
+                    )
+            } else {
+                if (ianimates.length === battle?.games.length)
+                    ianimates.forEach((animate) =>
+                        processGameInit(animate)
+                    )
+            }
+        }
+    }, [animateEvent, animates, battle, processGameInit, sceneEvent])
     useEffect(() => {
         if (animateEvent?.name) {
-            switch (animateEvent.name) {
-
-                case ANIMATE_NAME.SWIPE_SUCCESS:
-                    const sanimate = animates.find((a) => a.name === ANIMATE_NAME.SWIPE_SUCCESS);
-                    if (!sanimate || !sanimate.gameId) return;
-                    const { candy, target } = sanimate.data;
-                    swipeSuccess(sanimate.gameId, candy, target, null);
-                    break;
-                case ANIMATE_NAME.SWIPE_FAIL:
-                    const fanimate = animates.find((a) => a.name === ANIMATE_NAME.SWIPE_FAIL);
-                    if (!fanimate || !fanimate.gameId) return;
-                    const { candyId, targetId } = fanimate.data;
-                    swipeFail(fanimate.gameId, candyId, targetId, null);
-                    break;
-                case ANIMATE_NAME.CANDY_SWAPPED:
-                    const wanimate = animates.find((a) => a.name === ANIMATE_NAME.CANDY_SWAPPED);
-                    if (!wanimate || !wanimate.gameId) return;
-                    solveSwap(wanimate.gameId, wanimate.data, null)
-                    break;
-                case ANIMATE_NAME.CANDY_SMESHED:
-                    const manimate = animates.find((a) => a.name === ANIMATE_NAME.CANDY_SMESHED);
-                    if (!manimate || !manimate.gameId) return;
-                    solveMesh(manimate.gameId, manimate.data, null)
-                    break;
-                case ANIMATE_NAME.GOAL_COLLECT:
-                    const canimate = animates.find((a) => a.name === ANIMATE_NAME.GOAL_COLLECT && a.id === animateEvent.animateId);
-                    if (!canimate) return;
-                    removeAnimate(canimate.id)
-                    const tl = gsap.timeline();
-                    playCollect(canimate.data.gameId, canimate.data.cells, tl);
-                    if (canimate.data.goal && canimate.data.goal.length > 0) {
-                        const gl = gsap.timeline();
-                        tl.add(gl, ">")
-                        console.log(canimate.data)
-                        changeGoal(canimate.data.gameId, canimate.data.goal, gl)
-                    }
-                    tl.play();
-                    break;
-                default:
-                    break;
+            if (!scenes.get(SCENE_NAME.BATTLE_CONSOLE)) return;
+            if (animateEvent.type === ANIMATE_EVENT_TYPE.CREATE) {
+                switch (animateEvent.name) {
+                    case ANIMATE_NAME.SWIPE_SUCCESS:
+                        processSwipeSuccess(animateEvent.animate);
+                        break;
+                    case ANIMATE_NAME.SWIPE_FAIL:
+                        processSwipeFail(animateEvent.animate);
+                        break;
+                    default:
+                        break;
+                }
             }
         }
-    }, [animateEvent])
-
-
-
+    }, [animateEvent, processGameInit, processSwipeFail, processSwipeSuccess, scenes])
 }

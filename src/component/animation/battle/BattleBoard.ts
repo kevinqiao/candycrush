@@ -3,15 +3,17 @@ import { useCallback } from "react";
 import { SCENE_NAME } from "../../../model/Constants";
 import { ConsoleScene } from "../../../model/SceneModel";
 import { useSceneManager } from "../../../service/SceneManager";
+import { useUserManager } from "../../../service/UserManager";
 import { IAnimateContext } from "../AnimateManager";
 
 
 const useBattleBoard = (props: IAnimateContext) => {
     const { scenes } = useSceneManager();
+    const { user } = useUserManager();
 
     const initBoard = useCallback(
-        (timeline: any, data: { gameId: string, score: number }) => {
-
+        (timeline: any, data: { uid: string, gameId: string, score: number }) => {
+            console.log(data)
             const scene: ConsoleScene | undefined = scenes.get(SCENE_NAME.BATTLE_CONSOLE) as ConsoleScene;
             if (!scene) return;
             const tl = timeline ?? gsap.timeline();
@@ -21,21 +23,28 @@ const useBattleBoard = (props: IAnimateContext) => {
             })
             const sl = gsap.timeline();
             tl.add(sl, "<");
-            const avatarbar = scene.avatarBars[0];
-            sl.from(avatarbar.bar, {
-                width: 0, duration: 1.0, onUpdate: () => {
-                    const progress = sl.progress();
-                    const animatedValue = progress * data.score;
-                    if (avatarbar.score)
-                        avatarbar.score.innerHTML = Math.floor(animatedValue) + "";
-                }
-            }, "<");
+
+            const avatarbar = scene.avatarBars.find((b) => b.gameId === data.gameId);
+            if (avatarbar?.bar) {
+
+                const { width } = avatarbar.bar.getBoundingClientRect();
+                sl.from(avatarbar.bar, {
+                    width: 0, alpha: 0, x: user.uid === data.uid ? 0 : width, duration: 1.0, onUpdate: () => {
+                        const progress = sl.progress();
+                        const animatedValue = progress * data.score;
+                        if (avatarbar.score)
+                            avatarbar.score.innerHTML = Math.floor(animatedValue) + "";
+                    }
+                }, "<");
+            }
 
             const gl = gsap.timeline();
             tl.add(gl, "<")
-            for (let goal of scene.goalPanels[0].goals) {
-                gl.from(goal.iconEle, { alpha: 0, duration: 0.8 }, ">-=0.4");
-            }
+            const panel = scene.goalPanels.find((p) => p.gameId === data.gameId)
+            if (panel)
+                for (let goal of panel.goals) {
+                    gl.from(goal.iconEle, { alpha: 0, duration: 0.8 }, ">-=0.4");
+                }
             if (!timeline)
                 tl.play();
         },
@@ -48,7 +57,8 @@ const useBattleBoard = (props: IAnimateContext) => {
             const scene: ConsoleScene | undefined = scenes.get(SCENE_NAME.BATTLE_CONSOLE) as ConsoleScene;
             if (!scene || !score) return;
             const tl = timeline ?? gsap.timeline();
-            const avatarbar = scene.avatarBars[0];
+            const avatarbar = scene.avatarBars.find((a) => a.gameId === score.gameId);
+            if (!avatarbar) return
             const sl = gsap.timeline();
             tl.add(sl, "<");
             sl.from(avatarbar.bar, {
@@ -71,6 +81,7 @@ const useBattleBoard = (props: IAnimateContext) => {
                 const tl = timeline ?? gsap.timeline();
                 const panel = consoleScene.goalPanels.find((p) => p.gameId === gameId);
                 for (const item of goal) {
+                    if (item.start <= 0) continue;
                     const et = gsap.timeline();
                     tl.add(et, "<")
                     const m = panel?.goals.find((g) => g.asset === item.asset);

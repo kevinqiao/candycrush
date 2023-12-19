@@ -1,46 +1,64 @@
-import React, { createContext, useContext, useEffect, useRef } from "react";
+import React, { createContext, useCallback, useContext, useEffect, useRef } from "react";
 import { ANIMATE_NAME } from "../component/animation/AnimateConstants";
 import { useAnimateManager } from "../component/animation/AnimateManager";
 import BattleModel from "../model/Battle";
+import { CellItem } from "../model/CellItem";
 
 interface IBattleContext {
   battle: BattleModel | null;
-  load: number; //0-new 1-reload
   starttime: number;
+  completeCandyMatch: (gameId: string, matches: { toRemove: CellItem[] }[]) => void;
+  completeGame: (gameId: string, score: { base: number; time: number; goal: number }) => void;
 }
 const BattleContext = createContext<IBattleContext>({
   starttime: Date.now(),
-  load: 0,
   battle: null,
+  completeCandyMatch: (gameId: string, matches: { toRemove: CellItem[] }[]) => null,
+  completeGame: (gameId: string, score: { base: number; time: number; goal: number }) => null,
 });
 
-export const BattleProvider = ({
-  battle,
-  load,
-  children,
-}: {
-  battle: BattleModel | null;
-  load: number;
-  children: React.ReactNode;
-}) => {
+export const BattleProvider = ({ battle, children }: { battle: BattleModel | null; children: React.ReactNode }) => {
   const startTimeRef = useRef<number>(Date.now());
   const { createAnimate } = useAnimateManager();
   useEffect(() => {
-    createAnimate({ id: Date.now(), name: ANIMATE_NAME.BATTLE_SEARCH });
-  }, []);
-  useEffect(() => {
     if (battle) {
-      const past = Date.now() - startTimeRef.current;
-      setTimeout(
-        () => createAnimate({ id: Date.now(), name: ANIMATE_NAME.BATTLE_MATCHED, data: battle }),
-        past > 5000 ? 0 : 5000 - past
-      );
+      startTimeRef.current = Date.now() - battle.pasttime ?? 0;
+      if (!battle.load) {
+        console.log(battle);
+        createAnimate({ id: Date.now(), name: ANIMATE_NAME.BATTLE_SEARCH });
+        setTimeout(() => createAnimate({ id: Date.now(), name: ANIMATE_NAME.BATTLE_MATCHED, data: battle }), 5000);
+      }
     }
-  }, [battle]);
+  }, [battle, createAnimate]);
+
   const value = {
     starttime: startTimeRef.current,
     battle,
-    load,
+    completeCandyMatch: useCallback(
+      (gameId: string, matches: { toRemove: CellItem[] }[]) => {
+        if (!battle || !battle.games) return;
+        const game = battle?.games.find((g) => g.gameId === gameId);
+        if (game) {
+          if (!game.matched) game.matched = [];
+          for (let match of matches) {
+            const { toRemove } = match;
+            toRemove.forEach((c: CellItem) => {
+              const md = game.matched.find((a) => a.asset === c.asset);
+              md ? md.quantity++ : game.matched.push({ asset: c.asset, quantity: 1 });
+            });
+          }
+        }
+      },
+      [battle]
+    ),
+    completeGame: useCallback(
+      (gameId: string, score: { base: number; time: number; goal: number }) => {
+        if (!battle || !battle.games) return;
+        const game = battle?.games.find((g) => g.gameId === gameId);
+        if (game) game.score = score;
+      },
+      [battle]
+    ),
   };
 
   return <BattleContext.Provider value={value}> {children} </BattleContext.Provider>;

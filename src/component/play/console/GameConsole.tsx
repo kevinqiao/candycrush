@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { useGameManager } from "../../../service/GameManager";
 
 const GameConsole: React.FC = () => {
-  const { score, starttime, matched } = useGameManager();
+  const { starttime, matched } = useGameManager();
   const [pasttime, setPasttime] = useState(0);
 
   useEffect(() => {
@@ -17,8 +17,8 @@ const GameConsole: React.FC = () => {
     return <div style={{ height: 30 }}>{pasttime > 0 ? <div>Timer:{pasttime}</div> : <div />}</div>;
   }, [pasttime]);
   const scoreDiv = useMemo(() => {
-    return <div style={{ height: 30 }}>{pasttime > 0 ? <div>Score:{score.base}</div> : <div />}</div>;
-  }, [score]);
+    return <div style={{ height: 30 }}>{pasttime > 0 ? <div>Score:</div> : <div />}</div>;
+  }, []);
   const matchedDiv = useMemo(() => {
     return matched.map((m: { asset: number; quantity: number }) => (
       <div key={m.asset}>

@@ -8,13 +8,6 @@ export interface SceneModel {
     y: number;
     width: number;
     height: number;
-    // cwidth?: number;
-    // cheight?: number;
-    // column?: number;
-    // row?: number;
-    // textures?: { id: number; texture: PIXI.Texture }[];
-    // candies?: Map<number, CandyModel>;
-    // candies?: Map<number, CandySprite>;
 }
 export interface GameScene extends SceneModel {
     cwidth: number;
@@ -23,7 +16,10 @@ export interface GameScene extends SceneModel {
     row: number;
     candies: Map<number, CandySprite>;
 }
-
+export interface FrontScene extends SceneModel {
+    gameReport: { sceneEle: HTMLDivElement; baseScoreEle: HTMLDivElement; timeScoreEle: HTMLDivElement; goalScoreEle: HTMLDivElement };
+    battleReport: { sceneEle: HTMLDivElement };
+}
 export interface SearchScene extends SceneModel {
     sceneEle: HTMLDivElement;
     searchTxTEle: HTMLDivElement;

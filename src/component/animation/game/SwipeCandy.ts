@@ -12,7 +12,9 @@ const useSwipeCandy = (props: IAnimateContext) => {
     const { animates } = props;
     const { scenes } = useSceneManager();
     const swipeSuccess = useCallback(
+        // (animate: Animate, timeline: any) => {
         (gameId: string, candy: CellItem, target: CellItem, timeline: any) => {
+            // const { gameId, candy, target } = animate.data
             const gameScene = scenes.get(gameId) as GameScene;
             if (!gameScene) return;
             const tl = gsap.timeline({
@@ -22,6 +24,8 @@ const useSwipeCandy = (props: IAnimateContext) => {
                 //         animates.splice(index, 1)
                 // }
             });
+            console.log(candy)
+            console.log(gameScene.candies.size)
             const candySprite = gameScene.candies?.get(candy.id);
             const targetSprite = gameScene.candies?.get(target.id);
             if (gameScene.cwidth && candySprite && targetSprite) {

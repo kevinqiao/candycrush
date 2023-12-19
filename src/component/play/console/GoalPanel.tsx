@@ -17,7 +17,7 @@ const GoalPanel: React.FC<Props> = ({ layout, game }) => {
   // const sceneContainerRef = useRef<HTMLDivElement | null>(null);
   const { battle } = useBattleManager();
   const [goals, setGoals] = useState<{ asset: number; quantity: number }[][]>([]);
-  const { scenes, updateScene } = useSceneManager();
+  const { scenes } = useSceneManager();
 
   useEffect(() => {
     if (battle?.goal) {
@@ -51,6 +51,7 @@ const GoalPanel: React.FC<Props> = ({ layout, game }) => {
     (type: number, el: HTMLElement | HTMLDivElement, goal: { asset: number; quantity: number }) => {
       if (scenes && game) {
         const consoleScene = scenes.get(SCENE_NAME.BATTLE_CONSOLE) as ConsoleScene;
+
         if (consoleScene) {
           if (!consoleScene.goalPanels) consoleScene.goalPanels = [];
           let panel = consoleScene.goalPanels.find((p) => p.gameId === game.gameId);
@@ -68,7 +69,7 @@ const GoalPanel: React.FC<Props> = ({ layout, game }) => {
         }
       }
     },
-    [game, scenes]
+    []
   );
 
   return (

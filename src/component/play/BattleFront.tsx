@@ -1,9 +1,9 @@
 import { useCallback, useRef } from "react";
 import { SCENE_NAME, SCENE_TYPE } from "../../model/Constants";
 import { useSceneManager } from "../../service/SceneManager";
+import GameReport from "./report/GameReport";
 
-const BattleGround = () => {
-  console.log("battle ground");
+const BattleFront = () => {
   const containerRef = useRef<HTMLDivElement | null>(null);
   const { containerBound, stageScene } = useSceneManager();
 
@@ -18,7 +18,7 @@ const BattleGround = () => {
         width: containerBound.width,
         height: containerBound.height,
       };
-      stageScene(SCENE_NAME.BATTLE_GROUND, scene);
+      stageScene(SCENE_NAME.BATTLE_FRONT, scene);
     }
   }, []);
 
@@ -28,6 +28,9 @@ const BattleGround = () => {
         <div
           ref={load}
           style={{
+            display: "flex",
+            justifyContent: "center",
+            alignItems: "center",
             position: "absolute",
             top: 0,
             left: 0,
@@ -35,12 +38,17 @@ const BattleGround = () => {
             margin: 0,
             border: 0,
             height: containerBound.height,
-            backgroundColor: "blue",
+            opacity: 1,
+            backgroundColor: "black",
+            pointerEvents: "none",
           }}
-        ></div>
+        >
+          <BattleFront />
+          <GameReport />
+        </div>
       ) : null}
     </>
   );
 };
 
-export default BattleGround;
+export default BattleFront;

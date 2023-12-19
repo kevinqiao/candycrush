@@ -13,6 +13,7 @@ interface ISceneContext {
   containerBound: ContainerBound | null;
   textures: { id: number; texture: PIXI.Texture }[];
   avatarTextures: { name: string; texture: PIXI.Texture }[];
+  allSceneStaged: boolean;
   scenes: Map<string, SceneModel>;
   sceneEvent: SceneEvent | null;
 
@@ -24,6 +25,7 @@ const SceneContext = createContext<ISceneContext>({
   containerBound: null,
   textures: [],
   avatarTextures: [],
+  allSceneStaged: false,
   scenes: new Map(),
   sceneEvent: null,
 
@@ -52,6 +54,7 @@ export const SceneProvider = ({
   const texturesRef = useRef<{ id: number; texture: PIXI.Texture }[]>([]);
   const avatarTexturesRef = useRef<{ name: string; texture: PIXI.Texture }[]>([]);
   const [sceneEvent, setSceneEvent] = useState<SceneEvent | null>(null);
+  const [allSceneStaged, setAllSceneStaged] = useState(false);
 
   const loadAvatarTextures = () => {
     const baseTexture = PIXI.BaseTexture.from("assets/avatar.png");
@@ -88,7 +91,6 @@ export const SceneProvider = ({
         if (scene && !scene.type) {
           const gameScene = scene as GameScene;
           if (gameScene.candies) {
-            console.log("destroy candies");
             Array.from(gameScene.candies.values()).forEach((c) => c.destroy(true));
           }
           (scene.app as PIXI.Application).destroy(true);
@@ -98,6 +100,7 @@ export const SceneProvider = ({
   }, []);
 
   const value = {
+    allSceneStaged,
     containerBound,
     textures: texturesRef.current,
     avatarTextures: avatarTexturesRef.current,
@@ -108,7 +111,7 @@ export const SceneProvider = ({
       const scene = scenesRef.current.get(name);
       if (scene) {
         if (data) Object.assign(scene, data);
-        setSceneEvent({ name, type: SCENE_EVENT_TYPE.UPDATE });
+        //  setSceneEvent({ name, type: SCENE_EVENT_TYPE.UPDATE });
       }
     }, []),
 

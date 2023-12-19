@@ -53,6 +53,12 @@ export const playMove = (toMove: CellItem[], gameScene: GameScene, textures: Tex
                         y: cy,
                         duration: 1,
                         ease: 'power2.out',
+                        onStart: () => {
+                            if (!candy || !candy.position) {
+                                console.log("kill timeline")
+                                tl.kill();
+                            }
+                        },
                     }, "<")
             }
         })
@@ -60,32 +66,36 @@ export const playMove = (toMove: CellItem[], gameScene: GameScene, textures: Tex
 
 export const playRemove = (toRemove: CellItem[], gameScene: GameScene, textures: Texture[], tl: any) => {
     const candyMap = gameScene.candies;
-    if (candyMap)
+    if (candyMap) {
+
         toRemove.forEach((c) => {
             const candy = candyMap.get(c.id);
             if (candy) {
-                candyMap.delete(c.id);
+                // console.log("candy removed with:" + c.id)
+                candyMap.delete(c.id)
                 tl.to(
                     candy,
                     {
                         alpha: 0,
                         duration: 1,
                         ease: 'power2.out',
-                        onComplete: function () {
+                        onComplete: () => {
+                            candy.parent.removeChild(candy)
                             candy.destroy()
+                        },
+                        onStart: () => {
+                            if (!candy || !candy.position) {
+                                console.log("kill timeline")
+                                tl.kill();
+                            }
                         },
 
                     }, "<");
+            } else {
+                console.log("candy not found with:" + c.id)
             }
         })
-    // tl.call(
-    //     () => {
-    //         const cl = gsap.timeline();
-    //         playCollect(gameId, toRemove, cl);
-    //         cl.play();
-    //     },
-    //     [],
-    //     ">-0.1"
-    // );
+    }
+
 }
 

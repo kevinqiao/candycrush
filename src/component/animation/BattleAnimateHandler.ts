@@ -1,19 +1,18 @@
 import { gsap } from "gsap";
-import { useEffect } from "react";
+import { useCallback, useEffect } from "react";
 import { SCENE_NAME } from "../../model/Constants";
 import { useSceneManager } from "../../service/SceneManager";
-import { ANIMATE_NAME } from "./AnimateConstants";
-import { IAnimateContext } from "./AnimateManager";
+import { ANIMATE_EVENT_TYPE, ANIMATE_NAME } from "./AnimateConstants";
+import { IAnimateHandleContext } from "./AnimateManager";
 import useBattleMatching from "./battle/BattleMatching";
 import useBattleSearching from "./battle/BattleSearching";
 
-
-export const useBattleAnimateHandler = (props: IAnimateContext) => {
+export const useBattleAnimateHandler = (props: IAnimateHandleContext) => {
     const { animates, animateEvent, removeAnimate } = props;
-    const { startSearching, closeSearching } = useBattleSearching(props);
+    const { startSearching } = useBattleSearching(props);
     const { startBattleMatching } = useBattleMatching(props)
-    const { scenes, sceneEvent } = useSceneManager();
-    useEffect(() => {
+    const { scenes } = useSceneManager();
+    const processSearch = useCallback(() => {
         const animate = animates.find((a) => a.name === ANIMATE_NAME.BATTLE_SEARCH);
         if (animate && !animate.status) {
             const scene = scenes.get(SCENE_NAME.BATTLE_MATCHING);
@@ -28,9 +27,9 @@ export const useBattleAnimateHandler = (props: IAnimateContext) => {
                 timeline.play();
             }
         }
-    }, [animateEvent, animates, sceneEvent, scenes])
+    }, [])
 
-    useEffect(() => {
+    const processMatch = useCallback(() => {
         const animate = animates.find((a) => a.name === ANIMATE_NAME.BATTLE_MATCHED);
         if (animate && !animate.status) {
             const scene = scenes.get(SCENE_NAME.BATTLE_MATCHING);
@@ -41,27 +40,25 @@ export const useBattleAnimateHandler = (props: IAnimateContext) => {
             }
         }
 
-    }, [animateEvent, animates, sceneEvent, scenes])
-    // useEffect(() => {
-    //     if (animateEvent?.name) {
-    //         switch (animateEvent.name) {
-    //             case ANIMATE_NAME.BATTLE_SEARCH:
-    //                 if (!animateEvent.type) {
-    //                     startSearching(null);
-    //                     updateAnimate(ANIMATE_NAME.BATTLE_SEARCH, { status: 1 })
-    //                 }
-    //                 break;
-    //             case ANIMATE_NAME.BATTLE_MATCHED:
-    //                 if (!animateEvent.type) {
-    //                     closeSearching(null);
-    //                     startBattleMatching(null)
-    //                 }
-    //                 break;
-    //             default:
-    //                 break;
-    //         }
-    //     }
-    // }, [animateEvent, closeSearching, startBattleMatching, startSearching, updateAnimate])
+    }, [])
 
+    useEffect(() => {
+        if (animateEvent?.name) {
+            console.log(animateEvent)
+            if (!scenes.get(SCENE_NAME.BATTLE_MATCHING)) return;
+            if (animateEvent.type === ANIMATE_EVENT_TYPE.CREATE) {
+                switch (animateEvent.name) {
+                    case ANIMATE_NAME.BATTLE_SEARCH:
+                        processSearch();
+                        break;
+                    case ANIMATE_NAME.BATTLE_MATCHED:
+                        processMatch()
+                        break;
+                    default:
+                        break;
+                }
+            }
+        }
+    }, [animateEvent, animates, processMatch, processSearch, scenes])
 
 }

@@ -12,7 +12,6 @@ const useGameReady = (props: IAnimateContext) => {
         (gameId: string, timeline: any) => {
             const gameScene = scenes.get(gameId) as GameScene;
             const tl = timeline ?? gsap.timeline();
-            console.log("size:" + gameScene?.candies.size)
 
             if (gameScene && gameScene.candies && gameScene.column && gameScene.row) {
                 const candies: CandySprite[] = Array.from(gameScene.candies.values());

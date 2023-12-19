@@ -11,7 +11,7 @@ export interface TournamentDef {
 export const tournamentDefs: TournamentDef[] = [
     {
         id: 1,
-        participants: 1,
+        participants: 2,
         battleType: BATTLE_TYPE.SOLO,
         battleTime: 300000,
         goals: [{ asset: 1, quantity: 10 }, { asset: 2, quantity: 12 }],

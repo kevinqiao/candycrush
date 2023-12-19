@@ -29,18 +29,20 @@ const useCollectCandies = () => {
         return null;
 
     }
-    const playCollect = (gameId: string, cells: CellItem[], timeline: any) => {
+    const playCollect = (gameId: string, result: any, timeline: any) => {
 
         const gameScene: GameScene | undefined = scenes.get(gameId) as GameScene;
         const battleScene: SceneModel | undefined = scenes.get(SCENE_NAME.BATTLE_SCENE);
-        console.log(getGoalTarget(gameId, 0));
-        if (cells?.length > 0 && gameScene && battleScene && textures && gameScene?.cwidth) {
+
+        if (result.toRemove?.length > 0 && gameScene && battleScene && textures && gameScene?.cwidth) {
             const cwidth = gameScene?.cwidth;
             const tl = timeline ?? gsap.timeline();
-            cells.forEach((cell, index) => {
+            result.toRemove.forEach((cell: CellItem) => {
                 const target = getGoalTarget(gameId, cell.asset);
                 const texture = textures?.find((d) => d.id === cell.asset);
                 if (texture && target) {
+                    const goal = result.toGoal.find((g: { asset: number; start: number; end: number }) => g.asset === cell.asset);
+                    if (goal.start <= 0) return;
                     const cl = gsap.timeline();
                     const sprite = new PIXI.Sprite(texture.texture);
                     sprite.anchor.set(0.5);
@@ -72,7 +74,7 @@ const useCollectCandies = () => {
                     tl.add(cl, "<")
                 }
             })
-            
+
             if (!timeline)
                 tl.play();
         }

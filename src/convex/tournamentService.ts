@@ -34,7 +34,7 @@ export const joinTournament = action({
 export const joinTournamentByGroup = action({
     args: { cid: v.number(), uid: v.string() },
     handler: async (ctx, { cid, uid }) => {
-
+        console.log("join tournament")
         const tournamentDef = tournamentDefs.find((t) => t.id === cid);
         if (tournamentDef?.battleType === BATTLE_TYPE.SOLO) {
             const tcid: string = tournamentDef.id + ""
@@ -44,21 +44,27 @@ export const joinTournamentByGroup = action({
                 const battle = { tournamentId: tid, type: tournamentDef.battleType, status: 0, column: COLUMN, row: ROW, goal: 1, chunk: 10 };
                 const battleId = await ctx.runMutation(internal.battle.create, battle);
                 const games = [];
-                let gameInited = tournamentDef.participants === 1 ? await ctx.runMutation(internal.gameService.createInitGame, { uid }) : await ctx.runQuery(internal.gameService.findInitGame, { uid, trend: 1 });
-
+                let gameInited = tournamentDef.participants === 2 ? await ctx.runMutation(internal.gameService.createInitGame, { uid }) : await ctx.runQuery(internal.gameService.findInitGame, { uid, trend: 1 });
+                // let gameInited = await ctx.runQuery(internal.games.getInitGame, { gameId: "31wn8c5rrq08175n9x5ka9hb9kw8ej8" });
                 if (gameInited) {
-                    const gameId: string = await ctx.runMutation(internal.games.create, { game: { uid, battleId, tcid, ...gameInited, _id: undefined, _creationTime: undefined, gameId: undefined, chunk: battle.chunk, goal: battle.goal } });
+                    const game = { uid, battleId, tcid, ...gameInited, ref: gameInited.gameId, _id: undefined, _creationTime: undefined, gameId: undefined, chunk: battle.chunk, goal: battle.goal, type: 0 }
+                    // console.log("ref:" + game.ref)
+                    const gameId: string = await ctx.runMutation(internal.games.create, { game });
                     games.push({ uid, gameId });
-                    await ctx.runMutation(internal.events.create, {
-                        name: "gameInited", gameId, data: { gameId, ...gameInited }
-                    });
+                    if (!game.ref)
+                        await ctx.runMutation(internal.events.create, {
+                            name: "gameInited", gameId, data: { gameId, ...gameInited, type: 0 }
+                        });
+                    // else {
+                    //     await ctx.runMutation(internal.bgames.create, { gameId, ref: game.ref })
+                    // }
                     for (let i = 1; i < tournamentDef.participants; i++) {
                         const opponent = i + ""
-                        const gameId: string = await ctx.runMutation(internal.games.create, { game: { uid: opponent, seed: gameInited.seed, tcid, battleId, ref: gameInited['_id'] } });
+                        const gameId: string = await ctx.runMutation(internal.games.create, { game: { ...game, uid: opponent, _id: undefined, type: 0 }, });
                         games.push({ uid: opponent, gameId });
                     }
                     await ctx.runMutation(internal.events.create, {
-                        name: "battleCreated", uid, data: { games, id: battleId, ...battle, column: COLUMN, row: ROW }
+                        name: "battleCreated", uid, data: { games, id: battleId, ...battle, column: COLUMN, row: ROW, pasttime: 0 }
                     });
 
                 }

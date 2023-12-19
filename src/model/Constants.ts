@@ -52,9 +52,23 @@ export const SCENE_NAME = {
     BATTLE_MATCHING: "matching_battle",
     BATTLE_CONSOLE: "battle_console",
     BATTLE_GROUND: "battle_ground",
+    BATTLE_FRONT: "battle_front",
     BATTLE_SCENE: "battle_scene"
 }
 export const SCENE_TYPE = {
     PIXI_APPLICATION: 0,
     HTML_DIVELEMENT: 1
 }
+
+export const GAME_EVENT = {
+    SWIPE_CANDY: "cellSwapped",
+    SMESH_CANDY: "cellSmeshed",
+    GAME_OVER: "gameOver"
+
+}
+export const GAME_ACTION = {
+    SWIPE_CANDY: "SWIPE_CANDY",
+    SMASH_CANDY: "SMASH_CANDY",
+    USE_SKILL: "USE_SKILL"
+}
+export const GAME_PLAY_TIME = 600000

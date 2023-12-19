@@ -1,7 +1,7 @@
 import seedrandom from 'seedrandom';
 import goals from "../component/play/goals";
 import { CellItem } from "../model/CellItem";
-import { CANDY_MATCH_TYPE } from '../model/Constants';
+import { CANDY_MATCH_TYPE, GAME_EVENT } from '../model/Constants';
 import candy_textures from "../model/candy_textures";
 import * as Utils from "../util/Utils";
 
@@ -332,12 +332,44 @@ export const applyMatches = (
     return game
 }
 
+export const checkGoalComplete = (goalId: number, matched: { asset: number, quantity: number }[]): boolean => {
+    const goalModel = goals.find((g: { id: number, goal: { asset: number, quantity: number }[] }) => g.id === goalId);
+    if (goalModel) {
+        return goalModel.goal.every((g) => {
+            const m = matched.find((m) => m.asset === g.asset);
+            if (m && m.quantity >= g.quantity) return true;
+            else
+                return false
+        })
+    }
+    return false;
+}
+export const settleGame = (game: any): { base: number; time: number; goal: number } => {
+    const baseScore = game.matched.reduce((s: number, a: { asset: number; quantity: number }) => s + a.quantity, 0);
+    const startTime = game._creationTime
+    const saveSeconds = Math.floor((600000 - (game.endTime - startTime)) / 1000);
+    const timeScore = saveSeconds * 10;
+    const goalModel = goals.find((g: { id: number, goal: { asset: number, quantity: number }[] }) => g.id === game.goal);
+    const result = { base: baseScore, time: timeScore, goal: 0 }
+    if (goalModel) {
+        const goalSuccess = goalModel.goal.map((g) => {
+            const m = game.matched.find((m: { asset: number; quantity: number }) => m.asset === g.asset);
+            const quantity = m ? g.quantity - m.quantity : g.quantity;
+            return { asset: g.asset, quantity };
+        }).every((r) => r.quantity <= 0);
+        if (goalSuccess)
+            result.goal = 1000;
+    }
+    return result
+}
+export const settleBattle = (battle: any) => {
+
+}
 export const countBaseScore = (matched: { asset: number, quantity: number }[]): number => {
     if (matched)
         return matched.reduce((s: number, a: { asset: number; quantity: number }) => s + a.quantity, 0);
     return 0;
 }
-
 export const countGoalAndScore = (results: any[], matched: { asset: number; quantity: number }[], goalId: number) => {
     let from = matched.reduce((s: number, a: { asset: number; quantity: number }) => s + a.quantity, 0);
     const goalModel = goals.find((g: { id: number, goal: { asset: number, quantity: number }[] }) => g.id === goalId);
@@ -372,6 +404,63 @@ export const countGoalAndScore = (results: any[], matched: { asset: number; quan
     }
 
 }
+export const handleEvent = (name: string, eventData: any, game: any) => {
+
+    if (name === GAME_EVENT.SWIPE_CANDY) {
+        const candy: CellItem | undefined = game.cells.find((c: CellItem) => c.id === eventData.candy.id);
+        const target: CellItem | undefined = game.cells.find((c: CellItem) => c.id === eventData.target.id);
+        if (candy && target) {
+            [candy.row, target.row] = [target.row, candy.row];
+            [candy.column, target.column] = [target.column, candy.column];
+        }
+    }
+    applyEventResult(eventData.results, game)
+}
+const applyEventResult = (
+    results: { toCreate: CellItem[]; toChange: CellItem[]; toRemove: CellItem[]; toMove: CellItem[] }[],
+    game: any
+) => {
+    for (const res of results) {
+
+        game.cells.sort((a: CellItem, b: CellItem) => {
+            if (a.row === b.row) return a.column - b.column;
+            else return a.row - b.row;
+        });
+        if (!game.matched)
+            game.matched = [];
+        const { toCreate, toChange, toRemove, toMove } = res;
+        if (toRemove) {
+            const rids: number[] = toRemove.map((c: CellItem) => c.id);
+            const acells: CellItem[] = game.cells.filter((c: CellItem) => !rids.includes(c.id));
+            game.cells.length = 0;
+            game.cells.push(...acells);
+
+            for (let r of toRemove) {
+                const mitem = game.matched.find((m: { asset: number; quantity: number }) => m.asset === r.asset);
+                if (mitem) mitem.quantity++;
+                else game.matched.push({ asset: r.asset, quantity: 1 });
+            }
+        }
+        if (toCreate?.length > 0) {
+            game.cells.push(...toCreate);
+        }
+
+        if (toChange) {
+            toChange.forEach((c) => {
+                const cell = game.cells.find((s: CellItem) => s.id === c.id);
+                Object.assign(cell, c);
+            });
+        }
+
+        if (toMove) {
+            for (let m of toMove) {
+                const cell = game.cells.find((c: CellItem) => c.id === m.id);
+                if (cell) Object.assign(cell, m);
+            }
+        }
+    }
+
+};
 
 
 

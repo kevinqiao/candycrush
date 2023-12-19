@@ -3,34 +3,30 @@ import { useCallback } from "react";
 
 import { GameScene } from "../../../model/SceneModel";
 import { useSceneManager } from "../../../service/SceneManager";
-import { ANIMATE_NAME } from "../AnimateConstants";
 import { IAnimateContext } from "../AnimateManager";
 import useBattleBoard from "../battle/BattleBoard";
+import useCollectCandies from "../battle/CollectCandies";
 import { playChange, playMove, playRemove } from "./ApplyMatch";
 import useSwipeCandy from "./SwipeCandy";
 
 const useSolveSwap = (props: IAnimateContext) => {
-    const { animates, createAnimate } = props;
+    const { animates } = props;
     const { scenes, textures } = useSceneManager();
     const { swipeSuccess } = useSwipeCandy(props);
-    const { changeScore } = useBattleBoard(props)
+    const { changeGoal, changeScore } = useBattleBoard(props)
+    const { playCollect } = useCollectCandies();
 
 
     const solveSwap = useCallback(
         (gameId: string, data: any, timeline: any) => {
+            const gameScene: GameScene = scenes.get(gameId) as GameScene;
+            const tl = timeline ?? gsap.timeline()
 
-            const tl = gsap.timeline({
-                onComplete: () => {
-                    const as = animates.filter((a) => a.gameId !== gameId);
-                    animates.length = 0;
-                    animates.push(...as)
 
-                }
-            });
             const { candy, target, results } = data;
             swipeSuccess(gameId, candy, target, tl);
             if (results) {
-                const gameScene: GameScene = scenes.get(gameId) as GameScene;
+
                 for (const res of results) {
                     const ml = gsap.timeline();
                     tl.add(ml, ">");
@@ -44,7 +40,17 @@ const useSolveSwap = (props: IAnimateContext) => {
                         playRemove(res.toRemove, gameScene, textures, cl)
                         cl.call(
                             () => {
-                                createAnimate({ id: Date.now(), name: ANIMATE_NAME.GOAL_COLLECT, data: { gameId, cells: res.toRemove, goal: res.toGoal } })
+
+
+                                const rl = gsap.timeline();
+                                playCollect(gameId, res, rl);
+                                if (res.toGoal && res.toGoal.length > 0) {
+                                    const gl = gsap.timeline();
+                                    rl.add(gl, ">")
+                                    changeGoal(gameId, res.toGoal, gl)
+                                }
+                                rl.play();
+
                             },
                             [],
                             "<"
@@ -68,7 +74,7 @@ const useSolveSwap = (props: IAnimateContext) => {
             else
                 timeline.add(tl)
         },
-        [animates, createAnimate, scenes, swipeSuccess, textures]
+        [animates, changeGoal, changeScore, playCollect, scenes, swipeSuccess, textures]
     );
 
 
@@ -76,6 +82,4 @@ const useSolveSwap = (props: IAnimateContext) => {
 };
 export default useSolveSwap
 
-function changeScore(cl: gsap.core.Timeline, arg1: { gameId: string; score: { from: number; to: number; }; }) {
-    throw new Error("Function not implemented.");
-}
+

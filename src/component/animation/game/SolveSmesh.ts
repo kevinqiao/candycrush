@@ -2,45 +2,52 @@ import { gsap } from "gsap";
 import { useCallback } from "react";
 import { GameScene } from "../../../model/SceneModel";
 import { useSceneManager } from "../../../service/SceneManager";
-import { ANIMATE_NAME } from "../AnimateConstants";
 import { IAnimateContext } from "../AnimateManager";
 import useBattleBoard from "../battle/BattleBoard";
+import useCollectCandies from "../battle/CollectCandies";
 import { playChange, playMove, playRemove } from "./ApplyMatch";
 
 const useSolveSmesh = (props: IAnimateContext) => {
     const { scenes, textures } = useSceneManager();
-    const { animates, createAnimate } = props;
-    const { changeScore } = useBattleBoard(props)
+    const { animates } = props;
+    const { playCollect } = useCollectCandies();
+    const { changeGoal, changeScore } = useBattleBoard(props)
     const solveMesh = useCallback(
         (gameId: string, data: any, timeline: any) => {
-            const tl = gsap.timeline({
-                onComplete: () => {
-                    const as = animates.filter((a) => a.gameId !== gameId);
-                    animates.length = 0;
-                    animates.push(...as)
-                }
-            });
-            const { candyId, results } = data;
-            console.log(results)
+            const tl = timeline ?? gsap.timeline();
+            const { results } = data;
+            // console.log(results)
             if (results) {
                 const gameScene: GameScene = scenes.get(gameId) as GameScene;
                 for (const res of results) {
                     const ml = gsap.timeline();
                     tl.add(ml, ">");
+                    const cl = gsap.timeline();
+                    ml.add(cl)
                     if (res.toChange)
-                        playChange(res.toChange, gameScene, textures, ml);
+                        playChange(res.toChange, gameScene, textures, cl);
                     if (res.toRemove) {
-                        playRemove(res.toRemove, gameScene, textures, ml)
-                        ml.call(
+                        playRemove(res.toRemove, gameScene, textures, cl)
+
+                        cl.call(
                             () => {
-                                createAnimate({ id: Date.now(), name: ANIMATE_NAME.GOAL_COLLECT, data: { gameId, cells: res.toRemove, goal: res.toGoal } })
+                                // createAnimate({ id: Date.now(), name: ANIMATE_NAME.GOAL_COLLECT, data: { gameId, cells: res.toRemove, goal: res.toGoal } })
+                                const gl = gsap.timeline();
+                                playCollect(gameId, res, gl);
+                                if (res.toGoal && res.toGoal.length > 0) {
+                                    // tl.add(gl, ">")
+                                    changeGoal(gameId, res.toGoal, gl)
+                                }
+                                gl.play();
                             },
                             [],
                             "<"
                         );
                     }
                     if (res.toMove) {
-                        playMove(res.toMove, gameScene, textures, ml)
+                        const mt = gsap.timeline();
+                        ml.add(mt, "<")
+                        playMove(res.toMove, gameScene, textures, mt)
                     }
                     if (res.toScore) {
                         const st = gsap.timeline();
@@ -51,8 +58,10 @@ const useSolveSmesh = (props: IAnimateContext) => {
             }
             if (!timeline)
                 tl.play();
+            else
+                timeline.add(tl)
         },
-        [animates, scenes, textures]
+        [animates, changeGoal, playCollect, scenes, textures]
     );
 
 
@@ -61,7 +70,4 @@ const useSolveSmesh = (props: IAnimateContext) => {
 export default useSolveSmesh
 
 
-function changeScore(st: gsap.core.Timeline, arg1: any) {
-    throw new Error("Function not implemented.");
-}
 

@@ -1,50 +1,43 @@
+import { gsap } from "gsap";
 import * as PIXI from "pixi.js";
-import { useCallback, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useBattleManager } from "../../service/BattleManager";
+import { useGameManager } from "../../service/GameManager";
 import { useSceneManager } from "../../service/SceneManager";
+import { useUserManager } from "../../service/UserManager";
 import { CandySprite } from "../pixi/CandySprite";
 import useGameScene from "./useGameScene";
-const GamePlay = ({ gameId }: { gameId: string }) => {
+const GamePlay = ({ game }: { game: { gameId: string; uid: string } }) => {
   const sceneContainerRef = useRef<HTMLDivElement | null>(null);
+  const gameOverRef = useRef<HTMLDivElement | null>(null);
   const { battle } = useBattleManager();
-  const { scenes, containerBound, stageScene } = useSceneManager();
+  const { containerBound, stageScene } = useSceneManager();
+  const { user } = useUserManager();
   const [bound, setBound] = useState<{ top: number; left: number; width: number; height: number } | null>(null);
-
+  const { gameEvent } = useGameManager();
   useGameScene();
-  // useEffect(() => {
-  //   if (!containerBound || !battle || !gameId || !sceneContainerRef.current) return;
-  //   const top = containerBound.height * 0.35;
-  //   const left = containerBound.width * 0.15;
-  //   const width = containerBound.width * 0.7;
-  //   const height = containerBound.height * 0.6;
-  //   const cwidth = Math.floor(width / battle.column);
-  //   const cheight = Math.floor(width / battle.column);
-  //   const candies = new Map<number, CandySprite>();
-  //   const column = battle.column;
-  //   const row = battle.row;
-  //   const app = new PIXI.Application({
-  //     width: width,
-  //     height: height,
-  //     backgroundAlpha: 0,
-  //   });
-  //   const scene = { x: left, y: top, app, width, height, cwidth, cheight, candies, column, row };
-  //   sceneContainerRef.current.appendChild(app.view as unknown as Node);
-  //   stageScene(gameId, scene);
-  //   setBound({ top, left, width, height });
-  // }, [sceneContainerRef, battle, containerBound, gameId, stageScene]);
+  useEffect(() => {
+    console.log(gameEvent);
+  }, [gameEvent]);
+  useEffect(() => {
+    gsap.to(gameOverRef.current, { alpha: 0.1, duration: 1.8 });
+  }, []);
 
   const load = useCallback((el: HTMLDivElement) => {
+    console.log("loading..." + game.gameId);
     // const battlePlay = scenes.get(SCENE_NAME.BATTLE_PLAY);
-
     let app: PIXI.Application | null = null;
     if (battle && containerBound && !sceneContainerRef.current) {
       sceneContainerRef.current = el;
-      const left = containerBound.width * 0.15;
-      const top = containerBound.height * 0.35;
-      const width = containerBound.width * 0.7;
-      const height = containerBound.height * 0.6;
-      const cwidth = Math.floor(width / battle.column);
-      const cheight = Math.floor(width / battle.column);
+      let left = containerBound.width * 0.5;
+      let top = containerBound.height * 0.55;
+      let width = containerBound.width * 0.4;
+      let height = containerBound.height * 0.35;
+      let cwidth = Math.floor(width / battle.column);
+      let cheight = Math.floor(width / battle.column);
+      if (user.uid !== game.uid) {
+        top = containerBound.height * 0.1;
+      }
       app = new PIXI.Application({
         width,
         height,
@@ -56,13 +49,12 @@ const GamePlay = ({ gameId }: { gameId: string }) => {
       const row = battle.row;
       const scene = { x: left, y: top, app, width, height, cwidth, cheight, candies, column, row };
       el.appendChild(app.view as unknown as Node);
-      stageScene(gameId, scene);
+      stageScene(game.gameId, scene);
       setBound({ top, left, width, height });
     }
   }, []);
   return (
     <div
-      ref={load}
       style={{
         position: "absolute",
         top: bound?.top,
@@ -73,7 +65,27 @@ const GamePlay = ({ gameId }: { gameId: string }) => {
         border: 0,
         backgroundColor: "transparent",
       }}
-    ></div>
+    >
+      <div ref={load} style={{ width: "100%", height: "100%" }}></div>
+      <div
+        ref={gameOverRef}
+        style={{
+          display: "flex",
+          justifyContent: "center",
+          alignItems: "center",
+          position: "absolute",
+          top: 0,
+          left: 0,
+          width: "100%",
+          height: "100%",
+          opacity: 0,
+          backgroundColor: "black",
+          pointerEvents: "none",
+        }}
+      >
+        <span style={{ fontSize: 20, color: "white" }}>Game Over</span>
+      </div>
+    </div>
   );
 };
 

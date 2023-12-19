@@ -1,7 +1,10 @@
 import { useEffect, useRef } from "react";
 import { SCENE_NAME } from "../../model/Constants";
+import { useBattleManager } from "../../service/BattleManager";
 import { useSceneManager } from "../../service/SceneManager";
 import useDimension from "../../util/useDimension";
+import { ANIMATE_NAME } from "../animation/AnimateConstants";
+import { useAnimateManager } from "../animation/AnimateManager";
 import Avatar from "./common/Avatar";
 
 const SearchOpponent = () => {
@@ -13,7 +16,14 @@ const SearchOpponent = () => {
   const opponentAvatarRef = useRef<HTMLDivElement | null>(null);
   const { scenes, stageScene } = useSceneManager();
   const { width, height } = useDimension(sceneContainerRef);
-
+  const { battle } = useBattleManager();
+  const { createAnimate } = useAnimateManager();
+  useEffect(() => {
+    if (battle && !battle.load) {
+      createAnimate({ id: Date.now(), name: ANIMATE_NAME.BATTLE_SEARCH });
+      setTimeout(() => createAnimate({ id: Date.now(), name: ANIMATE_NAME.BATTLE_MATCHED, data: battle }), 5000);
+    }
+  }, [battle]);
   useEffect(() => {
     if (sceneContainerRef.current) {
       const scene = scenes.get(SCENE_NAME.BATTLE_MATCHING);
