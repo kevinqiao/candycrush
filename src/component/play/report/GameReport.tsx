@@ -9,15 +9,21 @@ const GameReport: React.FC = () => {
     (type: number, el: HTMLDivElement | null) => {
       if (scenes && el) {
         const frontScene = scenes.get(SCENE_NAME.BATTLE_FRONT) as FrontScene;
+        if (!frontScene) return;
+        if (!frontScene.gameReport) frontScene.gameReport = {};
+        console.log("load game report element :" + type);
         if (frontScene)
           switch (type) {
             case 0:
-              frontScene.gameReport.baseScoreEle = el;
+              frontScene.gameReport.sceneEle = el;
               break;
             case 1:
-              frontScene.gameReport.timeScoreEle = el;
+              frontScene.gameReport.baseScoreEle = el;
               break;
             case 2:
+              frontScene.gameReport.timeScoreEle = el;
+              break;
+            case 3:
               frontScene.gameReport.goalScoreEle = el;
               break;
             default:
@@ -29,10 +35,10 @@ const GameReport: React.FC = () => {
   );
 
   return (
-    <div style={{ width: "80%", height: "70%", backgroundColor: "white" }}>
-      <div id="baseScore" ref={(ele) => load(0, ele)}></div>
-      <div id="timeScore" ref={(ele) => load(1, ele)}></div>
-      <div id="goalScore" ref={(ele) => load(2, ele)}></div>
+    <div ref={(ele) => load(0, ele)} style={{ width: "80%", height: "70%", backgroundColor: "white", opacity: 0 }}>
+      <div id="baseScore" ref={(ele) => load(1, ele)}></div>
+      <div id="timeScore" ref={(ele) => load(2, ele)}></div>
+      <div id="goalScore" ref={(ele) => load(3, ele)}></div>
     </div>
   );
 };

@@ -38,12 +38,11 @@ const BattleFront = () => {
             margin: 0,
             border: 0,
             height: containerBound.height,
-            opacity: 1,
+            opacity: 0,
             backgroundColor: "black",
             pointerEvents: "none",
           }}
         >
-          <BattleFront />
           <GameReport />
         </div>
       ) : null}

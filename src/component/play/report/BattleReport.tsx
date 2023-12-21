@@ -9,6 +9,7 @@ const BattleReport: React.FC = () => {
     (el: HTMLDivElement) => {
       if (scenes) {
         const frontScene = scenes.get(SCENE_NAME.BATTLE_FRONT) as FrontScene;
+        if (!frontScene.battleReport) frontScene.battleReport = {};
         if (frontScene) frontScene.battleReport.sceneEle = el;
       }
     },

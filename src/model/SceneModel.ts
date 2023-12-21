@@ -17,8 +17,8 @@ export interface GameScene extends SceneModel {
     candies: Map<number, CandySprite>;
 }
 export interface FrontScene extends SceneModel {
-    gameReport: { sceneEle: HTMLDivElement; baseScoreEle: HTMLDivElement; timeScoreEle: HTMLDivElement; goalScoreEle: HTMLDivElement };
-    battleReport: { sceneEle: HTMLDivElement };
+    gameReport?: { sceneEle?: HTMLDivElement; baseScoreEle?: HTMLDivElement; timeScoreEle?: HTMLDivElement; goalScoreEle?: HTMLDivElement };
+    battleReport?: { sceneEle?: HTMLDivElement };
 }
 export interface SearchScene extends SceneModel {
     sceneEle: HTMLDivElement;

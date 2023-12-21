@@ -17,7 +17,7 @@ const useTournamentManager = () => {
   const findMyTournaments = useAction(api.tournamentService.findMyTournaments);
 
   const checkAuth = (): boolean => {
-    return user.uid ? true : false
+    return user && user.uid ? true : false
   }
   const joinArena = useCallback(
     async (tid: string, cid: number) => {

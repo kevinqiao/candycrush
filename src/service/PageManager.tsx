@@ -1,6 +1,5 @@
-import React, { createContext, useCallback, useContext, useEffect } from "react";
+import React, { createContext, useCallback, useContext } from "react";
 import { NavPages, StackPages } from "../model/PageCfg";
-import useEventSubscriber from "./EventManager";
 export interface PageConfig {
   name: string;
   uri: string;
@@ -44,9 +43,12 @@ const reducer = (state: any, action: any) => {
       const item = action.data;
       return Object.assign({}, state, { stacks: [...state.stacks, item] });
     case actions.PAGE_POP:
+      console.log(action.data);
       if (action.data.length === 0) return Object.assign({}, state, { stacks: [] });
       else {
+        console.log(state.stacks);
         const ps = state.stacks.filter((p: PageItem) => !action.data.includes(p.name));
+        console.log(ps);
         return Object.assign({}, state, { stacks: ps });
       }
     case actions.PAGE_CHANGE:
@@ -70,37 +72,23 @@ const PageContext = createContext<IPageContext>({
 
 export const PageProvider = ({ children }: { children: React.ReactNode }) => {
   const [state, dispatch] = React.useReducer(reducer, initialState);
-  const { event, createEvent } = useEventSubscriber(["battleCreated", "openPage"], []);
-
-  useEffect(() => {
-    if (event) {
-      switch (event.name) {
-        // case "battleCreated":
-        //   dispatch({ type: actions.PAGE_PUSH, data: { name: "battlePlay", data: event.data } });
-        //   break;
-        case "openPage":
-          openPage(event.data);
-          break;
-        default:
-          break;
-      }
-    }
-  }, [event]);
 
   const openPage = useCallback(
     (page: PageItem) => {
+      console.log(page);
       let scfg: PageConfig | undefined = StackPages.find((p) => p.name === page.name);
       if (scfg) {
+        console.log(page);
         dispatch({ type: actions.PAGE_PUSH, data: page });
       } else {
         let ncfg = NavPages.find((p) => p.name === page.name);
         if (ncfg) {
-          const curPage = NavPages.find((p) => p.name === state.currentPage.name);
+          // const curPage = NavPages.find((p) => p.name === state.currentPage.name);
           let contextChanged = false;
-          if (curPage?.context !== ncfg.context) {
-            contextChanged = true;
-            createEvent({ name: "closeAllPop", data: null, delay: 4 });
-          }
+          // if (curPage?.context !== ncfg.context) {
+          //   contextChanged = true;
+          //   createEvent({ name: "closeAllPop", data: null, delay: 4 });
+          // }
           dispatch({ type: actions.PAGE_CHANGE, data: { page, contextChanged } });
         }
       }

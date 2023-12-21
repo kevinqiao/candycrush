@@ -11,7 +11,8 @@ import { UserProvider } from "./service/UserManager";
 // Register the plugin once globally
 gsap.registerPlugin(MotionPathPlugin);
 // gsap.registerPlugin(TransformPlugin);
-const convex = new ConvexReactClient("https://dazzling-setter-839.convex.cloud");
+
+const convex = new ConvexReactClient("https://kindred-grasshopper-414.convex.cloud");
 function App() {
   console.log("app init");
   const FlattenedProviderTree = (providers: any): any => {

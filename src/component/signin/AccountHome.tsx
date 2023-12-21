@@ -4,6 +4,7 @@ import "./signin.css";
 const AccountHome: React.FC = () => {
   const { user, signout } = useUserManager();
   const { openPage } = usePageManager();
+  console.log(user);
   return (
     <div
       style={{

@@ -66,7 +66,7 @@ const GamePlay = ({ game }: { game: { gameId: string; uid: string } }) => {
         backgroundColor: "transparent",
       }}
     >
-      <div ref={load} style={{ width: "100%", height: "100%" }}></div>
+      <div ref={load} style={{ width: "100%", height: "100%", backgroundColor: "transparent" }}></div>
       <div
         ref={gameOverRef}
         style={{
@@ -79,7 +79,7 @@ const GamePlay = ({ game }: { game: { gameId: string; uid: string } }) => {
           width: "100%",
           height: "100%",
           opacity: 0,
-          backgroundColor: "black",
+          backgroundColor: "transparent",
           pointerEvents: "none",
         }}
       >

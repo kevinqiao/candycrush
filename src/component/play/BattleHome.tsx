@@ -3,7 +3,7 @@ import BattleModel from "../../model/Battle";
 import PageProps from "../../model/PageProps";
 import BattleProvider from "../../service/BattleManager";
 import useEventSubscriber from "../../service/EventManager";
-import { GameProvider } from "../../service/GameManager";
+import GameProvider from "../../service/GameManager";
 import SceneProvider from "../../service/SceneManager";
 import useTournamentManager from "../../service/TournamentManager";
 import { AnimateProvider } from "../animation/AnimateManager";
@@ -45,7 +45,10 @@ const BattleHome: React.FC<PageProps> = ({ data, position }) => {
   }, [event]);
 
   return (
-    <div style={{ position: "relative", top: 0, left: 0, width: "100%", height: "100%" }}>
+    <div
+      ref={() => console.log("rendering battle home")}
+      style={{ position: "relative", top: 0, left: 0, width: "100%", height: "100%", backgroundColor: "transparent" }}
+    >
       {browserVisible && battle && position ? (
         <SceneProvider containerBound={position}>
           <BattleProvider battle={battle}>

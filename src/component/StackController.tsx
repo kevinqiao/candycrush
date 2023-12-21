@@ -9,7 +9,8 @@ import "./layout.css";
 const StackController = () => {
   const { width, height } = useCoord();
   const [components, setComponents] = useState<{ name: string; component: any }[]>();
-  const { stacks, popPage } = usePageManager();
+  const { stacks } = usePageManager();
+
   useEffect(() => {
     const pages = StackPages.map((p) => {
       const c = lazy(() => import(`${p.uri}`));
@@ -34,9 +35,24 @@ const StackController = () => {
       if (page) {
         const p = components?.find((p) => p.name === page.name);
         if (p) {
+          const loading = (
+            <div
+              style={{
+                margin: 0,
+                border: 0,
+                top: position?.top,
+                left: position?.left,
+                width: position?.width,
+                height: position?.height,
+                backgroundColor: "white",
+              }}
+            >
+              Loading
+            </div>
+          );
           const SelectedComponent: FunctionComponent<PageProps> = p.component;
           return (
-            <Suspense fallback={<div>Loading...</div>}>
+            <Suspense fallback={loading}>
               <SelectedComponent data={page.data} position={position} />
             </Suspense>
           );
@@ -52,7 +68,7 @@ const StackController = () => {
         const position = getPosition(p.name);
         if (position)
           return (
-            <StackPop key={p.name + index + "stack"} page={p.name} zIndex={(index + 1) * 200} position={position}>
+            <StackPop key={p.name + index + "stack"} page={p.name} zIndex={(index + 1) * 2000} position={position}>
               {renderPage(p, position)}
             </StackPop>
           );

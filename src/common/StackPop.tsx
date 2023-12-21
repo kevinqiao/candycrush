@@ -1,7 +1,6 @@
+import gsap from "gsap";
 import React, { ReactNode, useEffect, useRef } from "react";
-import useEventSubscriber from "../service/EventManager";
-import { PageItem, usePageManager } from "../service/PageManager";
-import { useUserManager } from "../service/UserManager";
+import { usePageManager } from "../service/PageManager";
 import useStackAnimation from "./StackAnimation";
 import "./popup.css";
 interface PopupProps {
@@ -14,44 +13,33 @@ interface PopupProps {
 const StackPop: React.FC<PopupProps> = ({ zIndex, page, position, children }) => {
   const popupRef = useRef<HTMLDivElement>(null);
   const maskRef = useRef<HTMLDivElement>(null);
+  const closeBtnRef = useRef<HTMLDivElement>(null);
   const StackAnimation = useStackAnimation({
     scene: popupRef,
     mask: maskRef,
+    closeBtn: closeBtnRef,
     position,
   });
-  const { user } = useUserManager();
-  const { stacks, openPage, popPage } = usePageManager();
-  const { event } = useEventSubscriber(["closePage", "closeAllPop"], []);
-  useEffect(() => {
-    if (event?.name === "closeAllPop" || event?.data.name === page) {
-      togglePopup();
-    }
-  }, [event]);
-  useEffect(() => {
-    if (user && page === "signin") togglePopup();
-  }, [user]);
+
+  const { popPage } = usePageManager();
 
   useEffect(() => {
     StackAnimation.play();
   }, []);
 
   const togglePopup = () => {
-    StackAnimation.stop();
-    if (position) {
-      if (page === "signin") {
-        const spage = stacks.find((s: PageItem) => s.name === "signin");
-        if (spage) {
-          setTimeout(() => popPage(["signin"]), 700);
-          setTimeout(() => openPage(spage.data), 850);
-        }
-      } else setTimeout(() => popPage([page]), 800);
-    }
+    const tl = gsap.timeline({
+      onComplete: () => {
+        popPage([page]);
+        tl.kill();
+      },
+    });
+    StackAnimation.close(tl);
   };
 
   return (
     <>
       <div ref={maskRef} className="mask" style={{ zIndex, opacity: 0 }}></div>
-
       <div
         className="popup"
         ref={popupRef}
@@ -63,18 +51,20 @@ const StackPop: React.FC<PopupProps> = ({ zIndex, page, position, children }) =>
           width: position?.width,
           height: position?.height,
           zIndex: zIndex + 1,
-          opacity: 0,
+          backgroundColor: "transparent",
         }}
       >
-        {children}
         <div
+          ref={closeBtnRef}
           className="closePopBtn"
+          style={{ opacity: 0 }}
           onClick={() => {
             togglePopup();
           }}
         >
           Cancel
         </div>
+        {children}
       </div>
     </>
   );
