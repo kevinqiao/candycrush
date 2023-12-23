@@ -44,7 +44,7 @@ export const useBattleAnimateHandler = (props: IAnimateHandleContext) => {
 
     useEffect(() => {
         if (animateEvent?.name) {
-            console.log(animateEvent)
+
             if (!scenes.get(SCENE_NAME.BATTLE_MATCHING)) return;
             if (animateEvent.type === ANIMATE_EVENT_TYPE.CREATE) {
                 switch (animateEvent.name) {

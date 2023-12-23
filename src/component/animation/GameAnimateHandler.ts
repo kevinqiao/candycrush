@@ -25,7 +25,7 @@ export const useGameAnimateHandler = (props: IAnimateHandleContext) => {
 
 
     const processGameInit = useCallback((animate: Animate) => {
-        console.log(animate)
+
         if (!animate.gameId) return;
         const timeline = gsap.timeline({
             onComplete: () => {

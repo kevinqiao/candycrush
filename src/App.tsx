@@ -5,7 +5,6 @@ import NavController from "./component/NavController";
 import StackController from "./component/StackController";
 import MainMenu from "./component/menu/MainMenu";
 import { CoordProvider } from "./service/CoordManager";
-import { EventProvider } from "./service/EventManager";
 import { PageProvider } from "./service/PageManager";
 import { UserProvider } from "./service/UserManager";
 // Register the plugin once globally
@@ -38,13 +37,12 @@ function App() {
     [ConvexProvider, { client: convex }],
     [PageProvider],
     [UserProvider],
-    [EventProvider],
+    // [EventProvider],
   ]);
   return (
     <Providers>
       <MainMenu />
       <NavController />
-      {/* <PlayCenter /> */}
       <StackController />
     </Providers>
   );

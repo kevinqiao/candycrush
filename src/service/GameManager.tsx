@@ -56,7 +56,7 @@ const actions = {
 const reducer = (state: any, action: any) => {
   switch (action.type) {
     case actions.GAME_OVER:
-      return Object.assign({}, state, action.data);
+      return Object.assign({}, state, action.data, { status: 1 });
     case actions.INIT_GAME:
       const starttime = action.data.pasttime > 0 ? Date.now() - action.data.pasttime : Date.now();
       return Object.assign({}, state, { matched: [] }, action.data, { starttime });
@@ -159,7 +159,6 @@ export const GameProvider = ({
     if (game.gameId && battle) {
       if (battle.load === BATTLE_TYPE.REPLAY) loadInit();
       else {
-        console.log("sync game to init");
         sync();
       }
     }

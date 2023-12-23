@@ -1,28 +1,24 @@
 import { gsap } from "gsap";
 import { useEffect, useRef } from "react";
-import { useSceneManager } from "service/SceneManager";
-import { useBattleManager } from "../../../service/BattleManager";
 
-const BattleReport: React.FC = () => {
+const PageCloseConfirm: React.FC<{ onConfirm: () => void }> = ({ onConfirm }) => {
   const maskRef = useRef<HTMLDivElement | null>(null);
-  const battleOverRef = useRef<HTMLDivElement | null>(null);
-  const { event } = useBattleManager();
-  const { disableCloseBtn, exit } = useSceneManager();
+  const confirmRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
-    if (!event || event.name !== "battleOver") return;
     const tl = gsap.timeline({
       onComplete: () => {
         tl.kill();
       },
     });
-    tl.to(maskRef.current, { autoAlpha: 0.7, duration: 1.8 }).to(
-      battleOverRef.current,
-      { autoAlpha: 1, duration: 1.8 },
+    tl.to(maskRef.current, { autoAlpha: 0.7, duration: 0.5 }).fromTo(
+      confirmRef.current,
+      { scale: 0, autoAlpha: 0 },
+      { scale: 1, autoAlpha: 1, duration: 0.5 },
       "<"
     );
     tl.play();
-  }, [event]);
+  }, []);
   return (
     <>
       <div
@@ -36,13 +32,13 @@ const BattleReport: React.FC = () => {
           left: 0,
           width: "100%",
           height: "100%",
-          opacity: 0.7,
+          opacity: 0,
           backgroundColor: "black",
           pointerEvents: "none",
         }}
       ></div>
       <div
-        ref={battleOverRef}
+        ref={confirmRef}
         style={{
           display: "flex",
           justifyContent: "center",
@@ -53,23 +49,24 @@ const BattleReport: React.FC = () => {
           width: "100%",
           margin: 0,
           border: 0,
-          opacity: 0.7,
+          opacity: 0,
           height: "100%",
         }}
+        onClick={onConfirm}
       >
         <div
           style={{
             display: "flex",
             justifyContent: "center",
             alignItems: "center",
-            width: "70%",
-            height: "50%",
+            width: "50%",
+            height: "30%",
             backgroundColor: "white",
+            borderRadius: 4,
           }}
-          onClick={exit}
         >
           <div>
-            <span>Battle Over</span>
+            <span>Confirm</span>
           </div>
         </div>
       </div>
@@ -77,4 +74,4 @@ const BattleReport: React.FC = () => {
   );
 };
 
-export default BattleReport;
+export default PageCloseConfirm;

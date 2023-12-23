@@ -1,37 +1,32 @@
 import * as PIXI from "pixi.js";
 import React, { createContext, useCallback, useContext, useEffect, useRef, useState } from "react";
+import PageProps, { PagePosition } from "../model/PageProps";
 import { GameScene, SceneModel } from "../model/SceneModel";
 import candy_texture_defs from "../model/candy_textures";
-interface ContainerBound {
-  top: number;
-  left: number;
-  width: number;
-  height: number;
-  direction?: number;
-}
 interface ISceneContext {
-  containerBound: ContainerBound | null;
+  containerBound: PagePosition | null;
   textures: { id: number; texture: PIXI.Texture }[];
   avatarTextures: { name: string; texture: PIXI.Texture }[];
-  allSceneStaged: boolean;
   scenes: Map<string, SceneModel>;
   sceneEvent: SceneEvent | null;
-
   updateScene: (name: string, data: any) => void;
   stageScene: (id: string, scene: SceneModel | null) => void;
   checkLoad: (names: string[]) => boolean;
+  disableCloseBtn: () => void;
+  exit: () => void;
 }
 const SceneContext = createContext<ISceneContext>({
   containerBound: null,
   textures: [],
   avatarTextures: [],
-  allSceneStaged: false,
   scenes: new Map(),
   sceneEvent: null,
 
   updateScene: (name: string, data: any) => null,
   stageScene: (id: string, scene: SceneModel | null) => null,
   checkLoad: (names: string[]) => false,
+  disableCloseBtn: () => null,
+  exit: () => null,
 });
 interface SceneEvent {
   name: string;
@@ -43,18 +38,11 @@ const SCENE_EVENT_TYPE = {
   REMOVE: 2,
 };
 
-export const SceneProvider = ({
-  containerBound,
-  children,
-}: {
-  containerBound: ContainerBound;
-  children: React.ReactNode;
-}) => {
+export const SceneProvider = ({ pageProp, children }: { pageProp: PageProps; children: React.ReactNode }) => {
   const scenesRef = useRef<Map<string, SceneModel>>(new Map());
   const texturesRef = useRef<{ id: number; texture: PIXI.Texture }[]>([]);
   const avatarTexturesRef = useRef<{ name: string; texture: PIXI.Texture }[]>([]);
   const [sceneEvent, setSceneEvent] = useState<SceneEvent | null>(null);
-  const [allSceneStaged, setAllSceneStaged] = useState(false);
 
   const loadAvatarTextures = () => {
     const baseTexture = PIXI.BaseTexture.from("assets/avatar.png");
@@ -85,7 +73,6 @@ export const SceneProvider = ({
   useEffect(() => {
     loadCandyTextures();
     loadAvatarTextures();
-
     return () => {
       for (let scene of scenesRef.current.values()) {
         if (scene && !scene.type) {
@@ -100,13 +87,20 @@ export const SceneProvider = ({
   }, []);
 
   const value = {
-    allSceneStaged,
-    containerBound,
+    containerBound: pageProp.position,
     textures: texturesRef.current,
     avatarTextures: avatarTexturesRef.current,
     scenes: scenesRef.current,
     sceneEvent,
-
+    exit: useCallback(() => {
+      if (pageProp.exit) pageProp.exit();
+    }, [pageProp]),
+    disableCloseBtn: useCallback(() => {
+      if (pageProp.disableCloseBtn) {
+        console.log("call disable close");
+        pageProp.disableCloseBtn();
+      }
+    }, [pageProp]),
     updateScene: useCallback((name: string, data: any) => {
       const scene = scenesRef.current.get(name);
       if (scene) {

@@ -3,10 +3,9 @@ import { SCENE_NAME, SCENE_TYPE } from "../../model/Constants";
 import { useSceneManager } from "../../service/SceneManager";
 
 const BattleGround = () => {
-  console.log("battle ground");
   const containerRef = useRef<HTMLDivElement | null>(null);
   const { containerBound, stageScene } = useSceneManager();
-
+  console.log("battle ground");
   const load = useCallback((sceneEle: HTMLDivElement | null) => {
     if (containerBound && sceneEle && !containerRef.current) {
       containerRef.current = sceneEle;

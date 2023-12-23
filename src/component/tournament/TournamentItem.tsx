@@ -10,7 +10,7 @@ const TournamentItem: React.FC<Props> = ({ tournament }) => {
   const itemRef = useRef(null);
   const { stacks, openPage } = usePageManager();
   const { user } = useUserManager();
-  console.log(stacks);
+
   const joinBattle = useCallback(() => {
     if (!user) {
       openPage({ name: "signin" });

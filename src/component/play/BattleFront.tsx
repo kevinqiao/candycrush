@@ -1,7 +1,6 @@
 import { useCallback, useRef } from "react";
 import { SCENE_NAME, SCENE_TYPE } from "../../model/Constants";
 import { useSceneManager } from "../../service/SceneManager";
-import GameReport from "./report/GameReport";
 
 const BattleFront = () => {
   const containerRef = useRef<HTMLDivElement | null>(null);
@@ -38,12 +37,11 @@ const BattleFront = () => {
             margin: 0,
             border: 0,
             height: containerBound.height,
-            opacity: 0,
-            backgroundColor: "black",
+            backgroundColor: "transparent",
             pointerEvents: "none",
           }}
         >
-          <GameReport />
+          {/* <GameReport /> */}
         </div>
       ) : null}
     </>

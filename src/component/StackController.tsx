@@ -1,9 +1,9 @@
 import { FunctionComponent, Suspense, lazy, useCallback, useEffect, useState } from "react";
-import StackPop from "../common/StackPop";
 import { StackPages } from "../model/PageCfg";
-import PageProps from "../model/PageProps";
+import PageProps, { PagePosition } from "../model/PageProps";
 import useCoord from "../service/CoordManager";
 import { usePageManager } from "../service/PageManager";
+import StackPop from "./StackPop";
 import "./layout.css";
 
 const StackController = () => {
@@ -31,20 +31,21 @@ const StackController = () => {
     return null;
   };
   const renderPage = useCallback(
-    (page: any, position: any) => {
-      if (page) {
-        const p = components?.find((p) => p.name === page.name);
+    (pageProp: PageProps) => {
+      if (pageProp) {
+        const p = components?.find((p) => p.name === pageProp.name);
         if (p) {
           const loading = (
             <div
               style={{
                 margin: 0,
                 border: 0,
-                top: position?.top,
-                left: position?.left,
-                width: position?.width,
-                height: position?.height,
+                top: pageProp.position?.top,
+                left: pageProp.position?.left,
+                width: pageProp.position?.width,
+                height: pageProp.position?.height,
                 backgroundColor: "white",
+                pointerEvents: "none",
               }}
             >
               Loading
@@ -52,8 +53,13 @@ const StackController = () => {
           );
           const SelectedComponent: FunctionComponent<PageProps> = p.component;
           return (
-            <Suspense fallback={loading}>
-              <SelectedComponent data={page.data} position={position} />
+            <Suspense fallback={<div>Loading</div>}>
+              <SelectedComponent
+                name={pageProp.name}
+                data={pageProp.data}
+                position={pageProp.position}
+                config={pageProp.config}
+              />
             </Suspense>
           );
         }
@@ -65,13 +71,12 @@ const StackController = () => {
   return (
     <>
       {stacks.map((p, index) => {
-        const position = getPosition(p.name);
-        if (position)
-          return (
-            <StackPop key={p.name + index + "stack"} page={p.name} zIndex={(index + 1) * 2000} position={position}>
-              {renderPage(p, position)}
-            </StackPop>
-          );
+        const position: PagePosition | null = getPosition(p.name);
+        if (position) {
+          const config = StackPages.find((s) => s.name === p.name);
+          const pageProp = { name: p.name, position, data: p.data, config };
+          return <StackPop key={p.name + index + "stack"} zIndex={(index + 1) * 200} pageProp={pageProp}></StackPop>;
+        }
       })}
     </>
   );

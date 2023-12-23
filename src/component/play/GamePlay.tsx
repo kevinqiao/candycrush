@@ -9,23 +9,32 @@ import { CandySprite } from "../pixi/CandySprite";
 import useGameScene from "./useGameScene";
 const GamePlay = ({ game }: { game: { gameId: string; uid: string } }) => {
   const sceneContainerRef = useRef<HTMLDivElement | null>(null);
+  const maskRef = useRef<HTMLDivElement | null>(null);
   const gameOverRef = useRef<HTMLDivElement | null>(null);
   const { battle } = useBattleManager();
   const { containerBound, stageScene } = useSceneManager();
   const { user } = useUserManager();
   const [bound, setBound] = useState<{ top: number; left: number; width: number; height: number } | null>(null);
-  const { gameEvent } = useGameManager();
+  const { status } = useGameManager();
+
   useGameScene();
   useEffect(() => {
-    console.log(gameEvent);
-  }, [gameEvent]);
-  useEffect(() => {
-    gsap.to(gameOverRef.current, { alpha: 0.1, duration: 1.8 });
-  }, []);
+    if (!status) return;
+    const tl = gsap.timeline({
+      onComplete: () => {
+        tl.kill();
+      },
+    });
+    tl.fromTo(maskRef.current, { autoAlpha: 1 }, { autoAlpha: 0.7, duration: 1.8 }).fromTo(
+      gameOverRef.current,
+      { autoAlpha: 0 },
+      { autoAlpha: 1, duration: 1.8 },
+      "<"
+    );
+    tl.play();
+  }, [status]);
 
   const load = useCallback((el: HTMLDivElement) => {
-    console.log("loading..." + game.gameId);
-    // const battlePlay = scenes.get(SCENE_NAME.BATTLE_PLAY);
     let app: PIXI.Application | null = null;
     if (battle && containerBound && !sceneContainerRef.current) {
       sceneContainerRef.current = el;
@@ -67,6 +76,23 @@ const GamePlay = ({ game }: { game: { gameId: string; uid: string } }) => {
       }}
     >
       <div ref={load} style={{ width: "100%", height: "100%", backgroundColor: "transparent" }}></div>
+
+      <div
+        ref={maskRef}
+        style={{
+          display: "flex",
+          justifyContent: "center",
+          alignItems: "center",
+          position: "absolute",
+          top: 0,
+          left: 0,
+          width: "100%",
+          height: "100%",
+          opacity: 0,
+          backgroundColor: "black",
+          pointerEvents: "none",
+        }}
+      ></div>
       <div
         ref={gameOverRef}
         style={{
@@ -78,12 +104,14 @@ const GamePlay = ({ game }: { game: { gameId: string; uid: string } }) => {
           left: 0,
           width: "100%",
           height: "100%",
-          opacity: 0,
           backgroundColor: "transparent",
           pointerEvents: "none",
+          opacity: 0,
         }}
       >
-        <span style={{ fontSize: 20, color: "white" }}>Game Over</span>
+        <div>
+          <span style={{ fontSize: 20, color: "white" }}>Game Over</span>
+        </div>
       </div>
     </div>
   );

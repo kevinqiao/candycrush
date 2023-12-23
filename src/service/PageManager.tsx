@@ -8,7 +8,14 @@ export interface PageConfig {
   direction?: number;
   auth?: boolean;
 }
-
+export const PAGE_EVENT_NAME = {
+  OPEN_PAGE: "open_page",
+  CLOSE_PAGE: "close_page",
+};
+export interface PageEvent {
+  name: string;
+  page: string;
+}
 export interface PageItem {
   name: string;
   data?: any;
@@ -25,6 +32,7 @@ interface IPageContext {
 
 const initialState = {
   stacks: [],
+  pageEvent: null,
   prevPage: null,
   currentPage: { name: "battleHome", isInitial: true },
 };
@@ -43,12 +51,9 @@ const reducer = (state: any, action: any) => {
       const item = action.data;
       return Object.assign({}, state, { stacks: [...state.stacks, item] });
     case actions.PAGE_POP:
-      console.log(action.data);
       if (action.data.length === 0) return Object.assign({}, state, { stacks: [] });
       else {
-        console.log(state.stacks);
         const ps = state.stacks.filter((p: PageItem) => !action.data.includes(p.name));
-        console.log(ps);
         return Object.assign({}, state, { stacks: ps });
       }
     case actions.PAGE_CHANGE:
@@ -72,7 +77,6 @@ const PageContext = createContext<IPageContext>({
 
 export const PageProvider = ({ children }: { children: React.ReactNode }) => {
   const [state, dispatch] = React.useReducer(reducer, initialState);
-
   const openPage = useCallback(
     (page: PageItem) => {
       console.log(page);

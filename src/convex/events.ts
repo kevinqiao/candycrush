@@ -56,6 +56,22 @@ export const getByGame = query({
     }
   },
 });
+export const findByBattle = query({
+  args: { battleId: v.optional(v.string()) },
+  handler: async (ctx, { battleId }) => {
+    if (battleId) {
+      const battle = await ctx.db.get(battleId as Id<"battle">);
+      if (battle && !battle.status) {
+        const event = await ctx.db
+          .query("events").withIndex("by_battle", (q) => q.eq("battleId", battleId))
+          .order("desc")
+          .first();
+        if (event)
+          return Object.assign({}, event, { id: event?._id, _creationTime: undefined, _id: undefined })
+      }
+    }
+  }
+});
 export const findByGame = query({
   args: { gameId: v.optional(v.string()), laststep: v.number() },
   handler: async (ctx, { gameId, laststep }) => {
@@ -120,9 +136,9 @@ export const findGameEvents = internalQuery({
   },
 });
 export const create = internalMutation({
-  args: { name: v.string(), uid: v.optional(v.string()), steptime: v.optional(v.number()), gameId: v.optional(v.string()), data: v.any() },
-  handler: async (ctx, { name, uid, gameId, steptime, data }) => {
-    await ctx.db.insert("events", { name, uid, gameId, steptime, data });
+  args: { name: v.string(), uid: v.optional(v.string()), steptime: v.optional(v.number()), battleId: v.optional(v.string()), gameId: v.optional(v.string()), data: v.any() },
+  handler: async (ctx, { name, uid, battleId, gameId, steptime, data }) => {
+    await ctx.db.insert("events", { name, uid, battleId, gameId, steptime, data });
     return
   },
 });

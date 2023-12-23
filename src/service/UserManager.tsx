@@ -1,7 +1,12 @@
-import { useAction } from "convex/react";
+import { useAction, useQuery } from "convex/react";
 import React, { createContext, useCallback, useContext, useEffect } from "react";
 import { api } from "../convex/_generated/api";
 import { usePageManager } from "./PageManager";
+interface UserEvent {
+  id: string;
+  name: string;
+  data: any;
+}
 interface User {
   uid: string;
   token: string;
@@ -10,6 +15,7 @@ interface User {
 }
 interface IUserContext {
   user: any | null;
+  userEvent: UserEvent | null;
   authComplete: (user: User) => void;
   signout: () => void;
   signup: () => void;
@@ -43,6 +49,7 @@ const reducer = (state: any, action: any) => {
 
 const UserContext = createContext<IUserContext>({
   user: null,
+  userEvent: null,
   authComplete: () => null,
   signout: () => null,
   signup: () => null,
@@ -52,6 +59,7 @@ export const UserProvider = ({ children }: { children: React.ReactNode }) => {
   const { openPage } = usePageManager();
   const [state, dispatch] = React.useReducer(reducer, initialState);
   const authByToken = useAction(api.UserService.authByToken);
+  const userEvent: any = useQuery(api.events.getByUser, { uid: state.user?.uid ?? "###" });
 
   useEffect(() => {
     const userJSON = localStorage.getItem("user");
@@ -66,20 +74,10 @@ export const UserProvider = ({ children }: { children: React.ReactNode }) => {
       });
     }
   }, []);
-  // useEffect(() => {
-  //   const userJSON = localStorage.getItem("user");
-  //   if (userJSON) {
-  //     const user = JSON.parse(userJSON);
-  //     console.log(user);
 
-  //     authByToken({ uid: user.uid, token: "12345" }).then((u: any) => {
-  //       dispatch({ type: actions.AUTH_COMPLETE, data: u });
-  //       if (u.battle) createEvent({ name: "battleCreated", data: u.battle, delay: 10 });
-  //     });
-  //   }
-  // }, []);
   const value = {
     user: state.user,
+    userEvent,
     authComplete: useCallback((user: User) => {
       localStorage.setItem("user", JSON.stringify({ uid: user.uid, token: "12345" }));
       dispatch({ type: actions.AUTH_COMPLETE, data: user });

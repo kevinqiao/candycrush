@@ -1,7 +1,6 @@
 import { v } from "convex/values";
 import { BATTLE_TYPE } from "../model/Constants";
 import { tournamentDefs } from "../model/TournamentCfg";
-import * as gameEngine from "../service/GameEngine";
 import { internal } from "./_generated/api";
 import { action } from "./_generated/server";
 
@@ -10,24 +9,24 @@ const ROW = 8;
 export const joinTournament = action({
     args: { tournamentId: v.id("tournament"), cid: v.number(), uid: v.string() },
     handler: async (ctx, args) => {
-        console.log("join tournament");
-        let battle_type = BATTLE_TYPE.SOLO;
-        if (args.cid > 0) {
-            const tdef = tournamentDefs.find((t) => t.id === args.cid);
-            if (tdef)
-                battle_type = tdef.battleType;
-        }
-        const { cells } = gameEngine.initGame(ROW, COLUMN);
+        // console.log("join tournament");
+        // let battle_type = BATTLE_TYPE.SOLO;
+        // if (args.cid > 0) {
+        //     const tdef = tournamentDefs.find((t) => t.id === args.cid);
+        //     if (tdef)
+        //         battle_type = tdef.battleType;
+        // }
+        // const { cells } = gameEngine.initGame(ROW, COLUMN);
 
-        const gameId: string = await ctx.runMutation(internal.games.create, { game: { uid: args.uid, cells, lastCellId: cells.length + 1 } });
-        const battle = { tournamentId: args.tournamentId, games: [gameId], type: BATTLE_TYPE.SOLO, status: 0, goal: 1, column: COLUMN, row: ROW };
-        const battleId = await ctx.runMutation(internal.battle.create, battle);
-        await ctx.runMutation(internal.events.create, {
-            name: "battleCreated", uid: "kqiao", data: { id: battleId, games: [gameId], tournamentId: args.tournamentId, type: battle_type, column: COLUMN, row: ROW }
-        });
-        await ctx.runMutation(internal.events.create, {
-            name: "gameInited", uid: "kqiao", gameId, data: { gameId, cells }
-        });
+        // const gameId: string = await ctx.runMutation(internal.games.create, { game: { uid: args.uid, cells, lastCellId: cells.length + 1 } });
+        // const battle = { tournamentId: args.tournamentId, goal: 1, column: COLUMN, row: ROW };
+        // const battleId = await ctx.runMutation(internal.battle.create, battle);
+        // await ctx.runMutation(internal.events.create, {
+        //     name: "battleCreated", uid: "kqiao", data: { id: battleId, games: [gameId], tournamentId: args.tournamentId, type: battle_type, column: COLUMN, row: ROW }
+        // });
+        // await ctx.runMutation(internal.events.create, {
+        //     name: "gameInited", uid: "kqiao", gameId, data: { gameId, cells }
+        // });
 
     }
 })
@@ -41,7 +40,8 @@ export const joinTournamentByGroup = action({
             const tid = await ctx.runMutation(internal.tournaments.create, { cid, startTime: 0, endTime: 0 });
 
             if (tid) {
-                const battle = { tournamentId: tid, type: tournamentDef.battleType, status: 0, column: COLUMN, row: ROW, goal: 1, chunk: 10 };
+
+                const battle = { tournamentId: tid, participants: tournamentDef.participants, column: COLUMN, row: ROW, goal: 1, chunk: 10 };
                 const battleId = await ctx.runMutation(internal.battle.create, battle);
                 const games = [];
                 let gameInited = tournamentDef.participants === 2 ? await ctx.runMutation(internal.gameService.createInitGame, { uid }) : await ctx.runQuery(internal.gameService.findInitGame, { uid, trend: 1 });
@@ -84,7 +84,7 @@ export const joinTournamentByOneToOne = action({
 
             if (tid) {
 
-                const battle = { tournamentId: tid, type: tournamentDef.battleType, status: 0, goal: 1, column: COLUMN, row: ROW };
+                const battle = { tournamentId: tid, participants: tournamentDef.participants, column: COLUMN, row: ROW, goal: 1, chunk: 10 }
                 const battleId = await ctx.runMutation(internal.battle.create, battle);
                 const games = [];
                 let gameInited = await ctx.runQuery(internal.gameService.findInitGame, { uid, trend: 1 })

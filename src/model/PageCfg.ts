@@ -13,7 +13,6 @@ export const NavPages = [
         context: "playcenter",
         uri: "./tournament/TournamentHome",
         cache: 0,
-        auth: true
     },
 
     {
@@ -110,6 +109,7 @@ export const StackPages = [
         name: "battlePlay",
         uri: "./play/BattleHome",
         auth: true,
+        closeType: 2,
         direction: 0,
         width: 550,
         height: 1,

@@ -38,11 +38,12 @@ export default defineSchema({
     }).index("by_type", ["type"]).index("by_status", ["status"]),
     events: defineTable({
         name: v.string(),
+        battleId: v.optional(v.string()),
         gameId: v.optional(v.string()),
         uid: v.optional(v.string()),
         steptime: v.optional(v.number()),
         data: v.any(),
-    }).index("by_game", ["gameId"]).index("by_uid", ["uid"]),
+    }).index("by_game", ["gameId"]).index("by_uid", ["uid"]).index("by_battle", ["battleId"]),
     rounds: defineTable({
         gameId: v.string(),
         cells: v.any(),
@@ -52,11 +53,12 @@ export default defineSchema({
         data: v.any(),
     }),
     battle: defineTable({
-        type: v.number(),
-        tournamentId: v.id("tournament"),
+        type: v.optional(v.number()),
+        participants: v.number(),
+        tournamentId: v.string(),
         report: v.optional(v.any()),
         stoptime: v.optional(v.number()),
-        status: v.number(),//0-going 1-settled 2-cancelled
+        status: v.optional(v.number()),//0-going 1-settled 2-cancelled
         seed: v.optional(v.string()),
         row: v.number(),
         column: v.number(),

@@ -23,6 +23,7 @@ const PlayCenter: React.FC = () => {
   const { createEvent } = useEventSubscriber([], []);
   const mainRef = useRef<HTMLDivElement | null>(null);
   const { width, height } = useCoord();
+  console.log(width);
   useEffect(() => {
     const ps: { name: string; index: number; component: any }[] = [];
     for (let p of pageIndexs) {
@@ -125,7 +126,7 @@ const PlayCenter: React.FC = () => {
         }
       }
     return elems;
-  }, [pages]);
+  }, [pages, width]);
 
   return (
     <>

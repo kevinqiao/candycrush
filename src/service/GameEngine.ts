@@ -344,6 +344,24 @@ export const checkGoalComplete = (goalId: number, matched: { asset: number, quan
     }
     return false;
 }
+export const countFinalScore = (game: any): { base: number; time: number; goal: number } => {
+    const baseScore = game.matched.reduce((s: number, a: { asset: number; quantity: number }) => s + a.quantity, 0);
+    const startTime = game._creationTime
+    const saveSeconds = Math.floor((600000 - (game.endTime - startTime)) / 1000);
+    const timeScore = saveSeconds * 10;
+    const goalModel = goals.find((g: { id: number, goal: { asset: number, quantity: number }[] }) => g.id === game.goal);
+    const result = { base: baseScore, time: timeScore, goal: 0 }
+    if (goalModel) {
+        const goalSuccess = goalModel.goal.map((g) => {
+            const m = game.matched.find((m: { asset: number; quantity: number }) => m.asset === g.asset);
+            const quantity = m ? g.quantity - m.quantity : g.quantity;
+            return { asset: g.asset, quantity };
+        }).every((r) => r.quantity <= 0);
+        if (goalSuccess)
+            result.goal = 1000;
+    }
+    return result
+}
 export const settleGame = (game: any): { base: number; time: number; goal: number } => {
     const baseScore = game.matched.reduce((s: number, a: { asset: number; quantity: number }) => s + a.quantity, 0);
     const startTime = game._creationTime

@@ -24,12 +24,14 @@ export const authByToken = action({
             const game = await ctx.runQuery(internal.games.findUserGame, { uid });
             if (game) {
                 const b: any = await ctx.runQuery(internal.battle.find, { battleId: game.battleId as Id<"battle"> })
-                const games = await ctx.runQuery(internal.games.findBattleGames, { battleId: b.id })
-                if (games)
-                    b['games'] = games.map((g) => ({ uid: g.uid, gameId: g._id, matched: g.matched }))
+                if (!b.status) {
+                    const games = await ctx.runQuery(internal.games.findBattleGames, { battleId: b.id })
+                    if (games)
+                        b['games'] = games.map((g) => ({ uid: g.uid, gameId: g._id, matched: g.matched }))
 
-                const pasttime = Date.now() - b.createTime ?? Date.now();
-                user['battle'] = { ...b, column: COLUMN, row: ROW, pasttime };
+                    const pasttime = Date.now() - b.createTime ?? Date.now();
+                    user['battle'] = { ...b, column: COLUMN, row: ROW, pasttime };
+                }
             }
             await ctx.runMutation(internal.user.update, { id: user["_id"], data: {} })
         }

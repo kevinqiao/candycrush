@@ -28,9 +28,9 @@ import { internalMutation, internalQuery, query } from "./_generated/server";
 //   },
 // });
 export const create = internalMutation({
-  args: { tournamentId: v.id("tournament"), type: v.number(), status: v.number(), column: v.number(), row: v.number(), goal: v.optional(v.number()), chunk: v.optional(v.number()) },
-  handler: async (ctx, { tournamentId, type, status, column, row, goal, chunk }) => {
-    return await ctx.db.insert("battle", { tournamentId, type, status, row, column, goal, chunk });
+  args: { tournamentId: v.id("tournament"), participants: v.number(), column: v.number(), row: v.number(), goal: v.optional(v.number()), chunk: v.optional(v.number()) },
+  handler: async (ctx, { tournamentId, participants, column, row, goal, chunk }) => {
+    return await ctx.db.insert("battle", { tournamentId, participants, row, column, goal, chunk });
   },
 });
 
@@ -42,6 +42,21 @@ export const find = internalQuery({
       return Object.assign({}, battle, { id: battle._id, _id: undefined, createTime: battle._creationTime, _creationTime: undefined });
     return null;
   },
+});
+export const settleGame = internalMutation({
+  args: { battleId: v.id("battle"), uid: v.string(), gameId: v.string(), score: v.number() },
+  handler: async (ctx, { battleId, gameId, uid, score }) => {
+    const battle = await ctx.db.get(battleId);
+    if (battle) {
+      if (!battle.report)
+        battle.report = [];
+      battle.report.push({ uid, gameId, score });
+      if (battle.participants === battle.report.length)
+        battle.status = 1;
+      await ctx.db.patch(battle._id, { status: battle.status, report: battle.report })
+    }
+    return battle;
+  }
 });
 export const findToSettles = internalQuery({
   handler: async (ctx) => {

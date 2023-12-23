@@ -2,25 +2,25 @@ import { useEffect, useState } from "react";
 import BattleModel from "../../model/Battle";
 import PageProps from "../../model/PageProps";
 import BattleProvider from "../../service/BattleManager";
-import useEventSubscriber from "../../service/EventManager";
 import GameProvider from "../../service/GameManager";
 import SceneProvider from "../../service/SceneManager";
 import useTournamentManager from "../../service/TournamentManager";
+import { useUserManager } from "../../service/UserManager";
 import { AnimateProvider } from "../animation/AnimateManager";
 import usePageVisibility from "../common/usePageVisibility";
-import BattleFront from "./BattleFront";
 import BattleGround from "./BattleGround";
 import BattleScene from "./BattleScene";
 import GamePlay from "./GamePlay";
 import SearchOpponent from "./SearchOpponent";
 import BattleConsole from "./console/BattleConsole";
+import BattleReport from "./report/BattleReport";
 
-const BattleHome: React.FC<PageProps> = ({ data, position }) => {
+const BattleHome: React.FC<PageProps> = (pageProp) => {
   const [battle, setBattle] = useState<BattleModel | null>(null);
   const { join } = useTournamentManager();
-  const { event } = useEventSubscriber(["battleCreated"], []);
+  const { userEvent } = useUserManager();
   const browserVisible = usePageVisibility();
-  console.log(battle);
+
   useEffect(() => {
     if (!browserVisible && battle) {
       battle.load = 1;
@@ -32,25 +32,31 @@ const BattleHome: React.FC<PageProps> = ({ data, position }) => {
     // };
   }, [browserVisible, battle]);
   useEffect(() => {
-    if (data?.act === "join") {
-      join(data.tournament);
-    } else if (data?.act === "load") {
-      setBattle({ ...data.battle, load: 1 });
+    if (pageProp.data?.act === "join") {
+      join(pageProp.data.tournament);
+    } else if (pageProp.data?.act === "load") {
+      setBattle({ ...pageProp.data.battle, load: 1 });
     }
-  }, [data, join]);
+  }, [pageProp.data, join]);
   useEffect(() => {
-    if (event?.name === "battleCreated") {
-      setBattle({ ...event.data });
+    if (userEvent?.name === "battleCreated") {
+      setBattle({ ...userEvent.data });
     }
-  }, [event]);
+  }, [userEvent]);
 
   return (
     <div
-      ref={() => console.log("rendering battle home")}
-      style={{ position: "relative", top: 0, left: 0, width: "100%", height: "100%", backgroundColor: "transparent" }}
+      style={{
+        position: "relative",
+        top: 0,
+        left: 0,
+        width: "100%",
+        height: "100%",
+        backgroundColor: "transparent",
+      }}
     >
-      {browserVisible && battle && position ? (
-        <SceneProvider containerBound={position}>
+      {browserVisible && battle ? (
+        <SceneProvider pageProp={pageProp}>
           <BattleProvider battle={battle}>
             <AnimateProvider>
               <BattleGround />
@@ -62,7 +68,7 @@ const BattleHome: React.FC<PageProps> = ({ data, position }) => {
               ))}
               {!battle.load ? <SearchOpponent /> : null}
               <BattleScene />
-              <BattleFront />
+              <BattleReport />
             </AnimateProvider>
           </BattleProvider>
         </SceneProvider>

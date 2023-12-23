@@ -6,6 +6,7 @@ import * as gameEngine from "../service/GameEngine";
 import { Match, checkMatches, initGame, settleGame } from "../service/GameEngine";
 import * as Utils from "../util/Utils";
 import { internal } from "./_generated/api";
+import { Id } from "./_generated/dataModel";
 import { action, internalMutation, internalQuery, query } from "./_generated/server";
 const COLUMN = 7;
 const ROW = 8;
@@ -277,7 +278,7 @@ export const doAct = action({
 
         if (gameEngine.checkGoalComplete(game.goal, game.matched)) {
             game.endTime = Date.now();
-            const result: { base: number; time: number; goal: number } = gameEngine.settleGame(game);
+            const result: { base: number; time: number; goal: number } = gameEngine.countFinalScore(game);
             const score = result.base + result.time + result.goal;
             game.result = result;
             game.score = score;
@@ -285,6 +286,12 @@ export const doAct = action({
             await ctx.runMutation(internal.events.create, {
                 name: "gameOver", gameId, data: { result, score: game.score, endTime: game.endTime }, steptime
             })
+            const battle = await ctx.runMutation(internal.battle.settleGame, { battleId: game.battleId as Id<"battle">, gameId, uid: game.uid, score });
+            if (battle && battle.status) {
+                await ctx.runMutation(internal.events.create, {
+                    name: "battleOver", battleId: battle._id, data: battle.report, steptime
+                })
+            }
         }
         await ctx.runMutation(internal.games.update, {
             gameId, data: { ...game, laststep: steptime }

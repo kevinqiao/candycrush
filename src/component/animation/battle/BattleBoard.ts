@@ -13,7 +13,7 @@ const useBattleBoard = (props: IAnimateContext) => {
 
     const initBoard = useCallback(
         (timeline: any, data: { uid: string, gameId: string, score: number }) => {
-            console.log(data)
+
             const scene: ConsoleScene | undefined = scenes.get(SCENE_NAME.BATTLE_CONSOLE) as ConsoleScene;
             if (!scene) return;
             const tl = timeline ?? gsap.timeline();

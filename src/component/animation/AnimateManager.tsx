@@ -54,8 +54,7 @@ const AnimateContext = createContext<IAnimateContext>({
 export const AnimateProvider = ({ children }: { children: React.ReactNode }) => {
   const animatesRef = useRef<Animate[]>([]);
   const [animateEvent, setAnimateEvent] = useState<AnimateEvent | null>(null);
-  // console.log(animatesRef.current);
-  console.log(animateEvent);
+
   const createAnimate = useCallback((animate: Animate) => {
     Object.assign(animate, { id: Date.now(), createTime: Date.now() });
     animatesRef.current.push(animate);
