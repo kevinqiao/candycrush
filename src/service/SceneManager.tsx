@@ -4,7 +4,7 @@ import PageProps, { PagePosition } from "../model/PageProps";
 import { GameScene, SceneModel } from "../model/SceneModel";
 import candy_texture_defs from "../model/candy_textures";
 interface ISceneContext {
-  containerBound: PagePosition | null;
+  containerBound: PagePosition | null | undefined;
   textures: { id: number; texture: PIXI.Texture }[];
   avatarTextures: { name: string; texture: PIXI.Texture }[];
   scenes: Map<string, SceneModel>;

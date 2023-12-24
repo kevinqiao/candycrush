@@ -9,6 +9,10 @@ export const NavContext = [
 ]
 export const NavPages = [
     {
+        name: "playcenter",
+        uri: "./PlayCenter",
+    },
+    {
         name: "tournamentHome",
         context: "playcenter",
         uri: "./tournament/TournamentHome",

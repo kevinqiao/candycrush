@@ -9,7 +9,7 @@ export interface PagePosition {
 export default interface PageProps {
     name: string;
     data: any;
-    position: PagePosition;
+    position?: PagePosition;
     config?: any;
     disableCloseBtn?: () => void;
     exit?: () => void;

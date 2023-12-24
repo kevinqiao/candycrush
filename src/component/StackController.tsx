@@ -1,6 +1,5 @@
-import { FunctionComponent, Suspense, lazy, useCallback, useEffect, useState } from "react";
 import { StackPages } from "../model/PageCfg";
-import PageProps, { PagePosition } from "../model/PageProps";
+import { PagePosition } from "../model/PageProps";
 import useCoord from "../service/CoordManager";
 import { usePageManager } from "../service/PageManager";
 import StackPop from "./StackPop";
@@ -8,18 +7,8 @@ import "./layout.css";
 
 const StackController = () => {
   const { width, height } = useCoord();
-  const [components, setComponents] = useState<{ name: string; component: any }[]>();
   const { stacks } = usePageManager();
 
-  useEffect(() => {
-    const pages = StackPages.map((p) => {
-      const c = lazy(() => import(`${p.uri}`));
-      return { name: p.name, component: c };
-    });
-    if (pages?.length > 0) {
-      setComponents(pages);
-    }
-  }, []);
   const getPosition = (pname: string) => {
     const pageCfg = StackPages.find((s) => s.name === pname);
     if (pageCfg) {
@@ -30,43 +19,6 @@ const StackController = () => {
     }
     return null;
   };
-  const renderPage = useCallback(
-    (pageProp: PageProps) => {
-      if (pageProp) {
-        const p = components?.find((p) => p.name === pageProp.name);
-        if (p) {
-          const loading = (
-            <div
-              style={{
-                margin: 0,
-                border: 0,
-                top: pageProp.position?.top,
-                left: pageProp.position?.left,
-                width: pageProp.position?.width,
-                height: pageProp.position?.height,
-                backgroundColor: "white",
-                pointerEvents: "none",
-              }}
-            >
-              Loading
-            </div>
-          );
-          const SelectedComponent: FunctionComponent<PageProps> = p.component;
-          return (
-            <Suspense fallback={<div>Loading</div>}>
-              <SelectedComponent
-                name={pageProp.name}
-                data={pageProp.data}
-                position={pageProp.position}
-                config={pageProp.config}
-              />
-            </Suspense>
-          );
-        }
-      }
-    },
-    [components]
-  );
 
   return (
     <>

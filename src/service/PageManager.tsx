@@ -34,7 +34,7 @@ const initialState = {
   stacks: [],
   pageEvent: null,
   prevPage: null,
-  currentPage: { name: "battleHome", isInitial: true },
+  currentPage: { name: "playcenter", data: { isInitial: true } },
 };
 
 const actions = {

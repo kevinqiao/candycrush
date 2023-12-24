@@ -109,29 +109,6 @@ const PlayMenu: React.FC = () => {
               onClick={() => openPage({ name: "avatarList", data: {} })}
             />
           </svg>
-
-          {/* {iconCoords
-            .map((c, index) => {
-              const w = Math.floor((c.w * coord.mainMenuRatio) / 1.5);
-              const h = Math.floor((c.h * coord.mainMenuRatio) / 1.5);
-              const x = Math.floor(c.x * coord.mainMenuRatio) - Math.floor(w / 2);
-              const y = Math.floor(c.y * coord.mainMenuRatio) - Math.floor(h / 2);
-              return {
-                id: c.id,
-                x,
-                y,
-                w,
-                h,
-              };
-            })
-            .map((c) => (
-              <img
-                key={"menu-icon-" + c.id}
-                id={"menu-icon-" + c.id}
-                style={{ position: "absolute", width: c.w, height: c.h, left: c.x, bottom: c.y, pointerEvents: "none" }}
-                src="assets/boy.png"
-              />
-            ))} */}
         </div>
       ) : null}
     </>

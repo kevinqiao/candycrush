@@ -1,4 +1,5 @@
 import gsap from "gsap";
+import PageProps from "model/PageProps";
 import React, { FunctionComponent, Suspense, lazy, useEffect, useMemo, useRef, useState } from "react";
 import { NavPages } from "../model/PageCfg";
 import useCoord from "../service/CoordManager";
@@ -16,7 +17,7 @@ const pageIndexs = [
   { name: "avatarList", index: 4 },
 ];
 
-const PlayCenter: React.FC = () => {
+const PlayCenter: React.FC<PageProps> = ({ ...pageProp }) => {
   const indexRef = useRef<number>(2);
   const [pages, setPages] = useState<{ name: string; index: number; component: any }[]>([]);
   const { currentPage, openPage } = usePageManager();
