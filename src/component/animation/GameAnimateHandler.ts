@@ -121,8 +121,13 @@ export const useGameAnimateHandler = (props: IAnimateHandleContext) => {
     useEffect(() => {
         if (animateEvent) {
             const ianimates = animates.filter((a) => a.name === ANIMATE_NAME.GAME_INITED);
+
             if (!battle?.load) {
+                // console.log(ianimates)
                 const manimate = animates.find((a) => a.name === ANIMATE_NAME.BATTLE_MATCHED);
+                // console.log(manimate)
+                console.log("games:" + battle?.games.length + " " + "animate size:" + ianimates.length)
+
                 if (manimate && manimate.status === 2 && ianimates.length === battle?.games.length)
                     ianimates.forEach((animate) =>
                         processGameInit(animate)

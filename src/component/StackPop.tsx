@@ -1,5 +1,5 @@
 import gsap from "gsap";
-import React, { FunctionComponent, Suspense, lazy, useCallback, useEffect, useRef, useState } from "react";
+import React, { FunctionComponent, Suspense, lazy, useCallback, useEffect, useRef } from "react";
 import PageProps from "../model/PageProps";
 import { usePageManager } from "../service/PageManager";
 import useStackAnimation from "./animation/page/StackAnimation";
@@ -17,9 +17,10 @@ export const CLOSE_TYPE = {
 const StackPop: React.FC<PopupProps> = ({ zIndex, pageProp }) => {
   const popupRef = useRef<HTMLDivElement>(null);
   const maskRef = useRef<HTMLDivElement>(null);
+  const closeMaskRef = useRef<HTMLDivElement>(null);
+  const confirmRef = useRef<HTMLDivElement>(null);
   const closeBtnRef = useRef<HTMLDivElement>(null);
   const { popPage } = usePageManager();
-  const [openConfirm, setOpenConfirm] = useState(false);
   const StackAnimation = useStackAnimation({
     scene: popupRef,
     mask: maskRef,
@@ -29,21 +30,28 @@ const StackPop: React.FC<PopupProps> = ({ zIndex, pageProp }) => {
 
   useEffect(() => {
     StackAnimation.play();
+    gsap.to(closeMaskRef.current, { pointerEvents: "none", autoAlpha: 0, duration: 0 });
+    gsap.to(confirmRef.current, { scale: 0, autoAlpha: 0, duration: 0 });
   }, []);
 
-  const close = () => {
-    if (pageProp?.config?.closeType === 2 && !openConfirm) {
-      setOpenConfirm(true);
-      return;
+  const close = useCallback(() => {
+    if (pageProp?.config?.closeType === 2) {
+      const tl = gsap.timeline();
+      tl.to(closeMaskRef.current, { autoAlpha: 0.6, duration: 0.7 }).to(
+        confirmRef.current,
+        { scale: 1, autoAlpha: 1, duration: 0.7 },
+        "<"
+      );
+    } else {
+      const tl = gsap.timeline({
+        onComplete: () => {
+          if (pageProp) popPage([pageProp.name]);
+          tl.kill();
+        },
+      });
+      StackAnimation.close(tl);
     }
-    const tl = gsap.timeline({
-      onComplete: () => {
-        if (pageProp) popPage([pageProp.name]);
-        tl.kill();
-      },
-    });
-    StackAnimation.close(tl);
-  };
+  }, [StackAnimation, pageProp, popPage]);
   const disableCloseBtn = useCallback(() => {
     if (closeBtnRef.current) {
       console.log("call close button");
@@ -58,7 +66,8 @@ const StackPop: React.FC<PopupProps> = ({ zIndex, pageProp }) => {
       },
     });
     StackAnimation.close(tl);
-  }, []);
+  }, [pageProp]);
+
   const render = useCallback(() => {
     if (pageProp) {
       const SelectedComponent: FunctionComponent<PageProps> = lazy(() => import(`${pageProp.config.uri}`));
@@ -91,11 +100,39 @@ const StackPop: React.FC<PopupProps> = ({ zIndex, pageProp }) => {
         <div ref={closeBtnRef} className="closePopBtn" style={{ opacity: 0 }} onClick={close}>
           Cancel
         </div>
-        {openConfirm ? (
-          <div className="closeConfirm">
-            <PageCloseConfirm onConfirm={close} />
-          </div>
-        ) : null}
+
+        <div
+          className="popup"
+          ref={closeMaskRef}
+          style={{
+            margin: 0,
+            border: 0,
+            top: pageProp?.position?.top,
+            left: pageProp?.position?.left,
+            width: pageProp?.position?.width,
+            height: pageProp?.position?.height,
+            zIndex: zIndex + 2,
+            opacity: 0,
+            backgroundColor: "black",
+          }}
+        ></div>
+        <div
+          className="popup"
+          ref={confirmRef}
+          style={{
+            margin: 0,
+            border: 0,
+            top: pageProp?.position?.height ? pageProp?.position?.height * 0.25 : 0,
+            left: pageProp?.position?.width ? pageProp?.position?.width * 0.2 : 0,
+            width: pageProp?.position?.width ? pageProp?.position?.width * 0.6 : 0,
+            height: pageProp?.position?.height ? pageProp?.position?.height * 0.5 : 0,
+            zIndex: zIndex + 3,
+            opacity: 0,
+            backgroundColor: "white",
+          }}
+        >
+          <PageCloseConfirm onConfirm={exit} />
+        </div>
       </div>
     </>
   );

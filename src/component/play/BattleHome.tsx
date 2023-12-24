@@ -19,6 +19,7 @@ const BattleHome: React.FC<PageProps> = (pageProp) => {
   const [battle, setBattle] = useState<BattleModel | null>(null);
   const { join } = useTournamentManager();
   const { userEvent } = useUserManager();
+
   const browserVisible = usePageVisibility();
 
   useEffect(() => {
@@ -59,15 +60,16 @@ const BattleHome: React.FC<PageProps> = (pageProp) => {
         <SceneProvider pageProp={pageProp}>
           <BattleProvider battle={battle}>
             <AnimateProvider>
-              <BattleGround />
-              <BattleConsole />
-              {battle.games.map((g) => (
-                <GameProvider key={g.gameId} game={g}>
-                  <GamePlay game={g} />
-                </GameProvider>
-              ))}
-              {!battle.load ? <SearchOpponent /> : null}
-              <BattleScene />
+              <BattleGround>
+                <BattleConsole />
+                {battle.games.map((g) => (
+                  <GameProvider key={g.gameId} game={g}>
+                    <GamePlay game={g} />
+                  </GameProvider>
+                ))}
+                {!battle.load ? <SearchOpponent /> : null}
+                <BattleScene />
+              </BattleGround>
               <BattleReport />
             </AnimateProvider>
           </BattleProvider>

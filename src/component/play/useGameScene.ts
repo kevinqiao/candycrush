@@ -46,7 +46,7 @@ const useGameScene = () => {
     const gameOverRef = useRef<boolean>(false)
     const dragRef = useRef<{ startX: number; startY: number; animation: number, cellId: number }>({ startX: 0, startY: 0, cellId: -1, animation: 0 });
     const { createAnimate, checkIfAnimate } = useAnimateManager();
-
+    // console.log(gameEvent)
     const swipe = useCallback((direction: number, candyId: number) => {
 
         if (!gameId || !cells || checkIfAnimate(gameId)) return
@@ -71,10 +71,10 @@ const useGameScene = () => {
                 const tcandy = gameScene?.candies?.get(ntarget.id);
                 if (candy && tcandy) {
                     if (gameEngine.checkSwipe(grid)) {
-                        createAnimate({ id: Date.now(), name: ANIMATE_NAME.SWIPE_SUCCESS, gameId, eles: [], data: { candy: ncell, target: ntarget } })
+                        createAnimate({ id: Date.now(), name: ANIMATE_NAME.SWIPE_SUCCESS, gameId, battleId: battle?.id, eles: [], data: { candy: ncell, target: ntarget } })
                         swapCell(ncell.id, ntarget.id)
                     } else {
-                        createAnimate({ id: Date.now(), name: ANIMATE_NAME.SWIPE_FAIL, gameId, eles: [], data: { candyId, targetId: target.id } })
+                        createAnimate({ id: Date.now(), name: ANIMATE_NAME.SWIPE_FAIL, gameId, battleId: battle?.id, eles: [], data: { candyId, targetId: target.id } })
                     }
                 }
             }
@@ -161,6 +161,7 @@ const useGameScene = () => {
             gameOverRef.current = true;
     }, [status])
     useEffect(() => {
+        console.log(gameEvent)
         if (!gameId || !scenes) return;
         const gameScene = scenes.get(gameId) as GameScene;
         if (!gameScene) return
@@ -171,7 +172,7 @@ const useGameScene = () => {
             initCandies(game.cells);
             const score = gameEngine.countBaseScore(game.matched)
             createAnimate({
-                name: ANIMATE_NAME.GAME_INITED, gameId, data: { load: battle?.load, gameId, uid: game.uid, score },
+                name: ANIMATE_NAME.GAME_INITED, gameId, battleId: battle?.id, data: { load: battle?.load, gameId, uid: game.uid, score },
                 id: Date.now()
             })
         } else if (gameEvent?.name === "cellSwapped") {
@@ -189,7 +190,7 @@ const useGameScene = () => {
                     })
             }
             if (gameId)
-                createAnimate({ id: Date.now(), name: ANIMATE_NAME.CANDY_SWAPPED, gameId, data })
+                createAnimate({ id: Date.now(), name: ANIMATE_NAME.CANDY_SWAPPED, gameId, battleId: battle?.id, data })
 
         } else if (gameEvent?.name === "cellSmeshed") {
             const data: { candyId: number; results: { toChange: CellItem[]; toCreate: CellItem[]; toMove: CellItem[]; toRemove: CellItem[] }[] } = gameEvent.data;
@@ -206,10 +207,10 @@ const useGameScene = () => {
                     })
             }
             if (gameId)
-                createAnimate({ id: Date.now(), name: ANIMATE_NAME.CANDY_SMESHED, gameId, data })
+                createAnimate({ id: Date.now(), name: ANIMATE_NAME.CANDY_SMESHED, gameId, battleId: battle?.id, data })
 
         }
-    }, [createCandySprite, gameEvent, scenes, gameId, initCandies, createAnimate])
+    }, [createCandySprite, gameEvent, scenes, gameId, initCandies, createAnimate, battle?.load])
 
 }
 export default useGameScene

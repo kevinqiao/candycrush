@@ -12,6 +12,7 @@ export interface AnimateElement {
 export interface Animate {
   id: number;
   name: string;
+  battleId?: string;
   gameId?: string;
   timeline?: any;
   duration?: number;
@@ -54,12 +55,15 @@ const AnimateContext = createContext<IAnimateContext>({
 export const AnimateProvider = ({ children }: { children: React.ReactNode }) => {
   const animatesRef = useRef<Animate[]>([]);
   const [animateEvent, setAnimateEvent] = useState<AnimateEvent | null>(null);
-
-  const createAnimate = useCallback((animate: Animate) => {
-    Object.assign(animate, { id: Date.now(), createTime: Date.now() });
-    animatesRef.current.push(animate);
-    setAnimateEvent({ name: animate.name, animate, type: ANIMATE_EVENT_TYPE.CREATE });
-  }, []);
+  console.log(JSON.parse(JSON.stringify(animatesRef.current)));
+  const createAnimate = useCallback(
+    (animate: Animate) => {
+      Object.assign(animate, { id: Date.now(), createTime: Date.now() });
+      animatesRef.current.push(animate);
+      setAnimateEvent({ name: animate.name, animate, type: ANIMATE_EVENT_TYPE.CREATE });
+    },
+    [animatesRef]
+  );
   const updateAnimate = useCallback((id: number, data: any) => {
     const animate = animatesRef.current.find((a) => a.id === id);
     if (animate) {
@@ -67,14 +71,17 @@ export const AnimateProvider = ({ children }: { children: React.ReactNode }) => 
       setAnimateEvent({ name: animate.name, animate, type: ANIMATE_EVENT_TYPE.UPDATE, data });
     }
   }, []);
-  const removeAnimate = (id: number) => {
-    const animate = animatesRef.current.find((a) => a.id === id);
-    if (!animate) return;
-    const as = animatesRef.current.filter((a) => a.id !== id);
-    animatesRef.current.length = 0;
-    animatesRef.current.push(...as);
-    setAnimateEvent({ name: animate.name, animate, type: ANIMATE_EVENT_TYPE.REMOVE });
-  };
+  const removeAnimate = useCallback(
+    (id: number) => {
+      const animate = animatesRef.current.find((a) => a.id === id);
+      if (!animate) return;
+      const as = animatesRef.current.filter((a) => a.id !== id);
+      animatesRef.current.length = 0;
+      animatesRef.current.push(...as);
+      setAnimateEvent({ name: animate.name, animate, type: ANIMATE_EVENT_TYPE.REMOVE });
+    },
+    [animatesRef]
+  );
   const checkIfAnimate = useCallback(
     (gameId: string) => {
       const ganimate = animatesRef.current.find((a) => a.gameId === gameId && !a.status);

@@ -1,11 +1,16 @@
-import { useCallback, useRef } from "react";
+import { ReactNode, useCallback, useEffect, useRef } from "react";
 import { SCENE_NAME, SCENE_TYPE } from "../../model/Constants";
 import { useSceneManager } from "../../service/SceneManager";
 
-const BattleGround = () => {
+const BattleGround: React.FC<{ children: ReactNode }> = ({ children }) => {
   const containerRef = useRef<HTMLDivElement | null>(null);
   const { containerBound, stageScene } = useSceneManager();
-  console.log("battle ground");
+
+  useEffect(() => {
+    if (containerRef.current) {
+      // gsap.to(containerRef.current, { autoAlpha: 0, duration: 0.1 });
+    }
+  }, []);
   const load = useCallback((sceneEle: HTMLDivElement | null) => {
     if (containerBound && sceneEle && !containerRef.current) {
       containerRef.current = sceneEle;
@@ -36,7 +41,9 @@ const BattleGround = () => {
             height: containerBound.height,
             backgroundColor: "blue",
           }}
-        ></div>
+        >
+          {children}
+        </div>
       ) : null}
     </>
   );

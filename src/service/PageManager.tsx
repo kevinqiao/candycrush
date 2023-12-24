@@ -77,6 +77,7 @@ const PageContext = createContext<IPageContext>({
 
 export const PageProvider = ({ children }: { children: React.ReactNode }) => {
   const [state, dispatch] = React.useReducer(reducer, initialState);
+  // console.log(state.stacks);
   const openPage = useCallback(
     (page: PageItem) => {
       console.log(page);

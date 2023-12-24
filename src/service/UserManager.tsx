@@ -1,5 +1,5 @@
 import { useAction, useQuery } from "convex/react";
-import React, { createContext, useCallback, useContext, useEffect } from "react";
+import React, { createContext, useCallback, useContext, useEffect, useState } from "react";
 import { api } from "../convex/_generated/api";
 import { usePageManager } from "./PageManager";
 interface UserEvent {
@@ -57,10 +57,13 @@ const UserContext = createContext<IUserContext>({
 
 export const UserProvider = ({ children }: { children: React.ReactNode }) => {
   const { openPage } = usePageManager();
+  const [lastTime, setLastTime] = useState<number>(0);
   const [state, dispatch] = React.useReducer(reducer, initialState);
   const authByToken = useAction(api.UserService.authByToken);
-  const userEvent: any = useQuery(api.events.getByUser, { uid: state.user?.uid ?? "###" });
-
+  const userEvent: any = useQuery(api.events.getByUser, { uid: state.user?.uid ?? "###", lastTime });
+  useEffect(() => {
+    if (userEvent) setLastTime(userEvent.time);
+  }, [userEvent]);
   useEffect(() => {
     const userJSON = localStorage.getItem("user");
     if (userJSON) {

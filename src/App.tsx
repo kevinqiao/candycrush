@@ -13,7 +13,6 @@ gsap.registerPlugin(MotionPathPlugin);
 
 const convex = new ConvexReactClient("https://kindred-grasshopper-414.convex.cloud");
 function App() {
-  console.log("app init");
   const FlattenedProviderTree = (providers: any): any => {
     if (providers?.length === 1) {
       return providers[0][0];

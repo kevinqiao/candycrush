@@ -96,7 +96,7 @@ export const GameProvider = ({
     gameId: game.gameId,
     laststep: state.laststep,
   });
-
+  if (events) console.log(JSON.parse(JSON.stringify(events)));
   const convex = useConvex();
   // const swap = useAction(api.gameService.swipeCell);
   // const smash = useAction(api.gameService.smash);
@@ -112,9 +112,14 @@ export const GameProvider = ({
         if (a.row === b.row) return a.column - b.column;
         else return a.row - b.row;
       });
-
+      console.log("init game:" + game.gameId + " battleId:" + battle?.id);
       dispatch({ type: actions.INIT_GAME, data: g });
-      setGameEvent({ id: Date.now() + "", steptime: g.laststep, name: "initGame", data: g });
+      setGameEvent({
+        id: Date.now() + "" + Math.floor(Math.random() * 100),
+        steptime: g.laststep,
+        name: "initGame",
+        data: g,
+      });
     }
   }, [convex, game]);
 
@@ -159,10 +164,11 @@ export const GameProvider = ({
     if (game.gameId && battle) {
       if (battle.load === BATTLE_TYPE.REPLAY) loadInit();
       else {
+        console.log(battle);
         sync();
       }
     }
-  }, [game, battle, convex, createAnimate]);
+  }, [game, battle, convex, createAnimate, sync]);
 
   useEffect(() => {
     if (gameEvents?.length === 0 || !gameEvents) return;

@@ -20,7 +20,7 @@ export const EventContext = createContext<IContextProps>({
 
 export const EventProvider = ({ children }: { children: React.ReactNode }) => {
   const { user } = useUserManager();
-  const userEvent: any = useQuery(api.events.getByUser, { uid: user?.uid ?? "###" });
+  const userEvent: any = useQuery(api.events.getByUser, { uid: user?.uid ?? "###", lastTime: 0 });
   const subject = useMemo(() => {
     return new Subject<EventModel>();
   }, []);
