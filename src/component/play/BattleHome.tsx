@@ -33,18 +33,23 @@ const BattleHome: React.FC<PageProps> = (pageProp) => {
     // };
   }, [browserVisible, battle]);
   useEffect(() => {
+    console.log(pageProp)
     if (pageProp.data?.act === "join") {
       join(pageProp.data.tournament);
     } else if (pageProp.data?.act === "load") {
+      console.log("load battle")
       setBattle({ ...pageProp.data.battle, load: 1 });
     }
   }, [pageProp.data, join]);
   useEffect(() => {
+    console.log(userEvent)
     if (userEvent?.name === "battleCreated") {
+      console.log("update battle with load =1")
       setBattle({ ...userEvent.data });
     }
   }, [userEvent]);
-
+  
+  console.log(battle)
   return (
     <div
       style={{

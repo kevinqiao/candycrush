@@ -80,7 +80,7 @@ export const playRemove = (toRemove: CellItem[], gameScene: GameScene, textures:
                         duration: 1,
                         ease: 'power2.out',
                         onComplete: () => {
-                            candy.parent.removeChild(candy)
+                            candy.parent.removeChild(candy as PIXI.DisplayObject)
                             candy.destroy()
                         },
                         onStart: () => {

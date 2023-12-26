@@ -31,7 +31,7 @@ const TexturePlay: React.FC = () => {
     newSprite.y = 250;
 
     newSprite.mask = ellipseMask; // 应用遮罩
-    app.stage.addChild(newSprite);
+    app.stage.addChild(newSprite as PIXI.DisplayObject);
     // 生成新纹理
     const pieceTexture = app.renderer.generateTexture(newSprite);
     // const pieceTexture = app.renderer.generateTexture(newSprite, {
@@ -58,7 +58,7 @@ const TexturePlay: React.FC = () => {
       piece.width = 18 + 6 * Math.random();
       piece.height = piece.width;
 
-      app.stage.addChild(piece);
+      app.stage.addChild(piece as PIXI.DisplayObject);
       // 存储碎片以便后续使用
       pieces.push(piece);
     }
@@ -125,7 +125,7 @@ const TexturePlay: React.FC = () => {
           playCollect(cell);
           // explodePieces(cell);
         });
-        app.stage.addChild(sprite);
+        app.stage.addChild(sprite as PIXI.DisplayObject);
       });
     }
     setScene(app);

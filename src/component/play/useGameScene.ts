@@ -95,7 +95,7 @@ const useGameScene = () => {
             sprite.height = gameScene.cwidth;
             sprite.x = x;
             sprite.y = y;
-            stage.addChild(sprite);
+            stage.addChild(sprite as PIXI.DisplayObject);
             sprite.eventMode = 'static';
             if (battle?.type !== Constant.BATTLE_TYPE.REPLAY) {
                 sprite.on("pointerdown", (event: PointerEvent) => {

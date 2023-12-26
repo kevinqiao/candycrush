@@ -1,5 +1,6 @@
 import React, { FunctionComponent, Suspense, lazy, useCallback, useRef } from "react";
 import PageProps from "../model/PageProps";
+import { NavAnimateProvider } from "./NavAnimateManager";
 import "./popup.css";
 interface NavProps {
   pageProp: PageProps | null;
@@ -9,12 +10,11 @@ const NavPage: React.FC<NavProps> = ({ pageProp }) => {
   const navRef = useRef<HTMLDivElement>(null);
   const render = useCallback(() => {
     if (pageProp) {
-      console.log(pageProp);
-      const SelectedComponent: FunctionComponent<PageProps> = lazy(() => import(`${pageProp.config.uri}`));
-      return (
+       const SelectedComponent: FunctionComponent<PageProps> = lazy(() => import(`${pageProp.config.uri}`));
+      return (        
         <Suspense fallback={<div>Loading</div>}>
           <SelectedComponent {...pageProp} />
-        </Suspense>
+        </Suspense>      
       );
     }
   }, [pageProp]);
@@ -27,7 +27,9 @@ const NavPage: React.FC<NavProps> = ({ pageProp }) => {
           height: "100%",
         }}
       >
+         <NavAnimateProvider>
         {render()}
+        </NavAnimateProvider>
       </div>
     </>
   );

@@ -23,7 +23,7 @@ export class Avatar extends PIXI.Container {
         this.avatar.height = width;
         this.avatar.x = Math.floor(width / 2);
         this.avatar.y = Math.floor(width / 2);
-        this.addChild(this.avatar);
+        this.addChild(this.avatar as PIXI.DisplayObject);
 
         const textStyle = new PIXI.TextStyle({
             fontSize: 12,
@@ -37,7 +37,7 @@ export class Avatar extends PIXI.Container {
         // Position the text (optional)
         this.text.x = Math.floor(width / 2);
         this.text.y = width + (height - width) / 2;
-        this.addChild(this.text)
+        this.addChild(this.text as PIXI.DisplayObject)
 
     }
     changeTxTStyle = (style: any) => {

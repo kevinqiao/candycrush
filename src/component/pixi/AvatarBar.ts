@@ -27,7 +27,7 @@ export class AvatarBar extends PIXI.Container {
         this.bar.beginFill(0x00ff00, 1); // 0x000000 为黑色，0.5 为透明度
         this.bar.drawRoundedRect(barX, barY, bwidth, height * 0.8, 5);
         this.bar.endFill();
-        this.addChild(this.bar);
+        this.addChild(this.bar as PIXI.DisplayObject);
 
         this.avatar = new PIXI.Sprite(avatarTexture);
         this.avatar.anchor.set(0.5);
@@ -35,7 +35,7 @@ export class AvatarBar extends PIXI.Container {
         this.avatar.height = height * 1.2;
         this.avatar.x = arrayType === ARRAY_TYPE.HORIZATION_LEFT ? radius : width - height / 2;
         this.avatar.y = Math.floor(height / 2);
-        this.addChild(this.avatar);
+        this.addChild(this.avatar as PIXI.DisplayObject);
 
         const textStyle = new PIXI.TextStyle({
             fontSize: 10,
@@ -49,7 +49,7 @@ export class AvatarBar extends PIXI.Container {
         // Position the text (optional)
         this.text.x = arrayType === ARRAY_TYPE.HORIZATION_LEFT ? width - 10 - this.text.width / 2 : 10 + this.text.width / 2;
         this.text.y = height / 2;
-        this.addChild(this.text)
+        this.addChild(this.text as PIXI.DisplayObject)
 
     }
 

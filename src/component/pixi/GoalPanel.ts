@@ -24,7 +24,7 @@ export class GoalPanel extends PIXI.Container {
         goal.x = column * cwidth;
         goal.y = row * cwidth;
         this.goals.push(goal)
-        this.addChild(goal)
+        this.addChild(goal as PIXI.DisplayObject)
     }
 
 }
