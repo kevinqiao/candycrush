@@ -5,8 +5,8 @@ import { useSceneManager } from "../../../service/SceneManager";
 import { CandySprite } from "../../pixi/CandySprite";
 import { IAnimateContext } from "../AnimateManager";
 
-const useGameReady = (props: IAnimateContext) => {
-    const { animates } = props;
+const useGameReady = () => {
+
     const { scenes } = useSceneManager();
     const initGame = useCallback(
         (gameId: string, timeline: any) => {

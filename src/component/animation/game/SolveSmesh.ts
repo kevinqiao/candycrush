@@ -2,16 +2,16 @@ import { gsap } from "gsap";
 import { useCallback } from "react";
 import { GameScene } from "../../../model/SceneModel";
 import { useSceneManager } from "../../../service/SceneManager";
-import { IAnimateContext } from "../AnimateManager";
+import { IAnimateContext, IAnimateHandleContext } from "../AnimateManager";
 import useBattleBoard from "../battle/BattleBoard";
 import useCollectCandies from "../battle/CollectCandies";
 import { playChange, playMove, playRemove } from "./ApplyMatch";
 
-const useSolveSmesh = (props: IAnimateContext) => {
+const useSolveSmesh = (props: IAnimateHandleContext) => {
     const { scenes, textures } = useSceneManager();
     const { animates } = props;
     const { playCollect } = useCollectCandies();
-    const { changeGoal, changeScore } = useBattleBoard(props)
+    const { changeGoal, changeScore } = useBattleBoard()
     const solveMesh = useCallback(
         (gameId: string, data: any, timeline: any) => {
             const tl = timeline ?? gsap.timeline();

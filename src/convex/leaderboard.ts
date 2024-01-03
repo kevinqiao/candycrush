@@ -30,7 +30,7 @@ export const find = internalQuery({
   },
 });
 export const create = internalMutation({
-  args: { uid: v.string(), tournamentId: v.string(), points: v.number() },
+  args: { uid: v.string(), tournamentId: v.string(), points: v.number(),term:v.number()},
   handler: async (ctx, args) => {
     // const cells = initGame();
     const boardId = await ctx.db.insert("leaderboard", { ...args, lastUpdate: Date.now() });

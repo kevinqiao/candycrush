@@ -57,21 +57,23 @@ const UserContext = createContext<IUserContext>({
 
 export const UserProvider = ({ children }: { children: React.ReactNode }) => {
   const { openPage } = usePageManager();
-  const [lastTime, setLastTime] = useState<number>(Date.now());
+  const [lastTime, setLastTime] = useState<number>(0);
   const [state, dispatch] = React.useReducer(reducer, initialState);
   const authByToken = useAction(api.UserService.authByToken);
   const userEvent: any = useQuery(api.events.getByUser, { uid: state.user?.uid ?? "###", lastTime });
-  useEffect(() => {
+  
+  useEffect(() => {    
     if (userEvent) setLastTime(userEvent.time);
   }, [userEvent]);
   useEffect(() => {
     const userJSON = localStorage.getItem("user");
     if (userJSON!==null) {
-      console.log(userJSON)
       const user = JSON.parse(userJSON);
       if(user)
         authByToken({ uid: user.uid, token: "12345" }).then((u: any) => {
           if (u) {
+            console.log(u)
+            console.log(u.timestamp-Date.now())
             localStorage.setItem("user", JSON.stringify({ uid: user.uid, token: "12345" }));
             dispatch({ type: actions.AUTH_COMPLETE, data: u });
             if (u.battle) openPage({ name: "battlePlay", data: { act: "load", battle: u.battle } });

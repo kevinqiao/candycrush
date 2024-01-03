@@ -5,10 +5,10 @@ import { SCENE_NAME } from "../../../model/Constants";
 import { SearchScene } from "../../../model/SceneModel";
 import { useSceneManager } from "../../../service/SceneManager";
 import { ANIMATE_NAME } from "../AnimateConstants";
-import { IAnimateContext } from "../AnimateManager";
+import { IAnimateContext, IAnimateHandleContext } from "../AnimateManager";
 
 
-const useBattleSearching = (props: IAnimateContext) => {
+const useBattleSearching = (props: IAnimateHandleContext) => {
     const { scenes } = useSceneManager();
     const { animates } = props;
     const startSearching = useCallback(

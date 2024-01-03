@@ -1,26 +1,23 @@
 import { v } from "convex/values";
-import { internalMutation, internalQuery } from "./_generated/server";
-export const find = internalQuery({
-  args: { id: v.id("tournament") },
+import { internalMutation, internalQuery, query } from "./_generated/server";
+export const findById = internalQuery({
+  args: { id: v.string()},
   handler: async (ctx, { id }) => {
     // Grab the most recent messages.
-    const tournament = await ctx.db.get(id)
+    const tournament =await ctx.db.query("tournament").filter((q) => q.eq(q.field("id"), id)).order("asc").first();
     return tournament
   },
 });
-export const list = internalMutation({
-  args: { id: v.id("tournament") },
-  handler: async (ctx, { id }) => {
-    // Grab the most recent messages.
-    const tournament = await ctx.db.get(id)
-    return tournament
+export const findAll = query({
+  handler: async (ctx) => {
+    const tournaments =await ctx.db.query("tournament").collect();
+    return tournaments
   },
 });
 export const create = internalMutation({
   args: { cid: v.number(), startTime: v.number(), endTime: v.number() },
   handler: async (ctx, { cid, startTime, endTime }) => {
-    const tid = await ctx.db.insert("tournament", { cid, startTime, endTime, status: 0 });
-    return tid
+  
   },
 });
 

@@ -11,55 +11,8 @@ export const NavPages = [
     {
         name: "playcenter",
         uri: "./PlayCenter",
-    },
-    {
-        name: "tournamentHome",
-        context: "playcenter",
-        uri: "./tournament/TournamentHome",
-        cache: 0,
-    },
-
-    {
-        name: "playHome",
-        context: "playcenter",
-        uri: "./test/TexturePlay",
-    },
-    {
-        name: "textureList",
-        context: "playcenter",
-        uri: "./test/TextureList",
-    },
-    {
-        name: "avatarList",
-        context: "playcenter",
-        uri: "./test/AvatarList",
-    },
-    {
-        name: "goalPanel",
-        context: "playcenter",
-        uri: "./play/console/GoalPanel",
-    },
-    {
-        name: "battleHome",
-        context: "playcenter",
-        uri: "./battle/BattleHome",
-        cache: 0
-    }
-    ,
-    {
-        name: "accountHome",
-        context: "playcenter",
-        uri: "./signin/AccountHome",
-        cache: 0
-    }
-    ,
-    {
-        name: "test",
-        context: "playcenter",
-        uri: "./signin/AccountHome",
-        cache: 0
-    }
-    ,
+    } ,
+   
     {
         name: "texturePlay",
         context: "playcenter",
@@ -111,7 +64,7 @@ export const StackPages = [
     },
     {
         name: "battlePlay",
-        uri: "./play/BattleHome",
+        uri: "./play/PlayHome",
         auth: true,
         closeType: 2,
         direction: 0,
@@ -124,13 +77,6 @@ export const StackPages = [
         direction: 2,
         width: 500,
         height: 1,
-    },
-    {
-        name: "gameReplay",
-        uri: "./play/ReplayGame",
-        direction: 0,
-        width: 500,
-        height: 1,
-    }
+    }    
 
 ]

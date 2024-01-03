@@ -3,7 +3,7 @@ import * as PIXI from "pixi.js";
 
 const useCollectCandies = () => {
 
-    const playCollect = (sprite: PIXI.Sprite) => {
+    const playCollect = (sprite: PIXI.DisplayObject) => {
 
 
         const timeline = gsap.timeline();

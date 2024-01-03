@@ -7,10 +7,48 @@ import { useUserManager } from "../../../service/UserManager";
 import { IAnimateContext } from "../AnimateManager";
 
 
-const useBattleBoard = (props: IAnimateContext) => {
+const useBattleBoard = () => {
     const { scenes } = useSceneManager();
     const { user } = useUserManager();
 
+    const initConsole = useCallback(
+        ( uid: string, gameId: string, score: number,timeline:any) => {
+            const scene: ConsoleScene | undefined = scenes.get(SCENE_NAME.BATTLE_CONSOLE) as ConsoleScene;
+            if (!scene) return;
+            const tl = timeline ?? gsap.timeline();
+            tl.to(scene.app, {
+                alpha: 1,
+                duration: 1.0,
+            })
+            const sl = gsap.timeline();
+            tl.add(sl, "<");
+
+            const avatarbar = scene.avatarBars.find((b) => b.gameId === gameId);
+            if (avatarbar?.bar) {
+
+                const { width } = avatarbar.bar.getBoundingClientRect();
+                sl.from(avatarbar.bar, {
+                    width: 0, alpha: 0, x: user.uid === uid ? 0 : width, duration: 1.0, onUpdate: () => {
+                        const progress = sl.progress();
+                        const animatedValue = progress * score;
+                        if (avatarbar.score)
+                            avatarbar.score.innerHTML = Math.floor(animatedValue) + "";
+                    }
+                }, "<");
+            }
+
+            const gl = gsap.timeline();
+            tl.add(gl, "<")
+            const panel = scene.goalPanels.find((p) => p.gameId === gameId)
+            if (panel)
+                for (let goal of panel.goals) {
+                    gl.from(goal.iconEle, { alpha: 0, duration: 0.8 }, ">-=0.4");
+                }
+            if (!timeline)
+                tl.play();
+        },
+        [scenes]
+    );
     const initBoard = useCallback(
         (timeline: any, data: { uid: string, gameId: string, score: number }) => {
 
@@ -105,6 +143,6 @@ const useBattleBoard = (props: IAnimateContext) => {
         [scenes]
     );
 
-    return { initBoard, changeGoal, changeScore };
+    return { initConsole,initBoard, changeGoal, changeScore };
 };
 export default useBattleBoard

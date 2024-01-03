@@ -251,7 +251,7 @@ export const createInitGame = internalMutation({
 export const doAct = action({
     args: { act: v.string(), gameId: v.id("games"), data: v.any() },
     handler: async (ctx, { act, gameId, data }) => {
-        console.log("gameId:" + gameId + ":" + act)
+       
         const game = await ctx.runQuery(internal.games.getGame, { gameId });
         if (!game || game.status) return;
         if (!game.matched) game.matched = [];
@@ -286,10 +286,11 @@ export const doAct = action({
             await ctx.runMutation(internal.events.create, {
                 name: "gameOver", gameId, data: { result, score: game.score, endTime: game.endTime }, steptime
             })
+
             const battle = await ctx.runMutation(internal.battle.settleGame, { battleId: game.battleId as Id<"battle">, gameId, uid: game.uid, score });
-            if (battle && battle.status) {
+            if (battle && battle.status) {                
                 await ctx.runMutation(internal.events.create, {
-                    name: "battleOver", battleId: battle._id, data: battle.report, steptime
+                    name: "battleOver", battleId: battle._id, data: battle.rewards, steptime
                 })
             }
         }

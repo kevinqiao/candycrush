@@ -1,3 +1,5 @@
+import { BattleReward } from "convex/battle";
+
 export default interface BattleModel {
     id: string;
     type: number;//0-solo 1-sync 2-turn 3-replay
@@ -9,4 +11,6 @@ export default interface BattleModel {
     status?: number;//0-active 1-over 2-settled
     goal: number;
     pasttime: number;
+    rewards?:BattleReward[]
+    
 }

@@ -41,7 +41,7 @@ export const getGame = internalQuery({
 export const findGame = query({
   args: { gameId: v.string() },
   handler: async (ctx, { gameId }) => {
-    const game = await ctx.db.query("games").filter((q) => q.eq(q.field("_id"), gameId)).first();
+    const game:any= await ctx.db.query("games").filter((q) => q.eq(q.field("_id"), gameId)).first();
     if (game) {
       const pasttime = (Date.now() - game._creationTime);
       return Object.assign({}, game, { gameId: game?._id, _id: undefined, _creationTime: undefined, pasttime });
@@ -94,14 +94,14 @@ export const create = internalMutation({
     return gameId;
   },
 });
-export const screate = mutation({
-  args: { game: v.any() },
-  handler: async (ctx, { game }) => {
-    // const cells = initGame();
-    const gameId = await ctx.db.insert("games", { ...game, laststep: 0 });
-    return gameId;
-  },
-});
+// export const screate = mutation({
+//   args: { game: v.any() },
+//   handler: async (ctx, { game }) => {
+//     // const cells = initGame();
+//     const gameId = await ctx.db.insert("games", { ...game, laststep: 0 });
+//     return gameId;
+//   },
+// });
 export const update = internalMutation({
   args: { gameId: v.id("games"), data: v.any() },
   handler: async (ctx, args) => {

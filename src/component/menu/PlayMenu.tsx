@@ -1,11 +1,11 @@
 
-import { useNavAnimateManager } from "component/NavAnimateManager";
+import { useSlideNavManager } from "component/SlideNavManager";
 import useCoord from "../../service/CoordManager";
 import "./menu.css";
 
 const PlayMenu: React.FC= () => {
   const coord = useCoord();
-  const {loadMenu, changeIndex} = useNavAnimateManager()
+  const {loadMenu, changeIndex} = useSlideNavManager()
 
   return (
     <>

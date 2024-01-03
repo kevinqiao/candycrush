@@ -13,9 +13,11 @@
 }
 
 /* Items */
-.battle-item {
-  display:"flex";
-  justify-content: "space-around";
+.battle-item {  
+  display:flex;
+  flex-direction: column;
+  justify-content: space-around;
+  align-items: stretch;
   width: 100%;
   min-height:200px;
   padding: 10px;

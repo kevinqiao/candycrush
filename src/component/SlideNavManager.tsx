@@ -2,12 +2,13 @@
 import { gsap } from "gsap";
 import { createContext, lazy, useCallback, useContext, useEffect, useMemo, useRef, useState } from "react";
 import useCoord from "service/CoordManager";
+
 const slides = [
   { name: "tournamentHome", index: 0,uri:"./tournament/TournamentHome"},
-  { name: "textureList", index: 1,uri:"./test/TextureList" },
-  { name: "goalPanel", index: 2 ,uri:"./play/console/GoalPanel"},
+  { name: "textureList", index: 1},
+  { name: "battleHome", index: 2 ,uri:"./battle/BattleHome"},
   { name: "accountHome", index: 3 ,uri:"./signin/AccountHome"},
-  { name: "avatarList", index: 4 ,uri:"./test/AvatarList"},
+  { name: "avatarList", index: 4 },
 ];
 export interface INavContext {
   index:number;
@@ -29,7 +30,7 @@ const NavContext = createContext<INavContext>({
   changeIndex:(index:number)=>null
 });
 
-export const NavAnimateProvider = ({ children }: { children: React.ReactNode }) => { 
+export const SlideNavProvider = ({ children }: { children: React.ReactNode }) => { 
   const { width, height } = useCoord();
   const startXRef = useRef<number>(0);
   const menusRef = useRef<Map<number,SVGPolygonElement>>(new Map())
@@ -46,7 +47,7 @@ export const NavAnimateProvider = ({ children }: { children: React.ReactNode }) 
    
     const clientX = "changedTouches" in event ? event.changedTouches[0].clientX : event.clientX;
     const diffX = startXRef.current - clientX;
-    console.log(diffX)
+
     if (Math.abs(diffX) > 50) {    
       if (diffX > 0 && menuIndexRef.current < 4) {
           changeIndex(menuIndexRef.current+1)
@@ -56,10 +57,23 @@ export const NavAnimateProvider = ({ children }: { children: React.ReactNode }) 
     }
     startXRef.current = 0;
   };
+  // useEffect(() => {
+  //   if(components.length===0) return;
+  //   const tl = gsap.timeline({onComplete:()=>{
+  //     tl.kill();
+  //   }});
+  //   console.log(width)
+  //   components.forEach((c)=>{
+  //     if(c.slide){
+  //      tl.to(c.slide,{width:width,duration:0.1},"<")
+  //     }
+  //   })
+  //   tl.play();
+  // },[components,width])
   useEffect(() => {
     const cs: { name: string; index: number; component: any }[] = [];
     for (let card of slides) {    
-        const c = lazy(() => import(`${card.uri}`));
+        const c = card.uri?lazy(() => import(`${card.uri}`)):null;
         cs.push({ name: card.name, index: card.index, component:c});
     }
     setComponents(cs);
@@ -71,6 +85,9 @@ export const NavAnimateProvider = ({ children }: { children: React.ReactNode }) 
       }
     };
   }, []);
+  useEffect(()=>{
+    initContainer()
+  },[width,height])
 
   const changeIndex=(index:number)=>{
 
@@ -101,7 +118,7 @@ export const NavAnimateProvider = ({ children }: { children: React.ReactNode }) 
   const tl = gsap.timeline({onComplete:()=>{
     tl.kill()
   }})
-  tl.to(slideContainer, { duration: 0.1,  x: -index * width }).to(slideContainer,{duration: 0.4, alpha: 1});
+  tl.to(slideContainer, { duration: 0,  x: -index * width }).to(slideContainer,{duration: 0.3, alpha: 1});
   if(curmenu)
     tl.to(curmenu,{fill:"red",duration:0.1},"<")
   tl.play();
@@ -139,6 +156,6 @@ export const NavAnimateProvider = ({ children }: { children: React.ReactNode }) 
   return <NavContext.Provider value={value}> {children} </NavContext.Provider>;
 };
 
-export const useNavAnimateManager = () => {
+export const useSlideNavManager = () => {
   return useContext(NavContext);
 };

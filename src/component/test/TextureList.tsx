@@ -33,7 +33,7 @@ const TextureList: React.FC = () => {
     graphics.endFill();
 
     // 从图形创建纹理
-    if (scene) {
+    if (scene?.render) {
       const texture = scene.renderer.generateTexture(graphics);
       return texture;
       // 使用纹理创建精灵
@@ -66,7 +66,7 @@ const TextureList: React.FC = () => {
     return () => {
       app.destroy(true);
     };
-  }, [width, height]);
+  }, []);
 
   useEffect(() => {
     let count = 0;

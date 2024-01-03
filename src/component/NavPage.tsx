@@ -1,13 +1,27 @@
-import React, { FunctionComponent, Suspense, lazy, useCallback, useRef } from "react";
+import React, { FunctionComponent, Suspense, lazy, useCallback, useRef, useState, useEffect } from "react";
 import PageProps from "../model/PageProps";
-import { NavAnimateProvider } from "./NavAnimateManager";
+import { SlideNavProvider } from "./SlideNavManager";
 import "./popup.css";
+import { PageItem } from "service/PageManager";
+import { NavPages } from "model/PageCfg";
 interface NavProps {
-  pageProp: PageProps | null;
+  // pageProp: PageProps | null;
+  page:PageItem
 }
 
-const NavPage: React.FC<NavProps> = ({ pageProp }) => {
+const NavPage: React.FC<NavProps> = ({ page }) => {
+
   const navRef = useRef<HTMLDivElement>(null);
+  const [pageProp, setPageProp] = useState<PageProps|null>(null)
+  useEffect(()=>{
+    if (page&&navRef.current) {
+      const config = NavPages.find((s) => s.name === page.name);
+      const {width, height} =navRef.current.getBoundingClientRect();
+      const prop = { name: page.name, data: page.data, position:{width,height,direction:0},config };
+      if(!pageProp)
+         setPageProp(prop)
+    }
+  },[page])
   const render = useCallback(() => {
     if (pageProp) {
        const SelectedComponent: FunctionComponent<PageProps> = lazy(() => import(`${pageProp.config.uri}`));
@@ -21,15 +35,11 @@ const NavPage: React.FC<NavProps> = ({ pageProp }) => {
   return (
     <>
       <div
-        ref={navRef}
-        style={{
-          width: "100%",
-          height: "100%",
-        }}
+        ref={navRef}       
       >
-         <NavAnimateProvider>
+         <SlideNavProvider>
         {render()}
-        </NavAnimateProvider>
+        </SlideNavProvider>
       </div>
     </>
   );

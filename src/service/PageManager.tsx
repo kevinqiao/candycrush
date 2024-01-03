@@ -77,23 +77,16 @@ const PageContext = createContext<IPageContext>({
 
 export const PageProvider = ({ children }: { children: React.ReactNode }) => {
   const [state, dispatch] = React.useReducer(reducer, initialState);
-  // console.log(state.stacks);
   const openPage = useCallback(
     (page: PageItem) => {
-      console.log(page);
+   
       let scfg: PageConfig | undefined = StackPages.find((p) => p.name === page.name);
       if (scfg) {
-        console.log(page);
         dispatch({ type: actions.PAGE_PUSH, data: page });
       } else {
         let ncfg = NavPages.find((p) => p.name === page.name);
         if (ncfg) {
-          // const curPage = NavPages.find((p) => p.name === state.currentPage.name);
           let contextChanged = false;
-          // if (curPage?.context !== ncfg.context) {
-          //   contextChanged = true;
-          //   createEvent({ name: "closeAllPop", data: null, delay: 4 });
-          // }
           dispatch({ type: actions.PAGE_CHANGE, data: { page, contextChanged } });
         }
       }

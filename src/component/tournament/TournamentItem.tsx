@@ -1,10 +1,10 @@
+import { Tournament } from "model/Tournament";
 import { useCallback, useRef } from "react";
-import { TournamentDef } from "../../model/TournamentCfg";
 import { usePageManager } from "../../service/PageManager";
 import { useUserManager } from "../../service/UserManager";
 import "./tournament.css";
 interface Props {
-  tournament: TournamentDef;
+  tournament: Tournament;
 }
 const TournamentItem: React.FC<Props> = ({ tournament }) => {
   const itemRef = useRef(null);

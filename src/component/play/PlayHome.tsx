@@ -14,42 +14,46 @@ import GamePlay from "./GamePlay";
 import SearchOpponent from "./SearchOpponent";
 import BattleConsole from "./console/BattleConsole";
 import BattleReport from "./report/BattleReport";
+import ReadyToGo from "./ReadyToGo";
 
-const BattleHome: React.FC<PageProps> = (pageProp) => {
+const PlayHome: React.FC<PageProps> = (pageProp) => {
   const [battle, setBattle] = useState<BattleModel | null>(null);
   const { join } = useTournamentManager();
   const { userEvent } = useUserManager();
-
   const browserVisible = usePageVisibility();
+  const [rerender, setRerender] = useState(browserVisible);
+  const [load, setLoad] = useState(-1);
 
   useEffect(() => {
-    if (!browserVisible && battle) {
-      battle.load = 1;
+    if (!browserVisible) {
+      if(battle){
+        if(!battle.status){
+          battle.load = 1;
+          setRerender(false)
+        }
+      }
       // gsap.globalTimeline.getChildren(true, true, false).forEach((tween) => tween.kill());
-    }
+    }else
+       setRerender(true)
     // return () => {
     //   console.log("cleaning up gsap timeline");
     //   gsap.globalTimeline.getChildren(true, true, false).forEach((tween) => tween.kill());
     // };
   }, [browserVisible, battle]);
-  useEffect(() => {
-    console.log(pageProp)
+  useEffect(() => {  
     if (pageProp.data?.act === "join") {
       join(pageProp.data.tournament);
-    } else if (pageProp.data?.act === "load") {
-      console.log("load battle")
+      setLoad(0);
+    } else if (pageProp.data?.act === "load") {    
       setBattle({ ...pageProp.data.battle, load: 1 });
     }
   }, [pageProp.data, join]);
-  useEffect(() => {
-    console.log(userEvent)
+  useEffect(() => {    
     if (userEvent?.name === "battleCreated") {
-      console.log("update battle with load =1")
       setBattle({ ...userEvent.data });
     }
   }, [userEvent]);
-  
-  console.log(battle)
+ 
   return (
     <div
       style={{
@@ -61,10 +65,11 @@ const BattleHome: React.FC<PageProps> = (pageProp) => {
         backgroundColor: "transparent",
       }}
     >
-      {browserVisible && battle ? (
-        <SceneProvider pageProp={pageProp}>
-          <BattleProvider battle={battle}>
+    <BattleProvider battle={battle}>
+    <SceneProvider pageProp={pageProp}>    
             <AnimateProvider>
+      {rerender && battle ? (
+            <>
               <BattleGround>
                 <BattleConsole />
                 {battle.games.map((g) => (
@@ -72,16 +77,17 @@ const BattleHome: React.FC<PageProps> = (pageProp) => {
                     <GamePlay game={g} />
                   </GameProvider>
                 ))}
-                {!battle.load ? <SearchOpponent /> : null}
                 <BattleScene />
               </BattleGround>
               <BattleReport />
-            </AnimateProvider>
-          </BattleProvider>
-        </SceneProvider>
+              </>
       ) : null}
+      <SearchOpponent />
+      </AnimateProvider>      
+        </SceneProvider>
+    </BattleProvider>
     </div>
   );
 };
 
-export default BattleHome;
+export default PlayHome;

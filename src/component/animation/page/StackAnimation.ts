@@ -12,15 +12,19 @@ interface StackProps {
     // position: { top: number; left: number; width: number; height: number, direction: number } | null;
 }
 const useStackAnimation = ({ scene, mask, closeBtn, pageProp }: StackProps) => {
-    const { width } = useCoord();
+    const { width,height } = useCoord();
     const play = useCallback(() => {
-        if (!scene || !pageProp.position) {
+        if (!scene ||!pageProp|| !pageProp.position) {
             return
         }
         const tl = gsap.timeline();
         switch (pageProp.position.direction) {
             case STACK_PAGE_DIRECTION.CENTER:
-                tl.fromTo(scene.current, { scale: 0.4, x: (width - pageProp.position.width) / 2, y: 0 }, { duration: 0.9, autoAlpha: 1, scale: 1, ease: "back.out(1.4)" });
+                tl.to(scene.current, {scale:0.4, x: (width - pageProp.position.width) / 2,duration:0});
+                tl.to(scene.current, {scale:1,autoAlpha:1,duration:0.9, ease: "back.out(1.4)"})
+                // tl.to(scene.current, { scale: 0.4, x: (width - pageProp.position.width) / 2, y: 0 }, { duration: 0.9, autoAlpha: 1, scale: 1, ease: "back.out(1.4)" });
+
+                // tl.fromTo(scene.current, { scale: 0.4, x: (width - pageProp.position.width) / 2, y: 0 }, { duration: 0.9, autoAlpha: 1, scale: 1, ease: "back.out(1.4)" });
                 tl.to(mask.current, { autoAlpha: 0.7, duration: 0.5 }, "<");
                 if (pageProp.config.closeType !== CLOSE_TYPE.NO_BUTTON)
                     tl.to(closeBtn.current, { autoAlpha: 1, duration: 0.3 }, ">")
@@ -35,7 +39,8 @@ const useStackAnimation = ({ scene, mask, closeBtn, pageProp }: StackProps) => {
         }
 
 
-    }, [])
+    }, [width,height,pageProp])
+   
     const close = (timeline: any) => {
         if (pageProp.position) {
             const tl = timeline ?? gsap.timeline();

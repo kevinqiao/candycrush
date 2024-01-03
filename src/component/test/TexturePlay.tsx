@@ -2,6 +2,7 @@ import { gsap } from "gsap";
 import { MotionPathPlugin } from "gsap/MotionPathPlugin";
 
 import * as PIXI from "pixi.js";
+import { DisplayObject } from "pixi.js";
 import { useEffect, useMemo, useRef, useState } from "react";
 import useCoord from "../../service/CoordManager";
 import useCollectCandies from "./CollectCandies";
@@ -122,7 +123,7 @@ const TexturePlay: React.FC = () => {
         sprite.on("pointerdown", (event: PointerEvent) => {
           const cell: PIXI.Sprite = event.target as PIXI.Sprite;
           console.log(cell.width + ":" + cell.height);
-          playCollect(cell);
+          playCollect(cell as DisplayObject);
           // explodePieces(cell);
         });
         app.stage.addChild(sprite as PIXI.DisplayObject);

@@ -1,7 +1,7 @@
 
 export interface PagePosition {
-    top: number;
-    left: number;
+    // top: number;
+    // left: number;
     width: number;
     height: number;
     direction: number
