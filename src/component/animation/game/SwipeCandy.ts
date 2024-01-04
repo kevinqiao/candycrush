@@ -5,10 +5,10 @@ import { CellItem } from "../../../model/CellItem";
 import { GameScene } from "../../../model/SceneModel";
 import { useSceneManager } from "../../../service/SceneManager";
 import { ANIMATE_NAME } from "../AnimateConstants";
-import { IAnimateContext } from "../AnimateManager";
+import { IAnimateContext, IAnimateHandleContext } from "../AnimateManager";
 
 
-const useSwipeCandy = (props: IAnimateContext) => {
+const useSwipeCandy = (props: IAnimateHandleContext) => {
     const { animates } = props;
     const { scenes } = useSceneManager();
     const swipeSuccess = useCallback(
@@ -24,8 +24,7 @@ const useSwipeCandy = (props: IAnimateContext) => {
                 //         animates.splice(index, 1)
                 // }
             });
-            console.log(candy)
-            console.log(gameScene.candies.size)
+
             const candySprite = gameScene.candies?.get(candy.id);
             const targetSprite = gameScene.candies?.get(target.id);
             if (gameScene.cwidth && candySprite && targetSprite) {
@@ -64,7 +63,7 @@ const useSwipeCandy = (props: IAnimateContext) => {
     );
     const swipeFail = useCallback(
         (gameId: string, candyId: number, targetId: number, timeline: any) => {
-            console.log("swipe fail")
+
             const gameScene = scenes.get(gameId) as GameScene;
             if (!gameScene) return;
             const tl = gsap.timeline({

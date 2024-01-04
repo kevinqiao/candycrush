@@ -1,43 +1,11 @@
-import { gsap } from "gsap";
-import { useEffect } from "react";
+
+import { useSlideNavManager } from "component/SlideNavManager";
 import useCoord from "../../service/CoordManager";
-import { usePageManager } from "../../service/PageManager";
 import "./menu.css";
-const colors = ["red", "green", "blue", "orange", "white"];
 
-interface Props {
-  currentIndex: number;
-}
-
-const PlayMenu: React.FC = () => {
+const PlayMenu: React.FC= () => {
   const coord = useCoord();
-  const { prevPage, currentPage, openPage } = usePageManager();
-
-  useEffect(() => {
-    if (prevPage) {
-      // const preicon = "#men-" + preIndexRef.current;
-      // gsap.to(preicon, { y: 0, duration: 1 });
-      const premenu = "#menu-" + prevPage.name;
-      gsap.to(premenu, { fill: "grey", duration: 1 });
-    }
-    // setTimeout(() => {
-    //   const curicon = "#menu-icon-" + currentIndex;
-    //   gsap.to(curicon, { y: -20, duration: 0.7, ease: "elastic.out(1, 0.3)" });
-    //   const curmenu = "#menu-0" + currentIndex;
-    //   gsap.to(curmenu, { fill: "red", duration: 0.7 });
-    //   preIndexRef.current = currentIndex;
-    // }, 100);
-    // gsap.to(icon,{y:})
-  }, [prevPage]);
-  useEffect(() => {
-    if (currentPage) {
-      const curmenu = "#menu-" + currentPage.name;
-      const delay = currentPage.isInitial ? 100 : 10;
-      setTimeout(() => {
-        gsap.to(curmenu, { fill: "red", duration: 0.7 });
-      }, delay);
-    }
-  }, [currentPage]);
+  const {loadMenu, changeIndex} = useSlideNavManager()
 
   return (
     <>
@@ -62,51 +30,56 @@ const PlayMenu: React.FC = () => {
             </defs> */}
             {/* 不规则形状1 */}
             <polygon
-              id="menu-tournamentHome"
+              ref={(el)=>loadMenu(0,el)}
+              id="menu-index0"
               points="0,0 100,0 75,50 0,50"
               fill={"grey"}
               // fill="url(#leaderboardimage)"
               stroke="white"
               strokeWidth={1}
-              onClick={() => openPage({ name: "tournamentHome", data: {} })}
+              onClick={() =>{changeIndex(0)}}
             />
 
             {/* 不规则形状2 */}
             <polygon
-              id="menu-textureList"
+              ref={(el)=>loadMenu(1,el)}
+              id="menu-index1"
               points="100,0 200,0 175,50 75,50"
               fill={"grey"}
               stroke="white"
               strokeWidth={1}
-              onClick={() => openPage({ name: "textureList", data: {} })}
+              onClick={() =>changeIndex(1)}
             />
 
             {/* 不规则形状3 */}
             <polygon
-              id="menu-battleHome"
+              ref={(el)=>loadMenu(2,el)}
+              id="menu-index2"
               points="200,0 300,0 275,50 175,50"
               fill={"grey"}
               stroke="white"
               strokeWidth={1}
-              onClick={() => openPage({ name: "goalPanel", data: {} })}
+              onClick={() =>changeIndex(2)}
             />
             {/* 不规则形状4 */}
             <polygon
-              id="menu-accountHome"
+              ref={(el)=>loadMenu(3,el)}
+              id="menu-index3"
               points="300,0 400,0 375,50 275,50"
               fill={"grey"}
               stroke="white"
               strokeWidth={1}
-              onClick={() => openPage({ name: "accountHome", data: {} })}
+              onClick={() =>changeIndex(3)}
             />
             {/* 不规则形状5 */}
             <polygon
-              id="menu-texturePlay"
+              ref={(el)=>loadMenu(4,el)}
+              id="menu-index4"
               points="400,0 500,0 500,50 375,50"
               fill={"grey"}
               stroke="white"
               strokeWidth={1}
-              onClick={() => openPage({ name: "avatarList", data: {} })}
+              onClick={() =>changeIndex(4)}
             />
           </svg>
         </div>
@@ -116,3 +89,6 @@ const PlayMenu: React.FC = () => {
 };
 
 export default PlayMenu;
+
+
+

@@ -33,7 +33,7 @@ const TextureList: React.FC = () => {
     graphics.endFill();
 
     // 从图形创建纹理
-    if (scene) {
+    if (scene?.render) {
       const texture = scene.renderer.generateTexture(graphics);
       return texture;
       // 使用纹理创建精灵
@@ -66,7 +66,7 @@ const TextureList: React.FC = () => {
     return () => {
       app.destroy(true);
     };
-  }, [width, height]);
+  }, []);
 
   useEffect(() => {
     let count = 0;
@@ -77,7 +77,7 @@ const TextureList: React.FC = () => {
         sprite.anchor.set(0.5);
         sprite.x = 225;
         sprite.y = (Math.floor(count / 7) + 5) * 50 + 225;
-        scene.stage.addChild(sprite);
+        scene.stage.addChild(sprite as PIXI.DisplayObject);
       }
       for (let texture of candyTextures) {
         const sprite = new PIXI.Sprite(texture.texture);
@@ -86,7 +86,7 @@ const TextureList: React.FC = () => {
         sprite.height = 50;
         sprite.x = (count % 7) * 50 + 25;
         sprite.y = Math.floor(count / 7) * 50 + 25;
-        scene.stage.addChild(sprite);
+        scene.stage.addChild(sprite as PIXI.DisplayObject);
         count++;
       }
       const texture28 = candyTextures.find((c) => c.id === 28);
@@ -98,7 +98,7 @@ const TextureList: React.FC = () => {
           sprite.height = 50;
           sprite.x = i * 50 + 25;
           sprite.y = (Math.floor(count / 7) + 1) * 50 + 25;
-          scene.stage.addChild(sprite);
+          scene.stage.addChild(sprite as PIXI.DisplayObject);
         }
       }
       const texture29 = candyTextures.find((c) => c.id === 29);
@@ -110,7 +110,7 @@ const TextureList: React.FC = () => {
           sprite.height = 50;
           sprite.x = i * 50 + 25;
           sprite.y = (Math.floor(count / 7) + 2) * 50 + 25;
-          scene.stage.addChild(sprite);
+          scene.stage.addChild(sprite as PIXI.DisplayObject);
         }
       }
       const texture30 = candyTextures.find((c) => c.id === 30);
@@ -122,7 +122,7 @@ const TextureList: React.FC = () => {
           sprite.height = 50;
           sprite.x = i * 50 + 25;
           sprite.y = (Math.floor(count / 7) + 3) * 50 + 25;
-          scene.stage.addChild(sprite);
+          scene.stage.addChild(sprite as PIXI.DisplayObject);
         }
       }
       const texture31 = candyTextures.find((c) => c.id === 31);
@@ -134,7 +134,7 @@ const TextureList: React.FC = () => {
           sprite.height = 50;
           sprite.x = i * 50 + 25;
           sprite.y = (Math.floor(count / 7) + 4) * 50 + 25;
-          scene.stage.addChild(sprite);
+          scene.stage.addChild(sprite as PIXI.DisplayObject);
         }
       }
     }

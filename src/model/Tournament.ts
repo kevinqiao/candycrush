@@ -1,8 +1,12 @@
 export interface Tournament {
     id: string;
-    type: number;
-    startTime?: number;
-    endTime?: number;
-    status?: number;//0-inactive 1-active 2-settled 3-cancelled 
-    defs?: any;
+    type: number;//0-unlimit 1-schedule
+    participants: number;
+    battleTime: number;  
+    currentTerm:number;
+    schedule:{startDay:number;duration:number};
+    goals:number[],
+    cost:{asset:number;quantity:number}[],
+    rewards: {rank:number;assets:{asset:number;quantity:number};points:number}[],
+    status: number,//0-on going 1-over 2-settled
 }

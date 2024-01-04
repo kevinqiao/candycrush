@@ -112,7 +112,7 @@ export const GameProvider = ({
         if (a.row === b.row) return a.column - b.column;
         else return a.row - b.row;
       });
-      console.log("init game:" + game.gameId + " battleId:" + battle?.id);
+    
       dispatch({ type: actions.INIT_GAME, data: g });
       setGameEvent({
         id: Date.now() + "" + Math.floor(Math.random() * 100),
@@ -130,6 +130,7 @@ export const GameProvider = ({
         setTimeout(() => {
           if (event.steptime > state.laststep) {
             const name = event.name;
+    
             if (name === "gameOver") {
               dispatch({ type: actions.GAME_OVER, data: event });
               setGameEvent(event);
@@ -164,7 +165,6 @@ export const GameProvider = ({
     if (game.gameId && battle) {
       if (battle.load === BATTLE_TYPE.REPLAY) loadInit();
       else {
-        console.log(battle);
         sync();
       }
     }

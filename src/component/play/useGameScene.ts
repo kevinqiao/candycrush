@@ -8,7 +8,7 @@ import { useBattleManager } from "../../service/BattleManager";
 import * as gameEngine from "../../service/GameEngine";
 import { useGameManager } from "../../service/GameManager";
 import { useSceneManager } from "../../service/SceneManager";
-import { ANIMATE_NAME } from "../animation/AnimateConstants";
+import { ANIMATE_EVENT_TYPE, ANIMATE_NAME } from "../animation/AnimateConstants";
 import { useAnimateManager } from "../animation/AnimateManager";
 import { CandySprite } from "../pixi/CandySprite";
 
@@ -41,11 +41,11 @@ const getSwipeTarget = (cellItem: CellItem, direction: number, cells: CellItem[]
 
 const useGameScene = () => {
     const { gameEvent, cells, gameId, status, swapCell, smash } = useGameManager();
-    const { battle } = useBattleManager();
+    const { battle,loadGame } = useBattleManager();
     const { textures, scenes } = useSceneManager();
     const gameOverRef = useRef<boolean>(false)
     const dragRef = useRef<{ startX: number; startY: number; animation: number, cellId: number }>({ startX: 0, startY: 0, cellId: -1, animation: 0 });
-    const { createAnimate, checkIfAnimate } = useAnimateManager();
+    const {createEvent,createAnimate, checkIfAnimate } = useAnimateManager();
     // console.log(gameEvent)
     const swipe = useCallback((direction: number, candyId: number) => {
 
@@ -71,10 +71,12 @@ const useGameScene = () => {
                 const tcandy = gameScene?.candies?.get(ntarget.id);
                 if (candy && tcandy) {
                     if (gameEngine.checkSwipe(grid)) {
-                        createAnimate({ id: Date.now(), name: ANIMATE_NAME.SWIPE_SUCCESS, gameId, battleId: battle?.id, eles: [], data: { candy: ncell, target: ntarget } })
+                        createEvent({name:ANIMATE_NAME.SWIPE_SUCCESS,type:ANIMATE_EVENT_TYPE.CREATE,data: {gameId, candy: ncell, target: ntarget }})
+                        // createAnimate({ id: Date.now(), name: ANIMATE_NAME.SWIPE_SUCCESS, gameId, battleId: battle?.id, eles: [], data: { candy: ncell, target: ntarget } })
                         swapCell(ncell.id, ntarget.id)
                     } else {
-                        createAnimate({ id: Date.now(), name: ANIMATE_NAME.SWIPE_FAIL, gameId, battleId: battle?.id, eles: [], data: { candyId, targetId: target.id } })
+                        createEvent({name:ANIMATE_NAME.SWIPE_FAIL,type:ANIMATE_EVENT_TYPE.CREATE,data: {gameId,candyId, targetId: target.id }})
+                        // createAnimate({ id: Date.now(), name: ANIMATE_NAME.SWIPE_FAIL, gameId, battleId: battle?.id, eles: [], data: { candyId, targetId: target.id } })
                     }
                 }
             }
@@ -95,7 +97,7 @@ const useGameScene = () => {
             sprite.height = gameScene.cwidth;
             sprite.x = x;
             sprite.y = y;
-            stage.addChild(sprite);
+            stage.addChild(sprite as PIXI.DisplayObject);
             sprite.eventMode = 'static';
             if (battle?.type !== Constant.BATTLE_TYPE.REPLAY) {
                 sprite.on("pointerdown", (event: PointerEvent) => {
@@ -161,7 +163,7 @@ const useGameScene = () => {
             gameOverRef.current = true;
     }, [status])
     useEffect(() => {
-        console.log(gameEvent)
+       
         if (!gameId || !scenes) return;
         const gameScene = scenes.get(gameId) as GameScene;
         if (!gameScene) return
@@ -170,11 +172,12 @@ const useGameScene = () => {
         } else if (gameEvent?.name === "initGame") {
             const game = gameEvent.data;
             initCandies(game.cells);
-            const score = gameEngine.countBaseScore(game.matched)
-            createAnimate({
-                name: ANIMATE_NAME.GAME_INITED, gameId, battleId: battle?.id, data: { load: battle?.load, gameId, uid: game.uid, score },
-                id: Date.now()
-            })
+            loadGame(game.gameId,game.matched);
+            // const score = gameEngine.countBaseScore(game.matched)
+            // createAnimate({
+            //     name: ANIMATE_NAME.GAME_INITED, gameId, battleId: battle?.id, data: { load: battle?.load, gameId, uid: game.uid, score },
+            //     id: Date.now()
+            // })
         } else if (gameEvent?.name === "cellSwapped") {
             const data: { candy: CellItem; target: CellItem; results: { toChange: CellItem[]; toCreate: CellItem[]; toMove: CellItem[]; toRemove: CellItem[] }[] } = gameEvent.data;
             for (let res of data.results) {

@@ -15,7 +15,7 @@ export interface Animate {
   battleId?: string;
   gameId?: string;
   timeline?: any;
-  duration?: number;
+  startTime?: number;
   status?: number; //0-open 1-in progress 2-complete
   eles?: AnimateElement[];
   data?: any;
@@ -35,10 +35,10 @@ export interface IAnimateContext {
   updateAnimate: (name: number, data: any) => void;
   removeAnimate: (time: number) => void;
   checkIfAnimate: (gameId: string) => boolean;
+  createEvent:(event:AnimateEvent)=>void;
 }
 export interface AnimateEvent {
   name: string;
-  animate: Animate;
   type?: number; //0-create 1-update
   time?: number;
   data?: any;
@@ -50,17 +50,18 @@ const AnimateContext = createContext<IAnimateContext>({
   updateAnimate: (id: number, data: any) => null,
   removeAnimate: (time: number) => null,
   checkIfAnimate: (gameId: string) => false,
+  createEvent:(event:AnimateEvent)=>null,
 });
 
 export const AnimateProvider = ({ children }: { children: React.ReactNode }) => {
   const animatesRef = useRef<Animate[]>([]);
   const [animateEvent, setAnimateEvent] = useState<AnimateEvent | null>(null);
-  console.log(JSON.parse(JSON.stringify(animatesRef.current)));
+
   const createAnimate = useCallback(
     (animate: Animate) => {
       Object.assign(animate, { id: Date.now(), createTime: Date.now() });
       animatesRef.current.push(animate);
-      setAnimateEvent({ name: animate.name, animate, type: ANIMATE_EVENT_TYPE.CREATE });
+      setAnimateEvent({ name: animate.name, type: ANIMATE_EVENT_TYPE.CREATE });
     },
     [animatesRef]
   );
@@ -68,7 +69,7 @@ export const AnimateProvider = ({ children }: { children: React.ReactNode }) => 
     const animate = animatesRef.current.find((a) => a.id === id);
     if (animate) {
       Object.assign(animate, data);
-      setAnimateEvent({ name: animate.name, animate, type: ANIMATE_EVENT_TYPE.UPDATE, data });
+      setAnimateEvent({ name: animate.name,  type: ANIMATE_EVENT_TYPE.UPDATE, data });
     }
   }, []);
   const removeAnimate = useCallback(
@@ -78,7 +79,7 @@ export const AnimateProvider = ({ children }: { children: React.ReactNode }) => 
       const as = animatesRef.current.filter((a) => a.id !== id);
       animatesRef.current.length = 0;
       animatesRef.current.push(...as);
-      setAnimateEvent({ name: animate.name, animate, type: ANIMATE_EVENT_TYPE.REMOVE });
+      setAnimateEvent({ name: animate.name, type: ANIMATE_EVENT_TYPE.REMOVE });
     },
     [animatesRef]
   );
@@ -92,6 +93,13 @@ export const AnimateProvider = ({ children }: { children: React.ReactNode }) => 
     },
     [animatesRef]
   );
+  const createEvent = useCallback(
+    (event:AnimateEvent) => {
+      console.log(event)
+      setAnimateEvent(event)
+  },
+  [animatesRef]
+);
   const value = {
     animates: animatesRef.current,
     animateEvent,
@@ -107,6 +115,7 @@ export const AnimateProvider = ({ children }: { children: React.ReactNode }) => 
       updateAnimate,
       removeAnimate,
       checkIfAnimate,
+      createEvent
     }),
     [animatesRef]
   );

@@ -54,7 +54,7 @@ const useCollectCandies = () => {
                     sprite.y = y;
                     sprite.alpha = 0;
                     const controlPoint = { x: x + 20, y: y - cwidth };
-                    (battleScene.app as PIXI.Application).stage.addChild(sprite);
+                    (battleScene.app as PIXI.Application).stage.addChild(sprite as PIXI.DisplayObject);
                     // const target = { x: battleScene.x + 100, y: 100 }
                     cl.to(sprite, {
                         alpha: 1,

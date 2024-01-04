@@ -1,29 +1,59 @@
 import { gsap } from "gsap";
-import { useEffect, useRef } from "react";
+import { useEffect, useMemo, useRef } from "react";
 import { useBattleManager } from "service/BattleManager";
 import { useSceneManager } from "service/SceneManager";
+import { useUserManager } from "service/UserManager";
 
 const BattleReport: React.FC = () => {
   const maskRef = useRef<HTMLDivElement | null>(null);
   const battleOverRef = useRef<HTMLDivElement | null>(null);
-  const { battleOver } = useBattleManager();
+  const { battle,battleEvent } = useBattleManager();
   const { disableCloseBtn, exit } = useSceneManager();
+  const {user} = useUserManager();
+
+  useEffect(()=>{
+    gsap.to(battleOverRef.current, { scale: 0, duration: 0 });
+  },[])
+
   useEffect(() => {
-    console.log(battleOver);
+   if(battle?.status===2)
+      setTimeout(()=>openReport(),2500);   
+  }, [battleEvent]);
+  const openReport=()=>{
     const tl = gsap.timeline({
       onComplete: () => {
         tl.kill();
       },
     });
-    if (battleOver)
-      tl.to(maskRef.current, { autoAlpha: 0.7, duration: 1.8 }).to(
+    tl.to(maskRef.current, { autoAlpha: 0.7, duration: 1.8 }).to(
         battleOverRef.current,
         { scale: 1, autoAlpha: 1, duration: 1.8 },
         "<"
       );
-    else tl.to(battleOverRef.current, { scale: 0, duration: 0 });
     tl.play();
-  }, [battleOver]);
+  }
+  const renderMyScore=useMemo(()=>{
+    if(battle){
+      const mygame =  battle.games.find((g)=>g.uid);
+      if(mygame?.score){
+      const {base,time,goal}= mygame.score;
+      return (<div>Base:{base} Time:{time} Goal:{goal}</div>)
+      }
+    }
+    return null
+  },[battleEvent,user])
+
+  const renderBattleReport=useMemo(()=>{
+     if(battle?.rewards){
+         return battle.rewards.map((r)=><div key={r.uid}>{r.rank}{r.uid}{r.score}{JSON.stringify(r.assets)}{r.points}</div>)
+     }else{
+          return battle?.games.sort((a,b)=>{
+          const scoreA = a.score?a.score.base+a.score.time+a.score.goal:0;
+          const scoreB = b.score?b.score.base+b.score.time+b.score.goal:0;
+          return scoreB-scoreA;
+         }).map((g,index)=><div key={g.gameId}>{"rank:"+index};{g.uid};{g.score?g.score.base+g.score.time+g.score.goal:"is playing"}</div>)
+     }
+  },[battleEvent])
   return (
     <>
       <div
@@ -61,9 +91,6 @@ const BattleReport: React.FC = () => {
       >
         <div
           style={{
-            display: "flex",
-            justifyContent: "center",
-            alignItems: "center",
             width: "70%",
             height: "50%",
             backgroundColor: "white",
@@ -71,8 +98,9 @@ const BattleReport: React.FC = () => {
           onClick={exit}
         >
           <div>
-            <span>Battle Over</span>
+            {renderMyScore}
           </div>
+          <div>{renderBattleReport}</div>
         </div>
       </div>
     </>

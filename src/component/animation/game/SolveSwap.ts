@@ -3,17 +3,17 @@ import { useCallback } from "react";
 
 import { GameScene } from "../../../model/SceneModel";
 import { useSceneManager } from "../../../service/SceneManager";
-import { IAnimateContext } from "../AnimateManager";
+import { IAnimateContext, IAnimateHandleContext } from "../AnimateManager";
 import useBattleBoard from "../battle/BattleBoard";
 import useCollectCandies from "../battle/CollectCandies";
 import { playChange, playMove, playRemove } from "./ApplyMatch";
 import useSwipeCandy from "./SwipeCandy";
 
-const useSolveSwap = (props: IAnimateContext) => {
+const useSolveSwap = (props: IAnimateHandleContext) => {
     const { animates } = props;
     const { scenes, textures } = useSceneManager();
     const { swipeSuccess } = useSwipeCandy(props);
-    const { changeGoal, changeScore } = useBattleBoard(props)
+    const { changeGoal, changeScore } = useBattleBoard()
     const { playCollect } = useCollectCandies();
 
 
@@ -40,8 +40,6 @@ const useSolveSwap = (props: IAnimateContext) => {
                         playRemove(res.toRemove, gameScene, textures, cl)
                         cl.call(
                             () => {
-
-
                                 const rl = gsap.timeline();
                                 playCollect(gameId, res, rl);
                                 if (res.toGoal && res.toGoal.length > 0) {

@@ -114,7 +114,7 @@ const AvatarList: React.FC = () => {
         sprite.height = 50;
         sprite.x = (count % 7) * 50 + 25;
         sprite.y = Math.floor(count / 7) * 50 + 25;
-        scene.stage.addChild(sprite);
+        scene.stage.addChild(sprite as PIXI.DisplayObject);
         count++;
       }
       // const candy = new CandySprite(textures[0], 1, 160, 60);
@@ -123,7 +123,7 @@ const AvatarList: React.FC = () => {
       candy.y = 600;
       candy.width = 50;
       candy.height = 50;
-      scene.stage.addChild(candy);
+      scene.stage.addChild(candy as PIXI.DisplayObject);
 
       const avatar = new AvatarBar({
         avatarTexture: textures[0],
@@ -135,7 +135,7 @@ const AvatarList: React.FC = () => {
       });
       avatar.x = 500;
       avatar.y = 500;
-      scene.stage.addChild(avatar);
+      scene.stage.addChild(avatar as PIXI.DisplayObject);
 
       const opponent = new AvatarBar({
         avatarTexture: textures[0],
@@ -148,12 +148,12 @@ const AvatarList: React.FC = () => {
       // opponent.setArrayType(ARRAY_TYPE.HORIZATION_RIGHT);
       opponent.x = 660;
       opponent.y = 500;
-      scene.stage.addChild(opponent);
+      scene.stage.addChild(opponent as PIXI.DisplayObject);
 
       const profile = new Avatar(textures[0], "Kevin Qiao", 60, 80);
       profile.x = 200;
       profile.y = 250;
-      scene.stage.addChild(profile);
+      scene.stage.addChild(profile as PIXI.DisplayObject);
       const textStyle = new PIXI.TextStyle({
         fontSize: 14,
         fill: 0xff0000, // Use 0x0000ff to specify blue color
@@ -169,7 +169,7 @@ const AvatarList: React.FC = () => {
         candy.height = 50;
         candy.x = 200;
         candy.y = 300;
-        scene.stage.addChild(candy);
+        scene.stage.addChild(candy as PIXI.DisplayObject);
         console.log("add candy to scene");
       }
     }

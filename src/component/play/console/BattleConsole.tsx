@@ -14,7 +14,6 @@ const BattleConsole = () => {
   const playerGame = useMemo(() => {
     if (battle && user) {
       const pgame = battle.games.find((g) => g.uid === user.uid);
-      console.log(pgame);
       return pgame;
     }
     return null;

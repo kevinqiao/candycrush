@@ -12,19 +12,16 @@ export const findAll = internalQuery({
 });
 export const find = internalQuery({
   args: { uid: v.string(), type: v.number() },
-  handler: async (ctx, { uid, type }) => {
-    const id = uid + "-" + type;
+  handler: async (ctx, { uid, type }) => {   
     const asset = await ctx.db.query("asset")
-      .filter((q) => q.eq(q.field("id"), id))
-      .first();
+      .filter((q) =>q.and(q.eq(q.field("type"),type), q.eq(q.field("uid"), uid))).first();
     return asset
   },
 });
 export const create = internalMutation({
   args: { uid: v.string(), type: v.number(), amount: v.number() },
   handler: async (ctx, { uid, type, amount }) => {
-    const id = uid + "-" + type;
-    const assetId = await ctx.db.insert("asset", { id, uid, type, amount, status: 0, lastUpdate: Date.now() });
+    const assetId = await ctx.db.insert("asset", {  uid, type, amount,  lastUpdate: Date.now() });
     return assetId;
   },
 });

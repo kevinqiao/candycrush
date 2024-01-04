@@ -380,9 +380,7 @@ export const settleGame = (game: any): { base: number; time: number; goal: numbe
     }
     return result
 }
-export const settleBattle = (battle: any) => {
 
-}
 export const countBaseScore = (matched: { asset: number, quantity: number }[]): number => {
     if (matched)
         return matched.reduce((s: number, a: { asset: number; quantity: number }) => s + a.quantity, 0);

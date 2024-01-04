@@ -18,7 +18,7 @@ export class GoalItem extends PIXI.Container {
         this.candy.height = width;
         this.candy.x = Math.floor(width / 2);
         this.candy.y = Math.floor(height / 2);
-        this.addChild(this.candy);
+        this.addChild(this.candy as PIXI.DisplayObject);
 
         const textStyle = new PIXI.TextStyle({
             fontSize: Math.floor(width / 3),
@@ -32,7 +32,7 @@ export class GoalItem extends PIXI.Container {
         // Position the text (optional)
         this.text.x = width;
         this.text.y = height;
-        this.addChild(this.text)
+        this.addChild(this.text as PIXI.DisplayObject)
 
     }
     changeTxTStyle = (style: any) => {

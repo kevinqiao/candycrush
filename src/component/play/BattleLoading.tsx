@@ -4,40 +4,27 @@ import { SCENE_NAME } from "../../model/Constants";
 import { useBattleManager } from "../../service/BattleManager";
 import { useSceneManager } from "../../service/SceneManager";
 import useDimension from "../../util/useDimension";
-import { ANIMATE_EVENT_TYPE, ANIMATE_NAME } from "../animation/AnimateConstants";
+import { ANIMATE_NAME } from "../animation/AnimateConstants";
 import { useAnimateManager } from "../animation/AnimateManager";
 import Avatar from "./common/Avatar";
-import CountdownTimer from "./common/CountdownTimer";
 
-const SearchOpponent = () => {
-  const batterInitedRef = useRef<boolean>(false);
+const BattleLoading = ({battle}:{battle:any}) => {
+
   const sceneContainerRef = useRef<HTMLDivElement | null>(null);
   const searchRef = useRef<HTMLDivElement | null>(null);
   const foundRef = useRef<HTMLDivElement | null>(null);
-  const startRef = useRef<HTMLDivElement | null>(null);
   const vsRef = useRef<HTMLDivElement | null>(null);
   const playerAvatarRef = useRef<HTMLDivElement | null>(null);
   const opponentAvatarRef = useRef<HTMLDivElement | null>(null);
   const { scenes, stageScene } = useSceneManager();
   const { width, height } = useDimension(sceneContainerRef);
-  const { createEvent} = useAnimateManager();
-  const [progress, setProgress] = useState(0);
-  const [countSecond, setCountSecond] = useState(0);
-  const {battle,battleEvent} = useBattleManager();
-  useEffect(()=>{   
-  
-    if(!batterInitedRef.current&&battle&&battle.status&&(battle.load||progress===2)){
-      console.log("start battle")
-      batterInitedRef.current=true
-      setTimeout(()=>createEvent({name:ANIMATE_NAME.BATTLE_INITED,type:ANIMATE_EVENT_TYPE.CREATE}),500)
-      startBattle();
-    }
+  const { createAnimate } = useAnimateManager();
+  const [searchComplete, setSearchComplete] = useState(false);
 
-  },[battle,battleEvent,progress])
   useEffect(()=>{   
-    if(!battle||battle.load) return;
     const ml = gsap.timeline({onComplete:()=>{
-      setProgress(1)
+      console.log("complete search")
+      setSearchComplete(true)
       ml.kill()
     }});
     const bl = gsap.timeline({
@@ -54,14 +41,11 @@ const SearchOpponent = () => {
         );
     ml.add(bl).add(tl);
     ml.play(); 
-  },[battle])
+  },[])
 
   useEffect(() => {
-    if(battle&&progress===1){
-      const tl = gsap.timeline({onComplete:()=>{
-        setCountSecond(5)
-        tl.kill()
-      }});
+    if(battle&&searchComplete){
+      const tl = gsap.timeline({onComplete:()=>{tl.kill()}});
       tl.to(searchRef.current, { alpha: 0, duration: 0.1 });
       tl.to(foundRef.current, { alpha: 1, duration: 0.1 }, "<");
       tl.fromTo(vsRef.current, { scaleX: 0, scaleY: 0 }, { scaleX: 1.4, scaleY: 1.4, duration: 0.6 }, ">")
@@ -70,7 +54,7 @@ const SearchOpponent = () => {
       tl.to(opponentAvatarRef.current, { duration: 1.2, alpha: 1, x: -width * 0.35 }, "<");
       tl.play();
     }
-  },[progress,battle])
+  },[searchComplete,battle])
   // useEffect(() => {
   //   if (battle && !battle.load) {
   //     createAnimate({ id: Date.now(), name: ANIMATE_NAME.BATTLE_SEARCH });
@@ -102,13 +86,6 @@ const SearchOpponent = () => {
     };
   }, [sceneContainerRef, searchRef, vsRef, foundRef, scenes, width, height, stageScene]);
 
-  const startBattle=()=>{
-    const tl = gsap.timeline({onComplete:()=>{
-       tl.kill()
-    }});
-    tl.to(sceneContainerRef.current,{autoAlpha:0,duration:0.5});
-    tl.play();
-  }
   return (
     <div
       ref={sceneContainerRef}
@@ -116,6 +93,9 @@ const SearchOpponent = () => {
         position: "absolute",
         top: 0,
         left: 0,
+        display: "flex",
+        justifyContent: "center",
+        alignItems: "center",
         width: "100%",
         height: "100%",
         color: "white",
@@ -124,7 +104,6 @@ const SearchOpponent = () => {
         pointerEvents: "none",
       }}
     >
-    
       <div
         ref={playerAvatarRef}
         style={{
@@ -192,34 +171,8 @@ const SearchOpponent = () => {
       >
         <span style={{ fontSize: 20 }}>Opponent Found</span>
       </div>
-      <div
-        ref={startRef}
-        style={{
-          opacity: 0,
-          position: "absolute",
-          top: height * 0.3,
-          left: 0,
-          width: "100%",
-          display: "flex",
-          justifyContent: "center",
-        }}
-      >
-        <span style={{ fontSize: 20 }}>Start Game</span>
-      </div>
-      {countSecond?<div      
-        style={{
-          position: "absolute",
-          top: height * 0.3,
-          left: 0,
-          width: "100%",
-          display: "flex",
-          justifyContent:"center"
-        }}
-      >
-       <CountdownTimer seconds={countSecond} onTimeout={()=>setProgress(2)}/>
-      </div>:null}
     </div>
   );
 };
 
-export default SearchOpponent;
+export default BattleLoading;
