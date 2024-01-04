@@ -132,7 +132,7 @@ const PlayCenter: React.FC<PageProps> = ({ ...pageProp }) => {
   return (
     <>
       <PlayMenu />
-      <div id="main-home" key={"main-home"} ref={mainRef} style={{ opacity: 0 }}>
+      <div id="main-home" key={"main-home"} ref={mainRef} style={{ opacity: 0 }}>                 `+++    --+`
         <div
           id="main-content"
           style={{
