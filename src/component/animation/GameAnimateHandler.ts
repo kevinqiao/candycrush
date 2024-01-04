@@ -18,10 +18,7 @@ export const useGameAnimateHandler = (props: IAnimateHandleContext) => {
     const { scenes, sceneEvent } = useSceneManager();
      const { battle } = useBattleManager();
 
-
     const processSwipeSuccess = useCallback((data:{gameId:string;candy:any;target:any}) => {
-        // if (!animate.gameId) return;
-        // const { candy, target } = animate.data;
         const timeline = gsap.timeline({
             onComplete: () => {
                 timeline.kill()
@@ -32,9 +29,6 @@ export const useGameAnimateHandler = (props: IAnimateHandleContext) => {
 
     }, [])
     const processSwipeFail = useCallback((data: {gameId:string;candyId:number;targetId:number}) => {
-        // if (!animate.gameId) return;
-        // const { candyId, targetId } = animate.data;
-        console.log("swipe fail playing...")
         const timeline = gsap.timeline({
             onComplete: () => {
               timeline.kill()
@@ -77,7 +71,6 @@ export const useGameAnimateHandler = (props: IAnimateHandleContext) => {
 
                     }
                 }
-
             })
         }
 

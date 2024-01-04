@@ -40,8 +40,6 @@ const useSolveSwap = (props: IAnimateHandleContext) => {
                         playRemove(res.toRemove, gameScene, textures, cl)
                         cl.call(
                             () => {
-
-
                                 const rl = gsap.timeline();
                                 playCollect(gameId, res, rl);
                                 if (res.toGoal && res.toGoal.length > 0) {
