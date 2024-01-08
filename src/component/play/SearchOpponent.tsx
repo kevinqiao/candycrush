@@ -1,5 +1,6 @@
 import { gsap } from "gsap";
 import { useEffect, useRef, useState } from "react";
+import { useUserManager } from "service/UserManager";
 import { SCENE_NAME } from "../../model/Constants";
 import { useBattleManager } from "../../service/BattleManager";
 import { useSceneManager } from "../../service/SceneManager";
@@ -10,7 +11,6 @@ import Avatar from "./common/Avatar";
 import CountdownTimer from "./common/CountdownTimer";
 
 const SearchOpponent = () => {
-  const batterInitedRef = useRef<boolean>(false);
   const sceneContainerRef = useRef<HTMLDivElement | null>(null);
   const searchRef = useRef<HTMLDivElement | null>(null);
   const foundRef = useRef<HTMLDivElement | null>(null);
@@ -20,63 +20,92 @@ const SearchOpponent = () => {
   const opponentAvatarRef = useRef<HTMLDivElement | null>(null);
   const { scenes, stageScene } = useSceneManager();
   const { width, height } = useDimension(sceneContainerRef);
-  const { createEvent} = useAnimateManager();
+  const { createEvent } = useAnimateManager();
   const [progress, setProgress] = useState(0);
   const [countSecond, setCountSecond] = useState(0);
-  const {battle,battleEvent} = useBattleManager();
-  useEffect(()=>{   
-  
-    if(!batterInitedRef.current&&battle&&battle.status&&(battle.load||progress===2)){
-      console.log("start battle")
-      batterInitedRef.current=true
-      setTimeout(()=>createEvent({name:ANIMATE_NAME.BATTLE_INITED,type:ANIMATE_EVENT_TYPE.CREATE}),500)
+  const { battle, allGameLoaded } = useBattleManager();
+  const { user } = useUserManager();
+  useEffect(() => {
+    if (battle && allGameLoaded && (battle.load === 2 || progress === 2)) {
+      createEvent({ name: ANIMATE_NAME.BATTLE_INITED, type: ANIMATE_EVENT_TYPE.CREATE });
       startBattle();
     }
+  }, [battle, allGameLoaded, progress]);
+  useEffect(() => {
+    if (user && battle && allGameLoaded && battle.load === 1 && progress === 0) {
+      const time = battle.startTime ? battle.startTime - Date.now() - user.timelag : 0;
 
-  },[battle,battleEvent,progress])
-  useEffect(()=>{   
-    if(!battle||battle.load) return;
-    const ml = gsap.timeline({onComplete:()=>{
-      setProgress(1)
-      ml.kill()
-    }});
+      const seconds = Math.round(time / 1000);
+      console.log(seconds);
+      if (seconds > 0) {
+        const tl = gsap.timeline({
+          onComplete: () => {
+            setCountSecond(seconds);
+            tl.kill();
+          },
+        });
+
+        tl.to(sceneContainerRef.current, { autoAlpha: 1, duration: 0 });
+        tl.to(searchRef.current, { alpha: 0, duration: 0 }, "<");
+        tl.to(foundRef.current, { alpha: 0, duration: 0 }, "<");
+        // tl.to(vsRef.current, { scaleX: 1.4, scaleY: 1.4, duration: 0.1 }, ">");
+        tl.to(vsRef.current, { alpha: 1, duration: 0.3 }, "<");
+        tl.to(playerAvatarRef.current, { duration: 0, alpha: 1, x: width * 0.35 }, "<");
+        tl.to(opponentAvatarRef.current, { duration: 0, alpha: 1, x: -width * 0.35 }, "<");
+        tl.play();
+      } else setProgress(2);
+    }
+  }, [battle, allGameLoaded, progress]);
+  useEffect(() => {
+    if (!battle || battle.load) return;
+    const ml = gsap.timeline({
+      onComplete: () => {
+        setProgress(1);
+        ml.kill();
+      },
+    });
     const bl = gsap.timeline({
-      onComplete:()=>{bl.kill()}
-    })    
-    bl.to(sceneContainerRef.current,{autoAlpha:1,duration:0})
-    const tl = gsap.timeline({ repeat: 4, yoyo: true,onComplete:()=>{
-       tl.kill();
-    }});    
+      onComplete: () => {
+        bl.kill();
+      },
+    });
+    bl.to(sceneContainerRef.current, { autoAlpha: 1, duration: 0 });
+    const tl = gsap.timeline({
+      repeat: 4,
+      yoyo: true,
+      onComplete: () => {
+        tl.kill();
+      },
+    });
     tl.fromTo(
-          searchRef.current,
-            { scaleX: 0.9, scaleY: 0.9 },
-            { duration: 0.5, scaleX: 1.1, scaleY: 1.1, ease: "power2.inOut" }
-        );
+      searchRef.current,
+      { scaleX: 0.9, scaleY: 0.9 },
+      { duration: 0.5, scaleX: 1.1, scaleY: 1.1, ease: "power2.inOut" }
+    );
     ml.add(bl).add(tl);
-    ml.play(); 
-  },[battle])
+    ml.play();
+  }, [battle]);
 
   useEffect(() => {
-    if(battle&&progress===1){
-      const tl = gsap.timeline({onComplete:()=>{
-        setCountSecond(5)
-        tl.kill()
-      }});
+    if (user && battle && progress === 1) {
+      const time = battle.startTime ? battle.startTime - Date.now() - user.timelag : 0;
+      const seconds = Math.round(time / 1000);
+      const tl = gsap.timeline({
+        onComplete: () => {
+          setCountSecond(seconds);
+          tl.kill();
+        },
+      });
       tl.to(searchRef.current, { alpha: 0, duration: 0.1 });
       tl.to(foundRef.current, { alpha: 1, duration: 0.1 }, "<");
-      tl.fromTo(vsRef.current, { scaleX: 0, scaleY: 0 }, { scaleX: 1.4, scaleY: 1.4, duration: 0.6 }, ">")
+      tl.fromTo(vsRef.current, { scaleX: 0, scaleY: 0 }, { scaleX: 1.4, scaleY: 1.4, duration: 0.6 }, ">");
       tl.to(vsRef.current, { alpha: 1, duration: 0.8 }, "<");
-      tl.to(playerAvatarRef.current, {duration: 1.2, alpha: 1, x: width * 0.35 }, "<")
+      tl.to(playerAvatarRef.current, { duration: 1.2, alpha: 1, x: width * 0.35 }, "<");
       tl.to(opponentAvatarRef.current, { duration: 1.2, alpha: 1, x: -width * 0.35 }, "<");
       tl.play();
     }
-  },[progress,battle])
-  // useEffect(() => {
-  //   if (battle && !battle.load) {
-  //     createAnimate({ id: Date.now(), name: ANIMATE_NAME.BATTLE_SEARCH });
-  //     setTimeout(() => createAnimate({ id: Date.now(), name: ANIMATE_NAME.BATTLE_MATCHED, data: battle }), 5000);
-  //   }
-  // }, [battle]);
+  }, [progress, battle]);
+
   useEffect(() => {
     if (sceneContainerRef.current) {
       const scene = scenes.get(SCENE_NAME.BATTLE_MATCHING);
@@ -102,13 +131,15 @@ const SearchOpponent = () => {
     };
   }, [sceneContainerRef, searchRef, vsRef, foundRef, scenes, width, height, stageScene]);
 
-  const startBattle=()=>{
-    const tl = gsap.timeline({onComplete:()=>{
-       tl.kill()
-    }});
-    tl.to(sceneContainerRef.current,{autoAlpha:0,duration:0.5});
+  const startBattle = () => {
+    const tl = gsap.timeline({
+      onComplete: () => {
+        tl.kill();
+      },
+    });
+    tl.to(sceneContainerRef.current, { autoAlpha: 0, duration: 0.5 });
     tl.play();
-  }
+  };
   return (
     <div
       ref={sceneContainerRef}
@@ -119,12 +150,11 @@ const SearchOpponent = () => {
         width: "100%",
         height: "100%",
         color: "white",
-        opacity:0,
+        opacity: 0,
         backgroundColor: "red",
         pointerEvents: "none",
       }}
     >
-    
       <div
         ref={playerAvatarRef}
         style={{
@@ -206,18 +236,20 @@ const SearchOpponent = () => {
       >
         <span style={{ fontSize: 20 }}>Start Game</span>
       </div>
-      {countSecond?<div      
-        style={{
-          position: "absolute",
-          top: height * 0.3,
-          left: 0,
-          width: "100%",
-          display: "flex",
-          justifyContent:"center"
-        }}
-      >
-       <CountdownTimer seconds={countSecond} onTimeout={()=>setProgress(2)}/>
-      </div>:null}
+      {countSecond ? (
+        <div
+          style={{
+            position: "absolute",
+            top: height * 0.3,
+            left: 0,
+            width: "100%",
+            display: "flex",
+            justifyContent: "center",
+          }}
+        >
+          <CountdownTimer seconds={countSecond} onTimeout={() => setProgress(2)} />
+        </div>
+      ) : null}
     </div>
   );
 };

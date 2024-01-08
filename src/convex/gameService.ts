@@ -251,21 +251,24 @@ export const createInitGame = internalMutation({
 export const doAct = action({
     args: { act: v.string(), gameId: v.id("games"), data: v.any() },
     handler: async (ctx, { act, gameId, data }) => {
-       
+
         const game = await ctx.runQuery(internal.games.getGame, { gameId });
         if (!game || game.status) return;
         if (!game.matched) game.matched = [];
         let steptime = Math.round(Date.now() - game['_creationTime']);
+        const prematched = JSON.parse(JSON.stringify(game.matched))
         switch (act) {
             case GAME_ACTION.SWIPE_CANDY:
-                console.log("execute swipe")
+
                 const sresult = executeSwipe(game, data.candyId, data.targetId);
+                gameEngine.countGoalAndScore(sresult.results, prematched, game.goal);
                 await ctx.runMutation(internal.events.create, {
                     name: "cellSwapped", gameId, data: sresult, steptime
                 })
                 break;
             case GAME_ACTION.SMASH_CANDY:
                 const mresult = executeSmash(game, data.candyId);
+                gameEngine.countGoalAndScore(mresult.results, prematched, game.goal);
                 await ctx.runMutation(internal.events.create, {
                     name: "cellSmeshed", gameId, data: mresult, steptime
                 })
@@ -288,7 +291,7 @@ export const doAct = action({
             })
 
             const battle = await ctx.runMutation(internal.battle.settleGame, { battleId: game.battleId as Id<"battle">, gameId, uid: game.uid, score });
-            if (battle && battle.status) {                
+            if (battle && battle.status) {
                 await ctx.runMutation(internal.events.create, {
                     name: "battleOver", battleId: battle._id, data: battle.rewards, steptime
                 })

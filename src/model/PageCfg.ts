@@ -11,8 +11,8 @@ export const NavPages = [
     {
         name: "playcenter",
         uri: "./PlayCenter",
-    } ,
-   
+    },
+
     {
         name: "texturePlay",
         context: "playcenter",
@@ -73,10 +73,18 @@ export const StackPages = [
     },
     {
         name: "battleReplay",
-        uri: "./play/ReplayBattle",
-        direction: 2,
-        width: 500,
+        uri: "./play/PlayHome",
+        auth: true,
+        direction: 4,
+        width: 550,
         height: 1,
-    }    
+    },
+    {
+        name: "leaderBoard",
+        uri: "./leaderboard/BoardHome",
+        direction: 3,
+        width: 0.8,
+        height: 0.7,
+    }
 
 ]

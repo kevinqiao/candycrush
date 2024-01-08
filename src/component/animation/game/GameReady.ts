@@ -3,7 +3,7 @@ import { useCallback } from "react";
 import { GameScene } from "../../../model/SceneModel";
 import { useSceneManager } from "../../../service/SceneManager";
 import { CandySprite } from "../../pixi/CandySprite";
-import { IAnimateContext } from "../AnimateManager";
+
 
 const useGameReady = () => {
 
@@ -14,6 +14,7 @@ const useGameReady = () => {
             const tl = timeline ?? gsap.timeline();
 
             if (gameScene && gameScene.candies && gameScene.column && gameScene.row) {
+
                 const candies: CandySprite[] = Array.from(gameScene.candies.values());
 
                 for (let row = 0; row < gameScene.row; row++) {

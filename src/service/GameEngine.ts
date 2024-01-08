@@ -391,11 +391,13 @@ export const countGoalAndScore = (results: any[], matched: { asset: number; quan
     const goalModel = goals.find((g: { id: number, goal: { asset: number, quantity: number }[] }) => g.id === goalId);
 
     if (goalModel) {
+
         const preGoal = goalModel.goal.map((g) => {
             const m = matched.find((m) => m.asset === g.asset);
             const quantity = m ? g.quantity - m.quantity : g.quantity;
             return { asset: g.asset, quantity };
         })
+
         const gassets = goalModel.goal.map((g) => g.asset);
         for (let res of results) {
             const { toRemove }: { toRemove: CellItem[] } = res;

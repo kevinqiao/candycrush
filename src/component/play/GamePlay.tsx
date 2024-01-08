@@ -11,7 +11,7 @@ const GamePlay = ({ game }: { game: { gameId: string; uid: string } }) => {
   const sceneContainerRef = useRef<HTMLDivElement | null>(null);
   const maskRef = useRef<HTMLDivElement | null>(null);
   const gameOverRef = useRef<HTMLDivElement | null>(null);
-  const { battle } = useBattleManager();
+  const { battle, allGameLoaded } = useBattleManager();
   const { containerBound, stageScene } = useSceneManager();
   const { user } = useUserManager();
   const [bound, setBound] = useState<{ top: number; left: number; width: number; height: number } | null>(null);
@@ -19,6 +19,7 @@ const GamePlay = ({ game }: { game: { gameId: string; uid: string } }) => {
 
   useGameScene();
   useEffect(() => {
+    // console.log("game status:" + status);
     if (!status) return;
     const tl = gsap.timeline({
       onComplete: () => {
@@ -42,6 +43,7 @@ const GamePlay = ({ game }: { game: { gameId: string; uid: string } }) => {
       let top = containerBound.height * 0.55;
       let width = containerBound.width * 0.4;
       let height = containerBound.height * 0.35;
+      
       let cwidth = Math.floor(width / battle.column);
       let cheight = Math.floor(width / battle.column);
       if (user.uid !== game.uid) {

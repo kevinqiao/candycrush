@@ -3,7 +3,7 @@ import * as gameEngine from "../service/GameEngine";
 import { Id } from "./_generated/dataModel";
 
 import { GAME_PLAY_TIME } from "../model/Constants";
-import { internalMutation, internalQuery, mutation, query } from "./_generated/server";
+import { internalMutation, internalQuery, query } from "./_generated/server";
 export const getInitGame = internalQuery({
   args: { gameId: v.string() },
   handler: async (ctx, args) => {
@@ -27,6 +27,7 @@ export const findInitGame = query({
       .query("events").withIndex("by_game", (q) => q.eq("gameId", gameId))
       .filter((q) => q.eq(q.field("name"), "gameInited"))
       .first();
+    console.log(gameId)
     return event?.data
 
   },
@@ -41,7 +42,7 @@ export const getGame = internalQuery({
 export const findGame = query({
   args: { gameId: v.string() },
   handler: async (ctx, { gameId }) => {
-    const game:any= await ctx.db.query("games").filter((q) => q.eq(q.field("_id"), gameId)).first();
+    const game: any = await ctx.db.query("games").filter((q) => q.eq(q.field("_id"), gameId)).first();
     if (game) {
       const pasttime = (Date.now() - game._creationTime);
       return Object.assign({}, game, { gameId: game?._id, _id: undefined, _creationTime: undefined, pasttime });

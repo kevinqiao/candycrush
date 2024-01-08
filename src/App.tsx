@@ -33,8 +33,8 @@ function App() {
   };
   const Providers = FlattenedProviderTree([
     [CoordProvider],
-    [ConvexProvider, { client: convex }],
     [PageProvider],
+    [ConvexProvider, { client: convex }],
     [UserProvider],
     // [EventProvider],
   ]);

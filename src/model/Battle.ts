@@ -11,6 +11,7 @@ export default interface BattleModel {
     status?: number;//0-active 1-over 2-settled
     goal: number;
     pasttime: number;
-    rewards?:BattleReward[]
-    
+    rewards?: BattleReward[];
+    startTime?: number;
+
 }

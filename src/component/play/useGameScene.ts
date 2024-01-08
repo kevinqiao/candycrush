@@ -41,11 +41,11 @@ const getSwipeTarget = (cellItem: CellItem, direction: number, cells: CellItem[]
 
 const useGameScene = () => {
     const { gameEvent, cells, gameId, status, swapCell, smash } = useGameManager();
-    const { battle,loadGame } = useBattleManager();
+    const { battle, loadGame } = useBattleManager();
     const { textures, scenes } = useSceneManager();
     const gameOverRef = useRef<boolean>(false)
     const dragRef = useRef<{ startX: number; startY: number; animation: number, cellId: number }>({ startX: 0, startY: 0, cellId: -1, animation: 0 });
-    const {createEvent,createAnimate, checkIfAnimate } = useAnimateManager();
+    const { createEvent, createAnimate, checkIfAnimate } = useAnimateManager();
     // console.log(gameEvent)
     const swipe = useCallback((direction: number, candyId: number) => {
 
@@ -71,11 +71,11 @@ const useGameScene = () => {
                 const tcandy = gameScene?.candies?.get(ntarget.id);
                 if (candy && tcandy) {
                     if (gameEngine.checkSwipe(grid)) {
-                        createEvent({name:ANIMATE_NAME.SWIPE_SUCCESS,type:ANIMATE_EVENT_TYPE.CREATE,data: {gameId, candy: ncell, target: ntarget }})
+                        createEvent({ name: ANIMATE_NAME.SWIPE_SUCCESS, type: ANIMATE_EVENT_TYPE.CREATE, data: { gameId, candy: ncell, target: ntarget } })
                         // createAnimate({ id: Date.now(), name: ANIMATE_NAME.SWIPE_SUCCESS, gameId, battleId: battle?.id, eles: [], data: { candy: ncell, target: ntarget } })
                         swapCell(ncell.id, ntarget.id)
                     } else {
-                        createEvent({name:ANIMATE_NAME.SWIPE_FAIL,type:ANIMATE_EVENT_TYPE.CREATE,data: {gameId,candyId, targetId: target.id }})
+                        createEvent({ name: ANIMATE_NAME.SWIPE_FAIL, type: ANIMATE_EVENT_TYPE.CREATE, data: { gameId, candyId, targetId: target.id } })
                         // createAnimate({ id: Date.now(), name: ANIMATE_NAME.SWIPE_FAIL, gameId, battleId: battle?.id, eles: [], data: { candyId, targetId: target.id } })
                     }
                 }
@@ -89,7 +89,6 @@ const useGameScene = () => {
         const gameScene = scenes.get(gameId) as GameScene;
         const texture = textures?.find((d) => d.id === cell.asset);
         if (texture && gameScene?.app && gameScene.cwidth) {
-
             const stage = (gameScene.app as PIXI.Application).stage;
             const sprite = new CandySprite(texture.texture, cell.id, cell.column, cell.row)
             sprite.anchor.set(0.5);
@@ -99,7 +98,7 @@ const useGameScene = () => {
             sprite.y = y;
             stage.addChild(sprite as PIXI.DisplayObject);
             sprite.eventMode = 'static';
-            if (battle?.type !== Constant.BATTLE_TYPE.REPLAY) {
+            if (battle?.load !== Constant.BATTLE_LOAD.REPLAY) {
                 sprite.on("pointerdown", (event: PointerEvent) => {
                     const drag = dragRef.current;
                     drag.startX = event.x;
@@ -145,14 +144,16 @@ const useGameScene = () => {
 
         if (!gameId || !scenes) return;
         const gameScene = scenes.get(gameId) as GameScene;
+
         if (gameScene && gameId && gameScene?.candies && gameScene?.cwidth) {
+            console.log(gameScene)
             const cwidth = gameScene.cwidth;
             candies.forEach((c) => {
                 const x = c.column * cwidth + Math.floor(cwidth / 2);
                 const y = c.row * cwidth + Math.floor(cwidth / 2);
                 const sprite = createCandySprite(c, x, y);
                 if (sprite) {
-                    // sprite.alpha = 0
+                    sprite.alpha = 0
                     gameScene.candies?.set(c.id, sprite as CandySprite)
                 }
             })
@@ -163,16 +164,18 @@ const useGameScene = () => {
             gameOverRef.current = true;
     }, [status])
     useEffect(() => {
-       
+
         if (!gameId || !scenes) return;
         const gameScene = scenes.get(gameId) as GameScene;
         if (!gameScene) return
         if (gameEvent?.name === "gameOver") {
             gameOverRef.current = true;
         } else if (gameEvent?.name === "initGame") {
+
             const game = gameEvent.data;
+            console.log(game)
             initCandies(game.cells);
-            loadGame(game.gameId,game.matched);
+            loadGame(game.gameId, game.matched);
             // const score = gameEngine.countBaseScore(game.matched)
             // createAnimate({
             //     name: ANIMATE_NAME.GAME_INITED, gameId, battleId: battle?.id, data: { load: battle?.load, gameId, uid: game.uid, score },
@@ -192,8 +195,10 @@ const useGameScene = () => {
                             gameScene.candies.set(cell.id, sprite as CandySprite)
                     })
             }
-            if (gameId)
+            if (gameId) {
+                console.log(data)
                 createAnimate({ id: Date.now(), name: ANIMATE_NAME.CANDY_SWAPPED, gameId, battleId: battle?.id, data })
+            }
 
         } else if (gameEvent?.name === "cellSmeshed") {
             const data: { candyId: number; results: { toChange: CellItem[]; toCreate: CellItem[]; toMove: CellItem[]; toRemove: CellItem[] }[] } = gameEvent.data;

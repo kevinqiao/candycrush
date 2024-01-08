@@ -4,7 +4,7 @@ import { SCENE_NAME } from "../../../model/Constants";
 import { ConsoleScene } from "../../../model/SceneModel";
 import { useSceneManager } from "../../../service/SceneManager";
 import { useUserManager } from "../../../service/UserManager";
-import { IAnimateContext } from "../AnimateManager";
+
 
 
 const useBattleBoard = () => {

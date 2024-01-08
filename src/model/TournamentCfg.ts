@@ -1,4 +1,4 @@
-import { BATTLE_TYPE } from "./Constants";
+
 export interface TournamentDef {
     id: number;
     participants: number;
@@ -12,7 +12,7 @@ export const tournamentDefs: TournamentDef[] = [
     {
         id: 1,
         participants: 2,
-        type:0,
+        type: 0,
         battleTime: 300000,
         goals: [{ asset: 1, quantity: 10 }, { asset: 2, quantity: 12 }],
         entryCost: [{ assetId: 1, amount: 100 }, { assetId: 2, amount: 100 }],

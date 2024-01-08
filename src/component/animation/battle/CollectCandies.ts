@@ -33,14 +33,14 @@ const useCollectCandies = () => {
 
         const gameScene: GameScene | undefined = scenes.get(gameId) as GameScene;
         const battleScene: SceneModel | undefined = scenes.get(SCENE_NAME.BATTLE_SCENE);
-
+        console.log(result)
         if (result.toRemove?.length > 0 && gameScene && battleScene && textures && gameScene?.cwidth) {
             const cwidth = gameScene?.cwidth;
             const tl = timeline ?? gsap.timeline();
             result.toRemove.forEach((cell: CellItem) => {
                 const target = getGoalTarget(gameId, cell.asset);
                 const texture = textures?.find((d) => d.id === cell.asset);
-                if (texture && target) {
+                if (texture && target && result.toGoal) {
                     const goal = result.toGoal.find((g: { asset: number; start: number; end: number }) => g.asset === cell.asset);
                     if (goal.start <= 0) return;
                     const cl = gsap.timeline();

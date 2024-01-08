@@ -32,7 +32,6 @@ interface IPageContext {
 
 const initialState = {
   stacks: [],
-  pageEvent: null,
   prevPage: null,
   currentPage: { name: "playcenter", data: { isInitial: true } },
 };
@@ -49,7 +48,8 @@ const reducer = (state: any, action: any) => {
   switch (action.type) {
     case actions.PAGE_PUSH:
       const item = action.data;
-      return Object.assign({}, state, { stacks: [...state.stacks, item] });
+      const stacks = [...state.stacks, item];
+      return Object.assign({}, state, { stacks });
     case actions.PAGE_POP:
       if (action.data.length === 0) return Object.assign({}, state, { stacks: [] });
       else {
@@ -77,9 +77,9 @@ const PageContext = createContext<IPageContext>({
 
 export const PageProvider = ({ children }: { children: React.ReactNode }) => {
   const [state, dispatch] = React.useReducer(reducer, initialState);
+  console.log("page provider");
   const openPage = useCallback(
     (page: PageItem) => {
-   
       let scfg: PageConfig | undefined = StackPages.find((p) => p.name === page.name);
       if (scfg) {
         dispatch({ type: actions.PAGE_PUSH, data: page });
@@ -93,16 +93,20 @@ export const PageProvider = ({ children }: { children: React.ReactNode }) => {
     },
     [dispatch]
   );
+
   const value = {
     stacks: state.stacks,
     prevPage: state.prevPage,
     currentPage: state.currentPage,
-    pushPage: useCallback((page: PageItem) => {
-      dispatch({ type: actions.PAGE_PUSH, data: page });
-    }, []),
-    popPage: useCallback((pages: string[]) => {
+    pushPage: useCallback(
+      (page: PageItem) => {
+        dispatch({ type: actions.PAGE_PUSH, data: page });
+      },
+      [dispatch]
+    ),
+    popPage: (pages: string[]) => {
       dispatch({ type: actions.PAGE_POP, data: pages });
-    }, []),
+    },
     openPage,
   };
 
@@ -112,3 +116,4 @@ export const PageProvider = ({ children }: { children: React.ReactNode }) => {
 export const usePageManager = () => {
   return useContext(PageContext);
 };
+export default PageProvider;

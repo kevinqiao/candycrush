@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import BattleModel from "../../model/Battle";
 import PageProps from "../../model/PageProps";
 import BattleProvider from "../../service/BattleManager";
@@ -14,46 +14,69 @@ import GamePlay from "./GamePlay";
 import SearchOpponent from "./SearchOpponent";
 import BattleConsole from "./console/BattleConsole";
 import BattleReport from "./report/BattleReport";
-import ReadyToGo from "./ReadyToGo";
 
 const PlayHome: React.FC<PageProps> = (pageProp) => {
+  const sbattleRef = useRef<BattleModel | null>(null);
   const [battle, setBattle] = useState<BattleModel | null>(null);
   const { join } = useTournamentManager();
   const { userEvent } = useUserManager();
   const browserVisible = usePageVisibility();
-  const [rerender, setRerender] = useState(browserVisible);
-  const [load, setLoad] = useState(-1);
+  // const [rerender, setRerender] = useState(browserVisible);
 
   useEffect(() => {
+    if (battle?.load === 2) return;
     if (!browserVisible) {
-      if(battle){
-        if(!battle.status){
-          battle.load = 1;
-          setRerender(false)
-        }
-      }
-      // gsap.globalTimeline.getChildren(true, true, false).forEach((tween) => tween.kill());
-    }else
-       setRerender(true)
+      const sbattle = sbattleRef.current;
+      if (sbattle) sbattle.load = 1;
+      setBattle(null);
+    } else {
+      setBattle(JSON.parse(JSON.stringify(sbattleRef.current)));
+    }
+    // if (browserVisible && battle) {
+    //   if (!battle.status && battle.load !== 2) {
+    //     battle.load = 1;
+    //     setRerender(false);
+    //   }
+    // }
+    // gsap.globalTimeline.getChildren(true, true, false).forEach((tween) => tween.kill());
+
     // return () => {
     //   console.log("cleaning up gsap timeline");
     //   gsap.globalTimeline.getChildren(true, true, false).forEach((tween) => tween.kill());
     // };
-  }, [browserVisible, battle]);
-  useEffect(() => {  
-    if (pageProp.data?.act === "join") {
-      join(pageProp.data.tournament);
-      setLoad(0);
-    } else if (pageProp.data?.act === "load") {    
-      setBattle({ ...pageProp.data.battle, load: 1 });
+  }, [browserVisible]);
+  useEffect(() => {
+    const act = pageProp.data?.act;
+    let b;
+    switch (act) {
+      case "join":
+        join(pageProp.data.tournament);
+        break;
+      case "load":
+        b = { ...pageProp.data.battle, load: 1 };
+        sbattleRef.current = JSON.parse(JSON.stringify(b));
+        setBattle(b);
+        break;
+      case "replay":
+        const gameId = pageProp.data.gameId;
+        if (gameId) {
+          b = { ...pageProp.data.battle, load: 2 };
+          b.games = b.games.filter((g: any) => g.gameId === gameId);
+          sbattleRef.current = JSON.parse(JSON.stringify(b));
+          setBattle(b);
+        }
+        break;
+      default:
+        break;
     }
   }, [pageProp.data, join]);
-  useEffect(() => {    
+  useEffect(() => {
     if (userEvent?.name === "battleCreated") {
-      setBattle({ ...userEvent.data });
+      sbattleRef.current = { ...userEvent.data };
+      setBattle(JSON.parse(JSON.stringify(sbattleRef.current)));
     }
   }, [userEvent]);
- 
+
   return (
     <div
       style={{
@@ -65,11 +88,10 @@ const PlayHome: React.FC<PageProps> = (pageProp) => {
         backgroundColor: "transparent",
       }}
     >
-    <BattleProvider battle={battle}>
-    <SceneProvider pageProp={pageProp}>    
+      {battle ? (
+        <BattleProvider battle={battle}>
+          <SceneProvider pageProp={pageProp}>
             <AnimateProvider>
-      {rerender && battle ? (
-            <>
               <BattleGround>
                 <BattleConsole />
                 {battle.games.map((g) => (
@@ -80,12 +102,11 @@ const PlayHome: React.FC<PageProps> = (pageProp) => {
                 <BattleScene />
               </BattleGround>
               <BattleReport />
-              </>
+              <SearchOpponent />
+            </AnimateProvider>
+          </SceneProvider>
+        </BattleProvider>
       ) : null}
-      <SearchOpponent />
-      </AnimateProvider>      
-        </SceneProvider>
-    </BattleProvider>
     </div>
   );
 };

@@ -32,12 +32,12 @@ const BattleGround: React.FC<{ children: ReactNode }> = ({ children }) => {
         <div
           ref={load}
           style={{
-            position: "absolute",
+            position: "relative",
             top: 0,
             left: 0,
             width: "100%",
             margin: 0,
-            border: 0,
+            borderRadius: 10,
             height: containerBound.height,
             backgroundColor: "blue",
           }}

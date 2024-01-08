@@ -57,6 +57,7 @@ const BattleConsole = () => {
             width: containerBound.width * 0.45,
             margin: 0,
             borderRadius: 0,
+            opacity: 0,
             backgroundColor: "transparent",
           }}
         >

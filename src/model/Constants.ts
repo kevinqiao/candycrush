@@ -10,11 +10,10 @@ export const MATCH_DIRECTION = {
     HORIZATION: 1,
     VERTICAL: 2
 };
-export const BATTLE_TYPE = {
-    SOLO: 0,
-    SYNC: 1,
-    TURN: 2,
-    REPLAY: 3
+export const BATTLE_LOAD = {
+    INIT: 0,
+    RELOAD: 1,
+    REPLAY: 2,
 }
 
 export const GAME_MODE = {
