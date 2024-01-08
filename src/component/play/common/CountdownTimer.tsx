@@ -1,41 +1,48 @@
-import React, { useEffect, useRef, useState } from 'react';
-import { gsap } from 'gsap';
-import "./style.css"
+import React, { useEffect, useRef, useState } from "react";
+import "./style.css";
 interface CountdownTimerProps {
-  seconds: number;
+  countTime: number;
   onTimeout: () => void;
 }
 
-const CountdownTimer: React.FC<CountdownTimerProps> = ({ seconds, onTimeout }) => {
+const CountdownTimer: React.FC<CountdownTimerProps> = ({ countTime, onTimeout }) => {
   const countdownRef = useRef<HTMLDivElement | null>(null);
-  const [count, setCount] = useState<number>(seconds);
+  const [count, setCount] = useState<number>(-1);
 
   useEffect(() => {
-    const countdown = countdownRef.current;
-    const tl = gsap.timeline({ repeat: 0 });
-    tl.to(countdown, { scale: 1.1, duration: 0.5, ease: 'power2.inOut' });
-    tl.to(countdown, { scale: 1, duration: 0.5, ease: 'power2.inOut' });
-
-    const interval = setInterval(() => {
-      if (count > 0) {
-        setCount(count - 1);
-      } else {
-        clearInterval(interval);
-        if (onTimeout) {
-          onTimeout();
+    // const countdown = countdownRef.current;
+    // const tl = gsap.timeline({ repeat: 0 });
+    // tl.to(countdown, { scale: 1.1, duration: 0.5, ease: "power2.inOut" });
+    // tl.to(countdown, { scale: 1, duration: 0.5, ease: "power2.inOut" });
+    let interval: any;
+    if (countTime > Date.now()) {
+      interval = setInterval(() => {
+        const time = countTime - Date.now();
+        if (time > 0) {
+          setCount(Math.round(time / 1000));
+        } else {
+          clearInterval(interval);
+          if (onTimeout) {
+            onTimeout();
+          }
         }
-      }
-    }, 1000);
+      }, 1000);
+    }
 
     return () => {
-      clearInterval(interval);
+      if (interval) clearInterval(interval);
     };
-  }, [count, onTimeout]);
+  }, [countTime, onTimeout]);
 
   return (
-    <div className="countdown-timer" ref={countdownRef}>
-      {count>0?count:"Go!"}
-    </div>
+    <>
+      {count >= 0 ? (
+        <div className="countdown-timer" ref={countdownRef}>
+          {count > 0 ? count : null}
+          {count === 0 ? "Go" : null}
+        </div>
+      ) : null}
+    </>
   );
 };
 

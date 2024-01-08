@@ -1,9 +1,8 @@
 import gsap from "gsap";
-import { StackPages } from "model/PageCfg";
 import PageProps from "model/PageProps";
 import React, { FunctionComponent, Suspense, lazy, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import useCoord from "service/CoordManager";
-import { PageItem, usePageManager } from "service/PageManager";
+import { usePageManager } from "service/PageManager";
 import useStackAnimation from "./animation/page/StackAnimation";
 import PageCloseConfirm from "./common/PageCloseConfirm";
 import "./popup.css";
@@ -24,10 +23,10 @@ const StackPop: React.FC<PopupProps> = ({ zIndex, index }) => {
   const closeMaskRef = useRef<HTMLDivElement>(null);
   const confirmRef = useRef<HTMLDivElement>(null);
   const closeBtnRef = useRef<HTMLDivElement>(null);
-  const [page, setPage] = useState<PageItem | null>(null);
+  // const [page, setPage] = useState<PageItem | null>(null);
   const [pageProp, setPageProp] = useState<PageProps | null>(null);
   const { width, height } = useCoord();
-  const { stacks, popPage } = usePageManager();
+  const { stacks, popPage, getPageProp } = usePageManager();
   const StackAnimation = useStackAnimation({
     scene: popupRef,
     mask: maskRef,
@@ -37,26 +36,31 @@ const StackPop: React.FC<PopupProps> = ({ zIndex, index }) => {
 
   useEffect(() => {
     if (stacks && index < stacks.length) {
-      setPage(stacks[index]);
-    } else {
-      // gsap.to(closeMaskRef.current, { pointerEvents: "none", autoAlpha: 0, duration: 0 });
-      setPage(null);
-    }
-  }, [index, stacks]);
-
-  useEffect(() => {
-    if (page) {
-      const pageCfg = StackPages.find((s) => s.name === page.name);
-      if (pageCfg) {
-        const w = pageCfg.width <= 1 ? width * pageCfg.width : pageCfg.width;
-        const h = pageCfg.height <= 1 ? height * pageCfg.height : pageCfg.height;
-        const position = { width: w, height: h, direction: pageCfg.direction };
-        const prop = { name: page.name, position, data: page.data, config: pageCfg };
-        console.log(prop);
-        setPageProp(prop);
+      const prop = getPageProp(stacks[index], width, height);
+      if (prop) {
+        if (!pageProp) {
+          setPageProp(prop);
+        } else {
+          Object.assign(pageProp, prop);
+          StackAnimation.fit();
+        }
       }
     }
-  }, [page]);
+  }, [index, stacks, width, height, getPageProp, pageProp]);
+
+  // useEffect(() => {
+  //   if (page) {
+  //     const pageCfg = StackPages.find((s) => s.name === page.name);
+  //     if (pageCfg) {
+  //       const w = pageCfg.width <= 1 ? width * pageCfg.width : pageCfg.width;
+  //       const h = pageCfg.height <= 1 ? height * pageCfg.height : pageCfg.height;
+  //       const position = { width: w, height: h, direction: pageCfg.direction };
+  //       const prop = { name: page.name, position, data: page.data, config: pageCfg };
+  //       console.log(prop);
+  //       setPageProp(prop);
+  //     }
+  //   }
+  // }, [page]);
 
   useEffect(() => {
     if (!pageProp) return;

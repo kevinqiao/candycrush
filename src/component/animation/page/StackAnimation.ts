@@ -13,6 +13,31 @@ interface StackProps {
 const useStackAnimation = ({ scene, mask, closeBtn, pageProp }: StackProps) => {
     const { width, height } = useCoord();
 
+    const fit = useCallback(() => {
+        if (!scene || !pageProp || !pageProp.position) {
+            return
+        }
+        const tl = gsap.timeline({ onComplete: () => { tl.kill() } });
+        switch (pageProp.position.direction) {
+            case STACK_PAGE_DIRECTION.CENTER:
+                tl.to(scene.current, { x: (width - pageProp.position.width) / 2, y: 0 });
+                break;
+            case STACK_PAGE_DIRECTION.RIGHT:
+                tl.to(scene.current, { x: width - pageProp.position.width });
+                break;
+            case STACK_PAGE_DIRECTION.BOTTOM:
+                tl.to(scene.current, { x: (width - pageProp.position.width) / 2, y: height - pageProp.position.height });
+                break;
+            case STACK_PAGE_DIRECTION.LEFT:
+                tl.to(scene.current, { x: 0, y: 0 });
+                break;
+            default:
+                break;
+        }
+        tl.play();
+
+
+    }, [scene, pageProp, width, height])
     const play = useCallback(() => {
         if (!scene || !pageProp || !pageProp.position) {
             return
@@ -27,7 +52,7 @@ const useStackAnimation = ({ scene, mask, closeBtn, pageProp }: StackProps) => {
                 tl.fromTo(scene.current, { scale: 0, x: (width - pageProp.position.width) / 2, y: 0 }, { duration: 1.5, autoAlpha: 1, scale: 1 });
                 tl.to(mask.current, { autoAlpha: 0.7, duration: 1.5 }, "<");
                 // if (pageProp.config.closeType !== CLOSE_TYPE.NO_BUTTON)
-                tl.to(closeBtn.current, { autoAlpha: 1, duration: 1.5 }, "<")
+                tl.to(closeBtn.current, { autoAlpha: 1, duration: 1.5 }, ">")
                 break;
             case STACK_PAGE_DIRECTION.RIGHT:
                 tl.to(scene.current, { scale: 1, autoAlpha: 0, x: width, y: 0, duration: 0 });
@@ -89,6 +114,7 @@ const useStackAnimation = ({ scene, mask, closeBtn, pageProp }: StackProps) => {
         }
 
     }, [pageProp, scene, width])
-    return { play, close }
+
+    return { play, close, fit }
 }
 export default useStackAnimation
