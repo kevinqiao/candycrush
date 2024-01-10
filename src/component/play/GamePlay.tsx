@@ -11,8 +11,8 @@ const GamePlay = ({ game }: { game: { gameId: string; uid: string } }) => {
   const sceneContainerRef = useRef<HTMLDivElement | null>(null);
   const maskRef = useRef<HTMLDivElement | null>(null);
   const gameOverRef = useRef<HTMLDivElement | null>(null);
-  const { battle, allGameLoaded } = useBattleManager();
-  const { containerBound, stageScene } = useSceneManager();
+  const { battle } = useBattleManager();
+  const { scenes, containerBound, stageScene } = useSceneManager();
   const { user } = useUserManager();
   const [bound, setBound] = useState<{ top: number; left: number; width: number; height: number } | null>(null);
   const { status } = useGameManager();
@@ -35,35 +35,54 @@ const GamePlay = ({ game }: { game: { gameId: string; uid: string } }) => {
     tl.play();
   }, [status]);
 
-  const load = useCallback((el: HTMLDivElement) => {
-    let app: PIXI.Application | null = null;
-    if (battle && containerBound && !sceneContainerRef.current) {
-      sceneContainerRef.current = el;
-      let left = containerBound.width * 0.5;
-      let top = containerBound.height * 0.55;
-      let width = containerBound.width * 0.4;
-      let height = containerBound.height * 0.35;
-      
-      let cwidth = Math.floor(width / battle.column);
-      let cheight = Math.floor(width / battle.column);
-      if (user.uid !== game.uid) {
-        top = containerBound.height * 0.1;
+  const init = useCallback(
+    ({
+      top,
+      left,
+      width,
+      height,
+      column,
+      row,
+    }: {
+      top: number;
+      left: number;
+      width: number;
+      height: number;
+      column: number;
+      row: number;
+    }) => {
+      if (sceneContainerRef.current) {
+        let cwidth = Math.floor(width / column);
+        let cheight = Math.floor(width / column);
+        const app = new PIXI.Application({
+          width,
+          height,
+          backgroundAlpha: 0,
+        });
+        const candies = new Map<number, CandySprite>();
+        const scene = { x: left, y: top, app, width, height, cwidth, cheight, candies, column, row };
+        sceneContainerRef.current.appendChild(app.view as unknown as Node);
+        stageScene(game.gameId, scene);
       }
-      app = new PIXI.Application({
-        width,
-        height,
-        backgroundAlpha: 0,
-      });
+    },
+    [containerBound, battle]
+  );
 
-      const candies = new Map<number, CandySprite>();
-      const column = battle.column;
-      const row = battle.row;
-      const scene = { x: left, y: top, app, width, height, cwidth, cheight, candies, column, row };
-      el.appendChild(app.view as unknown as Node);
-      stageScene(game.gameId, scene);
-      setBound({ top, left, width, height });
+  useEffect(() => {
+    if (battle && scenes && containerBound && game) {
+      const left = containerBound.width * 0.5;
+      const top = user.uid !== game.uid ? containerBound.height * 0.1 : containerBound.height * 0.55;
+      const width = containerBound.width * 0.4;
+      const height = containerBound.height * 0.35;
+      const b = { top, left, width, height };
+      const gameScene = scenes.get(game.gameId);
+      if (gameScene?.app) {
+        const scene = gameScene.app as PIXI.Application;
+        scene.renderer.resize(width, height);
+      } else init({ ...b, column: battle.column, row: battle.row });
+      setBound(b);
     }
-  }, []);
+  }, [battle, containerBound, scenes, game, user, init]);
   return (
     <div
       style={{
@@ -77,7 +96,7 @@ const GamePlay = ({ game }: { game: { gameId: string; uid: string } }) => {
         backgroundColor: "transparent",
       }}
     >
-      <div ref={load} style={{ width: "100%", height: "100%", backgroundColor: "transparent" }}></div>
+      <div ref={sceneContainerRef} style={{ width: "100%", height: "100%", backgroundColor: "transparent" }}></div>
 
       <div
         ref={maskRef}

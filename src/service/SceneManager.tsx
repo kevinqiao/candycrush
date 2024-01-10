@@ -38,11 +38,20 @@ const SCENE_EVENT_TYPE = {
   REMOVE: 2,
 };
 
-export const SceneProvider = ({ pageProp, children }: { pageProp: PageProps; children: React.ReactNode }) => {
+export const SceneProvider = ({
+  pageProp,
+  pagePosition,
+  children,
+}: {
+  pageProp: PageProps;
+  pagePosition: PagePosition;
+  children: React.ReactNode;
+}) => {
   const scenesRef = useRef<Map<string, SceneModel>>(new Map());
   const texturesRef = useRef<{ id: number; texture: PIXI.Texture }[]>([]);
   const avatarTexturesRef = useRef<{ name: string; texture: PIXI.Texture }[]>([]);
   const [sceneEvent, setSceneEvent] = useState<SceneEvent | null>(null);
+  const [containerBound, setContainerBound] = useState<PagePosition | undefined>();
 
   const loadAvatarTextures = () => {
     const baseTexture = PIXI.BaseTexture.from("assets/avatar.png");
@@ -60,6 +69,7 @@ export const SceneProvider = ({ pageProp, children }: { pageProp: PageProps; chi
       }
     }
   };
+
   const loadCandyTextures = () => {
     const baseTexture = PIXI.BaseTexture.from("assets/assets_candy.png");
     const frameSize = 100;
@@ -70,6 +80,11 @@ export const SceneProvider = ({ pageProp, children }: { pageProp: PageProps; chi
     });
     texturesRef.current.push(...all);
   };
+  useEffect(() => {
+    if (pagePosition) {
+      setContainerBound(pagePosition);
+    }
+  }, [pagePosition]);
   useEffect(() => {
     loadCandyTextures();
     loadAvatarTextures();
@@ -87,7 +102,7 @@ export const SceneProvider = ({ pageProp, children }: { pageProp: PageProps; chi
   }, []);
 
   const value = {
-    containerBound: pageProp.position,
+    containerBound,
     textures: texturesRef.current,
     avatarTextures: avatarTexturesRef.current,
     scenes: scenesRef.current,

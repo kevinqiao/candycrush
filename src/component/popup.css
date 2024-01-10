@@ -17,7 +17,7 @@
     /* transform: rotateX(5deg) rotateY(5deg); */
   }
   .closeStackBtn{
-    background-color: rgba(242, 80, 169, 0.5); 
+    background-color: rgba(34, 31, 33, 0.5); 
     color:beige;
     display: flex;
     justify-content: center;

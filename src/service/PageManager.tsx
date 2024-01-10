@@ -77,7 +77,7 @@ const PageContext = createContext<IPageContext>({
 
 export const PageProvider = ({ children }: { children: React.ReactNode }) => {
   const [state, dispatch] = React.useReducer(reducer, initialState);
-  console.log("page provider");
+
   const openPage = useCallback(
     (page: PageItem) => {
       let scfg: PageConfig | undefined = StackPages.find((p) => p.name === page.name);
@@ -115,14 +115,14 @@ export const PageProvider = ({ children }: { children: React.ReactNode }) => {
 
 export const usePageManager = () => {
   const ctx = useContext(PageContext);
-  const getPageProp = useCallback((page: PageItem, width: number, height: number) => {
+  const getPageProp = useCallback((page: PageItem) => {
     if (page) {
       const pageCfg = StackPages.find((s) => s.name === page.name);
       if (pageCfg) {
-        const w = pageCfg.width <= 1 ? width * pageCfg.width : pageCfg.width;
-        const h = pageCfg.height <= 1 ? height * pageCfg.height : pageCfg.height;
-        const position = { width: w, height: h, direction: pageCfg.direction };
-        const prop = { name: page.name, position, data: page.data, config: pageCfg };
+        // const w = pageCfg.width <= 1 ? width * pageCfg.width : pageCfg.width;
+        // const h = pageCfg.height <= 1 ? height * pageCfg.height : pageCfg.height;
+        // const position = { width: w, height: h, direction: pageCfg.direction };
+        const prop = { name: page.name, data: page.data, config: pageCfg };
         return prop;
       }
     }

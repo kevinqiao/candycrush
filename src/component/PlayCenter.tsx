@@ -8,7 +8,7 @@ import "./layout.css";
 import PlayMenu from "./menu/PlayMenu";
 
 const colors = ["red", "green", "blue", "orange", "grey"];
-const PlayCenter: React.FC<PageProps> = ({ position }) => {
+const PlayCenter: React.FC<PageProps> = (props) => {
   const { components, loadSlideContainer, loadSlide } = useSlideNavManager();
   const { stacks, openPage } = usePageManager();
   const { userEvent } = useUserManager();
@@ -35,47 +35,46 @@ const PlayCenter: React.FC<PageProps> = ({ position }) => {
               height: "100vh",
             }}
           >
-            {position &&
-              components.map((c) => {
-                if (c.component) {
-                  const SelectedComponent: FunctionComponent = c.component;
-                  return (
-                    <div
-                      key={c.name}
-                      ref={(ele) => loadSlide(c.index, ele)}
-                      style={{
-                        width: "100vw",
-                        height: "100%",
-                        margin: "0px",
-                        padding: "0px",
-                        backgroundColor: "transparent",
-                      }}
-                    >
-                      <Suspense fallback={<div>Loading...</div>}>
-                        <SelectedComponent />
-                      </Suspense>
-                    </div>
-                  );
-                } else
-                  return (
-                    <div
-                      key={c.name}
-                      ref={(ele) => loadSlide(c.index, ele)}
-                      style={{
-                        width: "100vw",
-                        height: "100%",
-                        margin: "0px",
-                        padding: "0px",
-                        backgroundColor: colors[c.index],
-                      }}
-                    ></div>
-                  );
-              })}
+            {components.map((c) => {
+              if (c.component) {
+                const SelectedComponent: FunctionComponent = c.component;
+                return (
+                  <div
+                    key={c.name}
+                    ref={(ele) => loadSlide(c.index, ele)}
+                    style={{
+                      width: "100vw",
+                      height: "100%",
+                      margin: "0px",
+                      padding: "0px",
+                      backgroundColor: "transparent",
+                    }}
+                  >
+                    <Suspense fallback={<div>Loading...</div>}>
+                      <SelectedComponent />
+                    </Suspense>
+                  </div>
+                );
+              } else
+                return (
+                  <div
+                    key={c.name}
+                    ref={(ele) => loadSlide(c.index, ele)}
+                    style={{
+                      width: "100vw",
+                      height: "100%",
+                      margin: "0px",
+                      padding: "0px",
+                      backgroundColor: colors[c.index],
+                    }}
+                  ></div>
+                );
+            })}
           </div>
         </div>
       </>
     );
-  }, [loadSlideContainer, width, position, components, loadSlide]);
+  }, [loadSlideContainer, width, components, loadSlide]);
   return <>{render}</>;
 };
 

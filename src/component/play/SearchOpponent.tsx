@@ -116,7 +116,7 @@ const SearchOpponent = () => {
       sl.to(
         startRef.current,
         {
-          duration: 0.5,
+          duration: 0.3,
           autoAlpha: 1,
           onComplete: () => {
             setCountTime(dueTime);
@@ -124,7 +124,7 @@ const SearchOpponent = () => {
         },
         ">"
       );
-      sl.to(startRef.current, { duration: 0.3, autoAlpha: 0 }, ">");
+      sl.to(startRef.current, { duration: 0.9, autoAlpha: 0 }, ">");
       ml.play();
     }
   }, [progress, battle]);

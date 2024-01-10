@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import PageProps from "../../model/PageProps";
 import useUserAuth from "../auth/provider/UserAuth";
 
-const SignIn: React.FC<PageProps> = ({ data, position }) => {
+const SignIn: React.FC<PageProps> = (props) => {
   const [users, setUsers] = useState<any[]>();
   const { login, findAllUser } = useUserAuth();
   useEffect(() => {
@@ -18,8 +18,8 @@ const SignIn: React.FC<PageProps> = ({ data, position }) => {
           display: "flex",
           justifyContent: "space-around",
           alignItems: "center",
-          width: position?.width,
-          height: position?.height,
+          width: "100%",
+          height: "100%",
           backgroundColor: "white",
         }}
       >

@@ -1,6 +1,6 @@
 import PageProps from "../../model/PageProps";
 
-const BoardHome: React.FC<PageProps> = (pageProp) => {
+const LeaderBoardHome: React.FC<PageProps> = (pageProp) => {
   return (
     <div
       style={{
@@ -17,4 +17,4 @@ const BoardHome: React.FC<PageProps> = (pageProp) => {
   );
 };
 
-export default BoardHome;
+export default LeaderBoardHome;

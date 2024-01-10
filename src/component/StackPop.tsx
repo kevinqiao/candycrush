@@ -1,5 +1,6 @@
 import gsap from "gsap";
-import PageProps from "model/PageProps";
+import { StackPages } from "model/PageCfg";
+import PageProps, { PagePattern } from "model/PageProps";
 import React, { FunctionComponent, Suspense, lazy, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import useCoord from "service/CoordManager";
 import { usePageManager } from "service/PageManager";
@@ -23,48 +24,41 @@ const StackPop: React.FC<PopupProps> = ({ zIndex, index }) => {
   const closeMaskRef = useRef<HTMLDivElement>(null);
   const confirmRef = useRef<HTMLDivElement>(null);
   const closeBtnRef = useRef<HTMLDivElement>(null);
+  // const [openCompleted, setOpenCompleted] = useState(false);
   // const [page, setPage] = useState<PageItem | null>(null);
   const [pageProp, setPageProp] = useState<PageProps | null>(null);
   const { width, height } = useCoord();
-  const { stacks, popPage, getPageProp } = usePageManager();
+  const { stacks, popPage } = usePageManager();
+
+  const pagePattern: PagePattern | undefined = useMemo(() => {
+    if (pageProp) {
+      const pageCfg = pageProp.config;
+      const w = pageCfg.width <= 1 ? width * pageCfg.width : pageCfg.width;
+      const h = pageCfg.height <= 1 ? height * pageCfg.height : pageCfg.height;
+      return { width: w, height: h, direction: pageCfg.direction };
+    }
+  }, [pageProp, width, height]);
+
   const StackAnimation = useStackAnimation({
     scene: popupRef,
     mask: maskRef,
     closeBtn: closeBtnRef,
     pageProp,
+    pagePattern,
   });
-
   useEffect(() => {
-    if (stacks && index < stacks.length) {
-      const prop = getPageProp(stacks[index], width, height);
-      if (prop) {
-        if (!pageProp) {
-          setPageProp(prop);
-        } else {
-          Object.assign(pageProp, prop);
-          StackAnimation.fit();
-        }
+    if (stacks[index] && !pageProp) {
+      const pageCfg = StackPages.find((s) => s.name === stacks[index].name);
+      if (pageCfg) {
+        const prop = { name: stacks[index].name, data: stacks[index].data, config: pageCfg };
+        setPageProp(prop);
       }
     }
-  }, [index, stacks, width, height, getPageProp, pageProp]);
-
-  // useEffect(() => {
-  //   if (page) {
-  //     const pageCfg = StackPages.find((s) => s.name === page.name);
-  //     if (pageCfg) {
-  //       const w = pageCfg.width <= 1 ? width * pageCfg.width : pageCfg.width;
-  //       const h = pageCfg.height <= 1 ? height * pageCfg.height : pageCfg.height;
-  //       const position = { width: w, height: h, direction: pageCfg.direction };
-  //       const prop = { name: page.name, position, data: page.data, config: pageCfg };
-  //       console.log(prop);
-  //       setPageProp(prop);
-  //     }
-  //   }
-  // }, [page]);
+  }, [index, pageProp, stacks]);
 
   useEffect(() => {
     if (!pageProp) return;
-    StackAnimation.play();
+    StackAnimation.play(null);
     gsap.to(closeMaskRef.current, { pointerEvents: "none", autoAlpha: 0, duration: 0 });
     gsap.to(confirmRef.current, { scale: 0, autoAlpha: 0, duration: 0 });
   }, [pageProp]);
@@ -92,7 +86,7 @@ const StackPop: React.FC<PopupProps> = ({ zIndex, index }) => {
       });
       StackAnimation.close(tl);
     }
-  }, [pageProp, stacks, popPage]);
+  }, [pageProp, StackAnimation, popPage]);
 
   const disableCloseBtn = useCallback(() => {
     if (closeBtnRef.current) {
@@ -109,7 +103,7 @@ const StackPop: React.FC<PopupProps> = ({ zIndex, index }) => {
     });
     StackAnimation.close(tl);
   }, [pageProp]);
-  // console.log("stackpop at index:" + index);
+
   const renderComponent = useMemo(() => {
     if (pageProp) {
       const SelectedComponent: FunctionComponent<PageProps> = lazy(() => import(`${pageProp.config.uri}`));
@@ -120,14 +114,14 @@ const StackPop: React.FC<PopupProps> = ({ zIndex, index }) => {
         </Suspense>
       );
     }
-  }, [pageProp, stacks]);
+  }, [pageProp]);
 
   return (
     <>
       <div
         ref={maskRef}
         className="mask"
-        style={{ zIndex, opacity: 0, width: pageProp ? "100vw" : 0, height: pageProp ? "100vh" : 0 }}
+        style={{ zIndex, opacity: 0, width: pagePattern ? "100vw" : 0, height: pagePattern ? "100vh" : 0 }}
       ></div>
 
       <div
@@ -139,8 +133,8 @@ const StackPop: React.FC<PopupProps> = ({ zIndex, index }) => {
           top: 0,
           left: 0,
           // left: pageProp?.position?.left,
-          width: pageProp ? pageProp.position?.width : 0,
-          height: pageProp ? pageProp.position?.height : 0,
+          width: pagePattern ? pagePattern.width : 0,
+          height: pagePattern ? pagePattern.height : 0,
           zIndex: zIndex + 10,
           backgroundColor: "transparent",
         }}
@@ -155,8 +149,8 @@ const StackPop: React.FC<PopupProps> = ({ zIndex, index }) => {
             border: 0,
             top: 0,
             left: 0,
-            width: pageProp?.position?.width,
-            height: pageProp?.position?.height,
+            width: pagePattern?.width,
+            height: pagePattern?.height,
             zIndex: zIndex + 20,
             opacity: 0,
             backgroundColor: "black",
@@ -167,10 +161,10 @@ const StackPop: React.FC<PopupProps> = ({ zIndex, index }) => {
           style={{
             position: "absolute",
             margin: 0,
-            top: pageProp?.position?.height ? pageProp?.position?.height * 0.25 : 0,
-            left: pageProp?.position?.width ? pageProp?.position?.width * 0.2 : 0,
-            width: pageProp?.position?.width ? pageProp?.position?.width * 0.6 : 0,
-            height: pageProp?.position?.height ? pageProp?.position?.height * 0.5 : 0,
+            top: pagePattern ? pagePattern.height * 0.25 : 0,
+            left: pagePattern ? pagePattern.width * 0.2 : 0,
+            width: pagePattern ? pagePattern.width * 0.6 : 0,
+            height: pagePattern ? pagePattern.height * 0.5 : 0,
             zIndex: zIndex + 30,
             opacity: 0,
             backgroundColor: "white",
@@ -181,7 +175,7 @@ const StackPop: React.FC<PopupProps> = ({ zIndex, index }) => {
         <div
           ref={closeBtnRef}
           className="closeStackBtn"
-          style={{ borderRadius: "4px 10px 0px 0px", opacity: 0 }}
+          style={{ zIndex: zIndex + 50, borderRadius: "4px 10px 0px 0px", opacity: 0 }}
           onClick={close}
         >
           Cancel({index})

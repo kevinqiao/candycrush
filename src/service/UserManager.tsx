@@ -72,13 +72,10 @@ export const UserProvider = ({ children }: { children: React.ReactNode }) => {
       if (user)
         authByToken({ uid: user.uid, token: "12345" }).then((u: any) => {
           if (u) {
-            console.log(u);
-            console.log(u.timestamp - Date.now());
             u.timelag = u.timestamp - Date.now();
             localStorage.setItem("user", JSON.stringify({ uid: user.uid, token: "12345" }));
             dispatch({ type: actions.AUTH_COMPLETE, data: u });
             if (u.battle) {
-              console.log("open page battle play");
               openPage({ name: "battlePlay", data: { act: "load", battle: u.battle } });
             }
           }

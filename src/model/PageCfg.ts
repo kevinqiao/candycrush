@@ -81,9 +81,9 @@ export const StackPages = [
     },
     {
         name: "leaderBoard",
-        uri: "./leaderboard/BoardHome",
+        uri: "./leaderboard/LeaderBoardHome",
         direction: 3,
-        width: 0.8,
+        width: 1,
         height: 0.7,
     }
 
