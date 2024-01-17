@@ -1,9 +1,9 @@
+import NavPage from "component/NavPage";
+import StackController from "component/StackController";
+import MainMenu from "component/menu/MainMenu";
 import { ConvexProvider, ConvexReactClient } from "convex/react";
 import { gsap } from "gsap";
 import MotionPathPlugin from "gsap/MotionPathPlugin";
-import NavController from "./component/NavController";
-import StackController from "./component/StackController";
-import MainMenu from "./component/menu/MainMenu";
 import { CoordProvider } from "./service/CoordManager";
 import { PageProvider } from "./service/PageManager";
 import { UserProvider } from "./service/UserManager";
@@ -11,7 +11,7 @@ import { UserProvider } from "./service/UserManager";
 gsap.registerPlugin(MotionPathPlugin);
 // gsap.registerPlugin(TransformPlugin);
 
-const convex = new ConvexReactClient("https://kindred-grasshopper-414.convex.cloud");
+const convex = new ConvexReactClient("https://dazzling-setter-839.convex.cloud");
 function App() {
   const FlattenedProviderTree = (providers: any): any => {
     if (providers?.length === 1) {
@@ -41,7 +41,8 @@ function App() {
   return (
     <Providers>
       <MainMenu />
-      <NavController />
+
+      <NavPage />
       <StackController />
     </Providers>
   );

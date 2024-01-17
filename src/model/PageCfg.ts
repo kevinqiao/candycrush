@@ -66,7 +66,7 @@ export const StackPages = [
         name: "battlePlay",
         uri: "./play/PlayHome",
         auth: true,
-        closeType: 2,
+        closeControl: { btn: 0, confirm: 1, maskActive: 1 },
         direction: 0,
         width: 550,
         height: 1,
@@ -82,6 +82,7 @@ export const StackPages = [
     {
         name: "leaderBoard",
         uri: "./leaderboard/LeaderBoardHome",
+        closeControl: { btn: 0, confirm: 1, maskActive: 1 },
         direction: 3,
         width: 1,
         height: 0.7,

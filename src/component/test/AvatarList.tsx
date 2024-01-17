@@ -38,8 +38,8 @@ const AvatarList: React.FC = () => {
 
     // 从图形创建纹理
     if (scene) {
-      const texture = scene.renderer.generateTexture(graphics);
-      return texture;
+      // const texture = scene.renderer.generateTexture(graphics);
+      // return texture;
       // 使用纹理创建精灵
       // const sprite = new PIXI.Sprite(texture);
       // return sprite;

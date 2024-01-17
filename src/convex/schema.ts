@@ -53,9 +53,9 @@ export default defineSchema({
         type: v.optional(v.number()),
         participants: v.number(),
         tournamentId: v.string(),
-        term:v.optional(v.number()),//schedule tournament term
+        term: v.optional(v.number()),//schedule tournament term
         report: v.optional(v.any()),
-        rewards:v.optional(v.any()),
+        rewards: v.optional(v.any()),
         startTime: v.number(),
         status: v.optional(v.number()),//0-going 1-settled 2-cancelled
         seed: v.optional(v.string()),
@@ -65,16 +65,16 @@ export default defineSchema({
         chunk: v.optional(v.number())
     }),
 
-    tournament: defineTable({ 
-        id:v.string(),      
+    tournament: defineTable({
+        id: v.string(),
         participants: v.number(),
         battleTime: v.number(),
-        type: v.optional(v.number()),//0-unlimit 1-schedule
-        currentTerm:v.optional(v.number()),
-        schedule:v.optional(v.any()),
-        goals:v.optional(v.any()),
-        cost:v.optional(v.any()),
-        rewards: v.optional(v.any()),
+        type: v.number(),//0-unlimit 1-schedule
+        currentTerm: v.optional(v.number()),
+        schedule: v.optional(v.any()),
+        goal: v.number(),
+        cost: v.optional(v.any()),
+        rewards: v.any(),
         status: v.number(),//0-on going 1-over 2-settled
     }),
     asset: defineTable({
@@ -87,27 +87,27 @@ export default defineSchema({
         uid: v.string(),
         name: v.string(),
         channel: v.number(),
-        partner:v.optional(v.string()),
+        partner: v.optional(v.string()),
         lastUpdate: v.optional(v.number()),
         email: v.optional(v.string()),
         status: v.optional(v.number())//0-active 1-removed
     }),
-    partner:defineTable({
-        pid:v.string(),
-        name:v.string(),
-        desc:v.string(),
-        contact:v.string()
+    partner: defineTable({
+        pid: v.string(),
+        name: v.string(),
+        desc: v.string(),
+        contact: v.string()
     }),
-    transaction:defineTable({
-        tid:v.string(),
-        type:v.number(),//0-credit 1-debit
-        asset:v.number(),
-        amount:v.number(),
-        uid:v.string()
+    transaction: defineTable({
+        tid: v.string(),
+        type: v.number(),//0-credit 1-debit
+        asset: v.number(),
+        amount: v.number(),
+        uid: v.string()
     }),
     leaderboard: defineTable({
         tournamentId: v.string(),
-        term:v.number(),
+        term: v.number(),
         uid: v.string(),
         points: v.number(),
         lastUpdate: v.number(),

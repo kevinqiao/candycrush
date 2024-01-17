@@ -26,12 +26,12 @@ const BattleItem: React.FC<Props> = ({ battle }) => {
 
   const openReplay = useCallback(
     (report: any) => {
-      openPage({ name: "battleReplay", data: { act: "replay", battle, gameId: report.gameId } });
+      openPage({ name: "battleReplay", ctx: "playplace", data: { act: "replay", battle, gameId: report.gameId } });
     },
     [battle, openPage]
   );
   const openLeaderBoard = useCallback(() => {
-    openPage({ name: "leaderBoard", data: { battle } });
+    openPage({ name: "leaderBoard", ctx: "playplace", data: { battle } });
   }, [battle, openPage]);
 
   const render = useMemo(() => {

@@ -75,7 +75,7 @@ export const signin = action({
             }
             await ctx.runMutation(internal.user.update, { id: user["_id"], data: {} })
         }
-        return user;
+        return { ...user, timestamp: Date.now() }
     }
 })
 export const signup = action({

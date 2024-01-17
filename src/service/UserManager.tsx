@@ -19,6 +19,8 @@ interface IUserContext {
   authComplete: (user: User) => void;
   signout: () => void;
   signup: () => void;
+  signin: (uid: string, token: string) => void;
+  findAllUser: () => any;
 }
 
 const initialState = {
@@ -53,14 +55,18 @@ const UserContext = createContext<IUserContext>({
   authComplete: () => null,
   signout: () => null,
   signup: () => null,
+  signin: () => null,
+  findAllUser: () => null,
 });
 
 export const UserProvider = ({ children }: { children: React.ReactNode }) => {
-  const { openPage } = usePageManager();
+  const { stacks, openPage } = usePageManager();
   const [lastTime, setLastTime] = useState<number>(0);
   const [state, dispatch] = React.useReducer(reducer, initialState);
   const authByToken = useAction(api.UserService.authByToken);
   const userEvent: any = useQuery(api.events.getByUser, { uid: state.user?.uid ?? "###", lastTime });
+  const signinByToken = useAction(api.UserService.signin);
+  const findAllUser = useAction(api.UserService.findAllUser);
 
   useEffect(() => {
     if (userEvent) setLastTime(userEvent.time);
@@ -76,7 +82,7 @@ export const UserProvider = ({ children }: { children: React.ReactNode }) => {
             localStorage.setItem("user", JSON.stringify({ uid: user.uid, token: "12345" }));
             dispatch({ type: actions.AUTH_COMPLETE, data: u });
             if (u.battle) {
-              openPage({ name: "battlePlay", data: { act: "load", battle: u.battle } });
+              openPage({ name: "battlePlay", ctx: "match3", data: { act: "load", battle: u.battle } });
             }
           }
         });
@@ -96,6 +102,20 @@ export const UserProvider = ({ children }: { children: React.ReactNode }) => {
       dispatch({ type: actions.SIGN_OUT });
     }, []),
     signup: useCallback(() => {}, []),
+    signin: useCallback(async (uid: string, token: string) => {
+      const user = await signinByToken({ uid, token });
+      if (user) {
+        user.timelag = user.timestamp - Date.now();
+        localStorage.setItem("user", JSON.stringify({ uid: user.uid, token: "12345" }));
+        dispatch({ type: actions.AUTH_COMPLETE, data: user });
+        if (user.battle) {
+          openPage({ name: "battlePlay", ctx: "playplace", data: { act: "load", battle: user.battle } });
+        }
+      }
+    }, []),
+    findAllUser: useCallback(async () => {
+      return await findAllUser();
+    }, [findAllUser]),
   };
 
   return <UserContext.Provider value={value}>{children}</UserContext.Provider>;

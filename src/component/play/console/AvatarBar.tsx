@@ -30,7 +30,7 @@ const AvatarBar: React.FC<Props> = ({ layout, game }) => {
   const avatarSheetStyle = {
     width: frameSize,
     height: frameSize,
-    backgroundImage: `url("assets/avatar.png")`,
+    backgroundImage: `url("../../../assets/avatar.png")`,
     backgroundSize: "auto",
     backgroundPosition: calculateBackgroundPosition(),
     backgroundColor: "transparent",

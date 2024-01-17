@@ -16,7 +16,7 @@ const NavController = () => {
   //   }
   // }, [currentPage,width,height]);
 
-  return <div>{currentPage?<NavPage page={currentPage}></NavPage>:null}</div>;
+  // return <div>{currentPage?<NavPage page={currentPage}></NavPage>:null}</div>;
 };
 
 export default NavController;

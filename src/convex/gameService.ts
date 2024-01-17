@@ -8,6 +8,7 @@ import * as Utils from "../util/Utils";
 import { internal } from "./_generated/api";
 import { Id } from "./_generated/dataModel";
 import { action, internalMutation, internalQuery, query } from "./_generated/server";
+import { sessionAction } from "./custom/session";
 const COLUMN = 7;
 const ROW = 8;
 interface SwipeResult {
@@ -19,6 +20,7 @@ interface SmashResult {
     candyId: number;
     results: { toChange: CellItem[]; toCreate?: CellItem[]; toMove: CellItem[]; toRemove: CellItem[] }[];
 }
+
 const getFreeCandy = (seed: string, cellId: number) => {
     const random = Utils.getNthRandom(seed, cellId);
     // const index = Math.floor(random * (candy_textures.length - 10));
@@ -248,10 +250,10 @@ export const createInitGame = internalMutation({
 
     }
 })
-export const doAct = action({
+export const doAct = sessionAction({
     args: { act: v.string(), gameId: v.id("games"), data: v.any() },
     handler: async (ctx, { act, gameId, data }) => {
-
+        console.log(ctx.user)
         const game = await ctx.runQuery(internal.games.getGame, { gameId });
         if (!game || game.status) return;
         if (!game.matched) game.matched = [];

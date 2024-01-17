@@ -1,41 +1,46 @@
-import { NavPages } from "model/PageCfg";
+import { AppsConfiguration } from "model/PageConfiguration";
+import PageProps, { PageConfig } from "model/PageProps";
 import React, { FunctionComponent, Suspense, lazy, useEffect, useMemo, useRef, useState } from "react";
-import { PageItem } from "service/PageManager";
-import PageProps from "../model/PageProps";
+import { usePageManager } from "service/PageManager";
 import { SlideNavProvider } from "./SlideNavManager";
 import "./popup.css";
-interface NavProps {
-  // pageProp: PageProps | null;
-  page: PageItem;
-}
 
-const NavPage: React.FC<NavProps> = ({ page }) => {
+const NavPage: React.FC = () => {
   const navRef = useRef<HTMLDivElement>(null);
+  const { currentPage } = usePageManager();
   const [pageProp, setPageProp] = useState<PageProps | null>(null);
+
   useEffect(() => {
-    if (page && navRef.current) {
-      const config = NavPages.find((s) => s.name === page.name);
-      const { width, height } = navRef.current.getBoundingClientRect();
-      const prop = { name: page.name, data: page.data, position: { width, height, direction: 0 }, config };
-      if (!pageProp) setPageProp(prop);
+    if (currentPage && navRef.current) {
+      // const app = AppsConfiguration[0];
+      const app = AppsConfiguration.find((c) => c.context === currentPage.ctx);
+      if (app?.navs) {
+        const config: PageConfig | undefined = app.navs.find((s) => s.name === currentPage.name);
+        // const config = NavPages.find((s) => s.name === currentPage.name);
+        if (config) {
+          const prop = { ...currentPage, config };
+          console.log(prop);
+          if (!pageProp) setPageProp(prop);
+        }
+      }
     }
-  }, [page]);
+  }, [currentPage]);
   const render = useMemo(() => {
     if (pageProp) {
-      const SelectedComponent: FunctionComponent<PageProps> = lazy(() => import(`${pageProp.config.uri}`));
+      const SelectedComponent: FunctionComponent<PageProps> = lazy(() => import(`${pageProp.config.path}`));
       return (
-        <Suspense fallback={<div>Loading</div>}>
+        <Suspense
+          fallback={<div style={{ width: "100vw", height: "100vh", backgroundColor: "transparent" }}>Loading</div>}
+        >
           <SelectedComponent {...pageProp} />
         </Suspense>
       );
     }
   }, [pageProp]);
   return (
-    <>
-      <div ref={navRef}>
-        <SlideNavProvider>{render}</SlideNavProvider>
-      </div>
-    </>
+    <div ref={navRef} style={{ backgroundColor: "transparent" }}>
+      {pageProp ? <SlideNavProvider pageProp={pageProp}>{render}</SlideNavProvider> : null}
+    </div>
   );
 };
 

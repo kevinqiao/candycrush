@@ -1,17 +1,19 @@
-import { useMemo } from "react";
+import { forwardRef, useMemo } from "react";
+import { usePageManager } from "service/PageManager";
 import StackPop from "./StackPop";
 import "./layout.css";
 
-const StackController = () => {
+const StackController: React.FC = forwardRef((props, ref) => {
+  const { stacks } = usePageManager();
   const render = useMemo(() => {
     return (
       <div>
-        {["l0", "l1", "l2"].map((p, index) => (
-          <StackPop key={"stack-" + p} zIndex={(index + 1) * 200} index={index}></StackPop>
+        {stacks.map((p, index) => (
+          <StackPop key={"stack-" + p.name} zIndex={(index + 1) * 200} index={index}></StackPop>
         ))}
       </div>
     );
-  }, []);
+  }, [stacks]);
   return <>{render}</>;
-};
+});
 export default StackController;

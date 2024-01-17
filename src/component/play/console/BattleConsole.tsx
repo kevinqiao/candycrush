@@ -60,6 +60,7 @@ const BattleConsole = () => {
             opacity: 0,
             backgroundColor: "transparent",
           }}
+          onClick={() => console.log("console clicked")}
         >
           <div style={{ display: "flex", justifyContent: "space-between", width: "90%" }}>
             {playerGame ? (

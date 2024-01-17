@@ -19,7 +19,7 @@ const Help: React.FC = () => {
       <div
         className="signin-btn"
         onClick={(e) => {
-          openPage({ name: "signin", data: {} });
+          openPage({ name: "signin", ctx: "member", data: {} });
         }}
       >
         Help

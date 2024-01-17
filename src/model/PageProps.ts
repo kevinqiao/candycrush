@@ -1,5 +1,7 @@
 
 export interface PagePattern {
+    vw: number;
+    vh: number;
     width: number;
     height: number;
     direction: number
@@ -13,11 +15,36 @@ export interface PagePosition {
     height: number;
     // direction: number
 }
+export interface PageConfig {
+    name: string;
+    path?: string;
+    uri: string;
+    auth?: boolean;
+    nohistory?: boolean;
+    children?: { name: string; path: string; uri: string }[];
+    position?: {
+        closeControl?: { btn: number; confirm: number; maskActive: number };
+        direction: number;
+        width: number;
+        height: number;
+    }
+}
 export default interface PageProps {
     name: string;
-    data: any;
-    // position?: PagePosition;
-    config?: any;
+    ctx?: string;
+    data?: any;
+    params?: any;
+    child?: string;
+    anchor?: string;
+    config: PageConfig;
     disableCloseBtn?: () => void;
-    exit?: () => void;
+    close?: (type: number) => void;
+}
+export interface PageItem {
+    name: string;
+    ctx?: string; //null|undefined-cover
+    data?: any;
+    params?: any;
+    anchor?: string;
+    child?: string;
 }

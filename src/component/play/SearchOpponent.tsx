@@ -34,6 +34,7 @@ const SearchOpponent = () => {
     if (user && battle && allGameLoaded) {
       if (progress === 0 && battle.load === 1) {
         const time = battle.startTime ? battle.startTime - Date.now() - user.timelag : 0;
+
         if (!battle.startTime || time <= 0) {
           setProgress(2);
           return;
@@ -129,31 +130,6 @@ const SearchOpponent = () => {
     }
   }, [progress, battle]);
 
-  // useEffect(() => {
-  //   if (sceneContainerRef.current) {
-  //     const scene = scenes.get(SCENE_NAME.BATTLE_MATCHING);
-  //     if (!scene && width > 0 && height > 0) {
-  //       const scene = {
-  //         app: sceneContainerRef.current,
-  //         x: 0,
-  //         y: 0,
-  //         width: width,
-  //         height: height,
-  //         type: 1,
-  //         searchTxTEle: searchRef.current,
-  //         vsEle: vsRef.current,
-  //         foundTxTEle: foundRef.current,
-  //         playerAvatarEle: playerAvatarRef.current,
-  //         opponentAvatarEle: opponentAvatarRef.current,
-  //       };
-  //       stageScene(SCENE_NAME.BATTLE_MATCHING, scene);
-  //     }
-  //   }
-  //   return () => {
-  //     scenes.delete(SCENE_NAME.BATTLE_MATCHING);
-  //   };
-  // }, [sceneContainerRef, searchRef, vsRef, foundRef, scenes, width, height, stageScene]);
-
   const startBattle = () => {
     const tl = gsap.timeline({
       onComplete: () => {
@@ -176,6 +152,9 @@ const SearchOpponent = () => {
         opacity: 0,
         backgroundColor: "red",
         pointerEvents: "none",
+      }}
+      onClick={() => {
+        console.log("search layer...");
       }}
     >
       <div

@@ -7,9 +7,7 @@ const BattleGround: React.FC<{ children: ReactNode }> = ({ children }) => {
   const { stageScene } = useSceneManager();
 
   const load = useCallback((sceneEle: HTMLDivElement | null) => {
-    console.log("start load ground");
     if (sceneEle && !containerRef.current) {
-      console.log("loading ground");
       containerRef.current = sceneEle;
       const scene = {
         app: sceneEle,

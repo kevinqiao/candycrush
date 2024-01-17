@@ -1,19 +1,20 @@
 import { v } from "convex/values";
 import { Id } from "./_generated/dataModel";
 import { internalMutation, internalQuery, query } from "./_generated/server";
+import { Tournament } from "./model/Tournament";
 
-interface Tournament {
-  id: string;
-  type?: number;//0-unlimit 1-schedule
-  participants: number;
-  battleTime: number;
-  currentTerm?: number;
-  schedule?: { startDay: number; duration: number };
-  goals?: number[],
-  cost?: { asset: number; amount: number }[],
-  rewards?: { rank: number; assets: { asset: number; amount: number }[]; points: number }[],
-  status: number,//0-on going 1-over 2-settled
-}
+// interface Tournament {
+//   id: string;
+//   type?: number;//0-unlimit 1-schedule
+//   participants: number;
+//   battleTime: number;
+//   currentTerm?: number;
+//   schedule?: { startDay: number; duration: number };
+//   goals?: number[],
+//   cost?: { asset: number; amount: number }[],
+//   rewards?: { rank: number; assets: { asset: number; amount: number }[]; points: number }[],
+//   status: number,//0-on going 1-over 2-settled
+// }
 interface BattleModel {
   type?: number;//0-solo 1-sync 2-turn 3-replay
   column: number;

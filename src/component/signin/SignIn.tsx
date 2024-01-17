@@ -1,16 +1,18 @@
 import { useEffect, useState } from "react";
+import { useUserManager } from "service/UserManager";
 import PageProps from "../../model/PageProps";
-import useUserAuth from "../auth/provider/UserAuth";
 
-const SignIn: React.FC<PageProps> = (props) => {
+const SignIn: React.FC<PageProps> = ({ close }) => {
   const [users, setUsers] = useState<any[]>();
-  const { login, findAllUser } = useUserAuth();
+  const { user, signin, findAllUser } = useUserManager();
   useEffect(() => {
-    findAllUser().then((us) => {
-      console.log(us);
+    findAllUser().then((us: any) => {
       setUsers(us);
     });
   }, []);
+  useEffect(() => {
+    if (user && close) close(0);
+  }, [user, close]);
   return (
     <>
       <div
@@ -35,7 +37,7 @@ const SignIn: React.FC<PageProps> = (props) => {
               backgroundColor: "blue",
               color: "white",
             }}
-            onClick={() => login(user.uid, user.name)}
+            onClick={() => signin(user.uid, user.name)}
           >
             {user["name"]}
           </div>

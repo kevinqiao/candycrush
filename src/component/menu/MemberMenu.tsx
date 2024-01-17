@@ -34,10 +34,10 @@ const MemberMenu: React.FC = () => {
   useEffect(() => {
     if (currentPage) {
       const curmenu = "#menu-" + currentPage.name;
-      const delay = currentPage.isInitial ? 100 : 10;
+
       setTimeout(() => {
         gsap.to(curmenu, { fill: "red", duration: 0.7 });
-      }, delay);
+      }, 100);
     }
   }, [currentPage]);
 

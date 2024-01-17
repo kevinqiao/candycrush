@@ -18,7 +18,7 @@ export class AvatarBar extends PIXI.Container {
         this.name = name ?? "";
         this.width = width;
         this.height = height;
-
+        this.text = new PIXI.Text("hi")
         const radius = Math.floor(height / 2);
         this.bar = new PIXI.Graphics();
         const barX = arrayType === ARRAY_TYPE.HORIZATION_LEFT ? radius : 0;
@@ -43,14 +43,14 @@ export class AvatarBar extends PIXI.Container {
             fontWeight: 'bold',
             align: "center"
         });
-
-        this.text = new PIXI.Text(name, textStyle);
-        this.text.anchor.set(0.5)
-        // Position the text (optional)
-        this.text.x = arrayType === ARRAY_TYPE.HORIZATION_LEFT ? width - 10 - this.text.width / 2 : 10 + this.text.width / 2;
-        this.text.y = height / 2;
-        this.addChild(this.text as PIXI.DisplayObject)
-
+        if (name) {
+            this.text = new PIXI.Text(name, textStyle);
+            this.text.anchor.set(0.5)
+            // Position the text (optional)
+            this.text.x = arrayType === ARRAY_TYPE.HORIZATION_LEFT ? width - 10 - this.text.width / 2 : 10 + this.text.width / 2;
+            this.text.y = height / 2;
+            this.addChild(this.text as PIXI.DisplayObject)
+        }
     }
 
     changeTxTStyle = (style: any) => {

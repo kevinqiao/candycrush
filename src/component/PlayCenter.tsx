@@ -18,14 +18,14 @@ const PlayCenter: React.FC<PageProps> = (props) => {
   useEffect(() => {
     if (userEvent) {
       const p = stacks.find((s) => s.name === "battlePlay");
-      if (!p) openPage({ name: "battlePlay", data: { act: "load", battle: userEvent?.data } });
+      if (!p) openPage({ name: "battlePlay", ctx: "playplace", data: { act: "load", battle: userEvent?.data } });
     }
   }, [stacks, userEvent]);
   const render = useMemo(() => {
     return (
       <>
         <PlayMenu />
-        <div id="main-home" key={"main-home"} ref={loadSlideContainer}>
+        <div id="main-home" key={"main-home"} ref={loadSlideContainer} style={{ backgroundColor: "transparent" }}>
           <div
             id="main-content"
             style={{
@@ -33,6 +33,7 @@ const PlayCenter: React.FC<PageProps> = (props) => {
               justifyContent: "flex-start",
               width: 5 * width,
               height: "100vh",
+              backgroundColor: "transparent",
             }}
           >
             {components.map((c) => {

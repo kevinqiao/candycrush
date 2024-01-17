@@ -106,7 +106,6 @@ export const GameProvider = ({
     const g: any | null = await convex.query(api.games.findGame, {
       gameId: game.gameId,
     });
-    console.log(g);
 
     if (g) {
       g.cells.sort((a: CellItem, b: CellItem) => {
@@ -155,11 +154,10 @@ export const GameProvider = ({
   }, [events, battle, state.matched]);
   useEffect(() => {
     const loadInit = async () => {
-      console.log(game);
       const g: any | null = await convex.query(api.games.findInitGame, {
         gameId: game.gameId,
       });
-      console.log(g);
+
       if (g) {
         startTimeRef.current = Date.now();
         dispatch({ type: actions.INIT_GAME, data: { gameId: game.gameId, ...g } });
@@ -169,7 +167,6 @@ export const GameProvider = ({
     if (game.gameId && battle) {
       if (battle.load === BATTLE_LOAD.REPLAY) loadInit();
       else {
-        console.log("sync game...");
         sync();
       }
     }
@@ -226,9 +223,14 @@ export const GameProvider = ({
       async (candyId: number, targetId: number): Promise<any> => {
         if (battle?.load === BATTLE_LOAD.REPLAY) return;
         // swap({ gameId: state.gameId as Id<"games">, candyId: candyId, targetId: targetId });
-        doAct({ act: GAME_ACTION.SWIPE_CANDY, gameId: state.gameId as Id<"games">, data: { candyId, targetId } });
+        doAct({
+          sessionId: "12345",
+          act: GAME_ACTION.SWIPE_CANDY,
+          gameId: state.gameId as Id<"games">,
+          data: { candyId, targetId },
+        });
       },
-      [doAct, state.gameId]
+      [battle, doAct, state.gameId]
     ),
     smash: useCallback(
       async (candyId: number) => {
@@ -239,7 +241,7 @@ export const GameProvider = ({
           doAct({ act: GAME_ACTION.SMASH_CANDY, gameId: state.gameId as Id<"games">, data: { candyId } });
         }
       },
-      [state.cells, state.gameId, battle?.type, doAct]
+      [state.gameId, battle, doAct]
     ),
   };
 

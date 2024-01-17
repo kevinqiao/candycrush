@@ -10,16 +10,17 @@
     "@types/react": "^18.2.18",
     "@types/react-dom": "^18.2.7",
     "convex": "^1.7.1",
+    "convex-helpers": "^0.1.10-alpha.0",
     "framer-motion": "^10.16.0",
     "gsap": "^3.12.2",
-    "hammerjs": "^2.0.8",  
-    "pixi.js": "^7.2.4",
+    "hammerjs": "^2.0.8",
+    "pixi.js": "^7.3.1",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "react-scripts": "5.0.1",
     "rxjs": "^7.8.1",
     "seedrandom": "^3.0.5",
-    "typescript": "^4.9.5",
+    "typescript": "^5.3.3",
     "web-vitals": "^2.1.4"
   },
   "scripts": {
@@ -52,7 +53,6 @@
     "@testing-library/react": "^14.0.0",
     "@types/gsap": "^3.0.0",
     "@types/hammerjs": "^2.0.41",
-    "@types/pixi.js": "^5.0.0",
     "@types/seedrandom": "^3.0.6",
     "jest": "^27.5.1",
     "ts-node": "^10.9.1"

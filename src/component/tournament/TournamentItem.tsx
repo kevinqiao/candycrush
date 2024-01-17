@@ -13,11 +13,15 @@ const TournamentItem: React.FC<Props> = ({ tournament }) => {
 
   const joinBattle = useCallback(() => {
     if (!user) {
-      openPage({ name: "signin" });
+      openPage({
+        name: "signin",
+        data: { page: { name: "battlePlay", ctx: "playplace", data: { act: "join", tournament } } },
+      });
       return;
     }
+
     const p = stacks.find((s) => s.name === "battlePlay");
-    if (!p) openPage({ name: "battlePlay", data: { act: "join", tournament } });
+    if (!p) openPage({ name: "battlePlay", ctx: "playplace", data: { act: "join", tournament } });
   }, [user, stacks, openPage, tournament]);
   return (
     <div ref={itemRef} className="tournament-item">

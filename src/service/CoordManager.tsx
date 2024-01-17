@@ -3,11 +3,11 @@ import * as Constant from "../model/Constants";
 const CoordContext = createContext<any>(null);
 
 export const CoordProvider = ({ children }: { children: ReactNode }) => {
-  const [value, setValue] = useState({ width: 0, height: 0 });
+  const [value, setValue] = useState<{ width: number; height: number }>({ width: 0, height: 0 });
 
   const updateCoord = () => {
-    const w = window.innerWidth;
-    const h = window.innerHeight;
+    const w = window.innerWidth as number;
+    const h = window.innerHeight as number;
     const mh = (50 * w) / 500;
     const mainMenuH = mh > 120 ? 120 : mh;
     const mainMenuW = (500 * mainMenuH) / 50;

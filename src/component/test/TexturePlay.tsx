@@ -2,7 +2,6 @@ import { gsap } from "gsap";
 import { MotionPathPlugin } from "gsap/MotionPathPlugin";
 
 import * as PIXI from "pixi.js";
-import { DisplayObject } from "pixi.js";
 import { useEffect, useMemo, useRef, useState } from "react";
 import useCoord from "../../service/CoordManager";
 import useCollectCandies from "./CollectCandies";
@@ -34,7 +33,7 @@ const TexturePlay: React.FC = () => {
     newSprite.mask = ellipseMask; // 应用遮罩
     app.stage.addChild(newSprite as PIXI.DisplayObject);
     // 生成新纹理
-    const pieceTexture = app.renderer.generateTexture(newSprite);
+    // const pieceTexture = app.renderer.generateTexture(newSprite);
     // const pieceTexture = app.renderer.generateTexture(newSprite, {
     //   scaleMode: PIXI.SCALE_MODES.LINEAR,
     //   resolution: window.devicePixelRatio,
@@ -47,22 +46,22 @@ const TexturePlay: React.FC = () => {
     // piece.y = sprite.y;
     // app.stage.addChild(piece);
     // pieces.push(piece);
-    for (let i = 0; i < numberOfPieces; i++) {
-      // 创建碎片Sprite，这里需要你自己的逻辑来定义如何裁剪纹理
-      const piece: PIXI.Sprite = new PIXI.Sprite(pieceTexture);
-      piece.anchor.set(0.5);
-      piece.alpha = 1;
-      // 设置碎片的位置等于原始Sprite的位置
-      piece.x = sprite.x;
-      piece.y = sprite.y;
+    // for (let i = 0; i < numberOfPieces; i++) {
+    //   // 创建碎片Sprite，这里需要你自己的逻辑来定义如何裁剪纹理
+    //   const piece: PIXI.Sprite = new PIXI.Sprite(pieceTexture);
+    //   piece.anchor.set(0.5);
+    //   piece.alpha = 1;
+    //   // 设置碎片的位置等于原始Sprite的位置
+    //   piece.x = sprite.x;
+    //   piece.y = sprite.y;
 
-      piece.width = 18 + 6 * Math.random();
-      piece.height = piece.width;
+    //   piece.width = 18 + 6 * Math.random();
+    //   piece.height = piece.width;
 
-      app.stage.addChild(piece as PIXI.DisplayObject);
-      // 存储碎片以便后续使用
-      pieces.push(piece);
-    }
+    //   app.stage.addChild(piece as PIXI.DisplayObject);
+    //   // 存储碎片以便后续使用
+    //   pieces.push(piece);
+    // }
     return pieces;
   }
   function explodePieces(target: PIXI.Sprite): void {
@@ -120,12 +119,12 @@ const TexturePlay: React.FC = () => {
         // // console.log(pieces.length);
         // pieceRefs.current = pieces;
         // pieceRefs.current.push(...createPieces(app, sprite, 10));
-        sprite.on("pointerdown", (event: PointerEvent) => {
-          const cell: PIXI.Sprite = event.target as PIXI.Sprite;
-          console.log(cell.width + ":" + cell.height);
-          playCollect(cell as DisplayObject);
-          // explodePieces(cell);
-        });
+        // sprite.on("pointerdown", (event: PointerEvent) => {
+        //   const cell: PIXI.Sprite = event.target as PIXI.Sprite;
+        //   console.log(cell.width + ":" + cell.height);
+        //   playCollect(cell as DisplayObject);
+        //   // explodePieces(cell);
+        // });
         app.stage.addChild(sprite as PIXI.DisplayObject);
       });
     }

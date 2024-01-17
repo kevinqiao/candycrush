@@ -59,6 +59,13 @@ const GamePlay = ({ game }: { game: { gameId: string; uid: string } }) => {
           height,
           backgroundAlpha: 0,
         });
+        // if (app) {
+        //   console.log("interactiong....");
+        //   app.stage.interactive = true;
+        //   app.stage.on("mousemove", (event: any) => {
+        //     console.log("mouse moving");
+        //   });
+        // }
         const candies = new Map<number, CandySprite>();
         const scene = { x: left, y: top, app, width, height, cwidth, cheight, candies, column, row };
         sceneContainerRef.current.appendChild(app.view as unknown as Node);
@@ -96,7 +103,11 @@ const GamePlay = ({ game }: { game: { gameId: string; uid: string } }) => {
         backgroundColor: "transparent",
       }}
     >
-      <div ref={sceneContainerRef} style={{ width: "100%", height: "100%", backgroundColor: "transparent" }}></div>
+      <div
+        ref={sceneContainerRef}
+        style={{ width: "100%", height: "100%", backgroundColor: "transparent" }}
+        onClick={() => console.log("game play layer...")}
+      ></div>
 
       <div
         ref={maskRef}

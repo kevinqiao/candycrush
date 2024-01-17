@@ -13,6 +13,10 @@ export class GoalPanel extends PIXI.Container {
         this.pheight = height;
         this.column = column;
         this.goals = [];
+        this.interactive = true;
+        this.on("mousemove", (event: any) => {
+            console.log("mouse move on panel")
+        })
 
     }
     public addItem = (texture: PIXI.Texture, asset: number, quantity: number) => {

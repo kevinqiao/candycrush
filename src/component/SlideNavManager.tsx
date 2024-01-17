@@ -1,14 +1,14 @@
 import { gsap } from "gsap";
+import PageProps from "model/PageProps";
 import { createContext, lazy, useContext, useEffect, useRef, useState } from "react";
 import useCoord from "service/CoordManager";
-import { useUserManager } from "service/UserManager";
 
 const slides = [
   { name: "tournamentHome", index: 0, uri: "./tournament/TournamentHome" },
   { name: "textureList", index: 1 },
   { name: "battleHome", index: 2, uri: "./battle/BattleHome" },
   { name: "accountHome", index: 3, uri: "./signin/AccountHome" },
-  { name: "avatarList", index: 4 },
+  { name: "avatarList", index: 4, uri: "./test/TextureList" },
 ];
 export interface INavContext {
   index: number;
@@ -30,13 +30,13 @@ const NavContext = createContext<INavContext>({
   changeIndex: (index: number) => null,
 });
 
-export const SlideNavProvider = ({ children }: { children: React.ReactNode }) => {
+export const SlideNavProvider = ({ pageProp, children }: { pageProp: PageProps; children: React.ReactNode }) => {
   const { width, height } = useCoord();
   const startXRef = useRef<number>(0);
   const menusRef = useRef<Map<number, SVGPolygonElement>>(new Map());
   const menuIndexRef = useRef<number>(2);
   const slideContainerRef = useRef<HTMLDivElement | null>(null);
-  const { user } = useUserManager();
+
   const [components, setComponents] = useState<
     { name: string; index: number; component: any; slide?: HTMLDivElement }[]
   >([]);
@@ -61,21 +61,27 @@ export const SlideNavProvider = ({ children }: { children: React.ReactNode }) =>
   };
 
   useEffect(() => {
-    if (!user) return;
-    const cs: { name: string; index: number; component: any }[] = [];
-    for (let card of slides) {
-      const c = card.uri ? lazy(() => import(`${card.uri}`)) : null;
-      cs.push({ name: card.name, index: card.index, component: c });
+    if (pageProp.config?.children) {
+      const cs: { name: string; index: number; component: any }[] = [];
+
+      let index = 0;
+      for (let child of pageProp.config.children) {
+        // if (pageProp.child && pageProp.child === child.name) changeIndex(index);
+        const c = child.uri ? lazy(() => import(`${child.path}`)) : null;
+        cs.push({ name: child.name, index: index, component: c });
+        index = index + 1;
+      }
+      setComponents(cs);
     }
-    setComponents(cs);
+
     return () => {
       if (slideContainerRef.current) {
-        const swipeArea = slideContainerRef.current;
-        swipeArea.removeEventListener("touchstart", startMove);
-        swipeArea.removeEventListener("touchend", endMove);
+        const slideContainer = slideContainerRef.current;
+        slideContainer.removeEventListener("touchstart", startMove);
+        slideContainer.removeEventListener("touchend", endMove);
       }
     };
-  }, [user]);
+  }, [pageProp]);
   useEffect(() => {
     initContainer();
   }, [width, height]);
@@ -114,9 +120,6 @@ export const SlideNavProvider = ({ children }: { children: React.ReactNode }) =>
     tl.to(slideContainer, { duration: 0, x: -index * width }).to(slideContainer, { duration: 0.3, alpha: 1 });
     if (curmenu) tl.to(curmenu, { fill: "red", duration: 0.1 }, "<");
     tl.play();
-
-    slideContainer.addEventListener("touchstart", startMove);
-    slideContainer.addEventListener("touchend", endMove);
   };
 
   const loadMenu = (index: number, ele: SVGPolygonElement | null) => {
@@ -124,7 +127,16 @@ export const SlideNavProvider = ({ children }: { children: React.ReactNode }) =>
   };
   const loadSlideContainer = (ele: HTMLDivElement | null) => {
     if (ele && !slideContainerRef.current) {
+      if (pageProp.config.children) {
+        if (pageProp.child) {
+          const index = pageProp.config.children.findIndex((c: any) => c.name === pageProp.child);
+          console.log("index:" + index);
+          if (index >= 0) menuIndexRef.current = index;
+        } else menuIndexRef.current = 2;
+      }
       slideContainerRef.current = ele;
+      ele.addEventListener("touchstart", startMove, { passive: true });
+      ele.addEventListener("touchend", endMove, { passive: true });
       initContainer();
     }
   };

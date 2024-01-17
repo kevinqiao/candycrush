@@ -88,18 +88,20 @@ const useGameScene = () => {
         if (!gameId || !scenes) return null;
         const gameScene = scenes.get(gameId) as GameScene;
         const texture = textures?.find((d) => d.id === cell.asset);
+
         if (texture && gameScene?.app && gameScene.cwidth) {
             const stage = (gameScene.app as PIXI.Application).stage;
+
             const sprite = new CandySprite(texture.texture, cell.id, cell.column, cell.row)
             sprite.anchor.set(0.5);
             sprite.width = gameScene.cwidth;
             sprite.height = gameScene.cwidth;
             sprite.x = x;
             sprite.y = y;
-            stage.addChild(sprite as PIXI.DisplayObject);
             sprite.eventMode = 'static';
             if (battle?.load !== Constant.BATTLE_LOAD.REPLAY) {
-                sprite.on("pointerdown", (event: PointerEvent) => {
+
+                sprite.on("pointerdown", (event: any) => {
                     const drag = dragRef.current;
                     drag.startX = event.x;
                     drag.startY = event.y;
@@ -118,7 +120,7 @@ const useGameScene = () => {
                 //     console.log("moving.." + drag.direction)
                 // });
                 sprite.on("pointerup", (event: PointerEvent) => {
-                    if (gameOverRef.current) return;
+                    // if (gameOverRef.current) return;
                     const drag = dragRef.current;
                     const deltaX = event.x - drag.startX;
                     const deltaY = event.y - drag.startY;
@@ -135,6 +137,7 @@ const useGameScene = () => {
                     }
                 });
             }
+            stage.addChild(sprite as PIXI.DisplayObject);
             return sprite;
         }
         return null;
@@ -146,7 +149,6 @@ const useGameScene = () => {
         const gameScene = scenes.get(gameId) as GameScene;
 
         if (gameScene && gameId && gameScene?.candies && gameScene?.cwidth) {
-            console.log(gameScene)
             const cwidth = gameScene.cwidth;
             candies.forEach((c) => {
                 const x = c.column * cwidth + Math.floor(cwidth / 2);
@@ -173,7 +175,6 @@ const useGameScene = () => {
         } else if (gameEvent?.name === "initGame") {
 
             const game = gameEvent.data;
-            console.log(game)
             initCandies(game.cells);
             loadGame(game.gameId, game.matched);
             // const score = gameEngine.countBaseScore(game.matched)

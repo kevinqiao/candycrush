@@ -1,5 +1,4 @@
 import { v } from "convex/values";
-import * as gameEngine from "../service/GameEngine";
 import { Id } from "./_generated/dataModel";
 
 import { GAME_PLAY_TIME } from "../model/Constants";
@@ -118,37 +117,37 @@ export const log = internalMutation({
 
 
 
-export const autoStep = internalMutation({
-  handler: async (ctx) => {
-    const bgames = await ctx.db
-      .query("bgames")
-      .filter((q) => q.eq(q.field("status"), 0)).order("desc").collect();
+// export const autoStep = internalMutation({
+//   handler: async (ctx) => {
+//     const bgames = await ctx.db
+//       .query("bgames")
+//       .filter((q) => q.eq(q.field("status"), 0)).order("desc").collect();
 
-    for (let bgame of bgames) {
-      const steptime = Date.now() - bgame.starttime;
-      if (steptime >= 600000) {
-        ctx.db.patch(bgame._id, { status: 1 })
-      } else {
+//     for (let bgame of bgames) {
+//       const steptime = Date.now() - bgame.starttime;
+//       if (steptime >= 600000) {
+//         ctx.db.patch(bgame._id, { status: 1 })
+//       } else {
 
-        const from = bgame.laststep;
-        const events = await ctx.db
-          .query("events").withIndex("by_game", (q) => q.eq("gameId", bgame.ref))
-          .filter((q) => q.and(q.gt(q.field("steptime"), from), q.lte(q.field("steptime"), steptime))).order("asc")
-          .collect();
-        if (events.length > 0) {
-          const game = await ctx.db.get(bgame.gameId as Id<"games">)
-          if (game) {
-            let laststep = from;
-            for (let event of events) {
-              laststep = event.steptime ?? laststep;
-              gameEngine.handleEvent(event.name, event.data, game);
-            }
-            ctx.db.patch(game._id, { laststep, cells: game.cells, matched: game.matched })
-            ctx.db.patch(bgame._id, { laststep })
-          }
-        }
-      }
-    }
+//         const from = bgame.laststep;
+//         const events = await ctx.db
+//           .query("events").withIndex("by_game", (q) => q.eq("gameId", bgame.ref))
+//           .filter((q) => q.and(q.gt(q.field("steptime"), from), q.lte(q.field("steptime"), steptime))).order("asc")
+//           .collect();
+//         if (events.length > 0) {
+//           const game = await ctx.db.get(bgame.gameId as Id<"games">)
+//           if (game) {
+//             let laststep = from;
+//             for (let event of events) {
+//               laststep = event.steptime ?? laststep;
+//               gameEngine.handleEvent(event.name, event.data, game);
+//             }
+//             ctx.db.patch(game._id, { laststep, cells: game.cells, matched: game.matched })
+//             ctx.db.patch(bgame._id, { laststep })
+//           }
+//         }
+//       }
+//     }
 
-  },
-});
+//   },
+// });
