@@ -41,7 +41,6 @@ function App() {
   return (
     <Providers>
       <MainMenu />
-
       <NavPage />
       <StackController />
     </Providers>

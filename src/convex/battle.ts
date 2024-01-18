@@ -1,8 +1,8 @@
 import { v } from "convex/values";
 import { Id } from "./_generated/dataModel";
-import { internalMutation, internalQuery, query } from "./_generated/server";
+import { internalMutation, internalQuery } from "./_generated/server";
+import { sessionQuery } from "./custom/session";
 import { Tournament } from "./model/Tournament";
-
 // interface Tournament {
 //   id: string;
 //   type?: number;//0-unlimit 1-schedule
@@ -111,20 +111,23 @@ export const settleGame = internalMutation({
   }
 });
 
-export const findMyBattles = query({
-  args: { uid: v.string(), lastTime: v.number() },
-  handler: async (ctx, { uid, lastTime }) => {
+export const findMyBattles = sessionQuery({
+  args: { uid: v.string(), to: v.number(), from: v.optional(v.number()) },
+  handler: async (ctx, { uid, from, to }) => {
+    console.log(from + ":" + to)
     const mybattles = [];
-    let time = lastTime;
+    let games;
+    if (from)
+      games = await ctx.db.query("games").filter((q) => q.and(q.eq(q.field("uid"), uid), q.lt(q.field("_creationTime"), to), q.gt(q.field("_creationTime"), from))).order("desc").collect();
+    else
+      games = await ctx.db.query("games").filter((q) => q.and(q.eq(q.field("uid"), uid), q.lt(q.field("_creationTime"), to))).order("desc").take(10);
 
-    const games = await ctx.db.query("games").filter((q) => q.and(q.eq(q.field("uid"), uid), q.lt(q.field("_creationTime"), lastTime))).order("desc").collect();
     for (const game of games) {
       const b: any = await ctx.db.get(game.battleId as Id<"battle">);
       if (b && b.status > 0) {
-        mybattles.push({ ...b, id: b._id, _id: undefined, time: b._creationTime, _creationTime: undefined })
-        time = game._creationTime;
+        mybattles.push({ ...b, id: b._id, _id: undefined, time: game._creationTime, _creationTime: undefined })
       }
     }
-    return { battles: mybattles, time }
+    return mybattles
   },
 });

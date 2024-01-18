@@ -40,7 +40,13 @@ export const SlideNavProvider = ({ pageProp, children }: { pageProp: PageProps; 
   const [components, setComponents] = useState<
     { name: string; index: number; component: any; slide?: HTMLDivElement }[]
   >([]);
-
+  const syncHistory = () => {
+    if (pageProp.config.children) {
+      const child = pageProp.config.children[menuIndexRef.current];
+      const uri = "/" + pageProp.ctx + "/" + pageProp.config.uri + "/" + child.uri;
+      window.history.pushState({}, "", uri);
+    }
+  };
   const startMove = (event: TouchEvent | MouseEvent) => {
     const clientX = "touches" in event ? event.touches[0].clientX : event.clientX;
     startXRef.current = clientX;
@@ -106,12 +112,14 @@ export const SlideNavProvider = ({ pageProp, children }: { pageProp: PageProps; 
     }
     tl.play();
     menuIndexRef.current = index;
+    syncHistory();
   };
   const initContainer = () => {
     const index = menuIndexRef.current;
     const curmenu = menusRef.current.get(index);
     const slideContainer = slideContainerRef.current;
     if (!slideContainer) return;
+    syncHistory();
     const tl = gsap.timeline({
       onComplete: () => {
         tl.kill();

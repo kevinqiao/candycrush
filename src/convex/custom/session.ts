@@ -1,6 +1,6 @@
-import { customAction } from "convex-helpers/server/customFunctions";
+import { customAction, customCtx, customQuery } from "convex-helpers/server/customFunctions";
 import { v } from "convex/values";
-import { action } from "../_generated/server";
+import { action, query } from "../_generated/server";
 
 export const sessionAction = customAction(action, {
     // Argument validation for sessionMutation: two named args here.
@@ -13,3 +13,15 @@ export const sessionAction = customAction(action, {
         return { ctx: { user }, args: {} };
     }
 })
+
+
+export const sessionQuery = customQuery(
+    query, // The base function we're extending
+
+    customCtx(async (ctx) => {
+        // Look up the logged in user
+        return { user: { uid: "1", token: "kqiao" } };
+    })
+);
+
+

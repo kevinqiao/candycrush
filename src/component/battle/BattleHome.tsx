@@ -8,31 +8,43 @@ const BattleHome: React.FC = () => {
   const battleRef = useRef<HTMLDivElement | null>(null);
   const { width, height } = useCoord();
   const { user } = useUserManager();
+  const lastTimeRef = useRef<number>(0);
   const [battles, setBattles] = useState<any[]>([]);
-  const lastTimeRef = useRef<number>(Date.now());
-  const [lastTime, setLastTime] = useState<number>(0);
   // const pageIndexRef = useRef<number>(0);
   const convex = useConvex();
 
+  // useEffect(() => {
+  //   if (!user) return;
+  //   const to = Date.now() + user.timelag;
+  //   console.log(to);
+  //   convex.query(api.battle.findMyBattles, { uid: user.uid, to }).then((bs: any) => {
+  //     if (bs.length > 0) {
+  //       bs.forEach((b: any) => {
+  //         b.games = b.report;
+  //       });
+  //       bs.sort((a: any, b: any) => b.time - a.time);
+  //       setBattles(bs);
+  //     }
+  //   });
+  // }, [user, convex]);
   useEffect(() => {
-    if (!lastTime || !user) return;
-    convex.query(api.battle.findMyBattles, { uid: user.uid, lastTime: lastTimeRef.current }).then((bs: any) => {
-      if (bs) {
-        bs.battles.forEach((b: any) => {
-          b.games = b.report;
-        });
-        setBattles((pre) => [...pre, ...bs.battles]);
-        // lastTimeRef.current = bs.time;
-      }
-    });
-  }, [lastTime, user, convex]);
-  useEffect(() => {
+    if (!user) return;
     const observer = new IntersectionObserver(
       (entries) => {
         entries.forEach((entry) => {
           if (entry.isIntersecting) {
-            battles.length = 0;
-            setLastTime(Date.now());
+            const to = Date.now() + user.timelag;
+            const from = lastTimeRef.current > 0 ? lastTimeRef.current : undefined;
+            convex.query(api.battle.findMyBattles, { uid: user.uid, from, to }).then((bs: any) => {
+              if (bs.length > 0) {
+                bs.forEach((b: any) => {
+                  b.games = b.report;
+                });
+                bs.sort((a: any, b: any) => b.time - a.time);
+                lastTimeRef.current = bs[0].time;
+                setBattles((pre) => [...bs, ...pre]);
+              }
+            });
             // console.log("Div is in the viewport");
           } else {
             // Div is not in the viewport
@@ -57,7 +69,7 @@ const BattleHome: React.FC = () => {
         observer.unobserve(battleRef.current);
       }
     };
-  }, []);
+  }, [user, convex]);
 
   return (
     <div
