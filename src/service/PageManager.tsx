@@ -244,6 +244,7 @@ export const PageProvider = ({ children }: { children: React.ReactNode }) => {
     };
     const prop = parseURL(window.location);
     if (prop && Object.keys(prop).length > 0) {
+      console.log(prop);
       dispatch({ type: actions.APP_OPEN, data: prop });
     } else {
       openPage({ name: "playcenter", ctx: "match3", child: "tournamentHome" });
