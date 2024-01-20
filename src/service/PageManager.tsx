@@ -221,10 +221,8 @@ export const PageProvider = ({ children }: { children: React.ReactNode }) => {
 
   useEffect(() => {
     const handlePopState = (event: any) => {
-      console.log(event.state.data);
-      console.log(window.location.href);
       const prop = parseURL(window.location);
-      if (prop && Object.keys(prop).length > 0) {
+      if (prop["navItem"]) {
         if (event.state.data && prop.stackItems) {
           const stack = prop.stackItems[prop.stackItems.length - 1];
           stack.data = event.state.data;
