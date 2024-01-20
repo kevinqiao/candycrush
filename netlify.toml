@@ -1,11 +1,11 @@
 [[redirects]]
 from = "/match3/*"
 to = "/match3/index.html"
-status = 200
+status = 301
 force = true
 
 [[redirects]]
 from = "/tg/*"
 to = "/tg/index.html"
-status = 200
+status = 301
 force = true
