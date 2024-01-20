@@ -247,6 +247,7 @@ export const PageProvider = ({ children }: { children: React.ReactNode }) => {
       console.log(prop);
       dispatch({ type: actions.APP_OPEN, data: prop });
     } else {
+      console.log("open default page");
       openPage({ name: "playcenter", ctx: "match3", child: "tournamentHome" });
       window.history.replaceState({}, "", "/match3/playcenter/tournament/home");
     }
