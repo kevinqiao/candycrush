@@ -243,6 +243,7 @@ export const PageProvider = ({ children }: { children: React.ReactNode }) => {
       }
     };
     const prop = parseURL(window.location);
+    console.log(prop);
     if (prop && Object.keys(prop).length > 0) {
       console.log(prop);
       dispatch({ type: actions.APP_OPEN, data: prop });
