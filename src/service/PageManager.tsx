@@ -55,6 +55,8 @@ const reducer = (state: any, action: any) => {
     case actions.APP_OPEN:
       const res = action.data;
       if (res.navItem) {
+        console.log(res);
+        console.log("app open and update state");
         const obj = { currentPage: res.navItem, stacks: res.stackItems ?? [] };
         return Object.assign({}, state, obj);
       } else return state;
