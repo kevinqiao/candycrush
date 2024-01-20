@@ -1,0 +1,5 @@
+[[redirects]]
+from = "/match3/*"
+to = "/match3/index.html"
+status = 200
+force = true
