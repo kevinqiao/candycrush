@@ -223,6 +223,7 @@ export const PageProvider = ({ children }: { children: React.ReactNode }) => {
     const handlePopState = (event: any) => {
       const prop = parseURL(window.location);
       if (prop["navItem"]) {
+        console.log("open app from back and forward");
         if (event.state.data && prop.stackItems) {
           const stack = prop.stackItems[prop.stackItems.length - 1];
           stack.data = event.state.data;
@@ -231,8 +232,8 @@ export const PageProvider = ({ children }: { children: React.ReactNode }) => {
       }
     };
     const prop = parseURL(window.location);
-    console.log(prop);
     if (prop["navItem"]) {
+      console.log("open app");
       dispatch({ type: actions.APP_OPEN, data: prop });
     } else {
       console.log("open default page");
