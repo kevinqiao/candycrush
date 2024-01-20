@@ -3,11 +3,20 @@ const HtmlWebpackPlugin = require("html-webpack-plugin");
 const CopyPlugin = require("copy-webpack-plugin");
 
 module.exports = {
-  entry: "./src/index.tsx",
-  output: {
-    path: path.resolve(__dirname, "dist"),
-    filename: "bundle.js",
+  entry: {
+    match3: "./src/index.tsx", // 第一个入口点
+    tg: "./src/telegram_index.tsx", // 第二个入口点
   },
+  output: {
+    filename: "[name].bundle.js",
+    path: path.resolve(__dirname, "dist"),
+  },
+
+  // entry: "./src/index.tsx",
+  // output: {
+  //   path: path.resolve(__dirname, "dist"),
+  //   filename: "bundle.js",
+  // },
   module: {
     rules: [
       // 处理 .ts 或 .tsx 文件
@@ -32,8 +41,18 @@ module.exports = {
     ],
   },
   plugins: [
+    // new HtmlWebpackPlugin({
+    //   template: "./public/index.html",
+    // }),
     new HtmlWebpackPlugin({
       template: "./public/index.html",
+      filename: "match3/index.html",
+      chunks: ["match3"],
+    }),
+    new HtmlWebpackPlugin({
+      template: "./public/index.html",
+      filename: "tg/index.html",
+      chunks: ["tg"],
     }),
     new CopyPlugin({
       patterns: [
