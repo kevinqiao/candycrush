@@ -87,10 +87,11 @@ const reducer = (state: any, action: any) => {
   }
 };
 
-const parseURL = (location: any): { navItem?: PageItem; stackItems?: PageItem[] } => {
+const parseURL = (location: any): { navItem?: PageItem; ctx?: string; stackItems?: PageItem[] } => {
   const res: any = {};
   const navItem: any = {};
   const ps = location.pathname.split("/");
+  res["ctx"] = ps[1];
   let app = AppsConfiguration.find((a) => a.context === ps[1]);
   if (!app) {
     app = AppsConfiguration.find((a) => a.context === "/" || a.context === "");
@@ -139,17 +140,6 @@ const parseURL = (location: any): { navItem?: PageItem; stackItems?: PageItem[] 
   }
 
   return res;
-};
-const buildAppURL = (navItem: PageItem, stackItems: PageItem[]): string | null => {
-  let url = buildNavURL(navItem);
-  if (url && stackItems.length > 0) {
-    url = url + "#";
-    for (let stackItem of stackItems) {
-      url = url + "@" + stackItem.name;
-    }
-    return url;
-  }
-  return null;
 };
 const buildNavURL = (pageItem: PageItem): string | null => {
   const app = AppsConfiguration.find((a) => a.context === pageItem.ctx);
@@ -244,12 +234,11 @@ export const PageProvider = ({ children }: { children: React.ReactNode }) => {
     };
     const prop = parseURL(window.location);
     console.log(prop);
-    if (prop && Object.keys(prop).length > 0) {
-      console.log(prop);
+    if (prop["navItem"]) {
       dispatch({ type: actions.APP_OPEN, data: prop });
     } else {
       console.log("open default page");
-      openPage({ name: "playcenter", ctx: "match3", child: "tournamentHome" });
+      openPage({ name: "playcenter", ctx: prop.ctx, child: "tournamentHome" });
       window.history.replaceState({}, "", "/match3/playcenter/tournament/home");
     }
     // 监听popstate事件
