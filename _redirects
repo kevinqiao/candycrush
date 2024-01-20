@@ -1,3 +1,3 @@
 /match3/*    /match3/index.html   200
 /tg/*    /tg/index.html   200
-/index.html       /match3/index.html 200
+/      /match3/index.html 301!
