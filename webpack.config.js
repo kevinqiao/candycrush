@@ -70,6 +70,7 @@ module.exports = {
     },
     extensions: [".js", ".jsx", ".ts", ".tsx"],
   },
+  devtool: "source-map",
   devServer: {
     static: {
       directory: path.join(__dirname, "public"),
@@ -78,6 +79,13 @@ module.exports = {
     port: 3000,
     open: true, // 自动打开浏览器
     hot: true, // 启用热模块替换
-    historyApiFallback: true, // 对于使用 HTML5 History API 的单页应用很有用
+    historyApiFallback: {
+      rewrites: [
+        // 重定向规则
+        { from: "/match3/*", to: "/match3/index.html" },
+        { from: "/tg/*", to: "/tg/index.html" },
+        // 你可以添加更多的重定向规则
+      ],
+    },
   },
 };

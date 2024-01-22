@@ -1,17 +1,11 @@
 import { gsap } from "gsap";
 import PageProps from "model/PageProps";
-import { createContext, lazy, useContext, useEffect, useRef, useState } from "react";
+import { createContext, lazy, useCallback, useContext, useEffect, useRef, useState } from "react";
 import useCoord from "service/CoordManager";
 
-const slides = [
-  { name: "tournamentHome", index: 0, uri: "./tournament/TournamentHome" },
-  { name: "textureList", index: 1 },
-  { name: "battleHome", index: 2, uri: "./battle/BattleHome" },
-  { name: "accountHome", index: 3, uri: "./signin/AccountHome" },
-  { name: "avatarList", index: 4, uri: "./test/TextureList" },
-];
 export interface INavContext {
   index: number;
+  pageProp: PageProps | null;
   slideContainer: HTMLDivElement | null;
   components: { name: string; index: number; component: any; slide?: HTMLDivElement }[];
   loadMenu: (index: number, ele: SVGPolygonElement | null) => void;
@@ -22,6 +16,7 @@ export interface INavContext {
 
 const NavContext = createContext<INavContext>({
   index: 2,
+  pageProp: null,
   slideContainer: null,
   components: [],
   loadMenu: (index: number, ele: SVGPolygonElement | null) => null,
@@ -30,7 +25,15 @@ const NavContext = createContext<INavContext>({
   changeIndex: (index: number) => null,
 });
 
-export const SlideNavProvider = ({ pageProp, children }: { pageProp: PageProps; children: React.ReactNode }) => {
+export const SlideNavProvider = ({
+  pageEvent,
+  pageProp,
+  children,
+}: {
+  pageEvent: any;
+  pageProp: PageProps;
+  children: React.ReactNode;
+}) => {
   const { width, height } = useCoord();
   const startXRef = useRef<number>(0);
   const menusRef = useRef<Map<number, SVGPolygonElement>>(new Map());
@@ -40,13 +43,7 @@ export const SlideNavProvider = ({ pageProp, children }: { pageProp: PageProps; 
   const [components, setComponents] = useState<
     { name: string; index: number; component: any; slide?: HTMLDivElement }[]
   >([]);
-  const syncHistory = () => {
-    if (pageProp.config.children) {
-      const child = pageProp.config.children[menuIndexRef.current];
-      const uri = "/" + pageProp.ctx + "/" + pageProp.config.uri + "/" + child.uri;
-      window.history.pushState({}, "", uri);
-    }
-  };
+
   const startMove = (event: TouchEvent | MouseEvent) => {
     const clientX = "touches" in event ? event.touches[0].clientX : event.clientX;
     startXRef.current = clientX;
@@ -66,6 +63,37 @@ export const SlideNavProvider = ({ pageProp, children }: { pageProp: PageProps; 
     startXRef.current = 0;
   };
 
+  const changeIndex = useCallback(
+    (index: number) => {
+      if (index === menuIndexRef.current) return;
+      const slideContainer = slideContainerRef.current;
+      const premenu = menusRef.current.get(menuIndexRef.current);
+      const curmenu = menusRef.current.get(index);
+      const component = components.find((c) => c.index === index);
+      const tl = gsap.timeline({
+        onComplete: () => {
+          tl.kill();
+        },
+      });
+      tl.to(slideContainer, { duration: 1.4, alpha: 1, x: -index * width });
+      if (component?.slide) {
+        tl.to(component.slide, { autoAlpha: 1, duration: 1.4 }, "<");
+      }
+      if (premenu) tl.to(premenu, { fill: "grey", duration: 1 }, "<");
+      if (curmenu) {
+        tl.to(curmenu, { fill: "red", duration: 1 }, "<");
+      }
+      tl.play();
+      menuIndexRef.current = index;
+    },
+    [components, width]
+  );
+  useEffect(() => {
+    if (pageEvent && pageProp.config.children) {
+      const index = pageProp.config.children.findIndex((c) => c.name === pageProp.child);
+      changeIndex(index);
+    }
+  }, [changeIndex, pageEvent, pageProp]);
   useEffect(() => {
     if (pageProp.config?.children) {
       const cs: { name: string; index: number; component: any }[] = [];
@@ -92,34 +120,12 @@ export const SlideNavProvider = ({ pageProp, children }: { pageProp: PageProps; 
     initContainer();
   }, [width, height]);
 
-  const changeIndex = (index: number) => {
-    const slideContainer = slideContainerRef.current;
-    const premenu = menusRef.current.get(menuIndexRef.current);
-    const curmenu = menusRef.current.get(index);
-    const component = components.find((c) => c.index === index);
-    const tl = gsap.timeline({
-      onComplete: () => {
-        tl.kill();
-      },
-    });
-    tl.to(slideContainer, { duration: 1.4, alpha: 1, x: -index * width });
-    if (component?.slide) {
-      tl.to(component.slide, { autoAlpha: 1, duration: 1.4 }, "<");
-    }
-    if (premenu) tl.to(premenu, { fill: "grey", duration: 1 }, "<");
-    if (curmenu) {
-      tl.to(curmenu, { fill: "red", duration: 1 }, "<");
-    }
-    tl.play();
-    menuIndexRef.current = index;
-    syncHistory();
-  };
   const initContainer = () => {
     const index = menuIndexRef.current;
     const curmenu = menusRef.current.get(index);
     const slideContainer = slideContainerRef.current;
     if (!slideContainer) return;
-    syncHistory();
+
     const tl = gsap.timeline({
       onComplete: () => {
         tl.kill();
@@ -138,7 +144,6 @@ export const SlideNavProvider = ({ pageProp, children }: { pageProp: PageProps; 
       if (pageProp.config.children) {
         if (pageProp.child) {
           const index = pageProp.config.children.findIndex((c: any) => c.name === pageProp.child);
-          console.log("index:" + index);
           if (index >= 0) menuIndexRef.current = index;
         } else menuIndexRef.current = 2;
       }
@@ -156,6 +161,7 @@ export const SlideNavProvider = ({ pageProp, children }: { pageProp: PageProps; 
   };
   const value = {
     index: menuIndexRef.current,
+    pageProp,
     slideContainer: slideContainerRef.current,
     components,
     loadMenu,
@@ -165,7 +171,6 @@ export const SlideNavProvider = ({ pageProp, children }: { pageProp: PageProps; 
   };
   return <NavContext.Provider value={value}> {children} </NavContext.Provider>;
 };
-
 export const useSlideNavManager = () => {
   return useContext(NavContext);
 };

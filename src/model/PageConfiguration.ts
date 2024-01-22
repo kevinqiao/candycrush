@@ -7,6 +7,7 @@ export const Telegram =
             name: "playcenter",
             path: "./PlayCenter",
             uri: "playcenter",
+            child: "tournamentHome",
             children: [
                 { name: "tournamentHome", path: "./tournament/TournamentHome", uri: "tournament/home" },
                 { name: "textureList", path: "", uri: "" },
@@ -65,6 +66,7 @@ export const PlayPlace =
             name: "playcenter",
             path: "./PlayCenter",
             uri: "playcenter",
+            child: "battleHome",
             children: [
                 { name: "tournamentHome", path: "./tournament/TournamentHome", uri: "tournament/home" },
                 { name: "textureList", path: "", uri: "" },

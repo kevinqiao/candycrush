@@ -55,8 +55,7 @@ const reducer = (state: any, action: any) => {
     case actions.APP_OPEN:
       const res = action.data;
       if (res.navItem) {
-        console.log(res);
-        console.log("app open and update state");
+        // console.log(res);
         const obj = { currentPage: res.navItem, stacks: res.stackItems ?? [] };
         return Object.assign({}, state, obj);
       } else return state;
@@ -220,29 +219,48 @@ export const PageProvider = ({ children }: { children: React.ReactNode }) => {
     },
     [dispatch]
   );
-
+  const openApp = useCallback(
+    (app: any) => {
+      if (app["navItem"]) {
+        if (app.stackItems && app.data) {
+          const stack = app.stackItems[app.stackItems.length - 1];
+          stack.data = app.data;
+        }
+        dispatch({ type: actions.APP_OPEN, data: app });
+      }
+    },
+    [dispatch]
+  );
   useEffect(() => {
     const handlePopState = (event: any) => {
       const prop = parseURL(window.location);
-      if (prop["navItem"]) {
-        console.log("open app from back and forward");
-        if (event.state.data && prop.stackItems) {
-          const stack = prop.stackItems[prop.stackItems.length - 1];
-          stack.data = event.state.data;
-        }
-        dispatch({ type: actions.APP_OPEN, data: prop });
-      }
+      openApp(prop);
     };
+
     const prop = parseURL(window.location);
-    if (prop["navItem"]) {
-      console.log("open app");
-      dispatch({ type: actions.APP_OPEN, data: prop });
+    if (prop.ctx) {
+      if (!prop["navItem"]) {
+        prop.stackItems = undefined;
+        const app: any = AppsConfiguration.find((a) => a.context === prop.ctx);
+        if (app?.navs && app.navs.length > 0) {
+          let uri = "/" + app.context + "/" + app.navs[0].uri;
+          prop.navItem = { name: app.navs[0].name };
+          prop.navItem.ctx = prop.ctx;
+          if (app.navs[0]["children"]) {
+            prop.navItem.child = app.navs[0].child ?? app.navs[0].children[0].name;
+            const child: { name: string; path: string; uri: string } = app.navs[0].children.find(
+              (c: any) => c.name === app.navs[0]["child"]
+            );
+            if (child) uri = uri + "/" + child.uri;
+          }
+          window.history.replaceState({}, "", uri);
+        }
+      }
+      openApp(prop);
     } else {
-      console.log("open default page");
-      openPage({ name: "playcenter", ctx: prop.ctx, child: "tournamentHome" });
-      window.history.replaceState({}, "", "/match3/playcenter/tournament/home");
+      //open page not found
     }
-    // 监听popstate事件
+
     window.addEventListener("popstate", handlePopState);
 
     // 组件卸载时取消监听
