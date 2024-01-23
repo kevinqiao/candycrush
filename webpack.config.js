@@ -50,13 +50,14 @@ module.exports = {
       chunks: ["match3"],
     }),
     new HtmlWebpackPlugin({
-      template: "./public/index.html",
+      template: "./public/telegram_index.html",
       filename: "tg/index.html",
       chunks: ["tg"],
     }),
     new CopyPlugin({
       patterns: [
         { from: "public/assets", to: "assets" }, // 将 public 目录下的所有内容复制到构建目录下的 public
+        { from: "public/*.png", to: "images/[name][ext]", noErrorOnMissing: true },
       ],
     }),
   ],
