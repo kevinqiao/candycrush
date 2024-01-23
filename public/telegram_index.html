@@ -41,5 +41,17 @@
       To begin the development, run `npm start` or `yarn start`.
       To create a production bundle, use `npm run build` or `yarn build`.
     -->
+    <script>
+    window.addEventListener('load', () => {
+      // 检查是否在Telegram Web版中运行
+      if (typeof window.Telegram !== 'undefined' && typeof window.Telegram.WebApp !== 'undefined') {
+        // 尝试打开全屏窗口
+        window.Telegram.WebApp.expand();
+      } else {
+        // Telegram WebApp API不可用，可以提供替代操作或错误处理
+        console.log('Telegram WebApp API不可用。');
+      }
+    });
+    </script>
   </body>
 </html>
