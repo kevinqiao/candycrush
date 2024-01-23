@@ -46,6 +46,7 @@
       // 检查是否在Telegram Web版中运行
       if (typeof window.Telegram !== 'undefined' && typeof window.Telegram.WebApp !== 'undefined') {
         // 尝试打开全屏窗口
+        console.log("telegram exist")
         window.Telegram.WebApp.expand();
       } else {
         // Telegram WebApp API不可用，可以提供替代操作或错误处理
