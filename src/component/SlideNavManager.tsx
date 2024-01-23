@@ -66,19 +66,20 @@ export const SlideNavProvider = ({
   const changeIndex = useCallback(
     (index: number) => {
       if (index === menuIndexRef.current) return;
+      const delta = Math.abs(menuIndexRef.current - index);
       const slideContainer = slideContainerRef.current;
       const premenu = menusRef.current.get(menuIndexRef.current);
       const curmenu = menusRef.current.get(index);
-      const component = components.find((c) => c.index === index);
+      // const component = components.find((c) => c.index === index);
       const tl = gsap.timeline({
         onComplete: () => {
           tl.kill();
         },
       });
-      tl.to(slideContainer, { duration: 1.4, alpha: 1, x: -index * width });
-      if (component?.slide) {
-        tl.to(component.slide, { autoAlpha: 1, duration: 1.4 }, "<");
-      }
+      tl.to(slideContainer, { duration: delta * 0.3, alpha: 1, x: -index * width });
+      // if (component?.slide) {
+      //   tl.to(component.slide, { autoAlpha: 1, duration: 1.4 }, "<");
+      // }
       if (premenu) tl.to(premenu, { fill: "grey", duration: 1 }, "<");
       if (curmenu) {
         tl.to(curmenu, { fill: "red", duration: 1 }, "<");
