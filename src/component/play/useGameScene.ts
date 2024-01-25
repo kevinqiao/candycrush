@@ -107,6 +107,7 @@ const useGameScene = () => {
                     drag.startY = event.y;
                     drag.cellId = cell.id;
                 });
+                
                 // sprite.on("pointermove", (event: PointerEvent) => {
                 //     const drag = dragRef.current;
                 //     const deltaX = event.x - drag.startX;

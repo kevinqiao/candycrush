@@ -15,6 +15,7 @@ interface User {
 }
 interface IUserContext {
   user: any | null;
+  sessionCheck: number;
   userEvent: UserEvent | null;
   authComplete: (user: User) => void;
   signout: () => void;
@@ -23,34 +24,16 @@ interface IUserContext {
   findAllUser: () => any;
 }
 
-const initialState = {
-  user: null,
-};
-
-const actions = {
-  AUTH_COMPLETE: "AUTH_COMPLETE",
-  SIGN_IN: "SIGN_IN",
-  SIGN_OUT: "SIGN_OUT",
-  SIGN_UP: "SIGN_UP",
-};
-
-const reducer = (state: any, action: any) => {
-  switch (action.type) {
-    case actions.AUTH_COMPLETE:
-      return Object.assign({}, state, { user: action.data });
-    case actions.SIGN_IN:
-      return Object.assign({}, state, action.data);
-    case actions.SIGN_OUT:
-      return Object.assign({}, state, { user: null });
-    case actions.SIGN_UP:
-      break;
-    default:
-      return state;
-  }
-};
+// const actions = {
+//   AUTH_COMPLETE: "AUTH_COMPLETE",
+//   SIGN_IN: "SIGN_IN",
+//   SIGN_OUT: "SIGN_OUT",
+//   SIGN_UP: "SIGN_UP",
+// };
 
 const UserContext = createContext<IUserContext>({
   user: null,
+  sessionCheck: 0,
   userEvent: null,
   authComplete: () => null,
   signout: () => null,
@@ -60,11 +43,13 @@ const UserContext = createContext<IUserContext>({
 });
 
 export const UserProvider = ({ children }: { children: React.ReactNode }) => {
-  const { stacks, openPage } = usePageManager();
+  const { openPage } = usePageManager();
+  const [user, setUser] = useState<any>(null);
+  const [sessionCheck, setSessionCheck] = useState(0); //0-to check 1-checked
   const [lastTime, setLastTime] = useState<number>(0);
-  const [state, dispatch] = React.useReducer(reducer, initialState);
+  // const [state, dispatch] = React.useReducer(reducer, initialState);
   const authByToken = useAction(api.UserService.authByToken);
-  const userEvent: any = useQuery(api.events.getByUser, { uid: state.user?.uid ?? "###", lastTime });
+  const userEvent: any = useQuery(api.events.getByUser, { uid: user?.uid ?? "###", lastTime });
   const signinByToken = useAction(api.UserService.signin);
   const findAllUser = useAction(api.UserService.findAllUser);
 
@@ -80,26 +65,29 @@ export const UserProvider = ({ children }: { children: React.ReactNode }) => {
           if (u) {
             u.timelag = u.timestamp - Date.now();
             localStorage.setItem("user", JSON.stringify({ uid: user.uid, token: "12345" }));
-            dispatch({ type: actions.AUTH_COMPLETE, data: u });
+            setUser(u);
             if (u.battle) {
               openPage({ name: "battlePlay", ctx: "match3", data: { act: "load", battle: u.battle } });
             }
           }
+          setSessionCheck(1);
         });
+      else setSessionCheck(1);
     }
   }, []);
 
   const value = {
-    user: state.user,
+    user,
+    sessionCheck,
     userEvent,
     authComplete: useCallback((user: User) => {
       localStorage.setItem("user", JSON.stringify({ uid: user.uid, token: "12345" }));
-      dispatch({ type: actions.AUTH_COMPLETE, data: user });
+      setUser(user);
     }, []),
 
     signout: useCallback(() => {
       localStorage.removeItem("user");
-      dispatch({ type: actions.SIGN_OUT });
+      setUser(null);
     }, []),
     signup: useCallback(() => {}, []),
     signin: useCallback(async (uid: string, token: string) => {
@@ -107,7 +95,7 @@ export const UserProvider = ({ children }: { children: React.ReactNode }) => {
       if (user) {
         user.timelag = user.timestamp - Date.now();
         localStorage.setItem("user", JSON.stringify({ uid: user.uid, token: "12345" }));
-        dispatch({ type: actions.AUTH_COMPLETE, data: user });
+        setUser(user);
         if (user.battle) {
           openPage({ name: "battlePlay", ctx: "playplace", data: { act: "load", battle: user.battle } });
         }
