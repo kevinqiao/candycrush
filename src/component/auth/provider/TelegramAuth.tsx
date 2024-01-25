@@ -11,14 +11,15 @@ const getTelegramData = () => {
   if (window.Telegram?.WebApp) {
     // 获取用户数据
     const userData = window.Telegram?.WebApp.initDataUnsafe;
-
+    console.log(userData);
+    return userData;
     // 返回需要的数据
-    return {
-      userId: userData.user.id, // 用户ID
-      authDate: userData.auth_date, // 授权日期
-      hash: userData.hash, // 安全哈希
-      // 还可以获取更多数据，根据需要添加
-    };
+    // return {
+    //   userId: userData.user.id, // 用户ID
+    //   authDate: userData.auth_date, // 授权日期
+    //   hash: userData.hash, // 安全哈希
+    //   // 还可以获取更多数据，根据需要添加
+    // };
   } else {
     console.error("Telegram WebApp API 未加载");
     return null;
