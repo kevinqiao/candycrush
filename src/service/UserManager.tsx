@@ -73,7 +73,7 @@ export const UserProvider = ({ children }: { children: React.ReactNode }) => {
           setSessionCheck(1);
         });
       else setSessionCheck(1);
-    }
+    } else setSessionCheck(1);
   }, []);
 
   const value = {
