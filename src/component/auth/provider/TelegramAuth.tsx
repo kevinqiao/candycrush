@@ -55,7 +55,7 @@ export const TelegramAuthProvider = ({ children }: { children: React.ReactNode }
       fetch(BOT_URL, {
         method: "POST",
         headers: {
-          "Content-Type": "application/json",
+          "Content-Type": "application/json; charset=utf-8",
         },
         body: JSON.stringify(telegramData),
       })
