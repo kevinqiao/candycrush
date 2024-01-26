@@ -83,6 +83,15 @@ export default defineSchema({
         amount: v.number(),
         lastUpdate: v.optional(v.number())
     }),
+    channelUser: defineTable({
+        uid: v.string(),
+        cid: v.string(),
+        channel: v.number(),
+        name: v.optional(v.string()),
+        email: v.optional(v.string()),
+        phone: v.optional(v.string()),
+        data: v.optional(v.any())
+    }),
     user: defineTable({
         uid: v.string(),
         name: v.string(),

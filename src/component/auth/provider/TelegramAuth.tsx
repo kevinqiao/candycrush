@@ -30,7 +30,7 @@ export const TelegramAuthProvider = ({ children }: { children: React.ReactNode }
   const { openPage } = usePageManager();
   const { sessionCheck } = useUserManager();
   useEffect(() => {
-    console.log("session check:" + sessionCheck);
+    // console.log("session check:" + sessionCheck);
     if (sessionCheck) {
       const telegramData = getTelegramData();
       // fetch(BOT_URL)
