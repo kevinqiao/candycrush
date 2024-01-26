@@ -5,7 +5,7 @@ import { useUserManager } from "service/UserManager";
 interface ITelegramAuthContext {}
 
 const TelegramAuthContext = createContext<ITelegramAuthContext>({});
-const BOT_URL = "https://telegram-bot-8bgi.onrender.com/auth";
+const BOT_URL = "https://telegram-bot-8bgi.onrender.com/tg/auth";
 const getTelegramData = () => {
   // 确保 Telegram 的 Web App API 已经加载
   if (window.Telegram?.WebApp) {
