@@ -1,5 +1,6 @@
 import NavPage from "component/NavPage";
 import StackController from "component/StackController";
+import { TelegramAuthProvider } from "component/auth/provider/TelegramAuth";
 import MainMenu from "component/menu/MainMenu";
 import { ConvexProvider, ConvexReactClient } from "convex/react";
 import { gsap } from "gsap";
@@ -36,7 +37,7 @@ function App() {
     [PageProvider],
     [ConvexProvider, { client: convex }],
     [UserProvider],
-    // [TelegramAuthProvider],
+    [TelegramAuthProvider],
     // [EventProvider],
   ]);
   return (
