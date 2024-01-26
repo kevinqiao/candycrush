@@ -33,6 +33,7 @@ export const TelegramAuthProvider = ({ children }: { children: React.ReactNode }
     // console.log("session check:" + sessionCheck);
     if (sessionCheck) {
       const telegramData = getTelegramData();
+      console.log(telegramData);
       // fetch(BOT_URL)
       //   .then((response) => {
       //     // 检查响应状态
