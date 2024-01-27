@@ -93,9 +93,9 @@ export default defineSchema({
         data: v.optional(v.any())
     }),
     user: defineTable({
-        uid: v.string(),
+        uid: v.optional(v.string()),
         name: v.string(),
-        channel: v.number(),
+        token: v.optional(v.string()),
         partner: v.optional(v.string()),
         lastUpdate: v.optional(v.number()),
         email: v.optional(v.string()),

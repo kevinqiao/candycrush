@@ -1,7 +1,6 @@
 export interface User {
     uid: string;
     name: string;
-    channel: number;
     email?: string;
     level: number;
     exp: number;

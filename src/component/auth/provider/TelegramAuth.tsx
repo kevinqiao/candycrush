@@ -40,7 +40,7 @@ export const TelegramAuthProvider = ({ children }: { children: React.ReactNode }
         headers: {
           "Content-Type": "application/json; charset=utf-8",
         },
-        body: JSON.stringify(telegramData),
+        body: JSON.stringify({ authData: telegramData }),
       })
         .then((response) => {
           if (!response.ok) {
