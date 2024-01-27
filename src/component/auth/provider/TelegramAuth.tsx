@@ -14,7 +14,7 @@ const getTelegramData = () => {
     const userData = window.Telegram?.WebApp.initDataUnsafe;
     console.log(userData);
     console.log(window.Telegram.WebApp.initData);
-    return userData;
+    return { initDataObj: userData, initDataStr: window.Telegram.WebApp.initData };
     // 返回需要的数据
     // return {
     //   userId: userData.user.id, // 用户ID
