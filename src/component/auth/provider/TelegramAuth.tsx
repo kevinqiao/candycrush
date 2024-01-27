@@ -13,6 +13,7 @@ const getTelegramData = () => {
     // 获取用户数据
     const userData = window.Telegram?.WebApp.initDataUnsafe;
     console.log(userData);
+    console.log(window.Telegram.WebApp.initData);
     return userData;
     // 返回需要的数据
     // return {
