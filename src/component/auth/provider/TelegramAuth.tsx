@@ -5,8 +5,8 @@ import { useUserManager } from "service/UserManager";
 interface ITelegramAuthContext {}
 
 const TelegramAuthContext = createContext<ITelegramAuthContext>({});
-// const BOT_URL = "https://telegram-bot-8bgi.onrender.com/tg/auth";
-const BOT_URL = "https://telegram-auth.onrender.com/telegram-auth";
+const BOT_URL = "https://telegram-bot-8bgi.onrender.com/tg/auth";
+// const BOT_URL = "https://telegram-auth.onrender.com/telegram-auth";
 const getTelegramData = () => {
   // 确保 Telegram 的 Web App API 已经加载
   if (window.Telegram?.WebApp) {
@@ -34,26 +34,7 @@ export const TelegramAuthProvider = ({ children }: { children: React.ReactNode }
   useEffect(() => {
     // console.log("session check:" + sessionCheck);
     if (sessionCheck) {
-      const telegramData = getTelegramData();
-      console.log(telegramData);
-      // fetch(BOT_URL)
-      //   .then((response) => {
-      //     // 检查响应状态
-      //     if (!response.ok) {
-      //       throw new Error(`HTTP error! status: ${response.status}`);
-      //     }
-      //     // 解析响应内容为 JSON
-      //     return response.json();
-      //   })
-      //   .then((data) => {
-      //     // 处理获取到的数据
-      //     console.log(data);
-      //   })
-      //   .catch((error) => {
-      //     // 处理错误
-      //     console.error("请求失败:", error);
-      //   });
-
+      const telegramData = window.Telegram.WebApp.initData;
       fetch(BOT_URL, {
         method: "POST",
         headers: {
