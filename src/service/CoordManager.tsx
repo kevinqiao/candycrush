@@ -28,12 +28,15 @@ export const CoordProvider = ({ children }: { children: ReactNode }) => {
     setValue(v);
   };
   useEffect(() => {
-    const userAgent: string = navigator.userAgent || navigator.vendor || window.opera;
-    console.log(userAgent);
+    const userAgent = navigator.userAgent || navigator.vendor || window.opera;
+
+    // 检测是否在 Telegram Mobile App 中
     if (/Telegram/i.test(userAgent)) {
-      return setEnviornment(0);
-    } else if (/web/i.test(userAgent)) {
-      return setEnviornment(1);
+      setEnviornment(0);
+    }
+    // 检测是否在 Telegram Desktop Web Browser 中
+    else if (/Windows NT|Macintosh|Linux x86_64/i.test(userAgent)) {
+      setEnviornment(1);
     }
   }, []);
   useEffect(() => {
