@@ -14,6 +14,7 @@ gsap.registerPlugin(MotionPathPlugin);
 
 const convex = new ConvexReactClient("https://dazzling-setter-839.convex.cloud");
 function TgApp() {
+  window.Telegram.WebApp.expand();
   const FlattenedProviderTree = (providers: any): any => {
     if (providers?.length === 1) {
       return providers[0][0];
@@ -32,6 +33,7 @@ function TgApp() {
       ...providers,
     ]);
   };
+
   const Providers = FlattenedProviderTree([
     [CoordProvider],
     [PageProvider],
