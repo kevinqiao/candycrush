@@ -48,6 +48,7 @@
         // 尝试打开全屏窗口
         console.log("telegram exist")
         window.Telegram.WebApp.expand();
+        window.Telegram.WebApp.viewportHeight=window.innerHeight
       } else {
         // Telegram WebApp API不可用，可以提供替代操作或错误处理
         console.log('Telegram WebApp API不可用。');
