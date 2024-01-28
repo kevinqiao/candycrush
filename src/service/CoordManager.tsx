@@ -3,8 +3,8 @@ const CoordContext = createContext<any>(null);
 
 export const CoordProvider = ({ children }: { children: ReactNode }) => {
   const [value, setValue] = useState<{ width: number; height: number }>({ width: 0, height: 0 });
-  const [enviornment, setEnviornment] = useState<number>(-1);
-  console.log("enviornment:" + enviornment);
+  const [terminal, setTerminal] = useState<number>(-1);
+  console.log("terminal:" + terminal);
   const updateCoord = () => {
     const w = window.innerWidth as number;
     const h = window.innerHeight as number;
@@ -24,20 +24,18 @@ export const CoordProvider = ({ children }: { children: ReactNode }) => {
       mainMenuLeft,
       mainMenuRatio,
       isMobile,
-      enviornment,
+      terminal,
     };
     setValue(v);
   };
   useEffect(() => {
     const userAgent = navigator.userAgent || navigator.vendor || window.opera;
-
-    // 检测是否在 Telegram Mobile App 中
-    if (/Telegram/i.test(userAgent)) {
-      setEnviornment(0);
+    if (/android/i.test(userAgent) || (/iPad|iPhone|iPod/.test(userAgent) && !window.MSStream)) {
+      setTerminal(0);
     }
     // 检测是否在 Telegram Desktop Web Browser 中
     else if (/Windows NT|Macintosh|Linux x86_64/i.test(userAgent)) {
-      setEnviornment(1);
+      setTerminal(1);
     }
   }, []);
   useEffect(() => {

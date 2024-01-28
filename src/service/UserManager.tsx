@@ -1,6 +1,7 @@
 import { useAction, useQuery } from "convex/react";
 import React, { createContext, useCallback, useContext, useEffect, useState } from "react";
 import { api } from "../convex/_generated/api";
+import useCoord from "./CoordManager";
 import { usePageManager } from "./PageManager";
 interface UserEvent {
   id: string;
@@ -43,6 +44,7 @@ const UserContext = createContext<IUserContext>({
 });
 
 export const UserProvider = ({ children }: { children: React.ReactNode }) => {
+  const { terminal } = useCoord();
   const { openPage } = usePageManager();
   const [user, setUser] = useState<any>(null);
   const [sessionCheck, setSessionCheck] = useState(0); //0-to check 1-checked
@@ -67,7 +69,9 @@ export const UserProvider = ({ children }: { children: React.ReactNode }) => {
             localStorage.setItem("user", JSON.stringify({ uid: user.uid, token: "12345" }));
             setUser(u);
             if (u.battle) {
-              openPage({ name: "battlePlay", ctx: "match3", data: { act: "load", battle: u.battle } });
+              const ps = window.location.pathname.split("/");
+              if (ps[1] !== "tg" || terminal > 0)
+                openPage({ name: "battlePlay", ctx: "match3", data: { act: "load", battle: u.battle } });
             }
           }
           setSessionCheck(1);
