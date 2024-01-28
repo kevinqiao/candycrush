@@ -10,7 +10,7 @@ import { useUserManager } from "./UserManager";
 const useTournamentManager = () => {
   const { stacks, openPage } = usePageManager()
   const { user } = useUserManager();
-  const { enviornment } = useCoord();
+  const { terminal } = useCoord();
 
   const joinTournamentByGroup = useAction(api.tournamentService.joinTournamentByGroup);
   const convex = useConvex();
@@ -18,10 +18,7 @@ const useTournamentManager = () => {
     return user && user.uid ? true : false
   }
   const askJoin = useCallback((tournament: Tournament) => {
-    if (enviornment === 0) {
-      console.log("in telegram mobile app")
-    }
-    console.log("enviornment:" + enviornment)
+
     if (!user) {
       openPage({
         name: "signin",
@@ -30,8 +27,9 @@ const useTournamentManager = () => {
       return;
     }
     const p = stacks.find((s) => s.name === "battlePlay");
-    if (!p) openPage({ name: "battlePlay", ctx: "playplace", data: { act: "join", tournament } });
-  }, [user, stacks, openPage]);
+    const ps = window.location.pathname.split("/");
+    if ((ps[1] !== "tg" || terminal > 0) && !p) openPage({ name: "battlePlay", ctx: "playplace", data: { act: "join", tournament } });
+  }, [user, stacks, terminal, openPage]);
 
   const join = useCallback(async (tournament: Tournament) => {
     if (!checkAuth()) {
