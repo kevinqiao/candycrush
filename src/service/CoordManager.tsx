@@ -4,6 +4,7 @@ const CoordContext = createContext<any>(null);
 export const CoordProvider = ({ children }: { children: ReactNode }) => {
   const [value, setValue] = useState<{ width: number; height: number }>({ width: 0, height: 0 });
   const [enviornment, setEnviornment] = useState<number>(-1);
+  console.log("enviornment:" + enviornment);
   const updateCoord = () => {
     const w = window.innerWidth as number;
     const h = window.innerHeight as number;
