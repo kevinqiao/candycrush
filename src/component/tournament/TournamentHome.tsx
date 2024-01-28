@@ -23,9 +23,9 @@ const TournamentHome: React.FC = () => {
       {tournaments.map((t) => (
         <TournamentItem key={t.id} tournament={t} />
       ))}
-      {/* {Array.from({ length: 25 }, (_, k) => k).map((p, index) => (
-        <TournamentItem key={p} />
-      ))} */}
+      {Array.from({ length: 25 }, (_, k) => k).map((p, index) => (
+        <div key={p} style={{ height: 120, width: "100%", backgroundColor: index % 2 === 0 ? "blue" : "green" }}></div>
+      ))}
     </div>
   );
 };
