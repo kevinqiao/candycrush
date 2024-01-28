@@ -8,7 +8,7 @@ export const CoordProvider = ({ children }: { children: ReactNode }) => {
 
   const updateCoord = () => {
     const w = window.innerWidth as number;
-    const h = window.Telegram.webapp ? window.Telegram.webapp.viewportStableHeight : (window.innerHeight as number);
+    const h = window.innerHeight as number;
     const mh = (50 * w) / 500;
     const mainMenuH = mh > 120 ? 120 : mh;
     const mainMenuW = (500 * mainMenuH) / 50;
@@ -30,6 +30,11 @@ export const CoordProvider = ({ children }: { children: ReactNode }) => {
   };
 
   useEffect(() => {
+    if (window.Telegram && window.Telegram.WebApp) {
+      window.Telegram.WebApp.ready();
+      window.Telegram.WebApp.expand();
+      window.alert("web ready");
+    }
     updateCoord();
     window.addEventListener("resize", updateCoord, true);
     return () => window.removeEventListener("resize", updateCoord, true);
