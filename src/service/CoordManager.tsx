@@ -32,7 +32,7 @@ export const CoordProvider = ({ children }: { children: ReactNode }) => {
   useEffect(() => {
     if (window.Telegram && window.Telegram.WebApp) {
       window.Telegram.WebApp.ready();
-      window.Telegram.WebApp.expand();
+      setTimeout(() => window.Telegram.WebApp.expand(), 3000);
       window.alert("web ready");
     }
     updateCoord();
