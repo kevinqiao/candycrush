@@ -59,6 +59,8 @@ export const UserProvider = ({ children }: { children: React.ReactNode }) => {
     if (userEvent) setLastTime(userEvent.time);
   }, [userEvent]);
   useEffect(() => {
+    console.log("t:" + terminal);
+    if (terminal < 0) return;
     const userJSON = localStorage.getItem("user");
     if (userJSON !== null) {
       const user = JSON.parse(userJSON);
