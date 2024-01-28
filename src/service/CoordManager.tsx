@@ -40,6 +40,7 @@ export const CoordProvider = ({ children }: { children: ReactNode }) => {
   };
 
   useEffect(() => {
+    window.Telegram.WebApp.expand();
     updateCoord();
     window.addEventListener("resize", updateCoord, true);
     return () => {
