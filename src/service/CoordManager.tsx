@@ -33,7 +33,7 @@ export const CoordProvider = ({ children }: { children: ReactNode }) => {
     if (window.Telegram && window.Telegram.WebApp) {
       window.Telegram.WebApp.ready();
       setTimeout(() => window.Telegram.WebApp.expand(), 3000);
-      window.alert("web ready");
+      window.alert("web ready:" + window.Telegram.WebApp.viewportHeight);
     }
     updateCoord();
     window.addEventListener("resize", updateCoord, true);
