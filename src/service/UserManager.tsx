@@ -71,6 +71,7 @@ export const UserProvider = ({ children }: { children: React.ReactNode }) => {
             setUser(u);
             if (u.battle) {
               const ps = window.location.pathname.split("/");
+              console.log("terminal:" + terminal);
               if (ps[1] !== "tg" || terminal > 0)
                 openPage({ name: "battlePlay", ctx: "match3", data: { act: "load", battle: u.battle } });
             }
