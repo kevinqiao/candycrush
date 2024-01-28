@@ -60,7 +60,7 @@ export const UserProvider = ({ children }: { children: React.ReactNode }) => {
   }, [userEvent]);
   useEffect(() => {
     console.log("t:" + terminal);
-    if (terminal < 0) return;
+    if (!terminal || terminal < 0) return;
     const userJSON = localStorage.getItem("user");
     if (userJSON !== null) {
       const user = JSON.parse(userJSON);
