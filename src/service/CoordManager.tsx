@@ -1,5 +1,7 @@
 import { ReactNode, createContext, useContext, useEffect, useState } from "react";
-const CoordContext = createContext<any>(null);
+const CoordContext = createContext<any>({
+  terminal: -1,
+});
 
 export const CoordProvider = ({ children }: { children: ReactNode }) => {
   const [value, setValue] = useState<{ width: number; height: number }>({ width: 0, height: 0 });
