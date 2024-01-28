@@ -15,6 +15,7 @@ gsap.registerPlugin(MotionPathPlugin);
 const convex = new ConvexReactClient("https://dazzling-setter-839.convex.cloud");
 function TgApp() {
   window.Telegram.WebApp.expand();
+  setTimeout(() => window.Telegram.WebApp.expand(), 500);
   const FlattenedProviderTree = (providers: any): any => {
     if (providers?.length === 1) {
       return providers[0][0];
