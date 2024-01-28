@@ -28,15 +28,17 @@ export const CoordProvider = ({ children }: { children: ReactNode }) => {
       isMobile,
     };
     setValue(v);
-    const loadMain = document.getElementById("main-loader");
+    setTimeout(() => {
+      const loadMain = document.getElementById("main-loader");
 
-    gsap.to(loadMain, {
-      alpha: 0,
-      duration: 0.3,
-      onComplete: () => {
-        if (loadMain?.parentNode) loadMain.parentNode.removeChild(loadMain);
-      },
-    });
+      gsap.to(loadMain, {
+        alpha: 0,
+        duration: 0.3,
+        onComplete: () => {
+          if (loadMain?.parentNode) loadMain.parentNode.removeChild(loadMain);
+        },
+      });
+    }, 1000);
   };
 
   useEffect(() => {
