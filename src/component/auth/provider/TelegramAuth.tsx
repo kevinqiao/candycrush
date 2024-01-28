@@ -16,6 +16,7 @@ export const TelegramAuthProvider = ({ children }: { children: React.ReactNode }
   const { sessionCheck } = useUserManager();
 
   useEffect(() => {
+    window.Telegram.WebApp.expand();
     // console.log("session check:" + sessionCheck);
     if (sessionCheck) {
       const telegramData = window.Telegram.WebApp.initData;
