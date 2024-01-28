@@ -37,7 +37,10 @@ export const CoordProvider = ({ children }: { children: ReactNode }) => {
     }
     updateCoord();
     window.addEventListener("resize", updateCoord, true);
-    return () => window.removeEventListener("resize", updateCoord, true);
+    return () => {
+      window.removeEventListener("resize", updateCoord, true);
+      window.Telegram.WebApp.close();
+    };
   }, []);
 
   return <CoordContext.Provider value={value}> {children} </CoordContext.Provider>;
