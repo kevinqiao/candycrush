@@ -1,6 +1,5 @@
 import NavPage from "component/NavPage";
 import StackController from "component/StackController";
-import { TelegramAuthProvider } from "component/auth/provider/TelegramAuth";
 import MainMenu from "component/menu/MainMenu";
 import { ConvexProvider, ConvexReactClient } from "convex/react";
 import { gsap } from "gsap";
@@ -13,7 +12,7 @@ gsap.registerPlugin(MotionPathPlugin);
 // gsap.registerPlugin(TransformPlugin);
 
 const convex = new ConvexReactClient("https://dazzling-setter-839.convex.cloud");
-function App() {
+function M3App() {
   const FlattenedProviderTree = (providers: any): any => {
     if (providers?.length === 1) {
       return providers[0][0];
@@ -37,7 +36,7 @@ function App() {
     [PageProvider],
     [ConvexProvider, { client: convex }],
     [UserProvider],
-    [TelegramAuthProvider],
+    // [TelegramAuthProvider],
     // [EventProvider],
   ]);
   return (
@@ -49,4 +48,4 @@ function App() {
   );
 }
 
-export default App;
+export default M3App;

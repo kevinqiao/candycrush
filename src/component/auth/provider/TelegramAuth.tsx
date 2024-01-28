@@ -2,35 +2,19 @@ import React, { createContext, useEffect } from "react";
 import { usePageManager } from "service/PageManager";
 import { useUserManager } from "service/UserManager";
 
-interface ITelegramAuthContext {}
+interface ITelegramAuthContext {
+  // env: number; //0-in telegram mobile app 1-in telegram web app 2-unknown
+}
 
 const TelegramAuthContext = createContext<ITelegramAuthContext>({});
 const BOT_URL = "https://telegram-bot-8bgi.onrender.com/tg/auth";
 // const BOT_URL = "https://telegram-auth.onrender.com/telegram-auth";
-const getTelegramData = () => {
-  // 确保 Telegram 的 Web App API 已经加载
-  if (window.Telegram?.WebApp) {
-    // 获取用户数据
-    const userData = window.Telegram?.WebApp.initDataUnsafe;
-    console.log(userData);
-    console.log(window.Telegram.WebApp.initData);
-    return { initDataObj: userData, initDataStr: window.Telegram.WebApp.initData };
-    // 返回需要的数据
-    // return {
-    //   userId: userData.user.id, // 用户ID
-    //   authDate: userData.auth_date, // 授权日期
-    //   hash: userData.hash, // 安全哈希
-    //   // 还可以获取更多数据，根据需要添加
-    // };
-  } else {
-    console.error("Telegram WebApp API 未加载");
-    return null;
-  }
-};
 
 export const TelegramAuthProvider = ({ children }: { children: React.ReactNode }) => {
   const { openPage } = usePageManager();
+
   const { sessionCheck } = useUserManager();
+
   useEffect(() => {
     // console.log("session check:" + sessionCheck);
     if (sessionCheck) {
