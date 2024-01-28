@@ -1,3 +1,4 @@
+import { gsap } from "gsap";
 import { ReactNode, createContext, useContext, useEffect, useState } from "react";
 const CoordContext = createContext<any>({
   terminal: -1,
@@ -27,6 +28,15 @@ export const CoordProvider = ({ children }: { children: ReactNode }) => {
       isMobile,
     };
     setValue(v);
+    const loadMain = document.getElementById("main-loader");
+
+    gsap.to(loadMain, {
+      alpha: 0,
+      duration: 0.3,
+      onComplete: () => {
+        if (loadMain?.parentNode) loadMain.parentNode.removeChild(loadMain);
+      },
+    });
   };
 
   useEffect(() => {
