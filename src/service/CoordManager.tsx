@@ -29,6 +29,7 @@ export const CoordProvider = ({ children }: { children: ReactNode }) => {
   };
   useEffect(() => {
     const userAgent: string = navigator.userAgent || navigator.vendor || window.opera;
+    console.log(userAgent);
     if (/Telegram/i.test(userAgent)) {
       return setEnviornment(0);
     } else if (/web/i.test(userAgent)) {
