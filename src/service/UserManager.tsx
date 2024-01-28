@@ -65,6 +65,7 @@ export const UserProvider = ({ children }: { children: React.ReactNode }) => {
       if (user)
         authByToken({ uid: user.uid, token: "12345" }).then((u: any) => {
           if (u) {
+            console.log(u);
             u.timelag = u.timestamp - Date.now();
             localStorage.setItem("user", JSON.stringify({ uid: user.uid, token: "12345" }));
             setUser(u);
