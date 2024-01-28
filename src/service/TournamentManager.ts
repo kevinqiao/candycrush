@@ -1,8 +1,8 @@
 import { useAction, useConvex } from "convex/react";
 import { Tournament } from "model/Tournament";
 import { useCallback } from "react";
+import { getTerminalType } from "util/useAgent";
 import { api } from "../convex/_generated/api";
-import useCoord from "./CoordManager";
 import { usePageManager } from "./PageManager";
 import { useUserManager } from "./UserManager";
 
@@ -10,8 +10,6 @@ import { useUserManager } from "./UserManager";
 const useTournamentManager = () => {
   const { stacks, openPage } = usePageManager()
   const { user } = useUserManager();
-  const { terminal } = useCoord();
-
   const joinTournamentByGroup = useAction(api.tournamentService.joinTournamentByGroup);
   const convex = useConvex();
   const checkAuth = (): boolean => {
@@ -28,8 +26,8 @@ const useTournamentManager = () => {
     }
     const p = stacks.find((s) => s.name === "battlePlay");
     const ps = window.location.pathname.split("/");
-    if ((ps[1] !== "tg" || terminal > 0) && !p) openPage({ name: "battlePlay", ctx: "playplace", data: { act: "join", tournament } });
-  }, [user, stacks, terminal, openPage]);
+    if ((ps[1] !== "tg" || getTerminalType() > 0) && !p) openPage({ name: "battlePlay", ctx: "playplace", data: { act: "join", tournament } });
+  }, [user, stacks, openPage]);
 
   const join = useCallback(async (tournament: Tournament) => {
     if (!checkAuth()) {
