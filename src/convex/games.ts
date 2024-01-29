@@ -21,7 +21,7 @@ export const findInitGame = query({
   args: { gameId: v.string() },
   handler: async (ctx, args) => {
     const game = await ctx.db.get(args.gameId as Id<"games">)
-    let gameId = game?.ref ?? args.gameId;
+    const gameId = game?.ref ?? args.gameId;
     const event = await ctx.db
       .query("events").withIndex("by_game", (q) => q.eq("gameId", gameId))
       .filter((q) => q.eq(q.field("name"), "gameInited"))
@@ -70,6 +70,7 @@ export const findBattleGames = internalQuery({
     return games;
   },
 });
+
 export const findTosettledGames = internalQuery({
   handler: async (ctx) => {
     const games = await ctx.db

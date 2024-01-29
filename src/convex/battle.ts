@@ -1,6 +1,6 @@
 import { v } from "convex/values";
 import { Id } from "./_generated/dataModel";
-import { internalMutation, internalQuery } from "./_generated/server";
+import { internalMutation, internalQuery, query } from "./_generated/server";
 import { sessionQuery } from "./custom/session";
 import { Tournament } from "./model/Tournament";
 // interface Tournament {
@@ -63,6 +63,18 @@ export const find = internalQuery({
     return null;
   },
 });
+export const findBattle = query({
+  args: { battleId: v.id("battle") },
+  handler: async (ctx, { battleId }) => {
+    const battle = await ctx.db.get(battleId);
+    const games = await ctx.db
+      .query("games")
+      .filter((q) => q.eq(q.field("battleId"), battleId))
+      .collect();
+    if (battle && games)
+      return { ...battle, games: games.map((g) => ({ uid: g.uid, gameId: g._id, matched: g.matched })) }
+  },
+});
 export const settleGame = internalMutation({
   args: { battleId: v.id("battle"), uid: v.string(), gameId: v.string(), score: v.number() },
   handler: async (ctx, { battleId, gameId, uid, score }) => {
@@ -76,7 +88,7 @@ export const settleGame = internalMutation({
         const tournament = await ctx.db.query("tournament").filter((q) => q.eq(q.field("id"), battle.tournamentId)).order("asc").first();
         if (tournament) {
           const rewards = countRewards(tournament, battle);
-          for (let r of rewards) {
+          for (const r of rewards) {
             if (r.assets) {
               for (const a of r.assets) {
                 const asset = await ctx.db.query("asset")

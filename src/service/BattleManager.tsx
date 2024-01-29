@@ -47,15 +47,6 @@ export const BattleProvider = ({ battle, children }: { battle: BattleModel | nul
       }
     }
   }, [event]);
-  // useEffect(() => {
-  //   if (battle) {
-  //     startTimeRef.current = Date.now() - battle.pasttime ?? 0;
-  //     if (!battle.load) {
-  //       createAnimate({ id: Date.now(), name: ANIMATE_NAME.BATTLE_SEARCH });
-  //       setTimeout(() => createAnimate({ id: Date.now(), name: ANIMATE_NAME.BATTLE_MATCHED, data: battle }), 5000);
-  //     }
-  //   }
-  // }, [battle, createAnimate]);
 
   const value = {
     myGameOver,
@@ -69,7 +60,7 @@ export const BattleProvider = ({ battle, children }: { battle: BattleModel | nul
         const game = battle?.games.find((g) => g.gameId === gameId);
         if (game) {
           if (!game.matched) game.matched = [];
-          for (let match of matches) {
+          for (const match of matches) {
             const { toRemove } = match;
             toRemove.forEach((c: CellItem) => {
               const md = game.matched.find((a) => a.asset === c.asset);

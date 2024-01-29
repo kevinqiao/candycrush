@@ -1,3 +1,4 @@
+import { Id } from "convex/_generated/dataModel";
 import { useAction, useConvex } from "convex/react";
 import { Tournament } from "model/Tournament";
 import { useCallback } from "react";
@@ -26,25 +27,30 @@ const useTournamentManager = () => {
     }
     const p = stacks.find((s) => s.name === "battlePlay");
     const ps = window.location.pathname.split("/");
-    if ((ps[1] !== "tg" || getTerminalType() > 0) && !p) openPage({ name: "battlePlay", ctx: "playplace", data: { act: "join", tournament } });
+    if ((ps[1] !== "tg" || getTerminalType() > 0) && !p) openPage({ name: "battlePlay", ctx: "playplace", data: { act: "join", tournamentId: tournament.id } });
   }, [user, stacks, openPage]);
 
-  const join = useCallback(async (tournament: Tournament) => {
+  const join = useCallback(async (tournamentId: string) => {
     if (!checkAuth()) {
       openPage({ name: "signin", data: null })
       return;
     }
-    await joinTournamentByGroup({ tid: tournament.id, uid: user.uid })
-
+    await joinTournamentByGroup({ tid: tournamentId, uid: user.uid })
   }, [user])
   const listActives = useCallback(
     async (): Promise<any[]> => {
       const allOpens: any | null = await convex.query(api.tournaments.findAll);
       return allOpens;
     },
-    []
+    [convex]
   );
-
-  return { askJoin, join, listActives };
+  const findBattle = useCallback(
+    async (battleId: Id<"battle">): Promise<any[]> => {
+      const battle: any = await convex.query(api.battle.findBattle, { battleId });
+      return battle;
+    },
+    [convex]
+  );
+  return { askJoin, join, listActives, findBattle };
 };
 export default useTournamentManager;

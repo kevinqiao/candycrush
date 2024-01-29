@@ -20,12 +20,10 @@ const PlayHome: React.FC<PageProps> = (pageProp) => {
   const sceneRef = useRef<HTMLDivElement | null>(null);
   const sbattleRef = useRef<BattleModel | null>(null);
   const [battle, setBattle] = useState<BattleModel | null>(null);
-  const { join } = useTournamentManager();
+  const { join, findBattle } = useTournamentManager();
   const { userEvent } = useUserManager();
   const browserVisible = usePageVisibility();
   const pagePosition = useDimension(sceneRef);
-
-  // const [rerender, setRerender] = useState(browserVisible);
 
   useEffect(() => {
     if (battle?.load === 2) return;
@@ -42,12 +40,17 @@ const PlayHome: React.FC<PageProps> = (pageProp) => {
     let b;
     switch (act) {
       case "join":
-        join(pageProp.data.tournament);
+        join(pageProp.data.tournamentId);
         break;
       case "load":
-        b = { ...pageProp.data.battle, load: 1 };
-        sbattleRef.current = JSON.parse(JSON.stringify(b));
-        setBattle(b);
+        // b = { ...pageProp.data.battle, load: 1 };
+        // sbattleRef.current = JSON.parse(JSON.stringify(b));
+        // setBattle(b);
+        findBattle(pageProp.data.battle.id).then((b) => {
+          const bo = { ...b, load: 1 };
+          sbattleRef.current = JSON.parse(JSON.stringify(bo));
+          setBattle(bo);
+        });
         break;
       case "replay":
         const gameId = pageProp.data.gameId;

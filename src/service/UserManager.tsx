@@ -69,8 +69,16 @@ export const UserProvider = ({ children }: { children: React.ReactNode }) => {
             setUser(u);
             if (u.battle) {
               const ps = window.location.pathname.split("/");
-              if (ps[1] !== "tg" || getTerminalType() > 0)
-                openPage({ name: "battlePlay", ctx: "match3", data: { act: "load", battle: u.battle } });
+              if (ps[1] !== "tg" || getTerminalType() > 0) {
+                const uri = window.location.pathname;
+                window.history.replaceState({}, "", uri);
+                openPage({
+                  name: "battlePlay",
+                  ctx: "match3",
+                  data: { act: "load", battle: u.battle },
+                  params: { act: "load", battleId: u.battle.id },
+                });
+              }
             }
           }
           setSessionCheck(1);
@@ -100,7 +108,14 @@ export const UserProvider = ({ children }: { children: React.ReactNode }) => {
         localStorage.setItem("user", JSON.stringify({ uid: user.uid, token: "12345" }));
         setUser(user);
         if (user.battle) {
-          openPage({ name: "battlePlay", ctx: "playplace", data: { act: "load", battle: user.battle } });
+          const uri = window.location.pathname;
+          window.history.replaceState({}, "", uri);
+          // openPage({
+          //   name: "battlePlay",
+          //   ctx: "match3",
+          //   data: { act: "load", battle: user.battle },
+          //   param: { act: "load", battleId: user.battle.id },
+          // });
         }
       }
     }, []),

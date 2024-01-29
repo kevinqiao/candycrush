@@ -67,7 +67,7 @@ const reducer = (state: any, action: any) => {
       } else {
         const app = AppsConfiguration.find((a) => a.context === page.ctx);
         if (app) {
-          let cfg = app.navs.find((p) => p.name === page.name);
+          const cfg = app.navs.find((p) => p.name === page.name);
           if (cfg) {
             const obj = Object.assign({}, state, { currentPage: page });
             if (page.cover) {
@@ -114,7 +114,7 @@ const parseURL = (location: any): { navItem?: PageItem; ctx?: string; stackItems
         if (location.search) {
           const searchParams = new URLSearchParams(location.search);
           const params: { [key: string]: string } = {};
-          for (let param of searchParams) {
+          for (const param of searchParams) {
             params[param[0]] = param[1];
           }
           navItem.params = params;
@@ -159,15 +159,26 @@ const buildNavURL = (pageItem: PageItem): string | null => {
   return null;
 };
 const buildStackURL = (pageItem: PageItem): string | null => {
+  let uri = window.location.search ? window.location.href + "&" : window.location.href + "?";
+  if (pageItem.params) {
+    console.log(pageItem);
+    Object.keys(pageItem.params).forEach((k, index) => {
+      const v = pageItem.params[k];
+      if (Object.keys(pageItem.params).length === index + 1) {
+        uri = uri + k + "=" + v;
+        console.log(uri);
+      } else uri = uri + k + "=" + v + "&";
+    });
+  }
   if (pageItem.ctx) {
     const app = AppsConfiguration.find((a) => a.context === pageItem.ctx);
     if (app?.stacks) {
       const stack = app.stacks.find((s) => s.name === pageItem.name && !s.nohistory);
-      if (stack) return window.location.href + "#@" + pageItem.name;
+      if (stack) return uri + "#@" + pageItem.name;
     }
   } else {
     const cover = Covers.find((c) => c.name === pageItem.name);
-    if (cover) return window.location.href + "#@" + pageItem.name;
+    if (cover) return uri + "#@" + pageItem.name;
   }
   return null;
 };
@@ -198,7 +209,7 @@ export const PageProvider = ({ children }: { children: React.ReactNode }) => {
         }
       } else {
         const app = AppsConfiguration[0];
-        let cfg: PageConfig | undefined = app.navs.find((p) => p.name === page.name);
+        const cfg: PageConfig | undefined = app.navs.find((p) => p.name === page.name);
         if (cfg) {
           if (cfg.nohistory) {
             const url = buildNavURL(page);
@@ -274,13 +285,23 @@ export const PageProvider = ({ children }: { children: React.ReactNode }) => {
     prevPage: state.prevPage,
     currentPage: state.currentPage,
     popPage: (pages: string[]) => {
+      let url = window.location.pathname;
+      if (window.location.search) {
+        const searchParams = new URLSearchParams(window.location.search);
+        const toRemoves = state.stacks.filter((s) => pages.includes(s.name));
+        toRemoves.forEach((r) => {
+          Object.keys(r.params).forEach((k) => searchParams.delete(k));
+        });
+        if (Object.keys(searchParams).length > 0) url = url + "?" + searchParams.toString();
+      }
       const hash = window.location.hash;
       if (hash) {
         const hs: string[] = hash.split("@");
         const nhash = hs.filter((h) => !pages.includes(h)).join("@");
-        const url = window.location.pathname + window.location.search + (nhash !== "#" ? nhash : "");
+        url = url + (nhash !== "#" ? nhash : "");
         window.history.pushState({}, "", url);
       }
+
       dispatch({ type: actions.PAGE_POP, data: pages });
     },
     openPage,
