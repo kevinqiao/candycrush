@@ -25,7 +25,7 @@ const MainMenu: React.FC = () => {
       }}
       onClick={openBattle}
     >
-      Menu
+      Menu1
     </div>
   );
 };
