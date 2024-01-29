@@ -4,7 +4,7 @@ import "./menu.css";
 const MainMenu: React.FC = () => {
   const { openPage } = usePageManager();
   const openBattle = () => {
-    const url = "https://statuesque-cupcake-107222.netlify.app/tg";
+    const url = "https://t.me/gamee";
     window.Telegram.WebApp.openTelegramLink(url);
   };
   return (
