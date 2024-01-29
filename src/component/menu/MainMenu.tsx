@@ -3,7 +3,10 @@ import "./menu.css";
 
 const MainMenu: React.FC = () => {
   const { openPage } = usePageManager();
-
+  const openBattle = () => {
+    const url = "https://statuesque-cupcake-107222.netlify.app/tg";
+    window.Telegram.WebApp.openTelegramLink(url);
+  };
   return (
     <div
       style={{
@@ -20,7 +23,7 @@ const MainMenu: React.FC = () => {
         justifyContent: "center",
         alignItems: "center",
       }}
-      onClick={() => openPage({ name: "membership", data: {} })}
+      onClick={openBattle}
     >
       Menu
     </div>
