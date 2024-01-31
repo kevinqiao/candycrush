@@ -48,9 +48,9 @@ const countRewards = (tournament: Tournament, battle: BattleModel): BattleReward
   return rewards;
 }
 export const create = internalMutation({
-  args: { tournamentId: v.string(), participants: v.number(), startTime: v.number(), column: v.number(), row: v.number(), goal: v.optional(v.number()), chunk: v.optional(v.number()) },
-  handler: async (ctx, { tournamentId, participants, startTime, column, row, goal, chunk }) => {
-    return await ctx.db.insert("battle", { startTime, tournamentId, participants, row, column, goal, chunk });
+  args: { tournamentId: v.string(), participants: v.number(), searchDueTime: v.number(), startTime: v.number(), column: v.number(), row: v.number(), goal: v.optional(v.number()), chunk: v.optional(v.number()) },
+  handler: async (ctx, { tournamentId, participants, searchDueTime, startTime, column, row, goal, chunk }) => {
+    return await ctx.db.insert("battle", { searchDueTime, startTime, tournamentId, participants, row, column, goal, chunk });
   },
 });
 

@@ -34,7 +34,7 @@ export const authByToken = action({
             }
             await ctx.runMutation(internal.user.update, { id: user["_id"], data: {} })
         }
-        return { ...user, timestamp: Date.now() }
+        return { token: "123456", ...user, timestamp: Date.now() }
     }
 })
 
@@ -75,7 +75,7 @@ export const signin = action({
             }
             await ctx.runMutation(internal.user.update, { id: user["_id"], data: {} })
         }
-        return { ...user, timestamp: Date.now() }
+        return { token: "12345", ...user, timestamp: Date.now() }
     }
 })
 export const signup = action({

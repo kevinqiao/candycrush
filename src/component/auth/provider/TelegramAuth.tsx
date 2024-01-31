@@ -13,11 +13,11 @@ const BOT_URL = "https://telegram-bot-8bgi.onrender.com/tg/auth";
 export const TelegramAuthProvider = ({ children }: { children: React.ReactNode }) => {
   const { openPage } = usePageManager();
 
-  const { sessionCheck } = useUserManager();
+  const { user, sessionCheck, authComplete } = useUserManager();
 
   useEffect(() => {
     // console.log("session check:" + sessionCheck);
-    if (sessionCheck) {
+    if (!user && sessionCheck && window.Telegram?.WebApp?.initData) {
       const telegramData = window.Telegram.WebApp.initData;
       fetch(BOT_URL, {
         method: "POST",
@@ -34,6 +34,7 @@ export const TelegramAuthProvider = ({ children }: { children: React.ReactNode }
         })
         .then((data) => {
           // 处理验证成功的情况
+          authComplete(data);
           console.log("验证成功:", data);
         })
         .catch((error) => {
@@ -41,7 +42,7 @@ export const TelegramAuthProvider = ({ children }: { children: React.ReactNode }
           console.error("验证失败:", error);
         });
     }
-  }, [sessionCheck]);
+  }, [user, sessionCheck]);
 
   const value = {};
 

@@ -40,8 +40,8 @@ const useGameReady = () => {
                         if (center?.id) {
                             const candy = candies.find((c) => c.id === center.id);
                             if (candy) {
-                                rowTL.from(candy.scale, { x: 0, y: 0, duration: 0.8, ease: "power4.out" }, "<+=0.1");
-                                rowTL.to(candy, { alpha: 1, duration: 0.8, ease: "power4.out" }, "<");
+                                rowTL.from(candy.scale, { x: 0, y: 0, duration: 1.2, ease: "power4.out" }, "<+=0.1");
+                                rowTL.to(candy, { alpha: 1, duration: 1.2, ease: "power4.out" }, "<");
                             }
                         }
                     }

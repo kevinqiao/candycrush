@@ -14,7 +14,7 @@ export const joinTournamentByGroup = action({
         const tournament = await ctx.runQuery(internal.tournaments.findById, { id: tid });
 
         if (tournament) {
-            const battle = { tournamentId: tid, participants: tournament.participants, column: COLUMN, row: ROW, goal: 1, chunk: 10, startTime: Date.now() + 15000 };
+            const battle = { tournamentId: tid, participants: tournament.participants, column: COLUMN, row: ROW, goal: 1, chunk: 10, searchDueTime: Date.now() + 2500, startTime: Date.now() + 15000 };
             const battleId = await ctx.runMutation(internal.battle.create, battle);
             const games = [];
             const gameInited = tournament.participants === 2 ? await ctx.runMutation(internal.gameService.createInitGame, { uid }) : await ctx.runQuery(internal.gameService.findInitGame, { uid, trend: 1 });

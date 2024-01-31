@@ -1,11 +1,18 @@
+import { useUserManager } from "service/UserManager";
 import { usePageManager } from "../../service/PageManager";
 import "./menu.css";
 
 const MainMenu: React.FC = () => {
   const { openPage } = usePageManager();
+  const { user } = useUserManager();
   const openBattle = () => {
-    const url = "https://statuesque-cupcake-107222.netlify.app/tg";
-    window.Telegram.WebApp.openLink(url);
+    // const url = "https://statuesque-cupcake-107222.netlify.app/tg";
+    // window.Telegram.WebApp.openLink(url);
+    let url = "match3/playcenter/tournament/home";
+    if (user) {
+      url = url + "?uid=" + user.uid + "&token=" + user.token;
+      window.open(url);
+    }
   };
   return (
     <div

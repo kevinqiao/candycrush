@@ -12,6 +12,7 @@ export default interface BattleModel {
     goal: number;
     pasttime: number;
     rewards?: BattleReward[];
+    searchDueTime?: number;
     startTime?: number;
 
 }

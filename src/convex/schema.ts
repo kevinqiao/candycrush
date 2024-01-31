@@ -56,6 +56,7 @@ export default defineSchema({
         term: v.optional(v.number()),//schedule tournament term
         report: v.optional(v.any()),
         rewards: v.optional(v.any()),
+        searchDueTime: v.number(),
         startTime: v.number(),
         status: v.optional(v.number()),//0-going 1-settled 2-cancelled
         seed: v.optional(v.string()),

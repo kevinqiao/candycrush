@@ -9,14 +9,14 @@ import PageProps from "../../model/PageProps";
 import useTournamentManager from "../../service/TournamentManager";
 import { useUserManager } from "../../service/UserManager";
 import usePageVisibility from "../common/usePageVisibility";
-import BattleGround from "./BattleGround";
-import BattleScene from "./BattleScene";
-import GamePlay from "./GamePlay";
-import SearchOpponent from "./SearchOpponent";
-import BattleConsole from "./console/BattleConsole";
-import BattleReport from "./report/BattleReport";
+import BattleGround from "../play/BattleGround";
+import BattleScene from "../play/BattleScene";
+import GamePlay from "../play/GamePlay";
+import SearchOpponent from "../play/SearchOpponent";
+import BattleConsole from "../play/console/BattleConsole";
+import BattleReport from "../play/report/BattleReport";
 
-const PlayHome: React.FC<PageProps> = (pageProp) => {
+const JoinTourament: React.FC<PageProps> = (pageProp) => {
   const sceneRef = useRef<HTMLDivElement | null>(null);
   const sbattleRef = useRef<BattleModel | null>(null);
   const [battle, setBattle] = useState<BattleModel | null>(null);
@@ -37,32 +37,33 @@ const PlayHome: React.FC<PageProps> = (pageProp) => {
   }, [browserVisible]);
   useEffect(() => {
     const act = pageProp.data?.act;
-    console.log(pageProp);
-    if (pageProp.data?.tournamentId) join(pageProp.data.tournamentId);
-    else if (pageProp.data?.battleId) {
-      findBattle(pageProp.data.battleId).then((b) => {
-        const bo = { ...b, load: 1 };
-        sbattleRef.current = JSON.parse(JSON.stringify(bo));
-        setBattle(bo);
-      });
-    } else if (pageProp.data?.battle) {
-      setBattle({ ...pageProp.data.battle, load: 1 });
+    let b;
+    switch (act) {
+      case "join":
+        join(pageProp.data.tournamentId);
+        break;
+      case "load":
+        // b = { ...pageProp.data.battle, load: 1 };
+        // sbattleRef.current = JSON.parse(JSON.stringify(b));
+        // setBattle(b);
+        findBattle(pageProp.data.battle.id).then((b) => {
+          const bo = { ...b, load: 1 };
+          sbattleRef.current = JSON.parse(JSON.stringify(bo));
+          setBattle(bo);
+        });
+        break;
+      case "replay":
+        const gameId = pageProp.data.gameId;
+        if (gameId) {
+          b = { ...pageProp.data.battle, load: 2 };
+          b.games = b.games.filter((g: any) => g.gameId === gameId);
+          sbattleRef.current = JSON.parse(JSON.stringify(b));
+          setBattle(b);
+        }
+        break;
+      default:
+        break;
     }
-    // switch (act) {
-    //   case "join":
-    //     join(pageProp.data.tournamentId);
-    //     break;
-    //   case "load":
-    //     findBattle(pageProp.data.battle.id).then((b) => {
-    //       const bo = { ...b, load: 1 };
-    //       sbattleRef.current = JSON.parse(JSON.stringify(bo));
-    //       setBattle(bo);
-    //     });
-    //     break;
-
-    //   default:
-    //     break;
-    // }
   }, [pageProp.data, join]);
   useEffect(() => {
     if (userEvent?.name === "battleCreated") {
@@ -106,4 +107,4 @@ const PlayHome: React.FC<PageProps> = (pageProp) => {
   );
 };
 
-export default PlayHome;
+export default JoinTourament;

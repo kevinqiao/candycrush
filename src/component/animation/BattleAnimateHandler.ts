@@ -20,13 +20,15 @@ export const useBattleAnimateHandler = (props: IAnimateHandleContext) => {
                 timeline.kill();
             }
         });
+        const bl = gsap.timeline();
+        timeline.add(bl, ">+=1.0")
         battle.games.forEach((g) => {
             const gl = gsap.timeline();
-            timeline.add(gl, "<");
+            bl.add(gl, "<");
             initGame(g.gameId, gl);
             const score = gameEngine.countBaseScore(g.matched)
             const sl = gsap.timeline();
-            timeline.add(sl, "<")
+            bl.add(sl, "<")
             initConsole(g.uid, g.gameId, score, sl);
         })
         timeline.play();

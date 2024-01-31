@@ -2,6 +2,7 @@ export const Telegram =
 {
     name: "telegram",
     context: "tg",
+    authLife: 1,
     navs: [
         {
             name: "playcenter",
