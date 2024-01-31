@@ -1,7 +1,6 @@
 import { useAction, useQuery } from "convex/react";
-import { AppsConfiguration } from "model/PageConfiguration";
 import React, { createContext, useCallback, useContext, useEffect, useState } from "react";
-import { getTerminalType } from "util/useAgent";
+import { getCurrentAppConfig } from "util/PageUtils";
 import { api } from "../convex/_generated/api";
 import { usePageManager } from "./PageManager";
 interface UserEvent {
@@ -45,7 +44,7 @@ const UserContext = createContext<IUserContext>({
 });
 
 export const UserProvider = ({ children }: { children: React.ReactNode }) => {
-  const { currentPage, openPage } = usePageManager();
+  const { stacks, currentPage, openPage } = usePageManager();
   const [user, setUser] = useState<any>(null);
   const [sessionCheck, setSessionCheck] = useState(0); //0-to check 1-checked
   const [lastTime, setLastTime] = useState<number>(0);
@@ -54,57 +53,69 @@ export const UserProvider = ({ children }: { children: React.ReactNode }) => {
   const userEvent: any = useQuery(api.events.getByUser, { uid: user?.uid ?? "###", lastTime });
   const signinByToken = useAction(api.UserService.signin);
   const findAllUser = useAction(api.UserService.findAllUser);
-  const authComplete = useCallback((user: User) => {
-    console.log(user);
-    const ps = location.pathname.split("/");
-    const app: any = AppsConfiguration.find((a) => a.context === ps[1]);
-    if (app && !app.authLife) localStorage.setItem("user", JSON.stringify({ uid: user.uid, token: user.token }));
-    setUser(user);
-  }, []);
+  const authComplete = useCallback(
+    (u: User) => {
+      const app: any = getCurrentAppConfig();
+      if (u && app && !app.authLife) localStorage.setItem("user", JSON.stringify({ uid: u.uid, token: u.token }));
+      if (u.battle) {
+        const stack = stacks.find((s) => s.name === "battlePlay");
+        if (!stack) {
+          if (app.context === "tg" && window.Telegram?.WebApp?.initData) {
+          } else
+            openPage({
+              name: "battlePlay",
+              ctx: app.context,
+              data: { battle: u.battle },
+              params: { battleId: u.battle.id },
+            });
+        }
+      }
+      setUser(u);
+    },
+    [stacks]
+  );
   useEffect(() => {
-    if (userEvent) setLastTime(userEvent.time);
-  }, [userEvent]);
+    if (userEvent && user) {
+      if (userEvent?.name === "battleCreated") {
+        const app: any = getCurrentAppConfig();
+        const battle = userEvent.data;
+        const pageItem = {
+          name: "battlePlay",
+          ctx: app.context,
+          data: { battle },
+          params: { uid: user.uid, token: user.token, battleId: battle.id },
+        };
+        console.log(pageItem);
+        openPage(pageItem);
+      }
+      setLastTime(userEvent.time);
+    }
+  }, [user, userEvent]);
   useEffect(() => {
     if (user || !currentPage) return;
+    let uid, token;
     if (currentPage.params?.uid && currentPage.params?.token) {
-      authByToken({ uid: currentPage.params.uid, token: currentPage.params.token }).then((u: any) => {
-        if (u) {
-          u.timelag = u.timestamp - Date.now();
-          // setUser(u);
-          authComplete(u);
-        }
-        setSessionCheck(1);
-      });
+      uid = currentPage.params?.uid;
+      token = currentPage.params?.token;
     } else {
       const userJSON = localStorage.getItem("user");
       if (userJSON !== null) {
         const userObj = JSON.parse(userJSON);
-        if (userObj["uid"] && userObj["token"])
-          authByToken({ uid: userObj.uid, token: userObj.token }).then((u: any) => {
-            if (u) {
-              u.timelag = u.timestamp - Date.now();
-              authComplete(u);
-              // localStorage.setItem("user", JSON.stringify({ uid: userObj.uid, token: u.token }));
-              // setUser(u);
-              if (u.battle) {
-                const ps = window.location.pathname.split("/");
-                if (ps[1] !== "tg" || getTerminalType() > 0) {
-                  const uri = window.location.pathname;
-                  window.history.replaceState({}, "", uri);
-                  openPage({
-                    name: "battlePlay",
-                    ctx: "match3",
-                    data: { act: "load", battle: u.battle },
-                    params: { act: "load", battleId: u.battle.id },
-                  });
-                }
-              }
-            }
-            setSessionCheck(1);
-          });
-        else setSessionCheck(1);
-      } else setSessionCheck(1);
+        if (userObj["uid"] && userObj["token"]) {
+          uid = userObj["uid"];
+          token = userObj["token"];
+        }
+      }
     }
+    if (uid && token) {
+      authByToken({ uid, token }).then((u: any) => {
+        if (u) {
+          u.timelag = u.timestamp - Date.now();
+          authComplete(u);
+        }
+        setSessionCheck(1);
+      });
+    } else setSessionCheck(1);
   }, [user, currentPage]);
 
   const value = {
@@ -123,12 +134,6 @@ export const UserProvider = ({ children }: { children: React.ReactNode }) => {
       if (user) {
         user.timelag = user.timestamp - Date.now();
         authComplete(user);
-        // localStorage.setItem("user", JSON.stringify({ uid: user.uid, token: "12345" }));
-        // setUser(user);
-        // if (user.battle) {
-        //   const uri = window.location.pathname;
-        //   window.history.replaceState({}, "", uri);
-        // }
       }
     }, []),
     findAllUser: useCallback(async () => {

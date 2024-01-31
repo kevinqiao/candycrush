@@ -9,7 +9,7 @@ const TournamentItem: React.FC<Props> = ({ tournament }) => {
   const itemRef = useRef(null);
   // const { stacks, openPage } = usePageManager();
   // const { user } = useUserManager();
-  const { askJoin } = useTournamentManager();
+  const { join } = useTournamentManager();
 
   // const joinBattle = useCallback(() => {
   //   if (!user) {
@@ -25,7 +25,7 @@ const TournamentItem: React.FC<Props> = ({ tournament }) => {
   return (
     <div ref={itemRef} className="tournament-item">
       <span style={{ fontSize: "20px", color: "black" }}>Tournament({tournament.id})</span>
-      <div className="play-btn" onClick={() => askJoin(tournament)}>
+      <div className="play-btn" onClick={() => join(tournament.id)}>
         Play
       </div>
     </div>

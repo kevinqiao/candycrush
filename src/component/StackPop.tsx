@@ -4,6 +4,7 @@ import PageProps, { PagePattern } from "model/PageProps";
 import React, { FunctionComponent, Suspense, lazy, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import useCoord from "service/CoordManager";
 import { usePageManager } from "service/PageManager";
+import { getUriByPop } from "util/PageUtils";
 import useStackAnimation from "./animation/page/StackAnimation";
 import PageCloseConfirm from "./common/StackCloseConfirm";
 import "./popup.css";
@@ -83,7 +84,9 @@ const StackPop: React.FC<PopupProps> = ({ zIndex, index }) => {
   }, []);
 
   const exit = useCallback(() => {
-    if (!pagePattern) return;
+    if (!pagePattern || !pageProp) return;
+    const url = getUriByPop(stacks, pageProp.name);
+    window.history.pushState({}, "", url);
     const tl = gsap.timeline({
       onComplete: () => {
         if (pageProp) popPage([pageProp.name]);
@@ -94,7 +97,7 @@ const StackPop: React.FC<PopupProps> = ({ zIndex, index }) => {
       },
     });
     closeStack(pagePattern, tl);
-  }, [closeStack, pageProp, pagePattern, popPage]);
+  }, [stacks, closeStack, pageProp, pagePattern, popPage]);
 
   const close = useCallback(
     (type: number) => {

@@ -1,5 +1,5 @@
 import { AnimateProvider } from "component/animation/AnimateManager";
-import { useEffect, useRef, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import BattleProvider from "service/BattleManager";
 import GameProvider from "service/GameManager";
 import SceneProvider from "service/SceneManager";
@@ -7,7 +7,6 @@ import useDimension from "util/useDimension";
 import BattleModel from "../../model/Battle";
 import PageProps from "../../model/PageProps";
 import useTournamentManager from "../../service/TournamentManager";
-import { useUserManager } from "../../service/UserManager";
 import usePageVisibility from "../common/usePageVisibility";
 import BattleGround from "./BattleGround";
 import BattleScene from "./BattleScene";
@@ -21,7 +20,6 @@ const PlayHome: React.FC<PageProps> = (pageProp) => {
   const sbattleRef = useRef<BattleModel | null>(null);
   const [battle, setBattle] = useState<BattleModel | null>(null);
   const { join, findBattle } = useTournamentManager();
-  const { userEvent } = useUserManager();
   const browserVisible = usePageVisibility();
   const pagePosition = useDimension(sceneRef);
 
@@ -36,40 +34,16 @@ const PlayHome: React.FC<PageProps> = (pageProp) => {
     }
   }, [browserVisible]);
   useEffect(() => {
-    const act = pageProp.data?.act;
-    console.log(pageProp);
-    if (pageProp.data?.tournamentId) join(pageProp.data.tournamentId);
-    else if (pageProp.data?.battleId) {
+    if (pageProp.data?.battleId) {
       findBattle(pageProp.data.battleId).then((b) => {
-        const bo = { ...b, load: 1 };
-        sbattleRef.current = JSON.parse(JSON.stringify(bo));
-        setBattle(bo);
+        sbattleRef.current = b;
+        setBattle(b);
       });
     } else if (pageProp.data?.battle) {
-      setBattle({ ...pageProp.data.battle, load: 1 });
+      sbattleRef.current = pageProp.data.battle;
+      setBattle(pageProp.data.battle);
     }
-    // switch (act) {
-    //   case "join":
-    //     join(pageProp.data.tournamentId);
-    //     break;
-    //   case "load":
-    //     findBattle(pageProp.data.battle.id).then((b) => {
-    //       const bo = { ...b, load: 1 };
-    //       sbattleRef.current = JSON.parse(JSON.stringify(bo));
-    //       setBattle(bo);
-    //     });
-    //     break;
-
-    //   default:
-    //     break;
-    // }
-  }, [pageProp.data, join]);
-  useEffect(() => {
-    if (userEvent?.name === "battleCreated") {
-      sbattleRef.current = { ...userEvent.data };
-      setBattle(JSON.parse(JSON.stringify(sbattleRef.current)));
-    }
-  }, [userEvent]);
+  }, [pageProp]);
 
   return (
     <div
@@ -83,9 +57,9 @@ const PlayHome: React.FC<PageProps> = (pageProp) => {
         backgroundColor: "transparent",
       }}
     >
-      {battle ? (
-        <BattleProvider battle={battle}>
-          <SceneProvider pageProp={pageProp} pagePosition={pagePosition}>
+      <SceneProvider pageProp={pageProp} pagePosition={pagePosition}>
+        {battle ? (
+          <BattleProvider battle={battle}>
             <AnimateProvider>
               <BattleGround>
                 <BattleConsole />
@@ -99,9 +73,25 @@ const PlayHome: React.FC<PageProps> = (pageProp) => {
               <BattleReport />
               <SearchOpponent />
             </AnimateProvider>
-          </SceneProvider>
-        </BattleProvider>
-      ) : null}
+          </BattleProvider>
+        ) : (
+          <div
+            style={{
+              position: "absolute",
+              top: 0,
+              left: 0,
+              display: "flex",
+              width: "100%",
+              height: "100vh",
+              justifyContent: "center",
+              alignItems: "center",
+              backgroundColor: "blue",
+            }}
+          >
+            <span style={{ fontSize: 25, color: "white" }}>Loading</span>
+          </div>
+        )}
+      </SceneProvider>
     </div>
   );
 };

@@ -52,8 +52,8 @@ const GamePlay = ({ game }: { game: { gameId: string; uid: string } }) => {
       row: number;
     }) => {
       if (sceneContainerRef.current) {
-        let cwidth = Math.floor(width / column);
-        let cheight = Math.floor(width / column);
+        const cwidth = Math.floor(width / column);
+        const cheight = Math.floor(width / column);
         const app = new PIXI.Application({
           width,
           height,
@@ -76,7 +76,7 @@ const GamePlay = ({ game }: { game: { gameId: string; uid: string } }) => {
   );
 
   useEffect(() => {
-    if (battle && scenes && containerBound && game) {
+    if (user && battle && scenes && containerBound && game) {
       const left = containerBound.width * 0.5;
       const top = user.uid !== game.uid ? containerBound.height * 0.1 : containerBound.height * 0.55;
       const width = containerBound.width * 0.4;

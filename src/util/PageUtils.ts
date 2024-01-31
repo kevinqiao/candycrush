@@ -31,7 +31,8 @@ export const parseURL = (location: any): { navItem?: PageItem; ctx?: string; sta
                     for (const param of searchParams) {
                         params[param[0]] = param[1];
                     }
-                    navItem.params = params;
+                    navItem.data = params;
+                    navItem.params = params
                 }
                 if (location.hash) {
                     if (location.hash.includes("@")) {
@@ -41,7 +42,7 @@ export const parseURL = (location: any): { navItem?: PageItem; ctx?: string; sta
                         for (let i = 1; i < hs.length; i++) {
                             const stackCfg = app.stacks.find((s) => s.name === hs[i]);
                             if (stackCfg) {
-                                stackItems.push({ name: stackCfg.name, ctx: app.context, params });
+                                stackItems.push({ name: stackCfg.name, ctx: app.context, data: params });
                             } else {
                                 const cover = Covers.find((c) => c.name === hs[i]);
                                 if (cover) stackItems.push({ name: cover.name });
@@ -80,14 +81,14 @@ export const buildStackURL = (pageItem: PageItem): string | null => {
             const v = pageItem.params[k];
             if (Object.keys(pageItem.params).length === index + 1) {
                 uri = uri + k + "=" + v;
-                console.log(uri);
             } else uri = uri + k + "=" + v + "&";
         });
     }
+
     if (pageItem.ctx) {
         const app = AppsConfiguration.find((a) => a.context === pageItem.ctx);
         if (app?.stacks) {
-            const stack = app.stacks.find((s) => s.name === pageItem.name && !s.nohistory);
+            const stack = app.stacks.find((s) => s.name === pageItem.name);
             if (stack) return uri + "#@" + pageItem.name;
         }
     } else {
@@ -96,3 +97,28 @@ export const buildStackURL = (pageItem: PageItem): string | null => {
     }
     return null;
 };
+export const getCurrentAppConfig = () => {
+    const ps = location.pathname.split("/");
+    const app: any = AppsConfiguration.find((a) => a.context === ps[1]);
+    return app;
+}
+export const getUriByPop = (stacks: PageItem[], pop: string): string => {
+    let url = window.location.pathname;
+    if (window.location.search) {
+        const searchParams = new URLSearchParams(window.location.search);
+        const toPop = stacks.find((s) => s.name === pop)
+        if (toPop?.params)
+            Object.keys(toPop.params).forEach((k) => {
+                if (searchParams.has(k)) searchParams.delete(k);
+            });
+
+        if (Object.keys(searchParams).length > 0) url = url + "?" + searchParams.toString();
+    }
+    const hash = window.location.hash;
+    if (hash) {
+        const hs: string[] = hash.split("@");
+        const nhash = hs.filter((h) => h !== pop).join("@");
+        url = url + (nhash !== "#" ? nhash : "");
+    }
+    return url
+}

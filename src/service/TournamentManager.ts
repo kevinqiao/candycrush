@@ -1,8 +1,6 @@
 import { Id } from "convex/_generated/dataModel";
 import { useAction, useConvex } from "convex/react";
-import { Tournament } from "model/Tournament";
 import { useCallback } from "react";
-import { getTerminalType } from "util/useAgent";
 import { api } from "../convex/_generated/api";
 import { usePageManager } from "./PageManager";
 import { useUserManager } from "./UserManager";
@@ -16,25 +14,26 @@ const useTournamentManager = () => {
   const checkAuth = (): boolean => {
     return user && user.uid ? true : false
   }
-  const askJoin = useCallback((tournament: Tournament) => {
+  // const askJoin = useCallback((tournament: Tournament) => {
 
-    if (!user) {
-      openPage({
-        name: "signin",
-        data: { page: { name: "battlePlay", ctx: "playplace", data: { act: "join", tournament } } },
-      });
-      return;
-    }
-    const p = stacks.find((s) => s.name === "battlePlay");
-    const ps = window.location.pathname.split("/");
-    if ((ps[1] !== "tg" || getTerminalType() > 0) && !p) openPage({ name: "battlePlay", ctx: "playplace", data: { act: "join", tournamentId: tournament.id } });
-  }, [user, stacks, openPage]);
+  //   if (!user) {
+  //     openPage({
+  //       name: "signin",
+  //       data: { page: { name: "battlePlay", ctx: "playplace", data: { act: "join", tournament } } },
+  //     });
+  //     return;
+  //   }
+  //   const p = stacks.find((s) => s.name === "battlePlay");
+  //   const ps = window.location.pathname.split("/");
+  //   if ((ps[1] !== "tg" || getTerminalType() > 0) && !p) openPage({ name: "battlePlay", ctx: "playplace", data: { act: "join", tournamentId: tournament.id } });
+  // }, [user, stacks, openPage]);
 
   const join = useCallback(async (tournamentId: string) => {
     if (!checkAuth()) {
       openPage({ name: "signin", data: null })
       return;
     }
+    console.log("join group")
     await joinTournamentByGroup({ tid: tournamentId, uid: user.uid })
   }, [user])
   const listActives = useCallback(
@@ -51,6 +50,6 @@ const useTournamentManager = () => {
     },
     [convex]
   );
-  return { askJoin, join, listActives, findBattle };
+  return { join, listActives, findBattle };
 };
 export default useTournamentManager;

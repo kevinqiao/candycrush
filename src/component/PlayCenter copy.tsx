@@ -1,8 +1,6 @@
 import PageProps from "model/PageProps";
-import React, { FunctionComponent, Suspense, useEffect, useMemo } from "react";
+import React, { FunctionComponent, Suspense, useMemo } from "react";
 import useCoord from "service/CoordManager";
-import { usePageManager } from "service/PageManager";
-import { useUserManager } from "service/UserManager";
 import { useSlideNavManager } from "./SlideNavManager";
 import "./layout.css";
 import PlayMenu from "./menu/PlayMenu";
@@ -10,16 +8,16 @@ import PlayMenu from "./menu/PlayMenu";
 const colors = ["red", "green", "blue", "orange", "grey"];
 const PlayCenter: React.FC<PageProps> = (prop) => {
   const { components, loadSlideContainer, loadSlide } = useSlideNavManager();
-  const { stacks, openPage } = usePageManager();
-  const { userEvent } = useUserManager();
+  // const { stacks, openPage } = usePageManager();
+  // const { userEvent } = useUserManager();
   const { width } = useCoord();
 
-  useEffect(() => {
-    if (userEvent) {
-      const p = stacks.find((s) => s.name === "battlePlay");
-      if (!p) openPage({ name: "battlePlay", ctx: "playplace", data: { act: "load", battle: userEvent?.data } });
-    }
-  }, [stacks, userEvent]);
+  // useEffect(() => {
+  //   if (userEvent) {
+  //     const p = stacks.find((s) => s.name === "battlePlay");
+  //     if (!p) openPage({ name: "battlePlay", ctx: "playplace", data: { act: "load", battle: userEvent?.data } });
+  //   }
+  // }, [stacks, userEvent]);
   const render = useMemo(() => {
     return (
       <>

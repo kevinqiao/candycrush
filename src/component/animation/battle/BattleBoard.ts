@@ -12,9 +12,9 @@ const useBattleBoard = () => {
     const { user } = useUserManager();
 
     const initConsole = useCallback(
-        ( uid: string, gameId: string, score: number,timeline:any) => {
+        (uid: string, gameId: string, score: number, timeline: any) => {
             const scene: ConsoleScene | undefined = scenes.get(SCENE_NAME.BATTLE_CONSOLE) as ConsoleScene;
-            if (!scene) return;
+            if (!scene || !user) return;
             const tl = timeline ?? gsap.timeline();
             tl.to(scene.app, {
                 alpha: 1,
@@ -41,13 +41,13 @@ const useBattleBoard = () => {
             tl.add(gl, "<")
             const panel = scene.goalPanels.find((p) => p.gameId === gameId)
             if (panel)
-                for (let goal of panel.goals) {
+                for (const goal of panel.goals) {
                     gl.from(goal.iconEle, { alpha: 0, duration: 0.8 }, ">-=0.4");
                 }
             if (!timeline)
                 tl.play();
         },
-        [scenes]
+        [scenes, user]
     );
     const initBoard = useCallback(
         (timeline: any, data: { uid: string, gameId: string, score: number }) => {
@@ -80,7 +80,7 @@ const useBattleBoard = () => {
             tl.add(gl, "<")
             const panel = scene.goalPanels.find((p) => p.gameId === data.gameId)
             if (panel)
-                for (let goal of panel.goals) {
+                for (const goal of panel.goals) {
                     gl.from(goal.iconEle, { alpha: 0, duration: 0.8 }, ">-=0.4");
                 }
             if (!timeline)
@@ -143,6 +143,6 @@ const useBattleBoard = () => {
         [scenes]
     );
 
-    return { initConsole,initBoard, changeGoal, changeScore };
+    return { initConsole, initBoard, changeGoal, changeScore };
 };
 export default useBattleBoard

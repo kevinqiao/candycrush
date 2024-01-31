@@ -13,10 +13,10 @@ const AuthCheck: React.FC = () => {
     const userJSON = localStorage.getItem("user");
     if (userJSON) {
       const user = JSON.parse(userJSON);
-      authByToken({ uid: user.uid, token: "12345" }).then((u: any) => {
-        authComplete(u);
-        if (u.battle) openPage({ name: "battlePlay", data: { act: "load", battle: u.battle } });
-      });
+      // authByToken({ uid: user.uid, token: "12345" }).then((u: any) => {
+      //   authComplete(u);
+      //   if (u.battle) openPage({ name: "battlePlay", data: { act: "load", battle: u.battle } });
+      // });
     }
   }, []);
   useEffect(() => {}, []);
