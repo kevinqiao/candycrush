@@ -14,26 +14,12 @@ const useTournamentManager = () => {
   const checkAuth = (): boolean => {
     return user && user.uid ? true : false
   }
-  // const askJoin = useCallback((tournament: Tournament) => {
-
-  //   if (!user) {
-  //     openPage({
-  //       name: "signin",
-  //       data: { page: { name: "battlePlay", ctx: "playplace", data: { act: "join", tournament } } },
-  //     });
-  //     return;
-  //   }
-  //   const p = stacks.find((s) => s.name === "battlePlay");
-  //   const ps = window.location.pathname.split("/");
-  //   if ((ps[1] !== "tg" || getTerminalType() > 0) && !p) openPage({ name: "battlePlay", ctx: "playplace", data: { act: "join", tournamentId: tournament.id } });
-  // }, [user, stacks, openPage]);
-
+ 
   const join = useCallback(async (tournamentId: string) => {
     if (!checkAuth()) {
       openPage({ name: "signin", data: null })
       return;
     }
-    console.log("join group")
     await joinTournamentByGroup({ tid: tournamentId, uid: user.uid })
   }, [user])
   const listActives = useCallback(

@@ -37,9 +37,11 @@ export const TelegramAuthProvider = ({ children }: { children: React.ReactNode }
           return response.json();
         })
         .then((data) => {
-          // 处理验证成功的情况
-          authComplete(data);
-          console.log("验证成功:", data);
+          // 处理验证结果
+          if (data.status === "success") {
+            authComplete(data.message);
+            console.log("验证成功:", data);
+          } else console.log("验证失败:", data);
         })
         .catch((error) => {
           // 处理错误情况
