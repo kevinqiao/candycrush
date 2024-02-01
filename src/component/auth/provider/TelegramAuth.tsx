@@ -18,7 +18,7 @@ export const TelegramAuthProvider = ({ children }: { children: React.ReactNode }
   useEffect(() => {
     // console.log("session check:" + sessionCheck);
     if (!user && sessionCheck) {
-      if (!window.Telegram || window.Telegram.WebApp || window.Telegram.WebApp.initData) {
+      if (!window.Telegram || !window.Telegram.WebApp || !window.Telegram.WebApp.initData) {
         window.location.href = "https://t.me/matchthreebot";
       }
       const telegramData = window.Telegram.WebApp.initData;
