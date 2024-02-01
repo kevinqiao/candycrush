@@ -65,15 +65,14 @@ export const UserProvider = ({ children }: { children: React.ReactNode }) => {
       data: { battle },
       params: { battleId: battle.id },
     };
+    console.log(app.context)
     if (app.context === "tg" && window.Telegram?.WebApp) {
       pageItem.params.uid = u.uid;
       pageItem.params.token = u.token;
       const url = buildStackURL(pageItem);
       window.Telegram.WebApp.openLink(url);
       return;
-    }
-
-    openPage(pageItem);
+    } else openPage(pageItem);
   }, []);
   const authComplete = useCallback(
     (u: User) => {
