@@ -85,6 +85,8 @@ export const UserProvider = ({ children }: { children: React.ReactNode }) => {
   }, [user, userEvent]);
   useEffect(() => {
     if (!user && sessionCheck) {
+      const userAgent = navigator.userAgent || navigator.vendor || window.opera;
+      console.log(userAgent);
       const app: any = getCurrentAppConfig();
       if (app)
         initAuth(app).then((u) => {

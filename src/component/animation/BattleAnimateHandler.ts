@@ -23,7 +23,7 @@ export const useBattleAnimateHandler = (props: IAnimateHandleContext) => {
                 timeline.kill();
             }
         });
-        console.log(user)
+
         const bl = gsap.timeline();
         timeline.add(bl, ">+=1.0")
         battle.games.forEach((g) => {

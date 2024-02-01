@@ -1,5 +1,5 @@
 import * as PIXI from "pixi.js";
-import { createContext, useCallback, useContext, useMemo, useRef, useState } from "react";
+import React, { createContext, useCallback, useContext, useMemo, useRef, useState } from "react";
 import { SceneModel } from "../../model/SceneModel";
 import { ANIMATE_EVENT_TYPE } from "./AnimateConstants";
 import { useBattleAnimateHandler } from "./BattleAnimateHandler";
