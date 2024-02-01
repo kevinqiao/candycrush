@@ -24,7 +24,7 @@ const SearchOpponent = () => {
   // const [countSecond, setCountSecond] = useState(0);
   const { battle, allGameLoaded } = useBattleManager();
   const { user } = useUserManager();
-
+  console.log(user);
   const playSearch = useCallback(() => {
     const tl = gsap.timeline({
       repeat: 4,
