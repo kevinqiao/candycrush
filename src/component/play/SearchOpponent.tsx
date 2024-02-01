@@ -42,6 +42,7 @@ const SearchOpponent = () => {
   }, []);
 
   const closeSearchAndPlayFound = useCallback(() => {
+    if (!battle) return;
     const ml = gsap.timeline({
       onComplete: () => {
         ml.kill();
@@ -49,7 +50,7 @@ const SearchOpponent = () => {
     });
     const tl = gsap.timeline({
       onComplete: () => {
-        const dueTime = battle.startTime - user.timelag;
+        const dueTime = battle.startTime ? battle.startTime - user.timelag : 0;
         setCountTime(dueTime);
         tl.kill();
       },
@@ -74,7 +75,7 @@ const SearchOpponent = () => {
     );
     sl.to(startRef.current, { duration: 0.9, autoAlpha: 0 }, ">");
     ml.play();
-  }, [width]);
+  }, [user, battle, width]);
 
   const playGame = useCallback((): void => {
     const tl = gsap.timeline({
