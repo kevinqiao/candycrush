@@ -14,10 +14,10 @@ export const useBattleAnimateHandler = (props: IAnimateHandleContext) => {
     const { battle } = useBattleManager();
     const { initGame } = useGameReady();
     const { initConsole } = useBattleBoard();
-   
+
     const processBattleInit = useCallback(() => {
 
-        if (!battle) return;
+        if (!battle || !user) return;
         const timeline = gsap.timeline({
             onComplete: () => {
                 timeline.kill();
@@ -36,7 +36,7 @@ export const useBattleAnimateHandler = (props: IAnimateHandleContext) => {
             initConsole(g.uid, g.gameId, score, sl);
         })
         timeline.play();
-    }, [battle])
+    }, [battle, user])
 
     useEffect(() => {
 
