@@ -13,6 +13,7 @@ const useBattleBoard = () => {
 
     const initConsole = useCallback(
         (uid: string, gameId: string, score: number, timeline: any) => {
+            console.log("init console for game:" + gameId)
             const scene: ConsoleScene | undefined = scenes.get(SCENE_NAME.BATTLE_CONSOLE) as ConsoleScene;
             if (!scene || !user) return;
             const tl = timeline ?? gsap.timeline();
