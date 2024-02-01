@@ -3,7 +3,7 @@ import TgApp from "./TgApp";
 import "./index.css";
 import reportWebVitals from "./reportWebVitals";
 const root = ReactDOM.createRoot(document.getElementById("root") as HTMLElement);
-
+console.log("telegram play");
 setTimeout(() => {
   root.render(<TgApp />);
   window.Telegram.WebApp.expand();
