@@ -1,6 +1,7 @@
 import { useAction, useQuery } from "convex/react";
+import { PageItem } from "model/PageProps";
 import React, { createContext, useCallback, useContext, useEffect, useState } from "react";
-import { getCurrentAppConfig } from "util/PageUtils";
+import { buildStackURL, getCurrentAppConfig } from "util/PageUtils";
 import { api } from "../convex/_generated/api";
 import { usePageManager } from "./PageManager";
 interface UserEvent {
@@ -13,6 +14,8 @@ interface User {
   token: string;
   name?: string;
   battle?: any;
+  timelag: number;
+  timestamp?: number;
 }
 interface IUserContext {
   user: any | null;
@@ -53,22 +56,34 @@ export const UserProvider = ({ children }: { children: React.ReactNode }) => {
   const userEvent: any = useQuery(api.events.getByUser, { uid: user?.uid ?? "###", lastTime });
   const signinByToken = useAction(api.UserService.signin);
   const findAllUser = useAction(api.UserService.findAllUser);
+
+  const openBattle = useCallback((u: User, battle: any) => {
+    const app: any = getCurrentAppConfig();
+    const pageItem: PageItem = {
+      name: "battlePlay",
+      ctx: app.context,
+      data: { battle },
+      params: { battleId: battle.id },
+    };
+    if (app.context === "tg" && window.Telegram?.WebApp) {
+      pageItem.params.uid = u.uid;
+      pageItem.params.token = u.token;
+      const url = buildStackURL(pageItem);
+      window.Telegram.WebApp.openLink(url);
+      return;
+    }
+
+    openPage(pageItem);
+  }, []);
   const authComplete = useCallback(
     (u: User) => {
+      u.timelag = u.timestamp ? u.timestamp - Date.now() : 0;
       const app: any = getCurrentAppConfig();
-      if (u && app && !app.authLife) localStorage.setItem("user", JSON.stringify({ uid: u.uid, token: u.token }));
+      if (u && app && !app.authLife)
+        localStorage.setItem("user", JSON.stringify({ uid: u.uid, token: u.token, context: app.context }));
       if (u.battle) {
         const stack = stacks.find((s) => s.name === "battlePlay");
-        if (!stack) {
-          if (app.context === "tg" && window.Telegram?.WebApp?.initData) {
-          } else
-            openPage({
-              name: "battlePlay",
-              ctx: app.context,
-              data: { battle: u.battle },
-              params: { battleId: u.battle.id },
-            });
-        }
+        if (!stack) openBattle(u, u.battle);
       }
       setUser(u);
     },
@@ -77,22 +92,14 @@ export const UserProvider = ({ children }: { children: React.ReactNode }) => {
   useEffect(() => {
     if (userEvent && user) {
       if (userEvent?.name === "battleCreated") {
-        const app: any = getCurrentAppConfig();
-        const battle = userEvent.data;
-        const pageItem = {
-          name: "battlePlay",
-          ctx: app.context,
-          data: { battle },
-          params: { uid: user.uid, token: user.token, battleId: battle.id },
-        };
-        console.log(pageItem);
-        openPage(pageItem);
+        openBattle(user, userEvent.data);
       }
       setLastTime(userEvent.time);
     }
   }, [user, userEvent]);
   useEffect(() => {
     if (user || !currentPage) return;
+    const app: any = getCurrentAppConfig();
     let uid, token;
     if (currentPage.params?.uid && currentPage.params?.token) {
       uid = currentPage.params?.uid;
@@ -101,7 +108,8 @@ export const UserProvider = ({ children }: { children: React.ReactNode }) => {
       const userJSON = localStorage.getItem("user");
       if (userJSON !== null) {
         const userObj = JSON.parse(userJSON);
-        if (userObj["uid"] && userObj["token"]) {
+        console.log(userObj);
+        if (userObj["uid"] && userObj["token"] && userObj["context"] === app.context) {
           uid = userObj["uid"];
           token = userObj["token"];
         }
@@ -111,6 +119,7 @@ export const UserProvider = ({ children }: { children: React.ReactNode }) => {
       authByToken({ uid, token }).then((u: any) => {
         if (u) {
           u.timelag = u.timestamp - Date.now();
+          console.log(u);
           authComplete(u);
         }
         setSessionCheck(1);

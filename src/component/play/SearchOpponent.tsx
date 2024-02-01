@@ -1,5 +1,5 @@
 import { gsap } from "gsap";
-import { useCallback, useEffect, useRef, useState } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import { useUserManager } from "service/UserManager";
 import { useBattleManager } from "../../service/BattleManager";
 import useDimension from "../../util/useDimension";
@@ -90,9 +90,12 @@ const SearchOpponent = () => {
   }, []);
   useEffect(() => {
     if (battle && allGameLoaded) {
-      // gsap.to(loadingRef.current, { autoAlpha: 0, duration: 2.0 });
+      console.log(battle);
+      console.log(user);
       const time = battle.startTime ? battle.startTime - Date.now() - user.timelag : 0;
+      console.log("time:" + time);
       if (time < 0) {
+        console.log("playGame...");
         playGame();
         return;
       }

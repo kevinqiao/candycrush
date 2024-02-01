@@ -19,7 +19,7 @@ const PlayHome: React.FC<PageProps> = (pageProp) => {
   const sceneRef = useRef<HTMLDivElement | null>(null);
   const sbattleRef = useRef<BattleModel | null>(null);
   const [battle, setBattle] = useState<BattleModel | null>(null);
-  const { join, findBattle } = useTournamentManager();
+  const { findBattle } = useTournamentManager();
   const browserVisible = usePageVisibility();
   const pagePosition = useDimension(sceneRef);
 
@@ -34,6 +34,7 @@ const PlayHome: React.FC<PageProps> = (pageProp) => {
     }
   }, [browserVisible]);
   useEffect(() => {
+    console.log(pageProp);
     if (pageProp.data?.battleId) {
       findBattle(pageProp.data.battleId).then((b) => {
         sbattleRef.current = b;
