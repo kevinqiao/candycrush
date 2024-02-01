@@ -85,8 +85,6 @@ export const UserProvider = ({ children }: { children: React.ReactNode }) => {
   }, [user, userEvent]);
   useEffect(() => {
     if (!user && sessionCheck) {
-      const userAgent = navigator.userAgent || navigator.vendor || window.opera;
-      console.log(userAgent);
       const app: any = getCurrentAppConfig();
       if (app)
         initAuth(app).then((u) => {
@@ -97,8 +95,10 @@ export const UserProvider = ({ children }: { children: React.ReactNode }) => {
   }, [user, sessionCheck]);
   useEffect(() => {
     if (user || !currentPage) return;
+    const userAgent = navigator.userAgent || navigator.vendor || window.opera;
+    console.log(userAgent);
     const app: any = getCurrentAppConfig();
-    console.log(app);
+
     let uid, token;
     if (currentPage.params?.uid && currentPage.params?.token) {
       uid = currentPage.params?.uid;
