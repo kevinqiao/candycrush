@@ -10,11 +10,11 @@ import { useUserManager } from "../../../service/UserManager";
 const useBattleBoard = () => {
     const { scenes } = useSceneManager();
     const { user } = useUserManager();
-
+    console.log(user)
     const initConsole = useCallback(
         (uid: string, gameId: string, score: number, timeline: any) => {
             console.log("init console for game:" + gameId)
-            console.log(user)
+
             const scene: ConsoleScene | undefined = scenes.get(SCENE_NAME.BATTLE_CONSOLE) as ConsoleScene;
             if (!scene || !user) return;
             console.log(user)

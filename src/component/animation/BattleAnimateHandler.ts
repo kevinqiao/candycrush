@@ -14,6 +14,7 @@ export const useBattleAnimateHandler = (props: IAnimateHandleContext) => {
     const { battle } = useBattleManager();
     const { initGame } = useGameReady();
     const { initConsole } = useBattleBoard();
+   
     const processBattleInit = useCallback(() => {
 
         if (!battle) return;
