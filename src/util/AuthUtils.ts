@@ -18,7 +18,7 @@ export const getTerminalType = (): number => {
 }
 
 
-export const initAuth = async (app: any): Promise<User | null> => {
+export const embedAuth = async (app: any): Promise<User | null> => {
     if (app.context === "tg" && window.Telegram?.WebApp) {
         const telegramData = window.Telegram.WebApp.initData;
         try {

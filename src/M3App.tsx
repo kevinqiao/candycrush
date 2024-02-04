@@ -1,6 +1,5 @@
 import NavPage from "component/NavPage";
 import StackController from "component/StackController";
-import { Match3AuthProvider } from "component/auth/provider/Match3Auth";
 import MainMenu from "component/menu/MainMenu";
 import { ConvexProvider, ConvexReactClient } from "convex/react";
 import { gsap } from "gsap";
@@ -37,7 +36,8 @@ function M3App() {
     [PageProvider],
     [ConvexProvider, { client: convex }],
     [UserProvider],
-    [Match3AuthProvider],
+    // [Match3AuthProvider],
+    // [ClerkProvider, { publishableKey: "pk_test_bm9ybWFsLXNoZXBoZXJkLTQ5LmNsZXJrLmFjY291bnRzLmRldiQ" }],
     // [EventProvider],
   ]);
   return (

@@ -3,23 +3,12 @@ import { COLUMN, ROW } from "../model/Constants";
 import { internal } from "./_generated/api";
 import { Id } from "./_generated/dataModel";
 import { action } from "./_generated/server";
-export const findUser = action({
-    args: { uid: v.string() },
-    handler: async (ctx, args) => {
-
-    }
-})
-export const telegramAuthValidate = action({
-    args: { str: v.string() },
-    handler: async (ctx, { str }) => {
-
-    }
-})
 
 export const authByToken = action({
     args: { uid: v.string(), token: v.string() },
     handler: async (ctx, { uid, token }) => {
-        const user: any = await ctx.runQuery(internal.user.findByUID, { uid })
+        console.log("uid:" + uid)
+        const user: any = await ctx.runQuery(internal.user.find, { id: uid as Id<"user"> })
         if (user) {
             const game = await ctx.runQuery(internal.games.findUserGame, { uid });
             if (game && !game.status) {
@@ -32,7 +21,7 @@ export const authByToken = action({
                     user['battle'] = { ...b, column: COLUMN, row: ROW };
                 }
             }
-            await ctx.runMutation(internal.user.update, { id: user["_id"], data: {} })
+            // await ctx.runMutation(internal.user.update, { id: user["_id"], data: {} })
         }
         return { token: "123456", ...user, timestamp: Date.now() }
     }
@@ -45,12 +34,7 @@ export const findAllUser = action({
         return users;
     }
 })
-export const login = action({
-    args: { uname: v.string(), password: v.string() },
-    handler: async (ctx, args) => {
 
-    }
-})
 export const logout = action({
     args: { uid: v.string() },
     handler: async (ctx, { uid }) => {
@@ -58,9 +42,9 @@ export const logout = action({
     }
 })
 export const signin = action({
-    args: { uid: v.string(), token: v.string() },
+    args: { uid: v.id("user"), token: v.string() },
     handler: async (ctx, { uid, token }) => {
-        const user: any = await ctx.runQuery(internal.user.findByUID, { uid });
+        const user: any = await ctx.runQuery(internal.user.find, { id: uid });
         if (user) {
             const game = await ctx.runQuery(internal.games.findUserGame, { uid });
             if (game) {
@@ -76,11 +60,5 @@ export const signin = action({
             await ctx.runMutation(internal.user.update, { id: user["_id"], data: {} })
         }
         return { token: "12345", ...user, timestamp: Date.now() }
-    }
-})
-export const signup = action({
-    args: { uname: v.string(), password: v.string() },
-    handler: async (ctx, { uname, password }) => {
-
     }
 })

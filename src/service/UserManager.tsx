@@ -2,7 +2,7 @@ import { useAction, useQuery } from "convex/react";
 import { PageItem } from "model/PageProps";
 import { User } from "model/User";
 import React, { createContext, useCallback, useContext, useEffect, useState } from "react";
-import { initAuth } from "util/AuthUtils";
+import { embedAuth } from "util/AuthUtils";
 import { buildStackURL, getCurrentAppConfig } from "util/PageUtils";
 import { api } from "../convex/_generated/api";
 import { usePageManager } from "./PageManager";
@@ -11,14 +11,7 @@ interface UserEvent {
   name: string;
   data: any;
 }
-// interface User {
-//   uid: string;
-//   token: string;
-//   name?: string;
-//   battle?: any;
-//   timelag: number;
-//   timestamp?: number;
-// }
+
 interface IUserContext {
   user: any | null;
   sessionCheck: number;
@@ -51,13 +44,12 @@ export const UserProvider = ({ children }: { children: React.ReactNode }) => {
       data: { battle },
       params: { battleId: battle.id },
     };
-    console.log(app.context);
-    if (app.context === "tg" && window.Telegram?.WebApp) {
+
+    if (user.authContainer?.type > 0) {
       pageItem.params.uid = u.uid;
       pageItem.params.token = u.token;
       const url = buildStackURL(pageItem);
       window.Telegram.WebApp.openLink(url);
-      return;
     } else openPage(pageItem);
   }, []);
 
@@ -65,8 +57,11 @@ export const UserProvider = ({ children }: { children: React.ReactNode }) => {
     (u: User) => {
       u.timelag = u.timestamp ? u.timestamp - Date.now() : 0;
       const app: any = getCurrentAppConfig();
-      if (u && app && !app.authLife)
-        localStorage.setItem("user", JSON.stringify({ uid: u.uid, token: u.token, context: app.context }));
+      // if (u && app && !app.authLife)
+      localStorage.setItem(
+        "user",
+        JSON.stringify({ uid: u.uid, token: u.token, context: app.context, authContainer: u.authContainer })
+      );
       if (u.battle) {
         const stack = stacks.find((s) => s.name === "battlePlay");
         if (!stack) openBattle(u, u.battle);
@@ -83,23 +78,24 @@ export const UserProvider = ({ children }: { children: React.ReactNode }) => {
       setLastTime(userEvent.time);
     }
   }, [user, userEvent]);
+
   useEffect(() => {
     if (!user && sessionCheck) {
       const app: any = getCurrentAppConfig();
       if (app)
-        initAuth(app).then((u) => {
-          console.log(u);
+        embedAuth(app).then((u) => {
           if (u) authComplete(u);
         });
     }
   }, [user, sessionCheck]);
+
   useEffect(() => {
     if (user || !currentPage) return;
-    const userAgent = navigator.userAgent || navigator.vendor || window.opera;
-    console.log(userAgent);
-    const app: any = getCurrentAppConfig();
+    // const userAgent = navigator.userAgent || navigator.vendor || window.opera;
+    // console.log(userAgent);
 
     let uid, token;
+    let authEmbed = 0; //0-external browser
     if (currentPage.params?.uid && currentPage.params?.token) {
       uid = currentPage.params?.uid;
       token = currentPage.params?.token;
@@ -107,22 +103,25 @@ export const UserProvider = ({ children }: { children: React.ReactNode }) => {
       const userJSON = localStorage.getItem("user");
       if (userJSON !== null) {
         const userObj = JSON.parse(userJSON);
-        console.log(userObj);
-        console.log(app.context);
-        if (userObj["uid"] && userObj["token"] && userObj["context"] === app.context) {
+        if (userObj["uid"] && userObj["token"]) {
           uid = userObj["uid"];
           token = userObj["token"];
+          authEmbed = userObj["container"] ?? 0;
         }
       }
     }
     if (uid && token) {
       authByToken({ uid, token })
         .then((u: any) => {
+          console.log(u);
           if (u) {
             u.timelag = u.timestamp - Date.now();
-            authComplete(u);
+            authComplete({ ...u, authEmbed });
           }
           // setSessionCheck(1);
+        })
+        .catch((err) => {
+          console.log(err);
         })
         .finally(() => setSessionCheck(1));
     } else setSessionCheck(1);
@@ -137,18 +136,6 @@ export const UserProvider = ({ children }: { children: React.ReactNode }) => {
       localStorage.removeItem("user");
       setUser(null);
     }, []),
-    // signup: useCallback(() => {}, []),
-    // signin: useCallback(async (uid: string, token: string) => {
-    //   const user = await signinByToken({ uid, token });
-    //   console.log(user);
-    //   if (user) {
-    //     user.timelag = user.timestamp - Date.now();
-    //     authComplete(user);
-    //   }
-    // }, []),
-    // findAllUser: useCallback(async () => {
-    //   return await findAllUser();
-    // }, [findAllUser]),
   };
 
   return <UserContext.Provider value={value}>{children}</UserContext.Provider>;

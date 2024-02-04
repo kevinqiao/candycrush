@@ -6,35 +6,32 @@ export const findAll = internalQuery({
     return users
   },
 });
-export const findByUID = internalQuery({
-  args: { uid: v.string() },
-  handler: async (ctx, { uid }) => {
-    const user = await ctx.db.query("user").filter((q) => q.eq(q.field("uid"), uid)).unique();
-    return user
+
+export const find = internalQuery({
+  args: { id: v.id("user") },
+  handler: async (ctx, { id }) => {
+    const user = await ctx.db.get(id);
+    return { ...user, uid: user?._id, _id: undefined };
   },
 });
-export const find = internalQuery({
+export const findByUid = query({
   args: { id: v.id("user") },
   handler: async (ctx, { id }) => {
     const user = await ctx.db.get(id);
     return user;
   },
 });
-export const findByUid = query({
-  args: { uid: v.string() },
-  handler: async (ctx, { uid }) => {
-    const user = await ctx.db.query("user").filter((q) => q.eq(q.field("uid"), uid)).unique();
-    if (user)
-      return { ...user, id: user?._id, _id: undefined }
+export const findByCuid = query({
+  args: { cuid: v.string(), tenant: v.string() },
+  handler: async (ctx, { cuid, tenant }) => {
+    const user = await ctx.db.query("user").filter((q) => q.and(q.eq(q.field("cuid"), cuid), q.eq(q.field("tenant"), tenant))).unique();
+    return { ...user, uid: user?._id, _id: undefined };
   },
 });
-
 export const create = mutation({
-  args: { name: v.string(), token: v.optional(v.string()), email: v.optional(v.string()) },
-  handler: async (ctx, { name, email }) => {
-    const docId = await ctx.db.insert("user", { name, email, status: 0 });
-    if (docId)
-      await ctx.db.patch(docId, { uid: docId })
+  args: { cuid: v.string(), name: v.string(), tenant: v.optional(v.string()), token: v.optional(v.string()), email: v.optional(v.string()) },
+  handler: async (ctx, { cuid, name, tenant, token, email }) => {
+    const docId = await ctx.db.insert("user", { cuid, name, email, token, tenant, status: 0 });
     return docId
   },
 });

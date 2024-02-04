@@ -17,7 +17,7 @@ import type {
 import type * as asset from "../asset.js";
 import type * as battle from "../battle.js";
 import type * as botHook from "../botHook.js";
-import type * as channelUser from "../channelUser.js";
+import type * as cuser from "../cuser.js";
 import type * as custom_session from "../custom/session.js";
 import type * as data_TournamentData from "../data/TournamentData.js";
 import type * as events from "../events.js";
@@ -45,7 +45,7 @@ declare const fullApi: ApiFromModules<{
   asset: typeof asset;
   battle: typeof battle;
   botHook: typeof botHook;
-  channelUser: typeof channelUser;
+  cuser: typeof cuser;
   "custom/session": typeof custom_session;
   "data/TournamentData": typeof data_TournamentData;
   events: typeof events;

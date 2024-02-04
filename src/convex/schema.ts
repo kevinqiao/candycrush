@@ -84,8 +84,7 @@ export default defineSchema({
         amount: v.number(),
         lastUpdate: v.optional(v.number())
     }),
-    channelUser: defineTable({
-        uid: v.optional(v.string()),
+    cuser: defineTable({
         cid: v.string(),
         channel: v.number(),
         name: v.optional(v.string()),
@@ -94,10 +93,10 @@ export default defineSchema({
         data: v.optional(v.any())
     }),
     user: defineTable({
-        uid: v.optional(v.string()),
         name: v.string(),
+        cuid: v.string(),
         token: v.optional(v.string()),
-        partner: v.optional(v.string()),
+        tenant: v.optional(v.string()),
         lastUpdate: v.optional(v.number()),
         email: v.optional(v.string()),
         status: v.optional(v.number())//0-active 1-removed

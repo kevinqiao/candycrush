@@ -71,3 +71,8 @@ export const GAME_ACTION = {
     USE_SKILL: "USE_SKILL"
 }
 export const GAME_PLAY_TIME = 600000
+export const CHANNEL_AUTH = {
+    CLERK: 0,
+    TELEGRAM_BOT: 1,
+    THIRD_WEB: 2,
+};

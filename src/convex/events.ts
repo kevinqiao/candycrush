@@ -36,9 +36,11 @@ export const getByUser = query({
   handler: async (ctx, { uid, lastTime }) => {
     if (uid === "###") return;
     let time = lastTime;
-    if(time===0){
-      const user = await ctx.db.query(("user")).filter((q) => q.eq(q.field("uid"), uid)).first();
-      if(user?.lastUpdate)
+    if (time === 0) {
+      const id = uid as Id<"user">
+      const user = await ctx.db.get(id)
+      // const user = await ctx.db.query(("user")).filter((q) => q.eq(q.field("uid"), uid)).first();
+      if (user?.lastUpdate)
         time = user.lastUpdate
     }
     const event = await ctx.db
