@@ -83,6 +83,7 @@ export const UserProvider = ({ children }: { children: React.ReactNode }) => {
   useEffect(() => {
     if (!user && sessionCheck) {
       const app: any = getCurrentAppConfig();
+      console.log(app);
       if (app)
         embedAuth(app).then((u) => {
           console.log(u);

@@ -9,7 +9,6 @@ interface Props {
 
 const LogoutHome: React.FC<Props> = ({ onComplete, onCancel }) => {
   const { signOut } = useClerk();
-  const { isSignedIn } = useAuth();
   const { signout } = useUserManager();
   const complete = useCallback(() => {
     signout();

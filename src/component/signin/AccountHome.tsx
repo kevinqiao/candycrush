@@ -54,7 +54,7 @@ const AccountHome: React.FC = () => {
         }}
       >
         {user ? <div>{user.name}</div> : null}
-        {user ? (
+        {user && !user.authEmbed ? (
           <div
             className="signin-btn"
             onClick={(e) => {
@@ -63,7 +63,8 @@ const AccountHome: React.FC = () => {
           >
             Signout
           </div>
-        ) : (
+        ) : null}
+        {!user ? (
           <div
             className="signin-btn"
             onClick={(e) => {
@@ -72,7 +73,7 @@ const AccountHome: React.FC = () => {
           >
             SignIn
           </div>
-        )}
+        ) : null}
       </div>
 
       <div
