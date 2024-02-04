@@ -66,7 +66,7 @@ const AuthHome: React.FC<Props> = ({ close }) => {
             backgroundColor: "white",
           }}
         >
-          <span style={{ fonSize: 20, color: "blue" }}>Authenticating...</span>
+          <span style={{ fontSize: 20, color: "blue" }}>Authenticating...</span>
         </div>
       </SignedIn>
     </div>
