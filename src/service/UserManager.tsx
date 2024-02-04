@@ -85,6 +85,7 @@ export const UserProvider = ({ children }: { children: React.ReactNode }) => {
       const app: any = getCurrentAppConfig();
       if (app)
         embedAuth(app).then((u) => {
+          console.log(u);
           if (u) authComplete(u);
         });
     }
