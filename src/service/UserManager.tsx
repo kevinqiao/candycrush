@@ -60,7 +60,7 @@ export const UserProvider = ({ children }: { children: React.ReactNode }) => {
       // if (u && app && !app.authLife)
       localStorage.setItem(
         "user",
-        JSON.stringify({ uid: u.uid, token: u.token, context: app.context, authContainer: u.authContainer })
+        JSON.stringify({ uid: u.uid, token: u.token, context: app.context, authEmbed: u.authEmbed ?? 0 })
       );
       if (u.battle) {
         const stack = stacks.find((s) => s.name === "battlePlay");
@@ -107,7 +107,7 @@ export const UserProvider = ({ children }: { children: React.ReactNode }) => {
         if (userObj["uid"] && userObj["token"]) {
           uid = userObj["uid"];
           token = userObj["token"];
-          authEmbed = userObj["container"] ?? 0;
+          authEmbed = userObj["authEmbed"] ?? 0;
         }
       }
     }

@@ -31,7 +31,7 @@ export const findByCuid = query({
 export const create = mutation({
   args: { cuid: v.string(), name: v.string(), tenant: v.optional(v.string()), token: v.optional(v.string()), email: v.optional(v.string()) },
   handler: async (ctx, { cuid, name, tenant, token, email }) => {
-    const docId = await ctx.db.insert("user", { cuid, name, email, token, tenant, status: 0 });
+    const docId = await ctx.db.insert("user", { cuid, name, email, token, tenant });
     return docId
   },
 });
