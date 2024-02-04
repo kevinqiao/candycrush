@@ -33,7 +33,7 @@ export const embedAuth = async (app: any): Promise<User | null> => {
             const json: { status: string; message: any; } = await res.json();
             console.log(json)
             if (json.status === "success")
-                return { ...json.message, type: 1 };
+                return { ...json.message, authEmbed: 1 };
         } catch (err) {
             console.log(err)
         }

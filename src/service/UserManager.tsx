@@ -44,8 +44,8 @@ export const UserProvider = ({ children }: { children: React.ReactNode }) => {
       data: { battle },
       params: { battleId: battle.id },
     };
-    console.log(user);
-    if (user?.type && user.type > 0) {
+    console.log(u);
+    if (u?.authEmbed) {
       pageItem.params.uid = u.uid;
       pageItem.params.token = u.token;
       const url = buildStackURL(pageItem);
@@ -72,6 +72,7 @@ export const UserProvider = ({ children }: { children: React.ReactNode }) => {
   );
   useEffect(() => {
     if (userEvent && user) {
+      console.log(userEvent);
       if (userEvent?.name === "battleCreated") {
         openBattle(user, userEvent.data);
       }
