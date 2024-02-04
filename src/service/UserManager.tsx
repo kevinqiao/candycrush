@@ -44,8 +44,8 @@ export const UserProvider = ({ children }: { children: React.ReactNode }) => {
       data: { battle },
       params: { battleId: battle.id },
     };
-
-    if (user.authContainer?.type > 0) {
+    console.log(user);
+    if (user.type > 0) {
       pageItem.params.uid = u.uid;
       pageItem.params.token = u.token;
       const url = buildStackURL(pageItem);
