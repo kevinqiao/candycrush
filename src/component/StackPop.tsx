@@ -78,10 +78,17 @@ const StackPop: React.FC<PopupProps> = ({ zIndex, index }) => {
   }, [index, pageProp, stacks]);
 
   const disableCloseBtn = useCallback(() => {
+    console.log("disable close...");
     if (closeBtnRef.current) {
-      gsap.to(closeBtnRef.current, { autoAlpha: 0, duration: 0.3 });
+      console.log("animate close btn");
+      gsap.to(closeBtnRef.current, {
+        autoAlpha: 0,
+        opacity: 0,
+        duration: 0.3,
+        onComplete: () => console.log("complete disable close"),
+      });
     }
-  }, []);
+  }, [closeBtnRef.current]);
 
   const exit = useCallback(() => {
     if (!pagePattern || !pageProp) return;
@@ -156,10 +163,10 @@ const StackPop: React.FC<PopupProps> = ({ zIndex, index }) => {
         <div
           ref={closeBtnRef}
           className="closeStackBtn"
-          style={{ cursor: "pointer", borderRadius: 4, opacity: 0 }}
+          style={{ cursor: "pointer", borderRadius: 4, opacity: 1 }}
           onClick={() => close(0)}
         >
-          Cancel({index})
+          Close({index})
         </div>
         {confirmOpen ? <PageCloseConfirm onConfirm={exit} onCancel={() => setConfirmOpen(false)} /> : null}
       </div>

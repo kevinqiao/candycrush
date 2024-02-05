@@ -1,4 +1,3 @@
-import { ClerkProvider } from "@clerk/clerk-react";
 import React from "react";
 import LogoutHome from "./LogoutHome";
 
@@ -8,9 +7,9 @@ interface Props {
 }
 const Signout: React.FC<Props> = ({ onComplete, onCancel }) => {
   return (
-    <ClerkProvider publishableKey={"pk_test_bm9ybWFsLXNoZXBoZXJkLTQ5LmNsZXJrLmFjY291bnRzLmRldiQ"}>
-      <LogoutHome onComplete={onComplete} onCancel={onCancel} />
-    </ClerkProvider>
+    // <ClerkProvider publishableKey={"pk_test_bm9ybWFsLXNoZXBoZXJkLTQ5LmNsZXJrLmFjY291bnRzLmRldiQ"}>
+    <LogoutHome onComplete={onComplete} onCancel={onCancel} />
+    // </ClerkProvider>
   );
 };
 

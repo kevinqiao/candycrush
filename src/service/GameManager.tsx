@@ -89,7 +89,7 @@ export const GameProvider = ({
   const lastEventRef = useRef<any>({ steptime: 0 });
   const [gameEvent, setGameEvent] = useState<GameEvent | null>(null);
   const [gameEvents, setGameEvents] = useState<GameEvent[]>([]);
-  const { battle, completeCandyMatch, completeGame } = useBattleManager();
+  const { battle, completeGame } = useBattleManager();
   const { createAnimate } = useAnimateManager();
 
   const events: GameEvent[] | undefined | null = useQuery(api.events.findByGame, {
@@ -106,6 +106,7 @@ export const GameProvider = ({
     const g: any | null = await convex.query(api.games.findGame, {
       gameId: game.gameId,
     });
+    console.log(g);
 
     if (g) {
       g.cells.sort((a: CellItem, b: CellItem) => {
@@ -125,7 +126,7 @@ export const GameProvider = ({
 
   const processEvents = useCallback((eventList: any[]) => {
     let count = 0;
-    for (let event of eventList) {
+    for (const event of eventList) {
       lastEventRef.current = event;
       setTimeout(() => {
         if (event.steptime > state.laststep) {
@@ -159,6 +160,7 @@ export const GameProvider = ({
       });
 
       if (g) {
+        console.log(g);
         startTimeRef.current = Date.now();
         dispatch({ type: actions.INIT_GAME, data: { gameId: game.gameId, ...g } });
         setGameEvent({ id: "0", steptime: 0, name: "initGame", data: g });

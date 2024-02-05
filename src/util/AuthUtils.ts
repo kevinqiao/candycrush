@@ -39,3 +39,24 @@ export const embedAuth = async (app: any): Promise<User | null> => {
     }
     return null
 }
+export const authToken = async (auth: any): Promise<User | null> => {
+    if (auth) {
+        try {
+            const authData = auth;
+            const AUTH_URL = "http://localhost:80/token/auth";
+            const res = await fetch(AUTH_URL, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json; charset=utf-8",
+                },
+                body: JSON.stringify(authData),
+            });
+            const json: { status: string; message: any; } = await res.json();
+            if (json.status === "success")
+                return { ...json.message, authEmbed: 1 };
+        } catch (err) {
+            console.log(err)
+        }
+    }
+    return null
+}

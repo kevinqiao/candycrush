@@ -24,7 +24,7 @@ const SearchOpponent = () => {
   // const [countSecond, setCountSecond] = useState(0);
   const { battle, allGameLoaded } = useBattleManager();
   const { user } = useUserManager();
-  console.log(user);
+
   const playSearch = useCallback(() => {
     const tl = gsap.timeline({
       repeat: 4,
@@ -88,11 +88,9 @@ const SearchOpponent = () => {
     }, []);
     tl.to(sceneContainerRef.current, { autoAlpha: 0, duration: 0.5 }, ">+=0.5");
     tl.play();
-  }, []);
+  }, [createEvent]);
   useEffect(() => {
     if (battle && allGameLoaded) {
-      console.log(battle);
-      console.log(user);
       const time = battle.startTime ? battle.startTime - Date.now() - user.timelag : 0;
       console.log("time:" + time);
       if (time < 0) {

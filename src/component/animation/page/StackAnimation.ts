@@ -66,7 +66,7 @@ const useStackAnimation = ({ scene, mask, closeBtn, pageProp }: StackProps) => {
                 tl.to(scene.current, { scale: 1, autoAlpha: 0, x: pagePattern.vw, y: 0, duration: 0 });
                 tl.to(scene.current, { autoAlpha: 1, x: pagePattern.vw - pagePattern.width, duration: 0.8 });
                 tl.to(mask.current, { autoAlpha: 0.7, duration: 0.8 }, "<");
-                tl.to(closeBtn.current, { autoAlpha: 1, duration: 0.8 }, "<")
+                // tl.to(closeBtn.current, { autoAlpha: 1, duration: 0.8 }, "<")
                 break;
             case STACK_PAGE_DIRECTION.BOTTOM:
                 tl.to(scene.current, { scale: 1, autoAlpha: 0, x: (pagePattern.vw - pagePattern.width) / 2, y: pagePattern.vh, duration: 0 });

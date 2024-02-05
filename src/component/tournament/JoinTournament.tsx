@@ -8,7 +8,7 @@ import BattleModel from "../../model/Battle";
 import PageProps from "../../model/PageProps";
 import useTournamentManager from "../../service/TournamentManager";
 import { useUserManager } from "../../service/UserManager";
-import usePageVisibility from "../common/usePageVisibility";
+
 import BattleGround from "../play/BattleGround";
 import BattleScene from "../play/BattleScene";
 import GamePlay from "../play/GamePlay";
@@ -22,19 +22,9 @@ const JoinTourament: React.FC<PageProps> = (pageProp) => {
   const [battle, setBattle] = useState<BattleModel | null>(null);
   const { join, findBattle } = useTournamentManager();
   const { userEvent } = useUserManager();
-  const browserVisible = usePageVisibility();
+
   const pagePosition = useDimension(sceneRef);
 
-  useEffect(() => {
-    if (battle?.load === 2) return;
-    if (!browserVisible) {
-      const sbattle = sbattleRef.current;
-      if (sbattle) sbattle.load = 1;
-      setBattle(null);
-    } else {
-      setBattle(JSON.parse(JSON.stringify(sbattleRef.current)));
-    }
-  }, [browserVisible]);
   useEffect(() => {
     const act = pageProp.data?.act;
     let b;

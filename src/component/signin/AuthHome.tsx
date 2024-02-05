@@ -1,23 +1,23 @@
-import { SignIn, SignedIn, SignedOut, useAuth, useClerk } from "@clerk/clerk-react";
+import { SignedIn, SignedOut, SignIn, useAuth, useClerk } from "@clerk/clerk-react";
 import React, { useEffect } from "react";
 import { useUserManager } from "service/UserManager";
-import { getCurrentAppConfig } from "util/PageUtils";
 interface Props {
+  disableCloseBtn?: () => void;
   close?: (type: number) => void;
 }
 
-const AuthHome: React.FC<Props> = ({ close }) => {
+const AuthHome: React.FC<Props> = ({ disableCloseBtn, close }) => {
   const { signOut } = useClerk();
   const { user, sessionCheck, authComplete } = useUserManager();
-  const { getToken, isLoaded, isSignedIn } = useAuth();
+  const { getToken, isSignedIn } = useAuth();
   const url = window.location.href;
   console.log(url);
+  console.log(user);
   useEffect(() => {
     const fetchDataFromExternalResource = async () => {
       const token = await getToken();
       if (!token) return;
-      const app = getCurrentAppConfig();
-      const url = "http://localhost:80/clerk?ctx=" + app.context;
+      const url = "https://telegram-bot-8bgi.onrender.com/clerk";
       const res = await fetch(url, {
         method: "GET", // 或 'POST', 'PUT', 'DELETE' 等
         headers: {
@@ -36,8 +36,11 @@ const AuthHome: React.FC<Props> = ({ close }) => {
         });
       }
     };
-    if (isSignedIn && sessionCheck && !user) {
-      setTimeout(() => fetchDataFromExternalResource(), 1000);
+    if (isSignedIn && sessionCheck) {
+      console.log(user);
+      if (disableCloseBtn) disableCloseBtn();
+      if (!user) fetchDataFromExternalResource();
+      else if (close) close(0);
     }
   }, [isSignedIn, sessionCheck]);
   return (

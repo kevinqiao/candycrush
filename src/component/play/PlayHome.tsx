@@ -7,7 +7,6 @@ import useDimension from "util/useDimension";
 import BattleModel from "../../model/Battle";
 import PageProps from "../../model/PageProps";
 import useTournamentManager from "../../service/TournamentManager";
-import usePageVisibility from "../common/usePageVisibility";
 import BattleGround from "./BattleGround";
 import BattleScene from "./BattleScene";
 import GamePlay from "./GamePlay";
@@ -20,21 +19,37 @@ const PlayHome: React.FC<PageProps> = (pageProp) => {
   const sbattleRef = useRef<BattleModel | null>(null);
   const [battle, setBattle] = useState<BattleModel | null>(null);
   const { findBattle } = useTournamentManager();
-  const browserVisible = usePageVisibility();
+  // const browserVisible = useDivVisibility(sceneRef);
   const pagePosition = useDimension(sceneRef);
+  // const { user } = useUserManager();
 
   useEffect(() => {
-    if (battle?.load === 2) return;
-    if (!browserVisible) {
-      const sbattle = sbattleRef.current;
-      if (sbattle) sbattle.load = 1;
-      setBattle(null);
-    } else {
-      setBattle(JSON.parse(JSON.stringify(sbattleRef.current)));
-    }
-  }, [browserVisible]);
+    document.addEventListener("visibilitychange", () => {
+      if (document.visibilityState === "visible") {
+        // 当标签页从不可见切换到可见时触发
+        console.log("标签页切换到可见状态");
+
+        setBattle(JSON.parse(JSON.stringify(sbattleRef.current)));
+      } else {
+        // 当标签页从可见切换到不可见时触发
+        console.log("标签页切换到不可见状态");
+        sbattleRef.current = battle;
+        setBattle(null);
+      }
+    });
+  }, []);
+  // useEffect(() => {
+  //   if (!browserVisible) {
+  //     console.log("browser invisible");
+  //     sbattleRef.current = battle;
+  //     setBattle(null);
+  //   } else {
+  //     console.log("browser visible");
+  //     console.log(sbattleRef.current);
+  //     setBattle(JSON.parse(JSON.stringify(sbattleRef.current)));
+  //   }
+  // }, [browserVisible]);
   useEffect(() => {
-    console.log(pageProp);
     if (pageProp.data?.battleId) {
       findBattle(pageProp.data.battleId).then((b) => {
         sbattleRef.current = b;

@@ -72,7 +72,6 @@ export const UserProvider = ({ children }: { children: React.ReactNode }) => {
   );
   useEffect(() => {
     if (userEvent && user) {
-      console.log(userEvent);
       if (userEvent?.name === "battleCreated") {
         openBattle(user, userEvent.data);
       }
@@ -83,7 +82,6 @@ export const UserProvider = ({ children }: { children: React.ReactNode }) => {
   useEffect(() => {
     if (!user && sessionCheck) {
       const app: any = getCurrentAppConfig();
-      console.log(app);
       if (app)
         embedAuth(app).then((u) => {
           console.log(u);
@@ -98,7 +96,7 @@ export const UserProvider = ({ children }: { children: React.ReactNode }) => {
     // console.log(userAgent);
 
     let uid, token;
-    let authEmbed = 0; //0-external browser
+    let authEmbed = 0; //0-external browser 1-telegram bot 2-browser url
     if (currentPage.params?.uid && currentPage.params?.token) {
       uid = currentPage.params?.uid;
       token = currentPage.params?.token;
@@ -128,6 +126,20 @@ export const UserProvider = ({ children }: { children: React.ReactNode }) => {
         })
         .finally(() => setSessionCheck(1));
     } else setSessionCheck(1);
+    // authToken({ uid, token })
+    //   .then((u: any) => {
+    //     console.log(u);
+    //     if (u) {
+    //       u.timelag = u.timestamp - Date.now();
+    //       authComplete({ ...u, authEmbed });
+    //     }
+    //     // setSessionCheck(1);
+    //   })
+    //   .catch((err) => {
+    //     console.log(err);
+    //   })
+    //   .finally(() => setSessionCheck(1));
+    // } else setSessionCheck(1);
   }, [user, currentPage]);
 
   const value = {
@@ -143,7 +155,9 @@ export const UserProvider = ({ children }: { children: React.ReactNode }) => {
 
   return <UserContext.Provider value={value}>{children}</UserContext.Provider>;
 };
-
 export const useUserManager = () => {
-  return useContext(UserContext);
+  const ctx = useContext(UserContext);
+
+  return { ...ctx };
 };
+export default UserProvider;

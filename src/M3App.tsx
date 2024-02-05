@@ -4,6 +4,8 @@ import MainMenu from "component/menu/MainMenu";
 import { ConvexProvider, ConvexReactClient } from "convex/react";
 import { gsap } from "gsap";
 import MotionPathPlugin from "gsap/MotionPathPlugin";
+
+import { ClerkProvider } from "@clerk/clerk-react";
 import { CoordProvider } from "./service/CoordManager";
 import { PageProvider } from "./service/PageManager";
 import { UserProvider } from "./service/UserManager";
@@ -37,7 +39,7 @@ function M3App() {
     [ConvexProvider, { client: convex }],
     [UserProvider],
     // [Match3AuthProvider],
-    // [ClerkProvider, { publishableKey: "pk_test_bm9ybWFsLXNoZXBoZXJkLTQ5LmNsZXJrLmFjY291bnRzLmRldiQ" }],
+    [ClerkProvider, { publishableKey: "pk_test_bm9ybWFsLXNoZXBoZXJkLTQ5LmNsZXJrLmFjY291bnRzLmRldiQ" }],
     // [EventProvider],
   ]);
   return (
