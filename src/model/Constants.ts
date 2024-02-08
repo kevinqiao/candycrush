@@ -11,9 +11,8 @@ export const MATCH_DIRECTION = {
     VERTICAL: 2
 };
 export const BATTLE_LOAD = {
-    INIT: 0,
-    RELOAD: 1,
-    REPLAY: 2,
+    PLAY: 0,
+    REPLAY: 1,
 }
 
 export const GAME_MODE = {
@@ -63,7 +62,16 @@ export const GAME_EVENT = {
     SWIPE_CANDY: "cellSwapped",
     SMESH_CANDY: "cellSmeshed",
     GAME_OVER: "gameOver"
-
+}
+export const GAME_STATUS = {
+    OPEN: 0,
+    END: 1,
+    SETTLED: 2
+}
+export const BATTLE_STATUS = {
+    OPEN: 0,
+    END: 1,
+    SETTLED: 2
 }
 export const GAME_ACTION = {
     SWIPE_CANDY: "SWIPE_CANDY",

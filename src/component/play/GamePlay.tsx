@@ -1,6 +1,6 @@
 import { gsap } from "gsap";
 import * as PIXI from "pixi.js";
-import { useCallback, useEffect, useRef, useState } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import { useBattleManager } from "../../service/BattleManager";
 import { useGameManager } from "../../service/GameManager";
 import { useSceneManager } from "../../service/SceneManager";
@@ -59,13 +59,7 @@ const GamePlay = ({ game }: { game: { gameId: string; uid: string } }) => {
           height,
           backgroundAlpha: 0,
         });
-        // if (app) {
-        //   console.log("interactiong....");
-        //   app.stage.interactive = true;
-        //   app.stage.on("mousemove", (event: any) => {
-        //     console.log("mouse moving");
-        //   });
-        // }
+
         const candies = new Map<number, CandySprite>();
         const scene = { x: left, y: top, app, width, height, cwidth, cheight, candies, column, row };
         sceneContainerRef.current.appendChild(app.view as unknown as Node);

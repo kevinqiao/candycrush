@@ -1,8 +1,12 @@
 import { v } from "convex/values";
+import { GAME_STATUS } from "../model/Constants";
+import { GameModel } from "../model/GameModel";
+import * as GameEngine from "../service/GameEngine";
+import { internal } from "./_generated/api";
 import { Id } from "./_generated/dataModel";
+import { action, internalMutation, internalQuery } from "./_generated/server";
 
-import { GAME_PLAY_TIME } from "../model/Constants";
-import { internalMutation, internalQuery, query } from "./_generated/server";
+
 export const getInitGame = internalQuery({
   args: { gameId: v.string() },
   handler: async (ctx, args) => {
@@ -17,47 +21,55 @@ export const getInitGame = internalQuery({
   },
 });
 
-export const findInitGame = query({
-  args: { gameId: v.string() },
-  handler: async (ctx, args) => {
-    const game = await ctx.db.get(args.gameId as Id<"games">)
-    const gameId = game?.ref ?? args.gameId;
-    const event = await ctx.db
-      .query("events").withIndex("by_game", (q) => q.eq("gameId", gameId))
-      .filter((q) => q.eq(q.field("name"), "gameInited"))
-      .first();
-    console.log(gameId)
-    return event?.data
-
-  },
-});
+// export const findInitGame = query({
+//   args: { gameId: v.string() },
+//   handler: async (ctx, args) => {
+//     const game = await ctx.db.get(args.gameId as Id<"games">)
+//     const gameId = game?.ref ?? args.gameId;
+//     const event = await ctx.db
+//       .query("events").withIndex("by_game", (q) => q.eq("gameId", gameId))
+//       .filter((q) => q.eq(q.field("name"), "gameInited"))
+//       .first();
+//     return event?.data
+//   },
+// });
 export const getGame = internalQuery({
   args: { gameId: v.id("games") },
-  handler: async (ctx, { gameId }) => {
+  handler: async (ctx, { gameId }): Promise<GameModel | null> => {
     const game = await ctx.db.get(gameId);
-    return game;
-  },
-});
-export const findGame = query({
-  args: { gameId: v.string() },
-  handler: async (ctx, { gameId }) => {
-    const game: any = await ctx.db.query("games").filter((q) => q.eq(q.field("_id"), gameId)).first();
     if (game) {
       const pasttime = (Date.now() - game._creationTime);
       return Object.assign({}, game, { gameId: game?._id, _id: undefined, _creationTime: undefined, pasttime });
     }
+    return null;
+  },
+});
+
+export const findGame = action({
+  args: { gameId: v.string() },
+  handler: async (ctx, { gameId }): Promise<any> => {
+    const gid = gameId as Id<"games">
+    const game = await ctx.runQuery(internal.games.getGame, { gameId: gid });
+    if (game && !game.result) {
+      const result = GameEngine.settleGame(game);
+      if (result && game.gameId) {
+        const score = result['base'] + result['time'] + result['goal'];
+        game.result = result;
+        game.score = score;
+        await ctx.runMutation(internal.games.update, { gameId: gid, data: { result, score, status: GAME_STATUS.SETTLED } })
+      }
+    }
+    return game;
   },
 });
 export const findUserGame = internalQuery({
   args: { uid: v.string() },
   handler: async (ctx, { uid }) => {
-    const game = await ctx.db
+    const games = await ctx.db
       .query("games")
-      .filter((q) => q.eq(q.field("uid"), uid)).order("desc")
-      .first();
-    // if (game && (Date.now() - game._creationTime < 120000)) {
-    return game;
-    // }
+      .filter((q) => q.eq(q.field("uid"), uid))
+      .order("desc").first();
+    return games;
   },
 });
 export const findBattleGames = internalQuery({
@@ -71,22 +83,7 @@ export const findBattleGames = internalQuery({
   },
 });
 
-export const findTosettledGames = internalQuery({
-  handler: async (ctx) => {
-    const games = await ctx.db
-      .query("games")
-      .filter((q) => q.and(q.lt(q.field("startTime"), Date.now() - GAME_PLAY_TIME), q.eq(q.field("status"), 0), q.eq(q.field("type"), 0))).order("asc").collect();
-    return games;
-  },
-});
-export const findAgentGames = internalQuery({
-  handler: async (ctx) => {
-    const games = await ctx.db
-      .query("games")
-      .filter((q) => q.and(q.eq(q.field("status"), 0), q.eq(q.field("type"), 0))).order("asc").collect();
-    return games;
-  },
-});
+
 export const create = internalMutation({
   args: { game: v.any() },
   handler: async (ctx, { game }) => {
@@ -95,14 +92,7 @@ export const create = internalMutation({
     return gameId;
   },
 });
-// export const screate = mutation({
-//   args: { game: v.any() },
-//   handler: async (ctx, { game }) => {
-//     // const cells = initGame();
-//     const gameId = await ctx.db.insert("games", { ...game, laststep: 0 });
-//     return gameId;
-//   },
-// });
+
 export const update = internalMutation({
   args: { gameId: v.id("games"), data: v.any() },
   handler: async (ctx, args) => {
@@ -116,6 +106,52 @@ export const log = internalMutation({
   },
 });
 
+// export const settleGame = internalMutation({
+//   args: { battleId: v.id("battle"), uid: v.string(), gameId: v.string(), score: v.number() },
+//   handler: async (ctx, { battleId, gameId, uid, score }) => {
+//     const battle = await ctx.db.get(battleId);
+//     if (battle && battleId) {
+//       const battleObj = Object.assign({}, battle, { id: battleId, _id: undefined })
+//       battle.report.push({ uid, gameId, score });
+//       if (battle.participants === battle.report.length) {
+//         // const tournament = await ctx.db.get(battle.tournamentId as Id<"tournament">);
+//         const tournament = await ctx.db.query("tournament").filter((q) => q.eq(q.field("id"), battle.tournamentId)).order("asc").first();
+//         if (tournament) {
+//           const rewards = countRewards(tournament, battleObj);
+//           for (const r of rewards) {
+//             if (r.assets) {
+//               for (const a of r.assets) {
+//                 const asset = await ctx.db.query("asset")
+//                   .filter((q) => q.and(q.eq(q.field("type"), a.asset), q.eq(q.field("uid"), r.uid))).first();
+//                 if (asset) {
+//                   asset.amount = asset.amount + a.amount;
+//                   await ctx.db.patch(asset._id, { amount: asset.amount });
+//                 } else {
+//                   await ctx.db.insert("asset", { uid, type: a.asset, amount: a.amount, lastUpdate: Date.now() });
+//                 }
+//               }
+//             }
+//             if (r.points) {
+//               const boardItem = await ctx.db.query("leaderboard")
+//                 .filter((q) => q.and(q.eq(q.field("tournamentId"), tournament.id), q.eq(q.field("term"), tournament.currentTerm), q.eq(q.field("uid"), r.uid))).first();
+//               if (boardItem) {
+//                 await ctx.db.patch(boardItem._id, { points: boardItem.points + r.points });
+//               } else {
+//                 const term = tournament.currentTerm ?? 0;
+//                 await ctx.db.insert("leaderboard", { uid: r.uid, tournamentId: tournament.id, term, points: r.points, lastUpdate: Date.now() })
+//               }
+//             }
+//           }
+//           battle.rewards = rewards
+//           battle.status = 1;
+//         }
+
+//       }
+//       await ctx.db.patch(battle._id, { status: battle.status, report: battle.report, rewards: battle.rewards })
+//     }
+//     return battle;
+//   }
+// });
 
 
 // export const autoStep = internalMutation({

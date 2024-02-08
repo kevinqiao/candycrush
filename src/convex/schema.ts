@@ -29,10 +29,10 @@ export default defineSchema({
         laststep: v.optional(v.number()),
         startTime: v.optional(v.number()),
         endTime: v.optional(v.number()),
-        result: v.optional(v.any()),
-        score: v.optional(v.number()),
-        status: v.optional(v.number()),
-        type: v.number(),//0-play 1-agent
+        result: v.optional(v.any()),//{base:number;time:number;goal:number}
+        score: v.optional(v.number()),//final score used by index
+        status: v.optional(v.number()),//0-open 1-end
+        type: v.number(),//
         goal: v.number(),
         chunk: v.optional(v.number())
     }).index("by_type", ["type"]).index("by_status", ["status"]),
@@ -54,7 +54,6 @@ export default defineSchema({
         participants: v.number(),
         tournamentId: v.string(),
         term: v.optional(v.number()),//schedule tournament term
-        report: v.optional(v.any()),
         rewards: v.optional(v.any()),
         searchDueTime: v.number(),
         startTime: v.number(),

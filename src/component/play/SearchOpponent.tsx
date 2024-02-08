@@ -9,7 +9,6 @@ import Avatar from "./common/Avatar";
 import CountdownTimer from "./common/CountdownTimer";
 
 const SearchOpponent = () => {
-  const loadingRef = useRef<HTMLDivElement | null>(null);
   const sceneContainerRef = useRef<HTMLDivElement | null>(null);
   const searchRef = useRef<HTMLDivElement | null>(null);
   const foundRef = useRef<HTMLDivElement | null>(null);
@@ -92,16 +91,14 @@ const SearchOpponent = () => {
   useEffect(() => {
     if (battle && allGameLoaded) {
       const time = battle.startTime ? battle.startTime - Date.now() - user.timelag : 0;
-      console.log("time:" + time);
+
       if (time < 0) {
-        console.log("playGame...");
         playGame();
         return;
       }
       gsap.to(sceneContainerRef.current, { autoAlpha: 1, duration: 0 });
-      const searchTime = battle.searchDueTime - user.timelag - Date.now();
+      const searchTime = battle.searchDueTime ?? 0 - user.timelag - Date.now();
       if (searchTime > 0) {
-        console.log("play searching....");
         playSearch();
         setTimeout(() => {
           closeSearchAndPlayFound();

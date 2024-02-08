@@ -11,8 +11,6 @@ const AuthHome: React.FC<Props> = ({ disableCloseBtn, close }) => {
   const { user, sessionCheck, authComplete } = useUserManager();
   const { getToken, isSignedIn } = useAuth();
   const url = window.location.href;
-  console.log(url);
-  console.log(user);
   useEffect(() => {
     const fetchDataFromExternalResource = async () => {
       const token = await getToken();

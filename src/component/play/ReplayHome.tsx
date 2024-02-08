@@ -12,39 +12,39 @@ import BattleGround from "./BattleGround";
 import BattleScene from "./BattleScene";
 import GamePlay from "./GamePlay";
 import SearchOpponent from "./SearchOpponent";
-import BattleConsole from "./console/BattleConsole";
-import BattleReport from "./report/BattleReport";
+import GameConsole from "./console/GameConsole";
 
-const PlayHome: React.FC<PageProps> = (pageProp) => {
+const ReplayHome: React.FC<PageProps> = (pageProp) => {
   const sceneRef = useRef<HTMLDivElement | null>(null);
   const sbattleRef = useRef<BattleModel | null>(null);
   const [battle, setBattle] = useState<BattleModel | null>(null);
+
+  const [game, setGame] = useState<{ gameId: string; uid: string; matched: any } | null>(null);
   const { findBattle } = useTournamentManager();
+
   const pagePosition = useDimension(sceneRef);
-
   useEffect(() => {
-    document.addEventListener("visibilitychange", () => {
-      if (document.visibilityState === "visible") {
-        // 当标签页从不可见切换到可见时触发
-        console.log("标签页切换到可见状态");
-        setBattle(JSON.parse(JSON.stringify(sbattleRef.current)));
-      } else {
-        // 当标签页从可见切换到不可见时触发
-        console.log("标签页切换到不可见状态");
-        setBattle(null);
+    const gameId = pageProp.data?.gameId;
+    if (gameId) {
+      if (pageProp.data.battleId) {
+        findBattle(pageProp.data.battleId).then((b) => {
+          if (b) {
+            sbattleRef.current = b;
+            setBattle(JSON.parse(JSON.stringify(b)));
+            if (b.games.length > 0) {
+              const g = b.games.find((c: any) => c.gameId === gameId);
+              setGame(g);
+            }
+          }
+        });
+      } else if (pageProp.data.battle) {
+        sbattleRef.current = pageProp.data.battle;
+        setBattle(JSON.parse(JSON.stringify(pageProp.data.battle)));
+        if (pageProp.data.battle.games.length > 0) {
+          const g = pageProp.data.battle.games.find((c: any) => c.gameId === gameId);
+          setGame(g);
+        }
       }
-    });
-  }, []);
-
-  useEffect(() => {
-    if (pageProp.data?.battleId) {
-      findBattle(pageProp.data.battleId).then((b) => {
-        sbattleRef.current = b;
-        setBattle(JSON.parse(JSON.stringify(b)));
-      });
-    } else if (pageProp.data?.battle) {
-      sbattleRef.current = pageProp.data.battle;
-      setBattle(JSON.parse(JSON.stringify(pageProp.data.battle)));
     }
   }, [pageProp]);
 
@@ -60,20 +60,17 @@ const PlayHome: React.FC<PageProps> = (pageProp) => {
         backgroundColor: "transparent",
       }}
     >
-      {battle ? (
+      {battle && game ? (
         <SceneProvider pageProp={pageProp} pagePosition={pagePosition}>
           <BattleProvider battle={battle}>
             <AnimateProvider>
               <BattleGround>
-                <BattleConsole />
-                {battle.games.map((g) => (
-                  <GameProvider key={g.gameId} game={g} load={BATTLE_LOAD.PLAY}>
-                    <GamePlay game={g} />
-                  </GameProvider>
-                ))}
+                <GameConsole game={game} />
+                <GameProvider key={game.gameId} game={game} load={BATTLE_LOAD.REPLAY}>
+                  <GamePlay game={game} />
+                </GameProvider>
                 <BattleScene />
               </BattleGround>
-              <BattleReport />
               <SearchOpponent />
             </AnimateProvider>
           </BattleProvider>
@@ -99,4 +96,4 @@ const PlayHome: React.FC<PageProps> = (pageProp) => {
   );
 };
 
-export default PlayHome;
+export default ReplayHome;

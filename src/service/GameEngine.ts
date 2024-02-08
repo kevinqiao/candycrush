@@ -1,7 +1,9 @@
 import seedrandom from 'seedrandom';
 import goals from "../component/play/goals";
+import { BattleModel, BattleReward } from '../model/Battle';
 import { CellItem } from "../model/CellItem";
-import { CANDY_MATCH_TYPE, GAME_EVENT } from '../model/Constants';
+import { BATTLE_DURATION, CANDY_MATCH_TYPE, GAME_EVENT } from '../model/Constants';
+import { Tournament } from '../model/Tournament';
 import candy_textures from "../model/candy_textures";
 import * as Utils from "../util/Utils";
 
@@ -165,7 +167,7 @@ export const checkMatches = (grid: CellItem[][]): Match[] => {
 
     const matches3: MatchItem[] = allmatches.filter((m) => !m.status)
     const matches: Match[] = [];
-    for (let m of matches3) {
+    for (const m of matches3) {
         m.status = 1;
         m.units.forEach((u) => u.status = 1);
         matches.push({ type: CANDY_MATCH_TYPE.LINE, size: 3, items: [m] })
@@ -176,13 +178,16 @@ export const checkMatches = (grid: CellItem[][]): Match[] => {
 }
 export const getMatchPlus4 = (matches: MatchItem[]): Match[] => {
     const matches4: Match[] = [];
-    while (true) {
+    let loop = true;
+    while (loop) {
         const m4 = matches.filter((m) => !m.status && m.units.length >= 4).sort((a, b) => {
             return b.units.length - a.units.length
         })
-        if (m4.length === 0)
+        if (m4.length === 0) {
+            loop = false;
             break;
-        for (let m of m4) {
+        }
+        for (const m of m4) {
             const ms: number[] = [];
             m.units.forEach((u, index) => {
                 if (u.status)
@@ -265,11 +270,12 @@ export const createGame = (row: number, column: number, seed: string) => {
     const rng = seedrandom(seed)
     // const cellTypes = Array.from({ length: 6 }, (_, k) => k);
     const cells: CellItem[] = [];
-    let lastCellId: number = 1;
+    let lastCellId = 1;
     for (let y = 0; y < row; y++) {
         for (let x = 0; x < column; x++) {
             let asset = -1;
-            while (true) {
+            let loop = true;
+            while (loop) {
                 const index = Math.floor(rng() * 10);
                 console.log("index:" + index)
                 asset = candy_textures[index]['id'] ?? 0;
@@ -287,6 +293,7 @@ export const createGame = (row: number, column: number, seed: string) => {
                         continue;
                     }
                 }
+                loop = false
                 break;
             }
 
@@ -332,18 +339,7 @@ export const applyMatches = (
     return game
 }
 
-export const checkGoalComplete = (goalId: number, matched: { asset: number, quantity: number }[]): boolean => {
-    const goalModel = goals.find((g: { id: number, goal: { asset: number, quantity: number }[] }) => g.id === goalId);
-    if (goalModel) {
-        return goalModel.goal.every((g) => {
-            const m = matched.find((m) => m.asset === g.asset);
-            if (m && m.quantity >= g.quantity) return true;
-            else
-                return false
-        })
-    }
-    return false;
-}
+
 export const countFinalScore = (game: any): { base: number; time: number; goal: number } => {
     const baseScore = game.matched.reduce((s: number, a: { asset: number; quantity: number }) => s + a.quantity, 0);
     const startTime = game._creationTime
@@ -362,21 +358,25 @@ export const countFinalScore = (game: any): { base: number; time: number; goal: 
     }
     return result
 }
-export const settleGame = (game: any): { base: number; time: number; goal: number } => {
-    const baseScore = game.matched.reduce((s: number, a: { asset: number; quantity: number }) => s + a.quantity, 0);
-    const startTime = game._creationTime
-    const saveSeconds = Math.floor((600000 - (game.endTime - startTime)) / 1000);
-    const timeScore = saveSeconds * 10;
+export const settleGame = (game: any): { base: number; time: number; goal: number } | null | undefined => {
+    let result;
+    let goalScore = -1;
     const goalModel = goals.find((g: { id: number, goal: { asset: number, quantity: number }[] }) => g.id === game.goal);
-    const result = { base: baseScore, time: timeScore, goal: 0 }
     if (goalModel) {
         const goalSuccess = goalModel.goal.map((g) => {
             const m = game.matched.find((m: { asset: number; quantity: number }) => m.asset === g.asset);
             const quantity = m ? g.quantity - m.quantity : g.quantity;
             return { asset: g.asset, quantity };
         }).every((r) => r.quantity <= 0);
-        if (goalSuccess)
-            result.goal = 1000;
+        if (goalSuccess) {
+            goalScore = 1000;
+        }
+    }
+    const playTime = Date.now() - game.startTime;
+    if ((playTime - BATTLE_DURATION) >= 0 || goalScore >= 0) {
+        const baseScore = game.matched.reduce((s: number, a: { asset: number; quantity: number }) => s + a.quantity, 0);
+        const timeScore = (BATTLE_DURATION - playTime) * 10;
+        result = { base: baseScore, time: timeScore >= 0 ? timeScore : 0, goal: goalScore >= 0 ? goalScore : 0 }
     }
     return result
 }
@@ -399,13 +399,13 @@ export const countGoalAndScore = (results: any[], matched: { asset: number; quan
         })
 
         const gassets = goalModel.goal.map((g) => g.asset);
-        for (let res of results) {
+        for (const res of results) {
             const { toRemove }: { toRemove: CellItem[] } = res;
             const toCollect: CellItem[] = toRemove.filter((c: CellItem) => gassets.includes(c.asset));
             if (toCollect.length > 0) {
                 res.toCollect = toCollect;
                 const toGoal: { asset: number; start: number; end: number }[] = [];
-                for (let g of preGoal) {
+                for (const g of preGoal) {
                     const size = toCollect.filter((c) => c.asset === g.asset).length;
                     if (size > 0) {
                         const end = Math.max(g.quantity - size, 0);
@@ -453,7 +453,7 @@ const applyEventResult = (
             game.cells.length = 0;
             game.cells.push(...acells);
 
-            for (let r of toRemove) {
+            for (const r of toRemove) {
                 const mitem = game.matched.find((m: { asset: number; quantity: number }) => m.asset === r.asset);
                 if (mitem) mitem.quantity++;
                 else game.matched.push({ asset: r.asset, quantity: 1 });
@@ -471,7 +471,7 @@ const applyEventResult = (
         }
 
         if (toMove) {
-            for (let m of toMove) {
+            for (const m of toMove) {
                 const cell = game.cells.find((c: CellItem) => c.id === m.id);
                 if (cell) Object.assign(cell, m);
             }
@@ -479,6 +479,24 @@ const applyEventResult = (
     }
 
 };
+export const countRewards = (tournament: Tournament, battle: BattleModel): BattleReward[] => {
+    const rewards: BattleReward[] = [];
+    if (battle.games && battle.games.length > 0) {
+        const uncomplete = battle.games.findIndex((g: any) => !g.status);
+        if (uncomplete < 0)
+            battle.games.sort((a: any, b: any) => {
+                if (!a.score || !a.score.total) return -1;
+                if (!b.score || !b.score.total) return 1;
+                return a.score.total - b.score.total
+            }).forEach((r: any, index: number) => {
+                const reward = tournament.rewards?.find((w) => w.rank === index);
+                if (reward) {
+                    rewards.push({ uid: r.uid, gameId: r.gameId, rank: index, score: r.score?.total ?? 0, points: reward.points, assets: reward.assets })
+                }
+            })
+    }
+    return rewards;
+}
 
 
 

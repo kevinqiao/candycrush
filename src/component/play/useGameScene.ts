@@ -107,7 +107,7 @@ const useGameScene = () => {
                     drag.startY = event.y;
                     drag.cellId = cell.id;
                 });
-                
+
                 // sprite.on("pointermove", (event: PointerEvent) => {
                 //     const drag = dragRef.current;
                 //     const deltaX = event.x - drag.startX;
@@ -178,14 +178,10 @@ const useGameScene = () => {
             const game = gameEvent.data;
             initCandies(game.cells);
             loadGame(game.gameId, game.matched);
-            // const score = gameEngine.countBaseScore(game.matched)
-            // createAnimate({
-            //     name: ANIMATE_NAME.GAME_INITED, gameId, battleId: battle?.id, data: { load: battle?.load, gameId, uid: game.uid, score },
-            //     id: Date.now()
-            // })
+
         } else if (gameEvent?.name === "cellSwapped") {
             const data: { candy: CellItem; target: CellItem; results: { toChange: CellItem[]; toCreate: CellItem[]; toMove: CellItem[]; toRemove: CellItem[] }[] } = gameEvent.data;
-            for (let res of data.results) {
+            for (const res of data.results) {
                 const cwidth = gameScene.cwidth;
                 if (cwidth)
                     res.toCreate.forEach((cell: CellItem) => {
@@ -198,13 +194,12 @@ const useGameScene = () => {
                     })
             }
             if (gameId) {
-                console.log(data)
                 createAnimate({ id: Date.now(), name: ANIMATE_NAME.CANDY_SWAPPED, gameId, battleId: battle?.id, data })
             }
 
         } else if (gameEvent?.name === "cellSmeshed") {
             const data: { candyId: number; results: { toChange: CellItem[]; toCreate: CellItem[]; toMove: CellItem[]; toRemove: CellItem[] }[] } = gameEvent.data;
-            for (let res of data.results) {
+            for (const res of data.results) {
                 const cwidth = gameScene.cwidth;
                 if (cwidth)
                     res.toCreate.forEach((cell: CellItem) => {

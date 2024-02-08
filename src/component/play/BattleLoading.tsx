@@ -1,15 +1,11 @@
 import { gsap } from "gsap";
-import { useEffect, useRef, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { SCENE_NAME } from "../../model/Constants";
-import { useBattleManager } from "../../service/BattleManager";
 import { useSceneManager } from "../../service/SceneManager";
 import useDimension from "../../util/useDimension";
-import { ANIMATE_NAME } from "../animation/AnimateConstants";
-import { useAnimateManager } from "../animation/AnimateManager";
 import Avatar from "./common/Avatar";
 
-const BattleLoading = ({battle}:{battle:any}) => {
-
+const BattleLoading = ({ battle }: { battle: any }) => {
   const sceneContainerRef = useRef<HTMLDivElement | null>(null);
   const searchRef = useRef<HTMLDivElement | null>(null);
   const foundRef = useRef<HTMLDivElement | null>(null);
@@ -18,49 +14,56 @@ const BattleLoading = ({battle}:{battle:any}) => {
   const opponentAvatarRef = useRef<HTMLDivElement | null>(null);
   const { scenes, stageScene } = useSceneManager();
   const { width, height } = useDimension(sceneContainerRef);
-  const { createAnimate } = useAnimateManager();
+
   const [searchComplete, setSearchComplete] = useState(false);
 
-  useEffect(()=>{   
-    const ml = gsap.timeline({onComplete:()=>{
-      console.log("complete search")
-      setSearchComplete(true)
-      ml.kill()
-    }});
+  useEffect(() => {
+    const ml = gsap.timeline({
+      onComplete: () => {
+        console.log("complete search");
+        setSearchComplete(true);
+        ml.kill();
+      },
+    });
     const bl = gsap.timeline({
-      onComplete:()=>{bl.kill()}
-    })    
-    bl.to(sceneContainerRef.current,{autoAlpha:1,duration:0})
-    const tl = gsap.timeline({ repeat: 4, yoyo: true,onComplete:()=>{
-       tl.kill();
-    }});    
+      onComplete: () => {
+        bl.kill();
+      },
+    });
+    bl.to(sceneContainerRef.current, { autoAlpha: 1, duration: 0 });
+    const tl = gsap.timeline({
+      repeat: 4,
+      yoyo: true,
+      onComplete: () => {
+        tl.kill();
+      },
+    });
     tl.fromTo(
-          searchRef.current,
-            { scaleX: 0.9, scaleY: 0.9 },
-            { duration: 0.5, scaleX: 1.1, scaleY: 1.1, ease: "power2.inOut" }
-        );
+      searchRef.current,
+      { scaleX: 0.9, scaleY: 0.9 },
+      { duration: 0.5, scaleX: 1.1, scaleY: 1.1, ease: "power2.inOut" }
+    );
     ml.add(bl).add(tl);
-    ml.play(); 
-  },[])
+    ml.play();
+  }, []);
 
   useEffect(() => {
-    if(battle&&searchComplete){
-      const tl = gsap.timeline({onComplete:()=>{tl.kill()}});
+    if (battle && searchComplete) {
+      const tl = gsap.timeline({
+        onComplete: () => {
+          tl.kill();
+        },
+      });
       tl.to(searchRef.current, { alpha: 0, duration: 0.1 });
       tl.to(foundRef.current, { alpha: 1, duration: 0.1 }, "<");
-      tl.fromTo(vsRef.current, { scaleX: 0, scaleY: 0 }, { scaleX: 1.4, scaleY: 1.4, duration: 0.6 }, ">")
+      tl.fromTo(vsRef.current, { scaleX: 0, scaleY: 0 }, { scaleX: 1.4, scaleY: 1.4, duration: 0.6 }, ">");
       tl.to(vsRef.current, { alpha: 1, duration: 0.8 }, "<");
-      tl.to(playerAvatarRef.current, {duration: 1.2, alpha: 1, x: width * 0.35 }, "<")
+      tl.to(playerAvatarRef.current, { duration: 1.2, alpha: 1, x: width * 0.35 }, "<");
       tl.to(opponentAvatarRef.current, { duration: 1.2, alpha: 1, x: -width * 0.35 }, "<");
       tl.play();
     }
-  },[searchComplete,battle])
-  // useEffect(() => {
-  //   if (battle && !battle.load) {
-  //     createAnimate({ id: Date.now(), name: ANIMATE_NAME.BATTLE_SEARCH });
-  //     setTimeout(() => createAnimate({ id: Date.now(), name: ANIMATE_NAME.BATTLE_MATCHED, data: battle }), 5000);
-  //   }
-  // }, [battle]);
+  }, [searchComplete, battle]);
+
   useEffect(() => {
     if (sceneContainerRef.current) {
       const scene = scenes.get(SCENE_NAME.BATTLE_MATCHING);
@@ -99,7 +102,7 @@ const BattleLoading = ({battle}:{battle:any}) => {
         width: "100%",
         height: "100%",
         color: "white",
-        opacity:0,
+        opacity: 0,
         backgroundColor: "red",
         pointerEvents: "none",
       }}

@@ -78,14 +78,10 @@ const StackPop: React.FC<PopupProps> = ({ zIndex, index }) => {
   }, [index, pageProp, stacks]);
 
   const disableCloseBtn = useCallback(() => {
-    console.log("disable close...");
     if (closeBtnRef.current) {
-      console.log("animate close btn");
       gsap.to(closeBtnRef.current, {
         autoAlpha: 0,
-        opacity: 0,
         duration: 0.3,
-        onComplete: () => console.log("complete disable close"),
       });
     }
   }, [closeBtnRef.current]);

@@ -7,11 +7,11 @@ import { action } from "./_generated/server";
 export const authByToken = action({
     args: { uid: v.string(), token: v.string() },
     handler: async (ctx, { uid, token }) => {
-        console.log("uid:" + uid)
+
         const user: any = await ctx.runQuery(internal.user.find, { id: uid as Id<"user"> })
         if (user) {
             const game = await ctx.runQuery(internal.games.findUserGame, { uid });
-            if (game && !game.status) {
+            if (game?.battleId && !game.status) {
                 const b: any = await ctx.runQuery(internal.battle.find, { battleId: game.battleId as Id<"battle"> })
                 if (!b.status) {
                     const games = await ctx.runQuery(internal.games.findBattleGames, { battleId: b.id })

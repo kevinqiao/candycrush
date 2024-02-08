@@ -1,11 +1,11 @@
 export interface Tournament {
     id: string;
-    type: number;//0-unlimit 1-schedule
+    type?: number;//0-unlimit 1-schedule
     participants: number;
     battleTime: number;
-    currentTerm: number;
+    currentTerm?: number;
     schedule?: { startDay: number; duration: number };
-    goal: number,
-    cost: { asset: number; quantity: number }[],
-    rewards: { rank: number; assets: { asset: number; quantity: number }; points: number }[],
+    goal?: number,
+    cost?: { asset: number; quantity: number }[],
+    rewards: { rank: number; assets: { asset: number; amount: number }[]; points: number }[],
 }

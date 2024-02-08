@@ -16,7 +16,6 @@ export const useBattleAnimateHandler = (props: IAnimateHandleContext) => {
     const { initConsole } = useBattleBoard();
 
     const processBattleInit = useCallback(() => {
-
         if (!battle || !user) return;
         const timeline = gsap.timeline({
             onComplete: () => {

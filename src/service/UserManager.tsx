@@ -44,7 +44,7 @@ export const UserProvider = ({ children }: { children: React.ReactNode }) => {
       data: { battle },
       params: { battleId: battle.id },
     };
-    console.log(u);
+
     if (u?.authEmbed) {
       pageItem.params.uid = u.uid;
       pageItem.params.token = u.token;

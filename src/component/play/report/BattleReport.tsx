@@ -1,5 +1,5 @@
 import { gsap } from "gsap";
-import { useEffect, useMemo, useRef } from "react";
+import React, { useEffect, useMemo, useRef } from "react";
 import { useBattleManager } from "service/BattleManager";
 import { useSceneManager } from "service/SceneManager";
 import { useUserManager } from "service/UserManager";
@@ -8,7 +8,7 @@ const BattleReport: React.FC = () => {
   const maskRef = useRef<HTMLDivElement | null>(null);
   const battleOverRef = useRef<HTMLDivElement | null>(null);
   const { battle, myGameOver, battleEvent } = useBattleManager();
-  const { disableCloseBtn, exit } = useSceneManager();
+  const { exit } = useSceneManager();
   const { user } = useUserManager();
 
   useEffect(() => {

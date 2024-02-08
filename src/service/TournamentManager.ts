@@ -14,7 +14,7 @@ const useTournamentManager = () => {
   const checkAuth = (): boolean => {
     return user && user.uid ? true : false
   }
- 
+
   const join = useCallback(async (tournamentId: string) => {
     if (!checkAuth()) {
       openPage({ name: "signin", data: null })
@@ -30,7 +30,7 @@ const useTournamentManager = () => {
     [convex]
   );
   const findBattle = useCallback(
-    async (battleId: Id<"battle">): Promise<any[]> => {
+    async (battleId: Id<"battle">): Promise<any> => {
       const battle: any = await convex.query(api.battle.findBattle, { battleId });
       return battle;
     },

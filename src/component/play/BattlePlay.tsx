@@ -1,12 +1,11 @@
-import { ReactNode, useCallback } from "react";
+import React, { ReactNode, useCallback } from "react";
 import { useSceneManager } from "../../service/SceneManager";
 
 const BattlePlay = ({ children }: { children: ReactNode }) => {
   const { containerBound } = useSceneManager();
   const load = useCallback((sceneEle: HTMLDivElement | null) => {
-
     if (sceneEle) {
-      const { width, height } = sceneEle?.getBoundingClientRect();
+      const { width, height } = sceneEle.getBoundingClientRect();
       console.log(width + ":" + height);
     }
   }, []);

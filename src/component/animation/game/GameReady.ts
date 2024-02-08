@@ -1,22 +1,22 @@
 import { gsap } from "gsap";
 import { useCallback } from "react";
+import { useUserManager } from "service/UserManager";
 import { GameScene } from "../../../model/SceneModel";
 import { useSceneManager } from "../../../service/SceneManager";
 import { CandySprite } from "../../pixi/CandySprite";
 
 
 const useGameReady = () => {
-
+    const { user } = useUserManager();
     const { scenes } = useSceneManager();
     const initGame = useCallback(
         (gameId: string, timeline: any) => {
+
             const gameScene = scenes.get(gameId) as GameScene;
             const tl = timeline ?? gsap.timeline();
-
             if (gameScene && gameScene.candies && gameScene.column && gameScene.row) {
 
                 const candies: CandySprite[] = Array.from(gameScene.candies.values());
-
                 for (let row = 0; row < gameScene.row; row++) {
 
                     const rowTL = gsap.timeline();
@@ -54,6 +54,6 @@ const useGameReady = () => {
         [scenes]
     );
 
-    return { initGame };
+    return { initGame, user };
 };
 export default useGameReady

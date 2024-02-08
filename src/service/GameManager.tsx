@@ -57,9 +57,11 @@ const reducer = (state: any, action: any) => {
   switch (action.type) {
     case actions.GAME_OVER:
       return Object.assign({}, state, action.data, { status: 1 });
-    case actions.INIT_GAME:
-      const starttime = action.data.pasttime > 0 ? Date.now() - action.data.pasttime : Date.now();
+    case actions.INIT_GAME: {
+      const pasttime = action.data?.pasttime ?? 0;
+      const starttime = pasttime > 0 ? Date.now() - pasttime : Date.now();
       return Object.assign({}, state, { matched: [] }, action.data, { starttime });
+    }
     case actions.SWAP_CELL:
       gameEngine.handleEvent(action.data.name, action.data.data, state);
       return Object.assign({}, state, {
@@ -78,9 +80,11 @@ const reducer = (state: any, action: any) => {
   }
 };
 export const GameProvider = ({
+  load,
   game,
   children,
 }: {
+  load: number;
   game: { uid: string; gameId: string };
   children: React.ReactNode;
 }) => {
@@ -94,20 +98,17 @@ export const GameProvider = ({
 
   const events: GameEvent[] | undefined | null = useQuery(api.events.findByGame, {
     gameId: game.gameId,
-    laststep: battle?.load === 2 ? -1 : state.laststep,
+    laststep: load === BATTLE_LOAD.REPLAY ? -1 : state.laststep,
   });
 
   const convex = useConvex();
-  // const swap = useAction(api.gameService.swipeCell);
-  // const smash = useAction(api.gameService.smash);
+
   const doAct = useAction(api.gameService.doAct);
 
   const sync = useCallback(async () => {
-    const g: any | null = await convex.query(api.games.findGame, {
+    const g: any = await convex.action(api.games.findGame, {
       gameId: game.gameId,
     });
-    console.log(g);
-
     if (g) {
       g.cells.sort((a: CellItem, b: CellItem) => {
         if (a.row === b.row) return a.column - b.column;
@@ -160,17 +161,13 @@ export const GameProvider = ({
       });
 
       if (g) {
-        console.log(g);
         startTimeRef.current = Date.now();
         dispatch({ type: actions.INIT_GAME, data: { gameId: game.gameId, ...g } });
         setGameEvent({ id: "0", steptime: 0, name: "initGame", data: g });
       }
     };
     if (game.gameId && battle) {
-      if (battle.load === BATTLE_LOAD.REPLAY) loadInit();
-      else {
-        sync();
-      }
+      load === BATTLE_LOAD.REPLAY ? loadInit() : sync();
     }
   }, [game, battle, convex, createAnimate, sync]);
 
@@ -193,6 +190,7 @@ export const GameProvider = ({
       clearInterval(timer);
     };
   }, [gameEvents, processEvents]);
+
   useEffect(() => {
     const loadEvents = async () => {
       if (state.gameId) {
@@ -206,9 +204,8 @@ export const GameProvider = ({
         }
       }
     };
-
-    if (state.gameId && convex && battle?.load === BATTLE_LOAD.REPLAY) loadEvents();
-  }, [battle?.load, convex, state.gameId]);
+    if (state.gameId && convex && load === BATTLE_LOAD.REPLAY) loadEvents();
+  }, [load, convex, state.gameId]);
 
   const value = {
     score: state.score,
@@ -223,7 +220,7 @@ export const GameProvider = ({
     gameEvent,
     swapCell: useCallback(
       async (candyId: number, targetId: number): Promise<any> => {
-        if (battle?.load === BATTLE_LOAD.REPLAY) return;
+        if (load === BATTLE_LOAD.REPLAY) return;
         // swap({ gameId: state.gameId as Id<"games">, candyId: candyId, targetId: targetId });
         doAct({
           sessionId: "12345",
@@ -232,18 +229,18 @@ export const GameProvider = ({
           data: { candyId, targetId },
         });
       },
-      [battle, doAct, state.gameId]
+      [load, battle, doAct, state.gameId]
     ),
     smash: useCallback(
       async (candyId: number) => {
         // const cell = state.cells.find((c: CellItem) => c.id === candyId);
         // if (cell?.asset < 20) return;
-        if (battle?.load !== BATTLE_LOAD.REPLAY) {
+        if (load !== BATTLE_LOAD.REPLAY) {
           // smash({ gameId: state.gameId as Id<"games">, candyId: candyId });
           doAct({ act: GAME_ACTION.SMASH_CANDY, gameId: state.gameId as Id<"games">, data: { candyId } });
         }
       },
-      [state.gameId, battle, doAct]
+      [state.gameId, battle, doAct, load]
     ),
   };
 

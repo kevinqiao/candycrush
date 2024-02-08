@@ -1,12 +1,12 @@
 import { v } from "convex/values";
 import { CellItem } from "../model/CellItem";
-import { GAME_ACTION, GAME_EVENT } from "../model/Constants";
+import { GAME_ACTION, GAME_EVENT, GAME_STATUS } from "../model/Constants";
+import { GameModel } from "../model/GameModel";
 import candy_textures from "../model/candy_textures";
 import * as gameEngine from "../service/GameEngine";
-import { Match, checkMatches, initGame, settleGame } from "../service/GameEngine";
+import { Match, checkMatches, initGame } from "../service/GameEngine";
 import * as Utils from "../util/Utils";
 import { internal } from "./_generated/api";
-import { Id } from "./_generated/dataModel";
 import { action, internalMutation, internalQuery, query } from "./_generated/server";
 import { sessionAction } from "./custom/session";
 const COLUMN = 7;
@@ -96,7 +96,7 @@ const processSmash = (game: any, cellId: number): { cell: CellItem, toRemove: Ce
 
     if (cell.asset === 28) {
         toRemove = game.cells.filter((c: CellItem) => c.row === cell.row);
-        for (let r of toRemove) {
+        for (const r of toRemove) {
             r.status = 1;
             const candy = getFreeCandy(game.seed, game.lastCellId++);
             if (candy) {
@@ -115,7 +115,7 @@ const processSmash = (game: any, cellId: number): { cell: CellItem, toRemove: Ce
         }
     } else if (cell.asset === 29) {
         toRemove = game.cells.filter((c: CellItem) => c.column === cell.column);
-        for (let r of toRemove) {
+        for (const r of toRemove) {
             r.status = 1;
             const candy = getFreeCandy(game.seed, game.lastCellId++);
             if (candy) {
@@ -128,7 +128,7 @@ const processSmash = (game: any, cellId: number): { cell: CellItem, toRemove: Ce
         }
     } else if (cell.asset === 30) {
         toRemove = game.cells.filter((c: CellItem) => c.row <= cell.row + 1 && c.row >= cell.row - 1 && c.column >= cell.column - 1 && c.column <= cell.column + 1);
-        for (let r of toRemove) {
+        for (const r of toRemove) {
             r.status = 1;
             const candy = getFreeCandy(game.seed, game.lastCellId++);
             if (candy) {
@@ -148,7 +148,7 @@ const processSmash = (game: any, cellId: number): { cell: CellItem, toRemove: Ce
         }
 
     }
-    for (let r of toRemove) {
+    for (const r of toRemove) {
         const mitem = game.matched.find((m: { asset: number; quantity: number }) => m.asset === r.asset);
         if (mitem) mitem.quantity++;
         else game.matched.push({ asset: r.asset, quantity: 1 });
@@ -185,7 +185,7 @@ const processMatch = (game: any, matches: Match[]): { toMove: CellItem[]; toRemo
 
     const removed: CellItem[] = game.cells.filter((c: CellItem) => c.status && c.status > 0);
     removed.sort((a, b) => (a.row + a.column) - (b.row + b.column))
-    for (let r of removed) {
+    for (const r of removed) {
         const candy = getFreeCandy(game.seed, game.lastCellId++);
         if (candy) {
             candy.column = r.column;
@@ -254,51 +254,62 @@ export const doAct = sessionAction({
     args: { act: v.string(), gameId: v.id("games"), data: v.any() },
     handler: async (ctx, { act, gameId, data }) => {
         console.log(ctx.user)
-        const game = await ctx.runQuery(internal.games.getGame, { gameId });
+        const game: GameModel | undefined | null = await ctx.runQuery(internal.games.getGame, { gameId });
         if (!game || game.status) return;
         if (!game.matched) game.matched = [];
-        let steptime = Math.round(Date.now() - game['_creationTime']);
+        const steptime = Math.round(Date.now() - game['startTime']);
         const prematched = JSON.parse(JSON.stringify(game.matched))
         switch (act) {
-            case GAME_ACTION.SWIPE_CANDY:
-
+            case GAME_ACTION.SWIPE_CANDY: {
                 const sresult = executeSwipe(game, data.candyId, data.targetId);
                 gameEngine.countGoalAndScore(sresult.results, prematched, game.goal);
                 await ctx.runMutation(internal.events.create, {
                     name: "cellSwapped", gameId, data: sresult, steptime
                 })
                 break;
+            }
             case GAME_ACTION.SMASH_CANDY:
-                const mresult = executeSmash(game, data.candyId);
-                gameEngine.countGoalAndScore(mresult.results, prematched, game.goal);
-                await ctx.runMutation(internal.events.create, {
-                    name: "cellSmeshed", gameId, data: mresult, steptime
-                })
-                break;
+                {
+                    const mresult = executeSmash(game, data.candyId);
+                    gameEngine.countGoalAndScore(mresult.results, prematched, game.goal);
+                    await ctx.runMutation(internal.events.create, {
+                        name: "cellSmeshed", gameId, data: mresult, steptime
+                    })
+                    break;
+                }
             case GAME_ACTION.USE_SKILL:
                 break;
             default:
                 break;
         }
 
-        if (gameEngine.checkGoalComplete(game.goal, game.matched)) {
-            game.endTime = Date.now();
-            const result: { base: number; time: number; goal: number } = gameEngine.countFinalScore(game);
-            const score = result.base + result.time + result.goal;
+        const result = gameEngine.settleGame(game);
+        if (result) {
             game.result = result;
-            game.score = score;
-            game.status = 1;
+            game.score = result['base'] + result['time'] + result['goal']
+            game.status = GAME_STATUS.SETTLED;
             await ctx.runMutation(internal.events.create, {
-                name: "gameOver", gameId, data: { result, score: game.score, endTime: game.endTime }, steptime
+                name: GAME_EVENT.GAME_OVER, gameId, data: { result, score: game.score }, steptime
             })
-
-            const battle = await ctx.runMutation(internal.battle.settleGame, { battleId: game.battleId as Id<"battle">, gameId, uid: game.uid, score });
-            if (battle && battle.status) {
-                await ctx.runMutation(internal.events.create, {
-                    name: "battleOver", battleId: battle._id, data: battle.rewards, steptime
-                })
-            }
         }
+        // if (gameEngine.checkGoalComplete(game.goal, game.matched)) {
+        //     game.endTime = Date.now();
+        //     const result: { base: number; time: number; goal: number } = gameEngine.countFinalScore(game);
+        //     const score = result.base + result.time + result.goal;
+        //     game.result = result;
+        //     game.score = score;
+        //     game.status = 1;
+        //     await ctx.runMutation(internal.events.create, {
+        //         name: "gameOver", gameId, data: { result, score: game.score, endTime: game.endTime }, steptime
+        //     })
+
+        //     const battle = await ctx.runMutation(internal.games.settleGame, { battleId: game.battleId as Id<"battle">, gameId, uid: game.uid, score });
+        //     if (battle && battle.status) {
+        //         await ctx.runMutation(internal.events.create, {
+        //             name: "battleOver", battleId: battle._id, data: battle.rewards, steptime
+        //         })
+        //     }
+        // }
         await ctx.runMutation(internal.games.update, {
             gameId, data: { ...game, laststep: steptime }
         });
@@ -316,23 +327,30 @@ export const swipeCell = action({
 
             const candy = game.cells.find((c: CellItem) => c.id === args.candyId);
             const target = game.cells.find((c: CellItem) => c.id === args.targetId);
+            if (!candy || !target) {
+                throw new Error("candy or target null");
+            }
             [candy.row, target.row] = [target.row, candy.row];
             [candy.column, target.column] = [target.column, candy.column];
-            let steptime = Math.round(Date.now() - game['_creationTime']);
+            const steptime = Math.round(Date.now() - game['startTime']);
 
             const results: { toChange: CellItem[]; toCreate?: CellItem[]; toMove: CellItem[]; toRemove: CellItem[] }[] = [];
             const data = { candy: JSON.parse(JSON.stringify(candy)), target: JSON.parse(JSON.stringify(target)), results };
 
+            let loop = true;
 
-            while (true) {
+            while (loop) {
                 game.cells.sort((a: CellItem, b: CellItem) => a.row !== b.row ? a.row - b.row : a.column - b.column)
                 const grid: CellItem[][] = Array.from({ length: ROW }, () => Array(COLUMN).fill(null));
                 for (const unit of game.cells) {
                     grid[unit.row][unit.column] = unit;
                 }
                 const matches: Match[] = checkMatches(grid);
-                if (matches.length === 0)
+                if (matches.length === 0) {
+                    loop = false;
                     break;
+                }
+
                 const result: { toChange: CellItem[]; toCreate: CellItem[]; toMove: CellItem[]; toRemove: CellItem[] } | null = processMatch(game, matches);
                 if (result)
                     results.push(result)
@@ -345,19 +363,19 @@ export const swipeCell = action({
                     return a.column - b.column
             })
             await ctx.runMutation(internal.events.create, {
-                name: "cellSwapped", gameId: args.gameId, data, steptime
+                name: GAME_EVENT.SWIPE_CANDY, gameId: args.gameId, data, steptime
             })
-            if (gameEngine.checkGoalComplete(game.goal, game.matched)) {
-                game.endTime = Date.now();
-                const result: { base: number; time: number; goal: number } = gameEngine.settleGame(game);
-                const score = result.base + result.time + result.goal;
+
+            const result = gameEngine.settleGame(game);
+            if (result) {
                 game.result = result;
-                game.score = score;
-                game.status = 1;
+                game.score = result['base'] + result['time'] + result['goal']
+                game.status = GAME_STATUS.SETTLED;
                 await ctx.runMutation(internal.events.create, {
-                    name: "gameOver", gameId: args.gameId, data: { result, score: game.score, endTime: game.endTime }, steptime
+                    name: GAME_EVENT.GAME_OVER, gameId: args.gameId, data: { result, score: game.score }, steptime
                 })
             }
+
             await ctx.runMutation(internal.games.update, {
                 gameId: args.gameId, data: { ...game, laststep: steptime }
             });
@@ -372,34 +390,33 @@ export const swipeCell = action({
 export const smash = action({
     args: { gameId: v.id("games"), candyId: v.number() },
     handler: async (ctx, { gameId, candyId }) => {
-        console.log("smash cell:" + candyId)
+
         const game = await ctx.runQuery(internal.games.getGame, { gameId });
 
         if (game) {
 
             if (!game.matched)
                 game.matched = [];
-            let steptime = Math.round(Date.now() - game['_creationTime']);
+            const steptime = Math.round(Date.now() - game['startTime']);
             const smashRes: { cell: CellItem; toCreate: CellItem[]; toMove: CellItem[]; toRemove: CellItem[] } | null = processSmash(game, candyId);
             if (smashRes != null) {
-                console.log("smash results with candy:" + smashRes.cell.id + " asset:" + smashRes.cell.asset)
-
                 const results = [];
                 results.push(smashRes)
-                while (true) {
+                let loop = true;
+                while (loop) {
                     game.cells.sort((a: CellItem, b: CellItem) => a.row !== b.row ? a.row - b.row : a.column - b.column)
                     const grid: CellItem[][] = Array.from({ length: ROW }, () => Array(COLUMN).fill(null));
                     for (const unit of game.cells) {
                         grid[unit.row][unit.column] = unit;
                     }
                     const matches: any | null = checkMatches(grid);
-                    if (matches.length === 0)
+                    if (matches.length === 0) {
+                        loop = false
                         break;
+                    }
                     const result: any = processMatch(game, matches);
                     results.push(result)
                 }
-
-
                 game.cells.sort((a: CellItem, b: CellItem) => {
                     if (a.row !== b.row)
                         return a.row - b.row
@@ -437,49 +454,49 @@ export const findFreeCandies = query({
     }
 })
 
-export const checkPlay = action({
-    handler: async (ctx) => {
-        const tosettles = await ctx.runQuery(internal.games.findTosettledGames);
-        tosettles.forEach(async (s) => {
-            if (!s.endTime)
-                s.endTime = s.startTime;
-            const result: { base: number; time: number; goal: number } = settleGame(s);
-            const score = result.base + result.time + result.goal;
-            await ctx.runMutation(internal.games.update, { gameId: s._id, data: { result, score, status: 1 } })
-        })
+// export const checkPlay = action({
+//     handler: async (ctx) => {
+//         const tosettles = await ctx.runQuery(internal.games.findTosettledGames);
+//         tosettles.forEach(async (s) => {
+//             if (!s.endTime)
+//                 s.endTime = s.startTime;
+//             const result: { base: number; time: number; goal: number } = settleGame(s);
+//             const score = result.base + result.time + result.goal;
+//             await ctx.runMutation(internal.games.update, { gameId: s._id, data: { result, score, status: 1 } })
+//         })
 
-    },
-});
+//     },
+// });
 
 
-export const checkAgent = action({
-    handler: async (ctx) => {
-        const games = await ctx.runQuery(internal.games.findAgentGames);
-        for (let game of games) {
-            if (!game.ref) return;
-            const start = game.laststep ?? 0;
-            const end = Date.now() - game._creationTime;
-            const events = await ctx.runQuery(internal.events.getStepEvents, { gameId: game.ref, start, end })
-            if (events.length > 0) {
-                let laststep = start;
-                for (let event of events) {
-                    if (event.name === GAME_EVENT.GAME_OVER) {
-                        Object.assign(game, event.data, { status: 1 });
-                        //create game over event
-                        await ctx.runMutation(internal.events.create, {
-                            name: "gameOver", gameId: game._id, steptime: event.steptime, data: event.data
-                        })
-                        break;
-                    } else {
-                        laststep = event.steptime ?? laststep;
-                        gameEngine.handleEvent(event.name, event.data, game);
-                    }
-                }
-                if (laststep > start) {
-                    await ctx.runMutation(internal.games.update, { gameId: game._id, data: game })
-                }
-            }
+// export const checkAgent = action({
+//     handler: async (ctx) => {
+//         const games = await ctx.runQuery(internal.games.findAgentGames);
+//         for (const game of games) {
+//             if (!game.ref) return;
+//             const start = game.laststep ?? 0;
+//             const end = Date.now() - game._creationTime;
+//             const events = await ctx.runQuery(internal.events.getStepEvents, { gameId: game.ref, start, end })
+//             if (events.length > 0) {
+//                 let laststep = start;
+//                 for (const event of events) {
+//                     if (event.name === GAME_EVENT.GAME_OVER) {
+//                         Object.assign(game, event.data, { status: 1 });
+//                         //create game over event
+//                         await ctx.runMutation(internal.events.create, {
+//                             name: "gameOver", gameId: game._id, steptime: event.steptime, data: event.data
+//                         })
+//                         break;
+//                     } else {
+//                         laststep = event.steptime ?? laststep;
+//                         gameEngine.handleEvent(event.name, event.data, game);
+//                     }
+//                 }
+//                 if (laststep > start) {
+//                     await ctx.runMutation(internal.games.update, { gameId: game._id, data: game })
+//                 }
+//             }
 
-        }
-    }
-});
+//         }
+//     }
+// });

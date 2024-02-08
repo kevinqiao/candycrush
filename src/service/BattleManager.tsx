@@ -93,7 +93,9 @@ export const BattleProvider = ({ battle, children }: { battle: BattleModel | nul
         if (game) {
           game.status = 1;
           game.matched = matched ?? [];
-          if (battle.games.every((g) => g.status)) setAllGameLoaded(true);
+          if (battle.games.every((g) => g.status)) {
+            setAllGameLoaded(true);
+          }
         }
       },
       [battle]
