@@ -83,13 +83,15 @@ export const findByBattle = query({
 export const findByGame = query({
   args: { gameId: v.optional(v.string()), laststep: v.number() },
   handler: async (ctx, { gameId, laststep }) => {
+    console.log(gameId + ":" + laststep)
     if (laststep >= 0 && gameId) {
       const game = await ctx.db.get(gameId as Id<"games">);
-      if (game && game.laststep && game.laststep > laststep) {
+      if (game) {
         const from = laststep;
-        const to = game.laststep;
+        const to = game.laststep ?? 0;
+        console.log(from + ":" + to)
         const events = await ctx.db
-          .query("events").withIndex("by_game", (q) => q.eq("gameId", game.ref ?? gameId))
+          .query("events").withIndex("by_game", (q) => q.eq("gameId", game?.ref ?? gameId))
           .filter((q) => q.and(q.gt(q.field("steptime"), from), q.lte(q.field("steptime"), to))).order("asc")
           .collect();
         return events.map((event) => Object.assign({}, event, { id: event?._id, _creationTime: undefined, _id: undefined }))

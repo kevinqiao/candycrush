@@ -1,9 +1,5 @@
-import { useQuery } from "convex/react";
-import React, { createContext, useCallback, useContext, useEffect, useRef, useState } from "react";
-import { api } from "../convex/_generated/api";
-import BattleModel from "../model/Battle";
-import { CellItem } from "../model/CellItem";
-import { GameEvent } from "../model/GameEvent";
+import React, { createContext, useCallback, useContext, useRef, useState } from "react";
+import { BattleModel } from "../model/Battle";
 import { useUserManager } from "./UserManager";
 
 interface IBattleContext {
@@ -12,9 +8,9 @@ interface IBattleContext {
   myGameOver: boolean;
   starttime: number;
   battleEvent: any;
-  completeCandyMatch: (gameId: string, matches: { toRemove: CellItem[] }[]) => void;
+  // completeCandyMatch: (gameId: string, matches: { toRemove: CellItem[] }[]) => void;
   completeGame: (gameId: string, score: { base: number; time: number; goal: number }) => void;
-  loadGame: (gameId: string, matched: { asset: number; quantity: number }[]) => void;
+  loadGame: (uid: string, gameId: string, data: any) => void;
 }
 const BattleContext = createContext<IBattleContext>({
   myGameOver: false,
@@ -22,9 +18,9 @@ const BattleContext = createContext<IBattleContext>({
   starttime: Date.now(),
   battle: null,
   battleEvent: null,
-  completeCandyMatch: (gameId: string, matches: { toRemove: CellItem[] }[]) => null,
+  // completeCandyMatch: (gameId: string, matches: { toRemove: CellItem[] }[]) => null,
   completeGame: (gameId: string, score: { base: number; time: number; goal: number }) => null,
-  loadGame: (gameId: string, matched: { asset: number; quantity: number }[]) => null,
+  loadGame: (uid: string, gameId: string, data: any) => null,
 });
 
 export const BattleProvider = ({ battle, children }: { battle: BattleModel | null; children: React.ReactNode }) => {
@@ -34,19 +30,20 @@ export const BattleProvider = ({ battle, children }: { battle: BattleModel | nul
   // const { createAnimate } = useAnimateManager();
   const [battleEvent, setBattleEvent] = useState<any>(null);
   const { user } = useUserManager();
-  const event: GameEvent | undefined | null = useQuery(api.events.findByBattle, {
-    battleId: battle?.id,
-  });
+  console.log(battle);
+  // const event: GameEvent | undefined | null = useQuery(api.events.findByBattle, {
+  //   battleId: battle?.id,
+  // });
 
-  useEffect(() => {
-    if (event && event["name"] === "battleOver") {
-      if (battle) {
-        battle.status = 1;
-        battle.rewards = event["data"];
-        setBattleEvent(event);
-      }
-    }
-  }, [event]);
+  // useEffect(() => {
+  //   if (event && event["name"] === "battleOver") {
+  //     if (battle) {
+  //       battle.status = 1;
+  //       battle.rewards = event["data"];
+  //       setBattleEvent(event);
+  //     }
+  //   }
+  // }, [event]);
 
   const value = {
     myGameOver,
@@ -54,23 +51,23 @@ export const BattleProvider = ({ battle, children }: { battle: BattleModel | nul
     starttime: startTimeRef.current,
     battle,
     battleEvent,
-    completeCandyMatch: useCallback(
-      (gameId: string, matches: { toRemove: CellItem[] }[]) => {
-        if (!battle || !battle.games) return;
-        const game = battle?.games.find((g) => g.gameId === gameId);
-        if (game) {
-          if (!game.matched) game.matched = [];
-          for (const match of matches) {
-            const { toRemove } = match;
-            toRemove.forEach((c: CellItem) => {
-              const md = game.matched.find((a) => a.asset === c.asset);
-              md ? md.quantity++ : game.matched.push({ asset: c.asset, quantity: 1 });
-            });
-          }
-        }
-      },
-      [battle]
-    ),
+    // completeCandyMatch: useCallback(
+    //   (gameId: string, matches: { toRemove: CellItem[] }[]) => {
+    //     if (!battle || !battle.games) return;
+    //     const game = battle?.games.find((g) => g.gameId === gameId);
+    //     if (game) {
+    //       if (!game.matched) game.matched = [];
+    //       for (const match of matches) {
+    //         const { toRemove } = match;
+    //         toRemove.forEach((c: CellItem) => {
+    //           const md = game.matched.find((a) => a.asset === c.asset);
+    //           md ? md.quantity++ : game.matched.push({ asset: c.asset, quantity: 1 });
+    //         });
+    //       }
+    //     }
+    //   },
+    //   [battle]
+    // ),
     completeGame: useCallback(
       (gameId: string, score: { base: number; time: number; goal: number }) => {
         if (!battle || !battle.games) return;
@@ -87,12 +84,13 @@ export const BattleProvider = ({ battle, children }: { battle: BattleModel | nul
       [battle]
     ),
     loadGame: useCallback(
-      (gameId: string, matched: { asset: number; quantity: number }[]) => {
+      (uid: string, gameId: string, data: any) => {
         if (!battle || !battle.games) return;
         const game = battle?.games.find((g) => g.gameId === gameId);
         if (game) {
+          game.uid = uid;
           game.status = 1;
-          game.matched = matched ?? [];
+          game.data = data;
           if (battle.games.every((g) => g.status)) {
             setAllGameLoaded(true);
           }

@@ -50,12 +50,18 @@ import { sessionQuery } from "./custom/session";
 //   return rewards;
 // }
 export const create = internalMutation({
-  args: { tournamentId: v.string(), participants: v.number(), searchDueTime: v.number(), startTime: v.number(), column: v.number(), row: v.number(), goal: v.optional(v.number()), chunk: v.optional(v.number()) },
-  handler: async (ctx, { tournamentId, participants, searchDueTime, startTime, column, row, goal, chunk }) => {
-    return await ctx.db.insert("battle", { searchDueTime, startTime, tournamentId, participants, row, column, goal, chunk });
+  args: { tournamentId: v.string(), participants: v.number(), searchDueTime: v.number(), startTime: v.number(), duration: v.number(), data: v.any() },
+  handler: async (ctx, { tournamentId, participants, searchDueTime, startTime, duration, data }) => {
+    return await ctx.db.insert("battle", { searchDueTime, startTime, tournamentId, participants, duration, data });
   },
 });
-
+export const findById = internalQuery({
+  args: { battleId: v.id("battle") },
+  handler: async (ctx, { battleId }) => {
+    const battle = await ctx.db.get(battleId);
+    return battle;
+  },
+});
 export const find = internalQuery({
   args: { battleId: v.id("battle") },
   handler: async (ctx, { battleId }) => {
@@ -65,7 +71,7 @@ export const find = internalQuery({
       .filter((q) => q.eq(q.field("battleId"), battleId))
       .collect();
     if (battle && games)
-      return { ...battle, id: battle._id, _id: undefined, games: games.map((g) => ({ uid: g.uid, gameId: g._id, matched: g.matched })) }
+      return { ...battle, id: battle._id, _id: undefined, _creationTime: undefined, games: games.map((g) => ({ uid: g.uid, gameId: g._id })) }
   },
 });
 export const findBattle = query({
@@ -77,7 +83,7 @@ export const findBattle = query({
       .filter((q) => q.eq(q.field("battleId"), battleId))
       .collect();
     if (battle && games)
-      return { ...battle, id: battle._id, _id: undefined, games: games.map((g) => ({ uid: g.uid, gameId: g._id, matched: g.matched })) }
+      return { ...battle, id: battle._id, _id: undefined, games: games.map((g) => ({ uid: g.uid, gameId: g._id })) }
   },
 });
 

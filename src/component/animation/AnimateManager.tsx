@@ -60,6 +60,7 @@ export const AnimateProvider = ({ children }: { children: React.ReactNode }) => 
   const createAnimate = useCallback(
     (animate: Animate) => {
       Object.assign(animate, { id: Date.now(), createTime: Date.now() });
+      console.log(animate);
       animatesRef.current.push(animate);
       setAnimateEvent({ name: animate.name, type: ANIMATE_EVENT_TYPE.CREATE });
     },
@@ -95,6 +96,7 @@ export const AnimateProvider = ({ children }: { children: React.ReactNode }) => 
   );
   const createEvent = useCallback(
     (event: AnimateEvent) => {
+      console.log(event);
       setAnimateEvent(event);
     },
     [animatesRef]

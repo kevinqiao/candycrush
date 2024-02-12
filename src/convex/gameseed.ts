@@ -10,14 +10,14 @@ export const find = internalQuery({
   },
 });
 
-export const create = internalMutation({
-  args: { seed: v.string(), score: v.number() },
-  handler: async (ctx, { seed, score }) => {
-    // const cells = initGame();
-    const boardId = await ctx.db.insert("gameseeds", { seed, top: score, bottom: score, average: score, counts: 1 });
-    return boardId;
-  },
-});
+// export const create = internalMutation({
+//   args: { seed: v.string(), score: v.number() },
+//   handler: async (ctx, { seed, score }) => {
+//     // const cells = initGame();
+//     const boardId = await ctx.db.insert("gameseeds", { seed, top: score, bottom: score, average: score, counts: 1 });
+//     return boardId;
+//   },
+// });
 export const update = internalMutation({
   args: { seed: v.string(), score: v.number() },
   handler: async (ctx, { seed, score }) => {

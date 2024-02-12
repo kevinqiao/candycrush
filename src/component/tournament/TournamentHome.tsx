@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import useCoord from "../../service/CoordManager";
 import useTournamentManager from "../../service/TournamentManager";
 import TournamentItem from "./TournamentItem";
@@ -8,7 +8,11 @@ const TournamentHome: React.FC = () => {
 
   const { listActives } = useTournamentManager();
   useEffect(() => {
-    listActives().then((ts) => setTournaments(ts));
+    listActives().then((ts) => {
+      console.log(ts);
+      setTournaments(ts);
+      return;
+    });
   }, [listActives]);
   return (
     <div

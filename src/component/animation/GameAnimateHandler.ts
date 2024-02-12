@@ -1,6 +1,5 @@
 import { gsap } from "gsap";
 import { useCallback, useEffect } from "react";
-import { SCENE_NAME } from "../../model/Constants";
 import { useBattleManager } from "../../service/BattleManager";
 import { useSceneManager } from "../../service/SceneManager";
 import { ANIMATE_EVENT_TYPE, ANIMATE_NAME } from "./AnimateConstants";
@@ -13,12 +12,13 @@ export const useGameAnimateHandler = (props: IAnimateHandleContext) => {
     const { animates, animateEvent, removeAnimate } = props;
     const { swipeSuccess, swipeFail } = useSwipeCandy(props);
     const { solveSwap } = useSolveSwap(props);
-    const { solveMesh } = useSolveSmesh(props); 
-    
-    const { scenes, sceneEvent } = useSceneManager();
-     const { battle } = useBattleManager();
+    const { solveMesh } = useSolveSmesh(props);
 
-    const processSwipeSuccess = useCallback((data:{gameId:string;candy:any;target:any}) => {
+    const { scenes, sceneEvent } = useSceneManager();
+    const { battle } = useBattleManager();
+
+    const processSwipeSuccess = useCallback((data: { gameId: string; candy: any; target: any }) => {
+        console.log(data)
         const timeline = gsap.timeline({
             onComplete: () => {
                 timeline.kill()
@@ -28,10 +28,10 @@ export const useGameAnimateHandler = (props: IAnimateHandleContext) => {
         timeline.play();
 
     }, [])
-    const processSwipeFail = useCallback((data: {gameId:string;candyId:number;targetId:number}) => {
+    const processSwipeFail = useCallback((data: { gameId: string; candyId: number; targetId: number }) => {
         const timeline = gsap.timeline({
             onComplete: () => {
-              timeline.kill()
+                timeline.kill()
             }
         });
         swipeFail(data.gameId, data.candyId, data.targetId, timeline);
@@ -40,7 +40,7 @@ export const useGameAnimateHandler = (props: IAnimateHandleContext) => {
 
 
     useEffect(() => {
-        if (battle) {
+        if (battle?.games) {
             battle.games.forEach((g) => {
                 const actives = animates.filter((a) => a.status && a.gameId === g.gameId);
                 if (actives.length === 0) {
@@ -49,9 +49,9 @@ export const useGameAnimateHandler = (props: IAnimateHandleContext) => {
                         toactives.sort((a, b) => a.id - b.id);
                         const animate = toactives[0]
                         animate.status = 1;
-                        animate.startTime=Date.now();
+                        animate.startTime = Date.now();
                         const timeline = gsap.timeline({
-                            onComplete: () => {        
+                            onComplete: () => {
                                 removeAnimate(animate.id);
                                 timeline.kill()
                             }
@@ -74,12 +74,12 @@ export const useGameAnimateHandler = (props: IAnimateHandleContext) => {
             })
         }
 
-    }, [battle, animateEvent, animates,  sceneEvent, removeAnimate, solveSwap, solveMesh])
+    }, [battle, animateEvent, animates, sceneEvent, removeAnimate, solveSwap, solveMesh])
 
 
     useEffect(() => {
         if (animateEvent?.name) {
-            if (!scenes.get(SCENE_NAME.BATTLE_CONSOLE)) return;
+            // if (!scenes.get(SCENE_NAME.BATTLE_CONSOLE)) return;
             if (animateEvent.type === ANIMATE_EVENT_TYPE.CREATE) {
                 switch (animateEvent.name) {
                     case ANIMATE_NAME.SWIPE_SUCCESS:

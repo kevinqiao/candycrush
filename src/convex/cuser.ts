@@ -18,7 +18,8 @@ export const findByCid = query({
 export const create = mutation({
   args: { cid: v.string(), name: v.optional(v.string()), email: v.optional(v.string()), phone: v.optional(v.string()), channel: v.number(), data: v.optional(v.any()) },
   handler: async (ctx, { cid, name, email, phone, channel, data }) => {
-    return await ctx.db.insert("cuser", { cid, name, channel, email, phone, data });
+    const cuid = cid + "-" + channel;
+    return await ctx.db.insert("cuser", { cid, cuid, name, channel, email, phone, data });
   },
 });
 export const update = mutation({

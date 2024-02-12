@@ -18,14 +18,11 @@ export default defineSchema({
         counts: v.number()
     }),
     games: defineTable({
+        uid: v.string(),
         tid: v.string(),//tournament type(config) id
         battleId: v.string(),
         ref: v.optional(v.string()),
         seed: v.string(),
-        lastCellId: v.optional(v.number()),
-        cells: v.any(),
-        uid: v.string(),
-        matched: v.optional(v.any()),
         laststep: v.optional(v.number()),
         startTime: v.optional(v.number()),
         endTime: v.optional(v.number()),
@@ -33,8 +30,12 @@ export default defineSchema({
         score: v.optional(v.number()),//final score used by index
         status: v.optional(v.number()),//0-open 1-end
         type: v.number(),//
-        goal: v.number(),
-        chunk: v.optional(v.number())
+        data: v.any()
+        // cells: v.any(),
+
+        // matched: v.optional(v.any()),
+        // goal: v.number(),
+        // chunk: v.optional(v.number())
     }).index("by_type", ["type"]).index("by_status", ["status"]),
     events: defineTable({
         name: v.string(),
@@ -48,7 +49,12 @@ export default defineSchema({
         gameId: v.string(),
         cells: v.any(),
     }),
-
+    defender: defineTable({
+        id: v.string(),
+        level: v.number(),
+        hard: v.number(),
+        data: v.any(),
+    }).index("by_level", ["level"]).index("by_hard", ["hard"]).index("by_did", ["id"]),
     battle: defineTable({
         type: v.optional(v.number()),
         participants: v.number(),
@@ -57,12 +63,13 @@ export default defineSchema({
         rewards: v.optional(v.any()),
         searchDueTime: v.number(),
         startTime: v.number(),
+        duration: v.number(),
         status: v.optional(v.number()),//0-going 1-settled 2-cancelled
-        seed: v.optional(v.string()),
-        row: v.number(),
-        column: v.number(),
-        goal: v.optional(v.number()),
-        chunk: v.optional(v.number())
+        data: v.any()
+        // row: v.number(),
+        // column: v.number(),
+        // goal: v.optional(v.number()),
+        // chunk: v.optional(v.number())
     }),
 
     tournament: defineTable({
@@ -72,7 +79,6 @@ export default defineSchema({
         type: v.number(),//0-unlimit 1-schedule
         currentTerm: v.optional(v.number()),
         schedule: v.optional(v.any()),
-        goal: v.number(),
         cost: v.optional(v.any()),
         rewards: v.any(),
         status: v.number(),//0-on going 1-over 2-settled
@@ -85,6 +91,7 @@ export default defineSchema({
     }),
     cuser: defineTable({
         cid: v.string(),
+        cuid: v.string(),
         channel: v.number(),
         name: v.optional(v.string()),
         email: v.optional(v.string()),

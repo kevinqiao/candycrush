@@ -84,3 +84,5 @@ export const CHANNEL_AUTH = {
     TELEGRAM_BOT: 1,
     THIRD_WEB: 2,
 };
+export const BATTLE_SEARCH_MAX_TIME = 2500;
+export const BATTLE_COUNT_DOWN_TIME = 10000;

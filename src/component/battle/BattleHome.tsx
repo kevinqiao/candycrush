@@ -1,5 +1,5 @@
 import { useConvex } from "convex/react";
-import { useEffect, useRef, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { api } from "../../convex/_generated/api";
 import useCoord from "../../service/CoordManager";
 import { useUserManager } from "../../service/UserManager";

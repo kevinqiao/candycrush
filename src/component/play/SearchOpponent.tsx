@@ -77,12 +77,14 @@ const SearchOpponent = () => {
   }, [user, battle, width]);
 
   const playGame = useCallback((): void => {
+    console.log("play game start");
     const tl = gsap.timeline({
       onComplete: () => {
         tl.kill();
       },
     });
     tl.call(() => {
+      console.log("create animate for battle init");
       createEvent({ name: ANIMATE_NAME.BATTLE_INITED, type: ANIMATE_EVENT_TYPE.CREATE });
     }, []);
     tl.to(sceneContainerRef.current, { autoAlpha: 0, duration: 0.5 }, ">+=0.5");
@@ -91,7 +93,7 @@ const SearchOpponent = () => {
   useEffect(() => {
     if (battle && allGameLoaded) {
       const time = battle.startTime ? battle.startTime - Date.now() - user.timelag : 0;
-
+      console.log("time:" + time);
       if (time < 0) {
         playGame();
         return;

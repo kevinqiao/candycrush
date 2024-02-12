@@ -1,18 +1,17 @@
 import { AnimateProvider } from "component/animation/AnimateManager";
+import { BattleModel } from "model/Battle";
 import { BATTLE_LOAD } from "model/Constants";
 import React, { useEffect, useRef, useState } from "react";
 import BattleProvider from "service/BattleManager";
 import GameProvider from "service/GameManager";
 import SceneProvider from "service/SceneManager";
 import useDimension from "util/useDimension";
-import BattleModel from "../../model/Battle";
 import PageProps from "../../model/PageProps";
 import useTournamentManager from "../../service/TournamentManager";
 import BattleGround from "./BattleGround";
 import BattleScene from "./BattleScene";
 import GamePlay from "./GamePlay";
 import SearchOpponent from "./SearchOpponent";
-import BattleConsole from "./console/BattleConsole";
 import BattleReport from "./report/BattleReport";
 
 const PlayHome: React.FC<PageProps> = (pageProp) => {
@@ -43,11 +42,12 @@ const PlayHome: React.FC<PageProps> = (pageProp) => {
         setBattle(JSON.parse(JSON.stringify(b)));
       });
     } else if (pageProp.data?.battle) {
+      console.log(pageProp.data.battle);
       sbattleRef.current = pageProp.data.battle;
       setBattle(JSON.parse(JSON.stringify(pageProp.data.battle)));
     }
   }, [pageProp]);
-
+  console.log(battle);
   return (
     <div
       ref={sceneRef}
@@ -60,14 +60,14 @@ const PlayHome: React.FC<PageProps> = (pageProp) => {
         backgroundColor: "transparent",
       }}
     >
-      {battle ? (
+      {battle?.games ? (
         <SceneProvider pageProp={pageProp} pagePosition={pagePosition}>
           <BattleProvider battle={battle}>
             <AnimateProvider>
               <BattleGround>
-                <BattleConsole />
+                {/* <BattleConsole /> */}
                 {battle.games.map((g) => (
-                  <GameProvider key={g.gameId} game={g} load={BATTLE_LOAD.PLAY}>
+                  <GameProvider key={g.gameId} gameId={g.gameId} load={BATTLE_LOAD.PLAY}>
                     <GamePlay game={g} />
                   </GameProvider>
                 ))}

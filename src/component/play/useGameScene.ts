@@ -40,7 +40,7 @@ const getSwipeTarget = (cellItem: CellItem, direction: number, cells: CellItem[]
 }
 
 const useGameScene = () => {
-    const { gameEvent, cells, gameId, status, swapCell, smash } = useGameManager();
+    const { gameEvent, game, load, doAct } = useGameManager();
     const { battle, loadGame } = useBattleManager();
     const { textures, scenes } = useSceneManager();
     const gameOverRef = useRef<boolean>(false)
@@ -48,47 +48,51 @@ const useGameScene = () => {
     const { createEvent, createAnimate, checkIfAnimate } = useAnimateManager();
     // console.log(gameEvent)
     const swipe = useCallback((direction: number, candyId: number) => {
-
-        if (!gameId || !cells || checkIfAnimate(gameId)) return
-        const gameScene = scenes.get(gameId) as GameScene;
-        cells.sort((a: CellItem, b: CellItem) => a.row !== b.row ? a.row - b.row : a.column - b.column);
-        const cell = cells.find((c: CellItem) => c.id === candyId);
+        console.log("swiping..." + candyId)
+        if (!battle || !game?.gameId || !game?.data.cells || checkIfAnimate(game.gameId)) return
+        const gameScene = scenes.get(game.gameId) as GameScene;
+        game.data.cells.sort((a: CellItem, b: CellItem) => a.row !== b.row ? a.row - b.row : a.column - b.column);
+        const cell = game.data.cells.find((c: CellItem) => c.id === candyId);
+        console.log(cell)
         if (cell) {
-            const target = getSwipeTarget(cell, direction, cells);
+            const target = getSwipeTarget(cell, direction, game.data.cells);
             if (target) {
-                const ncells: CellItem[] = JSON.parse(JSON.stringify(cells));
+                const ncells: CellItem[] = JSON.parse(JSON.stringify(game.data.cells));
                 const ncell: CellItem | undefined = ncells.find((c: CellItem) => c.id === cell.id);
                 const ntarget: CellItem | undefined = ncells.find((c: CellItem) => c.id === target.id);
                 if (!ncell || !ntarget) return;
                 [ncell.row, ntarget.row] = [ntarget.row, ncell.row];
                 [ncell.column, ntarget.column] = [ntarget.column, ncell.column];
                 ncells.sort((a: CellItem, b: CellItem) => a.row !== b.row ? a.row - b.row : a.column - b.column)
-                const grid: CellItem[][] = Array.from({ length: Constant.ROW }, () => Array(Constant.COLUMN).fill(null));
-                for (const unit of ncells) {
-                    grid[unit.row][unit.column] = unit;
-                }
+
                 const candy = gameScene?.candies?.get(ncell.id);
                 const tcandy = gameScene?.candies?.get(ntarget.id);
                 if (candy && tcandy) {
+                    const { row, column } = battle.data
+                    const grid: CellItem[][] = Array.from({ length: row }, () => Array(column).fill(null));
+                    for (const unit of ncells) {
+                        grid[unit.row][unit.column] = unit;
+                    }
                     if (gameEngine.checkSwipe(grid)) {
-                        createEvent({ name: ANIMATE_NAME.SWIPE_SUCCESS, type: ANIMATE_EVENT_TYPE.CREATE, data: { gameId, candy: ncell, target: ntarget } })
+                        createEvent({ name: ANIMATE_NAME.SWIPE_SUCCESS, type: ANIMATE_EVENT_TYPE.CREATE, data: { gameId: game.gameId, candy: ncell, target: ntarget } })
                         // createAnimate({ id: Date.now(), name: ANIMATE_NAME.SWIPE_SUCCESS, gameId, battleId: battle?.id, eles: [], data: { candy: ncell, target: ntarget } })
-                        swapCell(ncell.id, ntarget.id)
+                        doAct(Constant.GAME_ACTION.SWIPE_CANDY, { candyId: ncell.id, targetId: ntarget.id })
+                        // swapCell(ncell.id, ntarget.id)
                     } else {
-                        createEvent({ name: ANIMATE_NAME.SWIPE_FAIL, type: ANIMATE_EVENT_TYPE.CREATE, data: { gameId, candyId, targetId: target.id } })
+                        createEvent({ name: ANIMATE_NAME.SWIPE_FAIL, type: ANIMATE_EVENT_TYPE.CREATE, data: { gameId: game.gameId, candyId, targetId: target.id } })
                         // createAnimate({ id: Date.now(), name: ANIMATE_NAME.SWIPE_FAIL, gameId, battleId: battle?.id, eles: [], data: { candyId, targetId: target.id } })
                     }
                 }
             }
         }
-    }, [gameId, cells, scenes, checkIfAnimate, createAnimate, swapCell])
+    }, [game, battle, scenes, checkIfAnimate, createAnimate, doAct])
 
 
     const createCandySprite = useCallback((cell: CellItem, x: number, y: number): PIXI.Sprite | null => {
-        if (!gameId || !scenes) return null;
-        const gameScene = scenes.get(gameId) as GameScene;
+        if (!game?.gameId || !scenes) return null;
+        const gameScene = scenes.get(game.gameId) as GameScene;
         const texture = textures?.find((d) => d.id === cell.asset);
-
+        console.log("create candy sprite")
         if (texture && gameScene?.app && gameScene.cwidth) {
             const stage = (gameScene.app as PIXI.Application).stage;
 
@@ -99,7 +103,7 @@ const useGameScene = () => {
             sprite.x = x;
             sprite.y = y;
             sprite.eventMode = 'static';
-            if (battle?.load !== Constant.BATTLE_LOAD.REPLAY) {
+            if (load !== Constant.BATTLE_LOAD.REPLAY) {
 
                 sprite.on("pointerdown", (event: any) => {
                     const drag = dragRef.current;
@@ -134,7 +138,8 @@ const useGameScene = () => {
                     if (direction > 0) {
                         swipe(direction, drag.cellId)
                     } else {
-                        smash(drag.cellId)
+                        doAct(Constant.GAME_ACTION.SMASH_CANDY, { candyId: drag.cellId })
+                        // smash(drag.cellId)
                     }
                 });
             }
@@ -142,14 +147,15 @@ const useGameScene = () => {
             return sprite;
         }
         return null;
-    }, [gameId, scenes, textures, battle?.type, swipe, smash])
+    }, [game, scenes, textures, battle?.type, swipe, doAct])
 
     const initCandies = useCallback((candies: CellItem[]) => {
 
-        if (!gameId || !scenes) return;
-        const gameScene = scenes.get(gameId) as GameScene;
+        if (!game || !game?.gameId || !scenes) return;
+        const gameScene = scenes.get(game.gameId) as GameScene;
+        console.log(gameScene)
+        if (gameScene && game.gameId && gameScene?.candies && gameScene?.cwidth) {
 
-        if (gameScene && gameId && gameScene?.candies && gameScene?.cwidth) {
             const cwidth = gameScene.cwidth;
             candies.forEach((c) => {
                 const x = c.column * cwidth + Math.floor(cwidth / 2);
@@ -161,24 +167,19 @@ const useGameScene = () => {
                 }
             })
         }
-    }, [createCandySprite, gameId, scenes])
-    useEffect(() => {
-        if (status)
-            gameOverRef.current = true;
-    }, [status])
-    useEffect(() => {
+    }, [createCandySprite, game, scenes])
 
-        if (!gameId || !scenes) return;
-        const gameScene = scenes.get(gameId) as GameScene;
+    useEffect(() => {
+        console.log(gameEvent)
+        if (!game || !game?.gameId || !scenes) return;
+        const gameScene = scenes.get(game.gameId) as GameScene;
         if (!gameScene) return
         if (gameEvent?.name === "gameOver") {
             gameOverRef.current = true;
         } else if (gameEvent?.name === "initGame") {
-
             const game = gameEvent.data;
-            initCandies(game.cells);
-            loadGame(game.gameId, game.matched);
-
+            initCandies(game.data.cells);
+            loadGame(game.uid, game.gameId, { data: { matched: game.data.matched } });
         } else if (gameEvent?.name === "cellSwapped") {
             const data: { candy: CellItem; target: CellItem; results: { toChange: CellItem[]; toCreate: CellItem[]; toMove: CellItem[]; toRemove: CellItem[] }[] } = gameEvent.data;
             for (const res of data.results) {
@@ -193,9 +194,9 @@ const useGameScene = () => {
                             gameScene.candies.set(cell.id, sprite as CandySprite)
                     })
             }
-            if (gameId) {
-                createAnimate({ id: Date.now(), name: ANIMATE_NAME.CANDY_SWAPPED, gameId, battleId: battle?.id, data })
-            }
+
+            createAnimate({ id: Date.now(), name: ANIMATE_NAME.CANDY_SWAPPED, gameId: game.gameId, battleId: battle?.id, data })
+
 
         } else if (gameEvent?.name === "cellSmeshed") {
             const data: { candyId: number; results: { toChange: CellItem[]; toCreate: CellItem[]; toMove: CellItem[]; toRemove: CellItem[] }[] } = gameEvent.data;
@@ -211,11 +212,10 @@ const useGameScene = () => {
                         }
                     })
             }
-            if (gameId)
-                createAnimate({ id: Date.now(), name: ANIMATE_NAME.CANDY_SMESHED, gameId, battleId: battle?.id, data })
+            createAnimate({ id: Date.now(), name: ANIMATE_NAME.CANDY_SMESHED, gameId: game.gameId, battleId: battle?.id, data })
 
         }
-    }, [createCandySprite, gameEvent, scenes, gameId, initCandies, createAnimate, battle?.load])
+    }, [createCandySprite, gameEvent, scenes, game, initCandies, createAnimate])
 
 }
 export default useGameScene

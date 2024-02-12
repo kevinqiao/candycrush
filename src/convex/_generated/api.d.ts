@@ -20,6 +20,7 @@ import type * as botHook from "../botHook.js";
 import type * as cuser from "../cuser.js";
 import type * as custom_session from "../custom/session.js";
 import type * as data_TournamentData from "../data/TournamentData.js";
+import type * as defender from "../defender.js";
 import type * as events from "../events.js";
 import type * as games from "../games.js";
 import type * as gameseed from "../gameseed.js";
@@ -48,6 +49,7 @@ declare const fullApi: ApiFromModules<{
   cuser: typeof cuser;
   "custom/session": typeof custom_session;
   "data/TournamentData": typeof data_TournamentData;
+  defender: typeof defender;
   events: typeof events;
   games: typeof games;
   gameseed: typeof gameseed;

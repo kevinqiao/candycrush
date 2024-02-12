@@ -2,7 +2,6 @@ import { gsap } from "gsap";
 import * as PIXI from "pixi.js";
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import { useBattleManager } from "../../service/BattleManager";
-import { useGameManager } from "../../service/GameManager";
 import { useSceneManager } from "../../service/SceneManager";
 import { useUserManager } from "../../service/UserManager";
 import { CandySprite } from "../pixi/CandySprite";
@@ -15,8 +14,7 @@ const GamePlay = ({ game }: { game: { gameId: string; uid: string } }) => {
   const { scenes, containerBound, stageScene } = useSceneManager();
   const { user } = useUserManager();
   const [bound, setBound] = useState<{ top: number; left: number; width: number; height: number } | null>(null);
-  const { status } = useGameManager();
-
+  console.log(battle);
   useGameScene();
   useEffect(() => {
     // console.log("game status:" + status);
@@ -77,10 +75,11 @@ const GamePlay = ({ game }: { game: { gameId: string; uid: string } }) => {
       const height = containerBound.height * 0.35;
       const b = { top, left, width, height };
       const gameScene = scenes.get(game.gameId);
+      console.log(battle);
       if (gameScene?.app) {
         const scene = gameScene.app as PIXI.Application;
         scene.renderer.resize(width, height);
-      } else init({ ...b, column: battle.column, row: battle.row });
+      } else init({ ...b, column: battle.data.column, row: battle.data.row });
       setBound(b);
     }
   }, [battle, containerBound, scenes, game, user, init]);

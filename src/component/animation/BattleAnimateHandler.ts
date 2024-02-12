@@ -16,7 +16,9 @@ export const useBattleAnimateHandler = (props: IAnimateHandleContext) => {
     const { initConsole } = useBattleBoard();
 
     const processBattleInit = useCallback(() => {
-        if (!battle || !user) return;
+        console.log("process battle init animation")
+        if (!battle?.games || !user) return;
+        console.log(battle)
         const timeline = gsap.timeline({
             onComplete: () => {
                 timeline.kill();
@@ -29,7 +31,8 @@ export const useBattleAnimateHandler = (props: IAnimateHandleContext) => {
             const gl = gsap.timeline();
             bl.add(gl, "<");
             initGame(g.gameId, gl);
-            const score = gameEngine.countBaseScore(g.matched)
+            const score = gameEngine.countBaseScore(g.data.matched)
+            console.log("score:" + score)
             const sl = gsap.timeline();
             bl.add(sl, "<")
             initConsole(g.uid, g.gameId, score, sl);

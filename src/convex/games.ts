@@ -1,10 +1,9 @@
 import { v } from "convex/values";
 import { GAME_STATUS } from "../model/Constants";
-import { GameModel } from "../model/GameModel";
 import * as GameEngine from "../service/GameEngine";
 import { internal } from "./_generated/api";
 import { Id } from "./_generated/dataModel";
-import { action, internalMutation, internalQuery } from "./_generated/server";
+import { action, internalMutation, internalQuery, query } from "./_generated/server";
 
 
 export const getInitGame = internalQuery({
@@ -21,27 +20,23 @@ export const getInitGame = internalQuery({
   },
 });
 
-// export const findInitGame = query({
-//   args: { gameId: v.string() },
-//   handler: async (ctx, args) => {
-//     const game = await ctx.db.get(args.gameId as Id<"games">)
-//     const gameId = game?.ref ?? args.gameId;
-//     const event = await ctx.db
-//       .query("events").withIndex("by_game", (q) => q.eq("gameId", gameId))
-//       .filter((q) => q.eq(q.field("name"), "gameInited"))
-//       .first();
-//     return event?.data
-//   },
-// });
+export const findInitGame = query({
+  args: { gameId: v.string() },
+  handler: async (ctx, args) => {
+    const game = await ctx.db.get(args.gameId as Id<"games">)
+    const gameId = game?.ref ?? args.gameId;
+    const event = await ctx.db
+      .query("events").withIndex("by_game", (q) => q.eq("gameId", gameId))
+      .filter((q) => q.eq(q.field("name"), "gameInited"))
+      .first();
+    return event?.data
+  },
+});
 export const getGame = internalQuery({
   args: { gameId: v.id("games") },
-  handler: async (ctx, { gameId }): Promise<GameModel | null> => {
+  handler: async (ctx, { gameId }): Promise<any> => {
     const game = await ctx.db.get(gameId);
-    if (game) {
-      const pasttime = (Date.now() - game._creationTime);
-      return Object.assign({}, game, { gameId: game?._id, _id: undefined, _creationTime: undefined, pasttime });
-    }
-    return null;
+    return game;
   },
 });
 
@@ -59,7 +54,7 @@ export const findGame = action({
         await ctx.runMutation(internal.games.update, { gameId: gid, data: { result, score, status: GAME_STATUS.SETTLED } })
       }
     }
-    return game;
+    return { ...game, gameId: game._id, _id: undefined };
   },
 });
 export const findUserGame = internalQuery({

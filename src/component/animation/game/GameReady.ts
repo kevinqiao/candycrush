@@ -13,6 +13,7 @@ const useGameReady = () => {
         (gameId: string, timeline: any) => {
 
             const gameScene = scenes.get(gameId) as GameScene;
+            console.log(gameScene)
             const tl = timeline ?? gsap.timeline();
             if (gameScene && gameScene.candies && gameScene.column && gameScene.row) {
 

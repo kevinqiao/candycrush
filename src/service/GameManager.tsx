@@ -1,104 +1,50 @@
 import { useAction, useConvex, useQuery } from "convex/react";
+import { GameModel } from "model/GameModel";
 import React, { createContext, useCallback, useContext, useEffect, useRef, useState } from "react";
-import { useAnimateManager } from "../component/animation/AnimateManager";
 import { api } from "../convex/_generated/api";
 import { Id } from "../convex/_generated/dataModel";
 import { CellItem } from "../model/CellItem";
-import { BATTLE_LOAD, GAME_ACTION } from "../model/Constants";
+import { BATTLE_LOAD } from "../model/Constants";
 import { GameEvent } from "../model/GameEvent";
 import { useBattleManager } from "./BattleManager";
-import * as gameEngine from "./GameEngine";
+import * as GameEngine from "./GameEngine";
 interface IGameContext {
-  starttime: number;
-  uid: string | null;
-  gameId: string | null;
-  cells: CellItem[] | null;
-  matched: { asset: number; quantity: number }[];
-  laststep: number;
-  lastCellId: number;
-  status: number;
+  load: number;
+  game: GameModel | null;
   gameEvent?: GameEvent | null;
-  swapCell: (candyId: number, targetId: number) => Promise<any>;
-  smash: (candyId: number) => void;
+  // swapCell: (candyId: number, targetId: number) => Promise<any>;
+  // smash: (candyId: number) => void;
+  doAct: (gameId: string, data: any) => void;
 }
 const GameContext = createContext<IGameContext>({
-  starttime: 0,
-  uid: null,
-  gameId: null,
-  cells: [],
-  matched: [],
-  laststep: -1,
-  lastCellId: 0,
-  status: 0,
+  load: BATTLE_LOAD.PLAY,
+  game: null,
   gameEvent: null,
-  swapCell: async (candyId: number, targetId: number) => null,
-  smash: (candyId: number) => null,
+  // swapCell: async (candyId: number, targetId: number) => null,
+  // smash: (candyId: number) => null,
+  doAct: async (gameId: string, data: any) => null,
 });
-const initialState = {
-  starttime: Date.now(),
-  isReplay: false,
-  gameId: null,
-  matched: [],
-  cells: [],
-  score: 0,
-  laststep: -1,
-  status: 0,
-};
 
-const actions = {
-  APPLY_MATCH: "APPLY_MATCH",
-  INIT_GAME: "INIT_GAME",
-  GAME_OVER: "GAME_OVER",
-  SWAP_CELL: "SWAP_CELL",
-  APPLY_SMASH: "APPLY_SMASH",
-};
-
-const reducer = (state: any, action: any) => {
-  switch (action.type) {
-    case actions.GAME_OVER:
-      return Object.assign({}, state, action.data, { status: 1 });
-    case actions.INIT_GAME: {
-      const pasttime = action.data?.pasttime ?? 0;
-      const starttime = pasttime > 0 ? Date.now() - pasttime : Date.now();
-      return Object.assign({}, state, { matched: [] }, action.data, { starttime });
-    }
-    case actions.SWAP_CELL:
-      gameEngine.handleEvent(action.data.name, action.data.data, state);
-      return Object.assign({}, state, {
-        lastCellId: action.data.lastCellId,
-        laststep: action.data.steptime,
-      });
-    case actions.APPLY_SMASH:
-      gameEngine.handleEvent(action.data.name, action.data.data, state);
-      return Object.assign({}, state, {
-        lastCellId: action.data.lastCellId,
-        laststep: action.data.steptime,
-      });
-
-    default:
-      return state;
-  }
-};
 export const GameProvider = ({
   load,
-  game,
+  gameId,
   children,
 }: {
   load: number;
-  game: { uid: string; gameId: string };
+  gameId: string;
   children: React.ReactNode;
 }) => {
-  const [state, dispatch] = React.useReducer(reducer, initialState);
+  const gameRef = useRef<GameModel | null>(null);
   const startTimeRef = useRef<number>(Date.now());
   const lastEventRef = useRef<any>({ steptime: 0 });
   const [gameEvent, setGameEvent] = useState<GameEvent | null>(null);
   const [gameEvents, setGameEvents] = useState<GameEvent[]>([]);
-  const { battle, completeGame } = useBattleManager();
-  const { createAnimate } = useAnimateManager();
+  const { battle, loadGame } = useBattleManager();
+  const [laststep, setLaststep] = useState(-1);
 
   const events: GameEvent[] | undefined | null = useQuery(api.events.findByGame, {
-    gameId: game.gameId,
-    laststep: load === BATTLE_LOAD.REPLAY ? -1 : state.laststep,
+    gameId,
+    laststep: load === BATTLE_LOAD.REPLAY ? -1 : laststep,
   });
 
   const convex = useConvex();
@@ -107,69 +53,65 @@ export const GameProvider = ({
 
   const sync = useCallback(async () => {
     const g: any = await convex.action(api.games.findGame, {
-      gameId: game.gameId,
+      gameId,
     });
     if (g) {
-      g.cells.sort((a: CellItem, b: CellItem) => {
+      g.data.cells.sort((a: CellItem, b: CellItem) => {
         if (a.row === b.row) return a.column - b.column;
         else return a.row - b.row;
       });
-
-      dispatch({ type: actions.INIT_GAME, data: g });
+      gameRef.current = g;
+      setLaststep(g.laststep);
       setGameEvent({
         id: Date.now() + "" + Math.floor(Math.random() * 100),
         steptime: g.laststep,
         name: "initGame",
         data: g,
       });
+      loadGame(g.uid, gameId, { matched: g.data.matched });
     }
-  }, [convex, game]);
+  }, [convex, gameId]);
 
-  const processEvents = useCallback((eventList: any[]) => {
-    let count = 0;
-    for (const event of eventList) {
-      lastEventRef.current = event;
-      setTimeout(() => {
-        if (event.steptime > state.laststep) {
-          const name = event.name;
-          if (name === "gameOver") {
-            dispatch({ type: actions.GAME_OVER, data: event });
+  const processEvents = useCallback(
+    (eventList: any[]) => {
+      let count = 0;
+      console.log(gameRef.current);
+      for (const event of eventList) {
+        lastEventRef.current = event;
+        setTimeout(() => {
+          if (event.steptime > laststep) {
+            GameEngine.handleEvent(event.name, event.data, gameRef.current);
             setGameEvent(event);
-            completeGame(game.gameId, event.data.result);
-          } else if (name === "cellSmeshed") {
-            dispatch({ type: actions.APPLY_SMASH, data: event });
-            setGameEvent(event);
-            // completeCandyMatch(game.gameId, event.data.results);
-          } else if (name === "cellSwapped") {
-            dispatch({ type: actions.SWAP_CELL, data: event });
-            setGameEvent(event);
-            // completeCandyMatch(game.gameId, event.data.results);
+            setLaststep(event.steptime);
           }
-        }
-      }, 10 * count++);
-    }
-  }, []);
+        }, 10 * count++);
+      }
+    },
+    [gameRef.current]
+  );
+
   useEffect(() => {
-    if (battle?.goal && events && events.length > 0) {
+    if (battle?.data.goal && events && events.length > 0) {
+      console.log(events);
       processEvents(events);
     }
-  }, [events, battle, state.matched]);
+  }, [events, battle, gameRef.current]);
   useEffect(() => {
     const loadInit = async () => {
       const g: any | null = await convex.query(api.games.findInitGame, {
-        gameId: game.gameId,
+        gameId,
       });
 
       if (g) {
         startTimeRef.current = Date.now();
-        dispatch({ type: actions.INIT_GAME, data: { gameId: game.gameId, ...g } });
+        gameRef.current = g;
         setGameEvent({ id: "0", steptime: 0, name: "initGame", data: g });
       }
     };
-    if (game.gameId && battle) {
+    if (gameId && battle) {
       load === BATTLE_LOAD.REPLAY ? loadInit() : sync();
     }
-  }, [game, battle, convex, createAnimate, sync]);
+  }, [gameId, battle, convex, sync]);
 
   useEffect(() => {
     if (gameEvents?.length === 0 || !gameEvents) return;
@@ -193,55 +135,61 @@ export const GameProvider = ({
 
   useEffect(() => {
     const loadEvents = async () => {
-      if (state.gameId) {
+      if (gameId) {
         const events = await convex.query(api.events.findAllByGame, {
-          gameId: state.gameId,
+          gameId,
         });
         if (events) {
-          console.log(events);
           startTimeRef.current = Date.now();
           setGameEvents(events);
         }
       }
     };
-    if (state.gameId && convex && load === BATTLE_LOAD.REPLAY) loadEvents();
-  }, [load, convex, state.gameId]);
+    if (gameId && convex && load === BATTLE_LOAD.REPLAY) loadEvents();
+  }, [load, convex, gameId]);
 
   const value = {
-    score: state.score,
-    starttime: state.starttime,
-    uid: state.uid,
-    gameId: game.gameId,
-    status: state.status,
-    cells: state.cells,
-    matched: state.matched,
-    laststep: state.laststep,
-    lastCellId: state.lastCellId,
+    load,
+    game: gameRef.current,
     gameEvent,
-    swapCell: useCallback(
-      async (candyId: number, targetId: number): Promise<any> => {
-        if (load === BATTLE_LOAD.REPLAY) return;
-        // swap({ gameId: state.gameId as Id<"games">, candyId: candyId, targetId: targetId });
-        doAct({
-          sessionId: "12345",
-          act: GAME_ACTION.SWIPE_CANDY,
-          gameId: state.gameId as Id<"games">,
-          data: { candyId, targetId },
-        });
-      },
-      [load, battle, doAct, state.gameId]
-    ),
-    smash: useCallback(
-      async (candyId: number) => {
-        // const cell = state.cells.find((c: CellItem) => c.id === candyId);
-        // if (cell?.asset < 20) return;
-        if (load !== BATTLE_LOAD.REPLAY) {
-          // smash({ gameId: state.gameId as Id<"games">, candyId: candyId });
-          doAct({ act: GAME_ACTION.SMASH_CANDY, gameId: state.gameId as Id<"games">, data: { candyId } });
+    doAct: useCallback(
+      async (name: string, data: any): Promise<null> => {
+        if (load === BATTLE_LOAD.PLAY) {
+          doAct({
+            sessionId: "12345",
+            act: name,
+            gameId: gameId as Id<"games">,
+            data,
+          });
         }
+        return null;
       },
-      [state.gameId, battle, doAct, load]
+      [load, battle, doAct, gameId]
     ),
+    // swapCell: useCallback(
+    //   async (candyId: number, targetId: number): Promise<any> => {
+    //     if (load === BATTLE_LOAD.REPLAY) return;
+    //     // swap({ gameId: state.gameId as Id<"games">, candyId: candyId, targetId: targetId });
+    //     doAct({
+    //       sessionId: "12345",
+    //       act: GAME_ACTION.SWIPE_CANDY,
+    //       gameId: gameId as Id<"games">,
+    //       data: { candyId, targetId },
+    //     });
+    //   },
+    //   [load, battle, doAct, gameId]
+    // ),
+    // smash: useCallback(
+    //   async (candyId: number) => {
+    //     // const cell = state.cells.find((c: CellItem) => c.id === candyId);
+    //     // if (cell?.asset < 20) return;
+    //     if (load !== BATTLE_LOAD.REPLAY) {
+    //       // smash({ gameId: state.gameId as Id<"games">, candyId: candyId });
+    //       doAct({ act: GAME_ACTION.SMASH_CANDY, gameId: gameId as Id<"games">, data: { candyId } });
+    //     }
+    //   },
+    //   [gameId, battle, doAct, load]
+    // ),
   };
 
   return <GameContext.Provider value={value}> {children} </GameContext.Provider>;

@@ -13,7 +13,7 @@ const useCollectCandies = () => {
 
         const consoleScene = scenes.get(SCENE_NAME.BATTLE_CONSOLE) as ConsoleScene;
 
-        if (ground && console) {
+        if (ground && consoleScene) {
             const panel = consoleScene.goalPanels.find((p) => p.gameId === gameId);
 
             if (panel) {

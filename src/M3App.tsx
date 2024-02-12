@@ -4,6 +4,7 @@ import MainMenu from "component/menu/MainMenu";
 import { ConvexProvider, ConvexReactClient } from "convex/react";
 import { gsap } from "gsap";
 import MotionPathPlugin from "gsap/MotionPathPlugin";
+import React from "react";
 
 import { CoordProvider } from "./service/CoordManager";
 import { PageProvider } from "./service/PageManager";

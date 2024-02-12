@@ -16,7 +16,7 @@ export const authByToken = action({
                 if (!b.status) {
                     const games = await ctx.runQuery(internal.games.findBattleGames, { battleId: b.id })
                     if (games)
-                        b['games'] = games.map((g) => ({ uid: g.uid, gameId: g._id, matched: g.matched }))
+                        b['games'] = games.map((g) => ({ uid: g.uid, gameId: g._id }))
                     // const pasttime = Date.now() - b.createTime ?? Date.now();
                     user['battle'] = { ...b, column: COLUMN, row: ROW };
                 }

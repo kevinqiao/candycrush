@@ -32,7 +32,7 @@ export const UserProvider = ({ children }: { children: React.ReactNode }) => {
   const { stacks, currentPage, openPage } = usePageManager();
   const [user, setUser] = useState<any>(null);
   const [sessionCheck, setSessionCheck] = useState(0); //0-to check 1-checked
-  const [lastTime, setLastTime] = useState<number>(0);
+  const [lastTime, setLastTime] = useState<number>(Date.now());
   const authByToken = useAction(api.UserService.authByToken);
   const userEvent: any = useQuery(api.events.getByUser, { uid: user?.uid ?? "###", lastTime });
 
@@ -55,6 +55,7 @@ export const UserProvider = ({ children }: { children: React.ReactNode }) => {
 
   const authComplete = useCallback(
     (u: User) => {
+      console.log(u);
       u.timelag = u.timestamp ? u.timestamp - Date.now() : 0;
       const app: any = getCurrentAppConfig();
       // if (u && app && !app.authLife)
@@ -63,11 +64,14 @@ export const UserProvider = ({ children }: { children: React.ReactNode }) => {
         JSON.stringify({ uid: u.uid, token: u.token, context: app.context, authEmbed: u.authEmbed ?? 0 })
       );
       if (u.battle) {
+        console.log(u);
         const stack = stacks.find((s) => s.name === "battlePlay");
         if (!stack) openBattle(u, u.battle);
       }
+      setLastTime(u.timelag + Date.now());
       setUser(u);
     },
+
     [stacks]
   );
   useEffect(() => {

@@ -12,7 +12,7 @@ const BattleConsole = () => {
   const { battle } = useBattleManager();
   const { user } = useUserManager();
   const playerGame = useMemo(() => {
-    if (battle && user) {
+    if (battle?.games && user) {
       const pgame = battle.games.find((g) => g.uid === user.uid);
       return pgame;
     }
@@ -20,7 +20,7 @@ const BattleConsole = () => {
   }, [battle, user]);
 
   const opponentGame = useMemo(() => {
-    if (battle && user) {
+    if (battle?.games && user) {
       const ogames = battle.games.filter((g) => g.uid !== user.uid);
       if (ogames.length > 0) return ogames[0];
     }
