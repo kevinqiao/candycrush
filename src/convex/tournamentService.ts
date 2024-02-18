@@ -5,9 +5,6 @@ import * as Utils from "../util/Utils";
 import { internal } from "./_generated/api";
 import { action } from "./_generated/server";
 
-const COLUMN = 7;
-const ROW = 8;
-
 export const joinTournamentByGroup = action({
     args: { tid: v.string(), uid: v.string() },
     handler: async (ctx, { tid, uid }) => {
@@ -23,11 +20,11 @@ export const joinTournamentByGroup = action({
             const battleId = await ctx.runMutation(internal.battle.create, battle);
             const games = [];
             const seed = Utils.getRandomSeed(10);
-            const gameInited = initGame(defender.data, seed)
+            const gameInited = initGame(defender, seed)
             // const gameInited = tournament.participants === 2 ? await ctx.runMutation(internal.gameService.createInitGame, { uid }) : await ctx.runQuery(internal.gameService.findInitGame, { uid, trend: 1 });
             // let gameInited = await ctx.runQuery(internal.games.getInitGame, { gameId: "31wn8c5rrq08175n9x5ka9hb9kw8ej8" });
             if (gameInited) {
-                const game = { battleId, tid, data: gameInited, seed, type: 0, laststep: 0 }
+                const game = { defender: defender.id, battleId, tid, data: gameInited, seed, type: 0, laststep: 0 }
                 // console.log("ref:" + game.ref)
                 let gameId: string = await ctx.runMutation(internal.games.create, { game: { ...game, uid } });
                 games.push({ uid, gameId });

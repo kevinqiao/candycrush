@@ -38,11 +38,12 @@ const actions = {
 
 const reducer = (state: any, action: any) => {
   switch (action.type) {
-    case actions.PAGE_PUSH:
+    case actions.PAGE_PUSH: {
       const item = action.data;
       // eslint-disable-next-line no-case-declarations
       const stacks = [...state.stacks, item];
       return Object.assign({}, state, { stacks });
+    }
     case actions.PAGE_POP:
       if (action.data.length === 0) return Object.assign({}, state, { stacks: [] });
       else {
@@ -54,36 +55,15 @@ const reducer = (state: any, action: any) => {
         prevPage: state.currentPage,
         currentPage: action.data,
       });
-    case actions.APP_OPEN:
+    case actions.APP_OPEN: {
       const res = action.data;
       if (res.navItem) {
         // console.log(res);
         const obj = { currentPage: res.navItem, stacks: res.stackItems ?? [] };
         return Object.assign({}, state, obj);
       } else return state;
+    }
     case actions.PAGE_OPEN:
-      const page = action.data;
-      if (!page.ctx) {
-        const cover = Covers.find((c) => c.name === page.name);
-        return Object.assign({}, state, { stacks: [...state.stacks, cover] });
-      } else {
-        const app = AppsConfiguration.find((a) => a.context === page.ctx);
-        if (app) {
-          const cfg = app.navs.find((p) => p.name === page.name);
-          if (cfg) {
-            const obj = Object.assign({}, state, { currentPage: page });
-            if (page.cover) {
-              const c = Covers.find((c) => c.name === page.cover.name);
-              if (c) Object.assign(obj, { stacks: [...obj.stacks, c] });
-            }
-            return obj;
-          } else {
-            const sc = app.stacks.find((p) => p.name === page.name);
-            if (!sc) return state;
-            return Object.assign({}, state, { stacks: [...state.stacks, sc] });
-          }
-        }
-      }
       break;
     default:
       return state;

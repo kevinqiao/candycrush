@@ -1,4 +1,3 @@
-import { gsap } from "gsap";
 import * as PIXI from "pixi.js";
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import { useBattleManager } from "../../service/BattleManager";
@@ -14,24 +13,23 @@ const GamePlay = ({ game }: { game: { gameId: string; uid: string } }) => {
   const { scenes, containerBound, stageScene } = useSceneManager();
   const { user } = useUserManager();
   const [bound, setBound] = useState<{ top: number; left: number; width: number; height: number } | null>(null);
-  console.log(battle);
+
   useGameScene();
   useEffect(() => {
     // console.log("game status:" + status);
-    if (!status) return;
-    const tl = gsap.timeline({
-      onComplete: () => {
-        tl.kill();
-      },
-    });
-    tl.fromTo(maskRef.current, { autoAlpha: 1 }, { autoAlpha: 0.7, duration: 1.8 }).fromTo(
-      gameOverRef.current,
-      { autoAlpha: 0 },
-      { autoAlpha: 1, duration: 1.8 },
-      "<"
-    );
-    tl.play();
-  }, [status]);
+    // const tl = gsap.timeline({
+    //   onComplete: () => {
+    //     tl.kill();
+    //   },
+    // });
+    // tl.fromTo(maskRef.current, { autoAlpha: 1 }, { autoAlpha: 0.7, duration: 1.8 }).fromTo(
+    //   gameOverRef.current,
+    //   { autoAlpha: 0 },
+    //   { autoAlpha: 1, duration: 1.8 },
+    //   "<"
+    // );
+    // tl.play();
+  }, []);
 
   const init = useCallback(
     ({
@@ -75,7 +73,7 @@ const GamePlay = ({ game }: { game: { gameId: string; uid: string } }) => {
       const height = containerBound.height * 0.35;
       const b = { top, left, width, height };
       const gameScene = scenes.get(game.gameId);
-      console.log(battle);
+
       if (gameScene?.app) {
         const scene = gameScene.app as PIXI.Application;
         scene.renderer.resize(width, height);

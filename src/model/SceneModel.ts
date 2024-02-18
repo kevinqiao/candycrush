@@ -26,6 +26,6 @@ export interface SearchScene extends SceneModel {
     opponentAvatarEle: HTMLDivElement;
 }
 export interface ConsoleScene extends SceneModel {
-    avatarBars: { gameId: string; avatar: HTMLElement | null; bar: HTMLElement | null; score: HTMLElement | null }[];
+    avatarBars: { gameId: string; avatar: HTMLElement | null; bar: HTMLElement | null; score: HTMLElement | null; plus: HTMLElement | null }[];
     goalPanels: { gameId: string; goals: { asset: number; iconEle: HTMLElement | null; qtyEle: HTMLElement | null }[] }[]
 }

@@ -1,9 +1,9 @@
 import { ConsoleScene } from "model/SceneModel";
-import { useCallback, useMemo, useRef } from "react";
-import { countBaseScore } from "service/GameEngine";
+import React, { useCallback, useMemo, useRef } from "react";
 import { SCENE_NAME, SCENE_TYPE } from "../../../model/Constants";
 import { useBattleManager } from "../../../service/BattleManager";
 import { useSceneManager } from "../../../service/SceneManager";
+import { countBaseScore } from "../../../util/MatchGameUtils";
 import GoalPanel from "./GoalPanel";
 
 const ReplayConsole = () => {
@@ -11,7 +11,7 @@ const ReplayConsole = () => {
   const { scenes, containerBound, stageScene } = useSceneManager();
   const { battle } = useBattleManager();
   const playerGame = useMemo(() => {
-    if (battle && battle.games.length > 0) {
+    if (battle?.games && battle.games.length > 0) {
       return battle.games[0];
     }
     return null;
@@ -76,7 +76,7 @@ const ReplayConsole = () => {
           <div style={{ display: "flex", justifyContent: "space-between", width: "70%", height: 45 }}>
             <div>Score:</div>
             <div ref={(el) => loadScore(el)}>
-              <span>{playerGame ? countBaseScore(playerGame.matched) : 0}</span>
+              <span>{playerGame ? countBaseScore(playerGame.data.matched) : 0}</span>
             </div>
           </div>
           <div style={{ display: "flex", justifyContent: "space-between", width: "70%", marginTop: 10 }}>

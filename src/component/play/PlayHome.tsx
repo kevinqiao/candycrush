@@ -1,4 +1,3 @@
-import { AnimateProvider } from "component/animation/AnimateManager";
 import { BattleModel } from "model/Battle";
 import { BATTLE_LOAD } from "model/Constants";
 import React, { useEffect, useRef, useState } from "react";
@@ -11,8 +10,10 @@ import useTournamentManager from "../../service/TournamentManager";
 import BattleGround from "./BattleGround";
 import BattleScene from "./BattleScene";
 import GamePlay from "./GamePlay";
-import SearchOpponent from "./SearchOpponent";
+import BattleConsole from "./console/BattleConsole";
+import TimeCount from "./console/TimeCount";
 import BattleReport from "./report/BattleReport";
+import SearchOpponent from "./SearchOpponent";
 
 const PlayHome: React.FC<PageProps> = (pageProp) => {
   const sceneRef = useRef<HTMLDivElement | null>(null);
@@ -42,12 +43,11 @@ const PlayHome: React.FC<PageProps> = (pageProp) => {
         setBattle(JSON.parse(JSON.stringify(b)));
       });
     } else if (pageProp.data?.battle) {
-      console.log(pageProp.data.battle);
       sbattleRef.current = pageProp.data.battle;
       setBattle(JSON.parse(JSON.stringify(pageProp.data.battle)));
     }
   }, [pageProp]);
-  console.log(battle);
+
   return (
     <div
       ref={sceneRef}
@@ -63,19 +63,18 @@ const PlayHome: React.FC<PageProps> = (pageProp) => {
       {battle?.games ? (
         <SceneProvider pageProp={pageProp} pagePosition={pagePosition}>
           <BattleProvider battle={battle}>
-            <AnimateProvider>
-              <BattleGround>
-                {/* <BattleConsole /> */}
-                {battle.games.map((g) => (
-                  <GameProvider key={g.gameId} gameId={g.gameId} load={BATTLE_LOAD.PLAY}>
-                    <GamePlay game={g} />
-                  </GameProvider>
-                ))}
-                <BattleScene />
-              </BattleGround>
-              <BattleReport />
-              <SearchOpponent />
-            </AnimateProvider>
+            <BattleGround>
+              <TimeCount />
+              <BattleConsole />
+              {battle.games.map((g) => (
+                <GameProvider key={g.gameId} gameId={g.gameId} load={BATTLE_LOAD.PLAY}>
+                  <GamePlay game={g} />
+                </GameProvider>
+              ))}
+              <BattleScene />
+            </BattleGround>
+            <BattleReport />
+            <SearchOpponent />
           </BattleProvider>
         </SceneProvider>
       ) : (

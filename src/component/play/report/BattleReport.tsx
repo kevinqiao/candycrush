@@ -1,23 +1,36 @@
+import { useConvex } from "convex/react";
 import { gsap } from "gsap";
-import React, { useEffect, useMemo, useRef } from "react";
-import { useBattleManager } from "service/BattleManager";
-import { useSceneManager } from "service/SceneManager";
-import { useUserManager } from "service/UserManager";
+import React, { useEffect, useRef } from "react";
+import { api } from "../../../convex/_generated/api";
+import { useBattleManager } from "../../../service/BattleManager";
+import { useSceneManager } from "../../../service/SceneManager";
+import { useUserManager } from "../../../service/UserManager";
 
 const BattleReport: React.FC = () => {
   const maskRef = useRef<HTMLDivElement | null>(null);
-  const battleOverRef = useRef<HTMLDivElement | null>(null);
-  const { battle, myGameOver, battleEvent } = useBattleManager();
+  const reportRef = useRef<HTMLDivElement | null>(null);
+  const { battle, battleEvent } = useBattleManager();
   const { exit } = useSceneManager();
   const { user } = useUserManager();
-
+  const convex = useConvex();
   useEffect(() => {
-    gsap.to(battleOverRef.current, { scale: 0, duration: 0 });
+    const findReport = async () => {
+      if (battle) {
+        const report = await convex.action(api.battle.findReport, {
+          battleId: battle.id,
+        });
+        console.log(report);
+      }
+    };
+    if (battleEvent?.name === "battleOver") {
+      openReport();
+      findReport();
+    }
+  }, [battleEvent, battle]);
+  useEffect(() => {
+    gsap.to(reportRef.current, { scale: 0, duration: 0 });
   }, []);
 
-  useEffect(() => {
-    if (myGameOver && battle?.load !== 2) setTimeout(() => openReport(), 2500);
-  }, [myGameOver, battle]);
   const openReport = () => {
     const tl = gsap.timeline({
       onComplete: () => {
@@ -25,52 +38,13 @@ const BattleReport: React.FC = () => {
       },
     });
     tl.to(maskRef.current, { autoAlpha: 0.7, duration: 1.8 }).to(
-      battleOverRef.current,
+      reportRef.current,
       { scale: 1, autoAlpha: 1, duration: 1.8 },
       "<"
     );
     tl.play();
   };
-  const renderMyScore = useMemo(() => {
-    if (battle) {
-      const mygame = battle.games.find((g) => g.uid);
-      if (mygame?.score) {
-        const { base, time, goal } = mygame.score;
-        return (
-          <div>
-            Base:{base} Time:{time} Goal:{goal}
-          </div>
-        );
-      }
-    }
-    return null;
-  }, [battleEvent, user]);
 
-  const renderBattleReport = useMemo(() => {
-    if (battle?.rewards) {
-      return battle.rewards.map((r) => (
-        <div key={r.uid}>
-          {r.rank}
-          {r.uid}
-          {r.score}
-          {JSON.stringify(r.assets)}
-          {r.points}
-        </div>
-      ));
-    } else {
-      return battle?.games
-        .sort((a, b) => {
-          const scoreA = a.score ? a.score.base + a.score.time + a.score.goal : 0;
-          const scoreB = b.score ? b.score.base + b.score.time + b.score.goal : 0;
-          return scoreB - scoreA;
-        })
-        .map((g, index) => (
-          <div key={g.gameId}>
-            {"rank:" + index};{g.uid};{g.score ? g.score.base + g.score.time + g.score.goal : "is playing"}
-          </div>
-        ));
-    }
-  }, [battleEvent]);
   return (
     <>
       <div
@@ -91,7 +65,7 @@ const BattleReport: React.FC = () => {
       ></div>
 
       <div
-        ref={battleOverRef}
+        ref={reportRef}
         style={{
           display: "flex",
           justifyContent: "center",
@@ -113,10 +87,7 @@ const BattleReport: React.FC = () => {
             backgroundColor: "white",
           }}
           onClick={exit}
-        >
-          <div>{renderMyScore}</div>
-          <div>{renderBattleReport}</div>
-        </div>
+        ></div>
       </div>
     </>
   );

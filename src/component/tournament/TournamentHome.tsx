@@ -9,7 +9,6 @@ const TournamentHome: React.FC = () => {
   const { listActives } = useTournamentManager();
   useEffect(() => {
     listActives().then((ts) => {
-      console.log(ts);
       setTournaments(ts);
       return;
     });

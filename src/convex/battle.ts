@@ -1,9 +1,11 @@
 import { v } from "convex/values";
 import { BattleModel } from "../model/Battle";
 import { BATTLE_DURATION, BATTLE_STATUS } from "../model/Constants";
+import * as GameEngine from "../service/GameEngine";
 import { countRewards, settleGame } from "../service/GameEngine";
+import { internal } from "./_generated/api";
 import { Id } from "./_generated/dataModel";
-import { internalMutation, internalQuery, query } from "./_generated/server";
+import { action, internalMutation, internalQuery } from "./_generated/server";
 import { sessionQuery } from "./custom/session";
 // interface Tournament {
 //   id: string;
@@ -74,18 +76,31 @@ export const find = internalQuery({
       return { ...battle, id: battle._id, _id: undefined, _creationTime: undefined, games: games.map((g) => ({ uid: g.uid, gameId: g._id })) }
   },
 });
-export const findBattle = query({
-  args: { battleId: v.id("battle") },
-  handler: async (ctx, { battleId }) => {
-    const battle = await ctx.db.get(battleId);
-    const games = await ctx.db
-      .query("games")
-      .filter((q) => q.eq(q.field("battleId"), battleId))
-      .collect();
-    if (battle && games)
-      return { ...battle, id: battle._id, _id: undefined, games: games.map((g) => ({ uid: g.uid, gameId: g._id })) }
-  },
-});
+// export const findBattle = query({
+//   args: { battleId: v.id("battle") },
+//   handler: async (ctx, { battleId }) => {
+//     const battle = await ctx.db.get(battleId);
+//     const games = await ctx.db
+//       .query("games")
+//       .filter((q) => q.eq(q.field("battleId"), battleId))
+//       .collect();
+
+//     if (battle && games) {
+//       const timeout = (battle.startTime + battle.duration) <= Date.now() ? true : false;
+//       const report: { uid: string; gameId: string; result?: any }[] = [];
+//       for (const game of games) {
+//         if (game.result) {
+//           report.push({ uid: game.uid, gameId: game._id, result: game.result });
+//         } else if (timeout) {
+//           const result = GameEngine.settleGame(game);
+//           report.push({ uid: game.uid, gameId: game._id, result: result });
+//         } else
+//           report.push({ uid: game.uid, gameId: game._id });
+//       }
+//       return { ...battle, id: battle._id, _id: undefined, games: report }
+//     }
+//   },
+// });
 
 
 export const settleBattle = internalMutation({
@@ -166,5 +181,51 @@ export const findMyBattles = sessionQuery({
       }
     }
     return mybattles
+  },
+});
+export const findReport = action({
+  args: { battleId: v.string() },
+  handler: async (ctx, { battleId }): Promise<any> => {
+    const bid = battleId as Id<"battle">
+    const battle = await ctx.runQuery(internal.battle.findById, { battleId: bid });
+    if (battle) {
+      const timeout = (battle.startTime + battle.duration) <= Date.now() ? true : false;
+      const report: { uid: string; gameId: string; result: any }[] = [];
+      const games = await ctx.runQuery(internal.games.findBattleGames, { battleId: bid });
+      for (const game of games) {
+        if (game.result) {
+          report.push({ uid: game.uid, gameId: game._id, result: game.result });
+        } else if (timeout) {
+          const result = GameEngine.settleGame(game);
+          report.push({ uid: game.uid, gameId: game._id, result: result ?? "hi" });
+        }
+      }
+      return report
+    }
+  },
+});
+export const findBattle = action({
+  args: { battleId: v.string() },
+  handler: async (ctx, { battleId }): Promise<any> => {
+    const bid = battleId as Id<"battle">
+    const battle = await ctx.runQuery(internal.battle.findById, { battleId: bid });
+    if (battle) {
+      const timeout = (battle.startTime + battle.duration) <= Date.now() ? true : false;
+      const report: { uid: string; gameId: string; result?: any }[] = [];
+      const games = await ctx.runQuery(internal.games.findBattleGames, { battleId: bid });
+      for (const game of games) {
+        if (game.result) {
+          report.push({ uid: game.uid, gameId: game._id, result: game.result });
+        } else if (timeout) {
+          console.log(game.defender)
+          const result = GameEngine.settleGame(game);
+          console.log(result)
+          report.push({ uid: game.uid, gameId: game._id, result });
+          await ctx.runMutation(internal.games.update, { gameId: game._id, data: { result } })
+        } else
+          report.push({ uid: game.uid, gameId: game._id })
+      }
+      return { ...battle, id: battle._id, _id: undefined, games: report }
+    }
   },
 });

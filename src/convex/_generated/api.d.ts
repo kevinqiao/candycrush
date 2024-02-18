@@ -28,6 +28,7 @@ import type * as gameService from "../gameService.js";
 import type * as http from "../http.js";
 import type * as leaderboard from "../leaderboard.js";
 import type * as message from "../message.js";
+import type * as model_Defender from "../model/Defender.js";
 import type * as model_Tournament from "../model/Tournament.js";
 import type * as tournaments from "../tournaments.js";
 import type * as tournamentService from "../tournamentService.js";
@@ -57,6 +58,7 @@ declare const fullApi: ApiFromModules<{
   http: typeof http;
   leaderboard: typeof leaderboard;
   message: typeof message;
+  "model/Defender": typeof model_Defender;
   "model/Tournament": typeof model_Tournament;
   tournaments: typeof tournaments;
   tournamentService: typeof tournamentService;

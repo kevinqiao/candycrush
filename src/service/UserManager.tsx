@@ -55,7 +55,6 @@ export const UserProvider = ({ children }: { children: React.ReactNode }) => {
 
   const authComplete = useCallback(
     (u: User) => {
-      console.log(u);
       u.timelag = u.timestamp ? u.timestamp - Date.now() : 0;
       const app: any = getCurrentAppConfig();
       // if (u && app && !app.authLife)
@@ -64,9 +63,8 @@ export const UserProvider = ({ children }: { children: React.ReactNode }) => {
         JSON.stringify({ uid: u.uid, token: u.token, context: app.context, authEmbed: u.authEmbed ?? 0 })
       );
       if (u.battle) {
-        console.log(u);
         const stack = stacks.find((s) => s.name === "battlePlay");
-        if (!stack) openBattle(u, u.battle);
+        if (!stack) setTimeout(() => openBattle(u, u.battle), 500);
       }
       setLastTime(u.timelag + Date.now());
       setUser(u);
@@ -88,7 +86,6 @@ export const UserProvider = ({ children }: { children: React.ReactNode }) => {
       const app: any = getCurrentAppConfig();
       if (app)
         embedAuth(app).then((u) => {
-          console.log(u);
           if (u) authComplete(u);
         });
     }
@@ -118,7 +115,6 @@ export const UserProvider = ({ children }: { children: React.ReactNode }) => {
     if (uid && token) {
       authByToken({ uid, token })
         .then((u: any) => {
-          console.log(u);
           if (u) {
             u.timelag = u.timestamp - Date.now();
             authComplete({ ...u, authEmbed });
@@ -130,20 +126,6 @@ export const UserProvider = ({ children }: { children: React.ReactNode }) => {
         })
         .finally(() => setSessionCheck(1));
     } else setSessionCheck(1);
-    // authToken({ uid, token })
-    //   .then((u: any) => {
-    //     console.log(u);
-    //     if (u) {
-    //       u.timelag = u.timestamp - Date.now();
-    //       authComplete({ ...u, authEmbed });
-    //     }
-    //     // setSessionCheck(1);
-    //   })
-    //   .catch((err) => {
-    //     console.log(err);
-    //   })
-    //   .finally(() => setSessionCheck(1));
-    // } else setSessionCheck(1);
   }, [user, currentPage]);
 
   const value = {

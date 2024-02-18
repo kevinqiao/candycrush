@@ -16,6 +16,7 @@ export interface GameModel {
     // lastCellId?: number;
     // matched?: { asset: number, quantity: number }[];
     // goal: number;
+    defender?: any;
     startTime: number;
     status: number;
     type: number;

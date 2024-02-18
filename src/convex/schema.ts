@@ -23,6 +23,7 @@ export default defineSchema({
         battleId: v.string(),
         ref: v.optional(v.string()),
         seed: v.string(),
+        defender: v.string(),
         laststep: v.optional(v.number()),
         startTime: v.optional(v.number()),
         endTime: v.optional(v.number()),
@@ -76,7 +77,7 @@ export default defineSchema({
         id: v.string(),
         participants: v.number(),
         battleTime: v.number(),
-        type: v.number(),//0-unlimit 1-schedule
+        gameType: v.number(),
         currentTerm: v.optional(v.number()),
         schedule: v.optional(v.any()),
         cost: v.optional(v.any()),

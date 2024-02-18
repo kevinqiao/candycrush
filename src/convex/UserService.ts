@@ -1,5 +1,4 @@
 import { v } from "convex/values";
-import { COLUMN, ROW } from "../model/Constants";
 import { internal } from "./_generated/api";
 import { Id } from "./_generated/dataModel";
 import { action } from "./_generated/server";
@@ -16,9 +15,9 @@ export const authByToken = action({
                 if (!b.status) {
                     const games = await ctx.runQuery(internal.games.findBattleGames, { battleId: b.id })
                     if (games)
-                        b['games'] = games.map((g) => ({ uid: g.uid, gameId: g._id }))
+                        b['games'] = games.map((g) => ({ uid: g.uid, gameId: g._id, data: g.data }))
                     // const pasttime = Date.now() - b.createTime ?? Date.now();
-                    user['battle'] = { ...b, column: COLUMN, row: ROW };
+                    user['battle'] = b;
                 }
             }
             // await ctx.runMutation(internal.user.update, { id: user["_id"], data: {} })

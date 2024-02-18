@@ -57,6 +57,7 @@ const StackPop: React.FC<PopupProps> = ({ zIndex, index }) => {
     if (openRef.current) {
       fit(pagePattern);
     } else {
+      console.log("open stack...");
       openRef.current = true;
       openStack(pagePattern, null);
     }
@@ -159,7 +160,7 @@ const StackPop: React.FC<PopupProps> = ({ zIndex, index }) => {
         <div
           ref={closeBtnRef}
           className="closeStackBtn"
-          style={{ cursor: "pointer", borderRadius: 4, opacity: 1 }}
+          style={{ cursor: "pointer", borderRadius: 4, opacity: 0 }}
           onClick={() => close(0)}
         >
           Close({index})

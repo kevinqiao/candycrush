@@ -113,7 +113,7 @@ export const SceneProvider = ({
     loadCandyTextures();
     // loadAvatarTextures();
     return () => {
-      for (let scene of scenesRef.current.values()) {
+      for (const scene of scenesRef.current.values()) {
         if (scene && !scene.type) {
           // const gameScene = scene as GameScene;
           // if (gameScene.candies) {

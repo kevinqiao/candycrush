@@ -23,7 +23,6 @@ const BattleGround: React.FC<{ children: ReactNode }> = ({ children }) => {
 
   return (
     <>
-      {/* {containerBound ? ( */}
       <div
         ref={load}
         style={{
@@ -34,13 +33,11 @@ const BattleGround: React.FC<{ children: ReactNode }> = ({ children }) => {
           height: "100%",
           margin: 0,
           borderRadius: 10,
-          // height: containerBound.height,
           backgroundColor: "blue",
         }}
       >
         {children}
       </div>
-      {/* ) : null} */}
     </>
   );
 };

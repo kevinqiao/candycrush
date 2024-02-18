@@ -1,6 +1,5 @@
 import { v } from "convex/values";
-import { internalMutation, internalQuery, mutation, query } from "./_generated/server";
-import { tournaments } from "./data/TournamentData";
+import { internalQuery, query } from "./_generated/server";
 export const findById = internalQuery({
   args: { id: v.string() },
   handler: async (ctx, { id }) => {
@@ -15,17 +14,6 @@ export const findAll = query({
     return tournaments
   },
 });
-export const create = internalMutation({
-  args: { cid: v.number(), startTime: v.number(), endTime: v.number() },
-  handler: async (ctx, { cid, startTime, endTime }) => {
 
-  },
-});
-export const load = mutation({
-  handler: async (ctx) => {
-    for (const t of tournaments) {
-      const assetId = await ctx.db.insert("tournament", { ...t });
-    }
-  },
-});
+
 

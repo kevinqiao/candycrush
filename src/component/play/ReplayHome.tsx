@@ -1,11 +1,10 @@
-import { AnimateProvider } from "component/animation/AnimateManager";
+import { BattleModel } from "model/Battle";
 import { BATTLE_LOAD } from "model/Constants";
 import React, { useEffect, useRef, useState } from "react";
 import BattleProvider from "service/BattleManager";
 import GameProvider from "service/GameManager";
 import SceneProvider from "service/SceneManager";
 import useDimension from "util/useDimension";
-import BattleModel from "../../model/Battle";
 import PageProps from "../../model/PageProps";
 import useTournamentManager from "../../service/TournamentManager";
 import BattleGround from "./BattleGround";
@@ -63,16 +62,14 @@ const ReplayHome: React.FC<PageProps> = (pageProp) => {
       {battle && game ? (
         <SceneProvider pageProp={pageProp} pagePosition={pagePosition}>
           <BattleProvider battle={battle}>
-            <AnimateProvider>
-              <BattleGround>
-                <GameConsole game={game} />
-                <GameProvider key={game.gameId} game={game} load={BATTLE_LOAD.REPLAY}>
-                  <GamePlay game={game} />
-                </GameProvider>
-                <BattleScene />
-              </BattleGround>
-              <SearchOpponent />
-            </AnimateProvider>
+            <BattleGround>
+              <GameConsole game={game} />
+              <GameProvider key={game.gameId} game={game} load={BATTLE_LOAD.REPLAY}>
+                <GamePlay game={game} />
+              </GameProvider>
+              <BattleScene />
+            </BattleGround>
+            <SearchOpponent />
           </BattleProvider>
         </SceneProvider>
       ) : (

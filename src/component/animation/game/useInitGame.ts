@@ -1,15 +1,13 @@
 import { gsap } from "gsap";
 import { useCallback } from "react";
-import { useUserManager } from "service/UserManager";
 import { GameScene } from "../../../model/SceneModel";
 import { useSceneManager } from "../../../service/SceneManager";
 import { CandySprite } from "../../pixi/CandySprite";
 
 
-const useGameReady = () => {
-    const { user } = useUserManager();
+const useInitGame = () => {
     const { scenes } = useSceneManager();
-    const initGame = useCallback(
+    const play = useCallback(
         (gameId: string, timeline: any) => {
 
             const gameScene = scenes.get(gameId) as GameScene;
@@ -54,6 +52,6 @@ const useGameReady = () => {
         [scenes]
     );
 
-    return { initGame, user };
+    return { play };
 };
-export default useGameReady
+export default useInitGame

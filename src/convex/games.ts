@@ -1,9 +1,6 @@
 import { v } from "convex/values";
-import { GAME_STATUS } from "../model/Constants";
-import * as GameEngine from "../service/GameEngine";
-import { internal } from "./_generated/api";
 import { Id } from "./_generated/dataModel";
-import { action, internalMutation, internalQuery, query } from "./_generated/server";
+import { internalMutation, internalQuery, query } from "./_generated/server";
 
 
 export const getInitGame = internalQuery({
@@ -36,27 +33,41 @@ export const getGame = internalQuery({
   args: { gameId: v.id("games") },
   handler: async (ctx, { gameId }): Promise<any> => {
     const game = await ctx.db.get(gameId);
-    return game;
+    if (!game) return
+    const defender = await ctx.db.query("defender")
+      .filter((q) => q.eq(q.field("id"), game.defender)).unique()
+    return { ...game, gameId: game._id, _id: undefined, _creationTime: undefined, defender: defender?.data };
+  },
+});
+export const findGame = query({
+  args: { gameId: v.id("games") },
+  handler: async (ctx, { gameId }): Promise<any> => {
+    const game = await ctx.db.get(gameId);
+    if (game) {
+      const defender = await ctx.db.query("defender")
+        .filter((q) => q.eq(q.field("id"), game.defender)).unique()
+      return { ...game, gameId: game._id, _id: undefined, _creationTime: undefined, defender: defender?.data };
+    }
   },
 });
 
-export const findGame = action({
-  args: { gameId: v.string() },
-  handler: async (ctx, { gameId }): Promise<any> => {
-    const gid = gameId as Id<"games">
-    const game = await ctx.runQuery(internal.games.getGame, { gameId: gid });
-    if (game && !game.result) {
-      const result = GameEngine.settleGame(game);
-      if (result && game.gameId) {
-        const score = result['base'] + result['time'] + result['goal'];
-        game.result = result;
-        game.score = score;
-        await ctx.runMutation(internal.games.update, { gameId: gid, data: { result, score, status: GAME_STATUS.SETTLED } })
-      }
-    }
-    return { ...game, gameId: game._id, _id: undefined };
-  },
-});
+// export const findGame = action({
+//   args: { gameId: v.string() },
+//   handler: async (ctx, { gameId }): Promise<any> => {
+//     const gid = gameId as Id<"games">
+//     const game = await ctx.runQuery(internal.games.getGame, { gameId: gid });
+//     if (game && !game.result) {
+//       const result = GameEngine.settleGame(game);
+//       if (result && game.gameId) {
+//         const score = result['base'] + result['time'] + result['goal'];
+//         game.result = result;
+//         game.score = score;
+//         await ctx.runMutation(internal.games.update, { gameId: gid, data: { result, score, status: GAME_STATUS.SETTLED } })
+//       }
+//     }
+//     return { ...game, gameId: game._id, _id: undefined };
+//   },
+// });
 export const findUserGame = internalQuery({
   args: { uid: v.string() },
   handler: async (ctx, { uid }) => {
@@ -74,6 +85,12 @@ export const findBattleGames = internalQuery({
       .query("games")
       .filter((q) => q.eq(q.field("battleId"), battleId))
       .collect();
+    if (games?.length > 0) {
+      console.log("did:" + games[0].defender)
+      const defender = await ctx.db.query("defender")
+        .filter((q) => q.eq(q.field("id"), games[0].defender)).unique();
+      return games.map((g) => Object.assign({}, g, { defender: defender?.data }))
+    }
     return games;
   },
 });
@@ -82,7 +99,6 @@ export const findBattleGames = internalQuery({
 export const create = internalMutation({
   args: { game: v.any() },
   handler: async (ctx, { game }) => {
-    console.log("ref:" + game.ref)
     const gameId = await ctx.db.insert("games", { ...game, laststep: 0 });
     return gameId;
   },

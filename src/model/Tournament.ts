@@ -1,6 +1,6 @@
 export interface Tournament {
     id: string;
-    type?: number;//0-unlimit 1-schedule
+    gameType: number;
     participants: number;
     battleTime: number;
     currentTerm?: number;

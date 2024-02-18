@@ -39,7 +39,7 @@ export const GameProvider = ({
   const lastEventRef = useRef<any>({ steptime: 0 });
   const [gameEvent, setGameEvent] = useState<GameEvent | null>(null);
   const [gameEvents, setGameEvents] = useState<GameEvent[]>([]);
-  const { battle, loadGame } = useBattleManager();
+  const { battle } = useBattleManager();
   const [laststep, setLaststep] = useState(-1);
 
   const events: GameEvent[] | undefined | null = useQuery(api.events.findByGame, {
@@ -48,13 +48,13 @@ export const GameProvider = ({
   });
 
   const convex = useConvex();
-
   const doAct = useAction(api.gameService.doAct);
 
   const sync = useCallback(async () => {
-    const g: any = await convex.action(api.games.findGame, {
-      gameId,
+    const g: any = await convex.query(api.games.findGame, {
+      gameId: gameId as Id<"games">,
     });
+
     if (g) {
       g.data.cells.sort((a: CellItem, b: CellItem) => {
         if (a.row === b.row) return a.column - b.column;
@@ -68,14 +68,13 @@ export const GameProvider = ({
         name: "initGame",
         data: g,
       });
-      loadGame(g.uid, gameId, { matched: g.data.matched });
+      // loadGame(gameId, { matched: g.data.matched ?? [] });
     }
   }, [convex, gameId]);
 
   const processEvents = useCallback(
     (eventList: any[]) => {
       let count = 0;
-      console.log(gameRef.current);
       for (const event of eventList) {
         lastEventRef.current = event;
         setTimeout(() => {
@@ -92,7 +91,6 @@ export const GameProvider = ({
 
   useEffect(() => {
     if (battle?.data.goal && events && events.length > 0) {
-      console.log(events);
       processEvents(events);
     }
   }, [events, battle, gameRef.current]);

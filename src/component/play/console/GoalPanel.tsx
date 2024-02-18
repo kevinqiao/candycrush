@@ -1,18 +1,15 @@
-import { useCallback, useEffect, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import { SCENE_NAME } from "../../../model/Constants";
 import { ConsoleScene } from "../../../model/SceneModel";
 import { useBattleManager } from "../../../service/BattleManager";
 import { useSceneManager } from "../../../service/SceneManager";
 import game_goals from "../goals";
 import GoalCandy from "./GoalCandy";
-const layout = {
-  LEFT: 0,
-  RIGHT: 1,
-};
 interface Props {
   layout: number;
-  game: { uid: string; avatar?: number; gameId: string; matched: { asset: number; quantity: number }[] } | null;
+  game: { uid: string; avatar?: number; gameId: string; data?: any };
 }
+
 const GoalPanel: React.FC<Props> = ({ layout, game }) => {
   // const sceneContainerRef = useRef<HTMLDivElement | null>(null);
   const { battle } = useBattleManager();
@@ -20,15 +17,15 @@ const GoalPanel: React.FC<Props> = ({ layout, game }) => {
   const { scenes } = useSceneManager();
 
   useEffect(() => {
-    if (battle?.goal) {
-      const battleGoal = game_goals.find((g) => g.id === battle.goal);
+    if (battle?.data.goal) {
+      const battleGoal = game_goals.find((g) => g.id === battle.data.goal);
       if (battleGoal) {
         let goalList = battleGoal.goal;
-        if (game) {
+        if (game.data?.matched) {
           goalList = goalList.map((a) => {
             let quantity = a.quantity;
-            if (game.matched) {
-              const goal = game.matched.find((m) => m.asset === a.asset);
+            if (game.data && game.data.matched) {
+              const goal = game.data.matched.find((m: any) => m.asset === a.asset);
               if (goal) quantity = Math.max(quantity - goal.quantity, 0);
             }
             return { asset: a.asset, quantity };
@@ -36,7 +33,7 @@ const GoalPanel: React.FC<Props> = ({ layout, game }) => {
         }
         const rows: { asset: number; quantity: number }[][] = [];
         let i = 0;
-        for (let goal of goalList) {
+        for (const goal of goalList) {
           const r = Math.floor(i / 2);
           if (!rows[r]) rows[r] = [];
           rows[r].push(goal);
@@ -100,8 +97,8 @@ const GoalPanel: React.FC<Props> = ({ layout, game }) => {
                   <GoalCandy asset={a.asset} />
                 </div>
                 <div style={{ position: "absolute", top: -8, left: layout === 0 ? -6 : 20, color: "white" }}>
-                  <span ref={(el: HTMLElement) => loadGoal(0, el, a)} style={{ fontSize: 10 }}>
-                    {a.quantity}
+                  <span ref={(el: HTMLElement) => loadGoal(0, el, a)} style={{ fontSize: 15 }}>
+                    {a.quantity>0?a.quantity:"✔️"}
                   </span>
                 </div>
               </div>

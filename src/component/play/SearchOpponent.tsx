@@ -3,8 +3,8 @@ import React, { useCallback, useEffect, useRef, useState } from "react";
 import { useUserManager } from "service/UserManager";
 import { useBattleManager } from "../../service/BattleManager";
 import useDimension from "../../util/useDimension";
-import { ANIMATE_EVENT_TYPE, ANIMATE_NAME } from "../animation/AnimateConstants";
-import { useAnimateManager } from "../animation/AnimateManager";
+
+import { useAnimation } from "component/animation/battle/useAnimation";
 import Avatar from "./common/Avatar";
 import CountdownTimer from "./common/CountdownTimer";
 
@@ -18,11 +18,12 @@ const SearchOpponent = () => {
   const opponentAvatarRef = useRef<HTMLDivElement | null>(null);
   // const { scenes, stageScene } = useSceneManager();
   const { width, height } = useDimension(sceneContainerRef);
-  const { createEvent } = useAnimateManager();
+
   const [countTime, setCountTime] = useState(0);
   // const [countSecond, setCountSecond] = useState(0);
   const { battle, allGameLoaded } = useBattleManager();
   const { user } = useUserManager();
+  const animation = useAnimation();
 
   const playSearch = useCallback(() => {
     const tl = gsap.timeline({
@@ -76,26 +77,28 @@ const SearchOpponent = () => {
     ml.play();
   }, [user, battle, width]);
 
-  const playGame = useCallback((): void => {
-    console.log("play game start");
+  const closeSearch = useCallback((): void => {
     const tl = gsap.timeline({
       onComplete: () => {
         tl.kill();
       },
     });
-    tl.call(() => {
-      console.log("create animate for battle init");
-      createEvent({ name: ANIMATE_NAME.BATTLE_INITED, type: ANIMATE_EVENT_TYPE.CREATE });
-    }, []);
-    tl.to(sceneContainerRef.current, { autoAlpha: 0, duration: 0.5 }, ">+=0.5");
+
+    tl.to(sceneContainerRef.current, { autoAlpha: 0, duration: 0.5 }, ">");
+    const bl = gsap.timeline({
+      onComplete: () => {
+        bl.kill();
+      },
+    });
+    tl.add(bl, ">");
+    if (battle) animation.playInitBattle(battle, bl);
     tl.play();
-  }, [createEvent]);
+  }, [battle]);
   useEffect(() => {
     if (battle && allGameLoaded) {
       const time = battle.startTime ? battle.startTime - Date.now() - user.timelag : 0;
-      console.log("time:" + time);
       if (time < 0) {
-        playGame();
+        closeSearch();
         return;
       }
       gsap.to(sceneContainerRef.current, { autoAlpha: 1, duration: 0 });
@@ -220,7 +223,7 @@ const SearchOpponent = () => {
             justifyContent: "center",
           }}
         >
-          <CountdownTimer countTime={countTime} onTimeout={playGame} />
+          <CountdownTimer countTime={countTime} onTimeout={closeSearch} />
         </div>
       </div>
     </>

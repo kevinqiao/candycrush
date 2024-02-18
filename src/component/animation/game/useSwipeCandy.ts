@@ -4,12 +4,9 @@ import { useCallback } from "react";
 import { CellItem } from "../../../model/CellItem";
 import { GameScene } from "../../../model/SceneModel";
 import { useSceneManager } from "../../../service/SceneManager";
-import { ANIMATE_NAME } from "../AnimateConstants";
-import { IAnimateContext, IAnimateHandleContext } from "../AnimateManager";
 
 
-const useSwipeCandy = (props: IAnimateHandleContext) => {
-    const { animates } = props;
+const useSwipeCandy = () => {
     const { scenes } = useSceneManager();
     const swipeSuccess = useCallback(
         // (animate: Animate, timeline: any) => {
@@ -59,7 +56,7 @@ const useSwipeCandy = (props: IAnimateHandleContext) => {
             else
                 timeline.add(tl)
         },
-        [animates]
+        []
     );
     const swipeFail = useCallback(
         (gameId: string, candyId: number, targetId: number, timeline: any) => {
@@ -67,11 +64,7 @@ const useSwipeCandy = (props: IAnimateHandleContext) => {
             const gameScene = scenes.get(gameId) as GameScene;
             if (!gameScene) return;
             const tl = gsap.timeline({
-                onComplete: () => {
-                    const index = animates.findIndex((a) => a.name === ANIMATE_NAME.SWIPE_FAIL);
-                    if (index >= 0)
-                        animates.splice(index, 1)
-                }
+
             });
 
             const candySprite = gameScene.candies?.get(candyId);
@@ -118,7 +111,7 @@ const useSwipeCandy = (props: IAnimateHandleContext) => {
             else
                 timeline.add(tl)
         },
-        [animates]
+        []
     );
 
     return { swipeSuccess, swipeFail };

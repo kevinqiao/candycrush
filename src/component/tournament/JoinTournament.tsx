@@ -1,14 +1,13 @@
-import { AnimateProvider } from "component/animation/AnimateManager";
 import { useEffect, useRef, useState } from "react";
 import BattleProvider from "service/BattleManager";
 import GameProvider from "service/GameManager";
 import SceneProvider from "service/SceneManager";
 import useDimension from "util/useDimension";
-import BattleModel from "../../model/Battle";
 import PageProps from "../../model/PageProps";
 import useTournamentManager from "../../service/TournamentManager";
 import { useUserManager } from "../../service/UserManager";
 
+import { BattleModel } from "model/Battle";
 import BattleGround from "../play/BattleGround";
 import BattleScene from "../play/BattleScene";
 import GamePlay from "../play/GamePlay";
@@ -43,13 +42,6 @@ const JoinTourament: React.FC<PageProps> = (pageProp) => {
         });
         break;
       case "replay":
-        const gameId = pageProp.data.gameId;
-        if (gameId) {
-          b = { ...pageProp.data.battle, load: 2 };
-          b.games = b.games.filter((g: any) => g.gameId === gameId);
-          sbattleRef.current = JSON.parse(JSON.stringify(b));
-          setBattle(b);
-        }
         break;
       default:
         break;
@@ -77,19 +69,17 @@ const JoinTourament: React.FC<PageProps> = (pageProp) => {
       {battle ? (
         <BattleProvider battle={battle}>
           <SceneProvider pageProp={pageProp} pagePosition={pagePosition}>
-            <AnimateProvider>
-              <BattleGround>
-                <BattleConsole />
-                {battle.games.map((g) => (
-                  <GameProvider key={g.gameId} game={g}>
-                    <GamePlay game={g} />
-                  </GameProvider>
-                ))}
-                <BattleScene />
-              </BattleGround>
-              <BattleReport />
-              <SearchOpponent />
-            </AnimateProvider>
+            <BattleGround>
+              <BattleConsole />
+              {battle.games.map((g) => (
+                <GameProvider key={g.gameId} game={g}>
+                  <GamePlay game={g} />
+                </GameProvider>
+              ))}
+              <BattleScene />
+            </BattleGround>
+            <BattleReport />
+            <SearchOpponent />
           </SceneProvider>
         </BattleProvider>
       ) : null}

@@ -7,7 +7,7 @@ import { useUserManager } from "./UserManager";
 
 
 const useTournamentManager = () => {
-  const { stacks, openPage } = usePageManager()
+  const { openPage } = usePageManager()
   const { user } = useUserManager();
   const joinTournamentByGroup = useAction(api.tournamentService.joinTournamentByGroup);
   const convex = useConvex();
@@ -31,7 +31,8 @@ const useTournamentManager = () => {
   );
   const findBattle = useCallback(
     async (battleId: Id<"battle">): Promise<any> => {
-      const battle: any = await convex.query(api.battle.findBattle, { battleId });
+      const battle: any = await convex.action(api.battle.findBattle, { battleId });
+      console.log(battle)
       return battle;
     },
     [convex]

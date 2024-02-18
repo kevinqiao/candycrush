@@ -10,22 +10,12 @@ export const MATCH_DIRECTION = {
     HORIZATION: 1,
     VERTICAL: 2
 };
-export const BATTLE_LOAD = {
-    PLAY: 0,
-    REPLAY: 1,
-}
+
 
 export const GAME_MODE = {
     PLAY: 0,
     REPLAY: 1,
     VIEW: 2
-}
-export const STACK_PAGE_DIRECTION = {
-    TOP: 1,
-    LEFT: 4,
-    BOTTOM: 3,
-    RIGHT: 2,
-    CENTER: 0
 }
 
 export const CANDY_SMASH_TYPE = {
@@ -41,7 +31,7 @@ export const CANDY_MATCH_TYPE = {
     TMODEL: 1,
     LMODEL: 2,
 }
-export const BATTLE_DURATION = 180000
+
 export const SCENE_NAME = {
     BATTLE_LOADING: "loading_battle",
     BATTLE_MATCHING: "matching_battle",
@@ -61,40 +51,16 @@ export const GAME_EVENT = {
     USE_SKILL: "skillUsed",
     GAME_OVER: "gameOver"
 } as { [key: string]: string };
-export const GAME_STATUS = {
-    OPEN: 0,
-    END: 1,
-    SETTLED: 2
-}
-export const BATTLE_STATUS = {
-    OPEN: 0,
-    END: 1,
-    SETTLED: 2
-}
+
+
 export const GAME_ACTION = {
     SWIPE_CANDY: "SWIPE_CANDY",
     SMASH_CANDY: "SMASH_CANDY",
     USE_SKILL: "USE_SKILL"
 } as { [key: string]: string };
-// export const GAME_PLAY_TIME = 600000
-export const CHANNEL_AUTH = {
-    CLERK: 0,
-    TELEGRAM_BOT: 1,
-    THIRD_WEB: 2,
-};
-export const GAME_TYPE = {
-    MATCH3: 1,
-    KUMU: 2,
-    SOLITAIRE: 3
-}
-export const BATTLE_SEARCH_MAX_TIME = 2500;
-export const BATTLE_COUNT_DOWN_TIME = 10000;
-export const getEventByAction = (action: string): string | null => {
-    for (const k in GAME_ACTION) {
-        const v = GAME_ACTION[k];
-        if (v === action) {
-            return GAME_EVENT[k]
-        }
-    }
-    return null
-}
+
+export const GAME_GOAL = [
+    { id: 1, goal: [{ asset: 0, quantity: 3 }, { asset: 1, quantity: 3 }] },
+    { id: 2, goal: [{ asset: 0, quantity: 10 }, { asset: 1, quantity: 10 }, { asset: 2, quantity: 10 }, { asset: 3, quantity: 10 }] },
+    { id: 3, goal: [{ asset: 0, quantity: 10 }, { asset: 1, quantity: 10 }, { asset: 2, quantity: 10 }, { asset: 3, quantity: 10 }] },
+]

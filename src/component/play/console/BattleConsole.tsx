@@ -9,15 +9,16 @@ import GoalPanel from "./GoalPanel";
 const BattleConsole = () => {
   const sceneContainerRef = useRef<HTMLDivElement | null>(null);
   const { containerBound, stageScene } = useSceneManager();
-  const { battle } = useBattleManager();
+  const { battle, allGameLoaded } = useBattleManager();
   const { user } = useUserManager();
+
   const playerGame = useMemo(() => {
     if (battle?.games && user) {
       const pgame = battle.games.find((g) => g.uid === user.uid);
       return pgame;
     }
     return null;
-  }, [battle, user]);
+  }, [battle, user, allGameLoaded]);
 
   const opponentGame = useMemo(() => {
     if (battle?.games && user) {
@@ -25,7 +26,8 @@ const BattleConsole = () => {
       if (ogames.length > 0) return ogames[0];
     }
     return null;
-  }, [battle, user]);
+  }, [battle, user, allGameLoaded]);
+
   const load = useCallback(
     (sceneEle: HTMLDivElement | null) => {
       if (containerBound && sceneEle && !sceneContainerRef.current) {

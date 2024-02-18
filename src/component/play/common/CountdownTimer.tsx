@@ -10,10 +10,6 @@ const CountdownTimer: React.FC<CountdownTimerProps> = ({ countTime, onTimeout })
   const [count, setCount] = useState<number>(-1);
 
   useEffect(() => {
-    // const countdown = countdownRef.current;
-    // const tl = gsap.timeline({ repeat: 0 });
-    // tl.to(countdown, { scale: 1.1, duration: 0.5, ease: "power2.inOut" });
-    // tl.to(countdown, { scale: 1, duration: 0.5, ease: "power2.inOut" });
     let interval: any;
     if (countTime > Date.now()) {
       interval = setInterval(() => {
