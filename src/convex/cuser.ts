@@ -12,7 +12,7 @@ export const findByCid = query({
   args: { cid: v.string(), channel: v.number() },
   handler: async (ctx, { cid, channel }) => {
     const cuser = await ctx.db.query("cuser").filter((q) => q.and(q.eq(q.field("cid"), cid), q.eq(q.field("channel"), channel))).unique();
-    return { ...cuser, cuid: cuser?._id, _id: undefined }
+    return { ...cuser, _id: undefined }
   },
 });
 export const create = mutation({

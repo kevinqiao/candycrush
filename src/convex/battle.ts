@@ -190,15 +190,19 @@ export const findReport = action({
     const battle = await ctx.runQuery(internal.battle.findById, { battleId: bid });
     if (battle) {
       const timeout = (battle.startTime + battle.duration) <= Date.now() ? true : false;
-      const report: { uid: string; gameId: string; result: any }[] = [];
+      const report: { uid: string; gameId: string; result?: any }[] = [];
       const games = await ctx.runQuery(internal.games.findBattleGames, { battleId: bid });
       for (const game of games) {
         if (game.result) {
           report.push({ uid: game.uid, gameId: game._id, result: game.result });
         } else if (timeout) {
-          const result = GameEngine.settleGame(game);
-          report.push({ uid: game.uid, gameId: game._id, result: result ?? "hi" });
-        }
+          let result = GameEngine.settleGame(game);
+          if (!result)
+            result = { base: 0, time: 0, goal: 0 }
+          report.push({ uid: game.uid, gameId: game._id, result });
+          await ctx.runMutation(internal.games.update, { gameId: game._id, data: { result } })
+        } else
+          report.push({ uid: game.uid, gameId: game._id })
       }
       return report
     }
@@ -217,9 +221,9 @@ export const findBattle = action({
         if (game.result) {
           report.push({ uid: game.uid, gameId: game._id, result: game.result });
         } else if (timeout) {
-          console.log(game.defender)
-          const result = GameEngine.settleGame(game);
-          console.log(result)
+          let result = GameEngine.settleGame(game);
+          if (!result)
+            result = { base: 0, time: 0, goal: 0 }
           report.push({ uid: game.uid, gameId: game._id, result });
           await ctx.runMutation(internal.games.update, { gameId: game._id, data: { result } })
         } else

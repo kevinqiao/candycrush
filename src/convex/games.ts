@@ -106,8 +106,9 @@ export const create = internalMutation({
 
 export const update = internalMutation({
   args: { gameId: v.id("games"), data: v.any() },
-  handler: async (ctx, args) => {
-    await ctx.db.patch(args.gameId, { ...args.data });
+  handler: async (ctx, { gameId, data }) => {
+    console.log(data)
+    await ctx.db.patch(gameId, { ...data });
   },
 });
 export const log = internalMutation({

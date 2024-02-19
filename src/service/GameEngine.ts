@@ -101,7 +101,7 @@ export const initGame = (defender: any, seed: string) => {
 
 
 export const settleGame = (game: any): { base: number; time: number; goal: number } | null | undefined => {
-    let result = { base: 0, time: 0, goal: 0 };
+    let result;
     let goalScore = 0;
     const goalId = game.defender.goal;
     const goalModel = goals.find((g: { id: number, goal: { asset: number, quantity: number }[] }) => g.id === goalId);
@@ -135,6 +135,7 @@ export const handleEvent = (name: string, eventData: any, game: any) => {
             [candy.column, target.column] = [target.column, candy.column];
         }
     }
+    console.log(eventData)
     applyEventResult(eventData.results, game)
 }
 const applyEventResult = (

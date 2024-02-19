@@ -76,6 +76,7 @@ export const GameProvider = ({
     (eventList: any[]) => {
       let count = 0;
       for (const event of eventList) {
+        console.log(event);
         lastEventRef.current = event;
         setTimeout(() => {
           if (event.steptime > laststep) {

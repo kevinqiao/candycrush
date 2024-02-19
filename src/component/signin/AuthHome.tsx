@@ -15,7 +15,8 @@ const AuthHome: React.FC<Props> = ({ disableCloseBtn, close }) => {
     const fetchDataFromExternalResource = async () => {
       const token = await getToken();
       if (!token) return;
-      const url = "https://telegram-bot-8bgi.onrender.com/clerk";
+      const url = "http://localhost/clerk";
+      // const url = "https://telegram-bot-8bgi.onrender.com/clerk";
       const res = await fetch(url, {
         method: "GET", // 或 'POST', 'PUT', 'DELETE' 等
         headers: {
@@ -25,6 +26,7 @@ const AuthHome: React.FC<Props> = ({ disableCloseBtn, close }) => {
         },
       });
       const json = await res.json();
+      console.log(json);
       if (json.status === "success") {
         authComplete(json.message);
         if (close) close(0);

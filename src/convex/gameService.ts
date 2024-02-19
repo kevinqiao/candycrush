@@ -136,9 +136,8 @@ export const doAct = sessionAction({
                     name: GAME_EVENT.GAME_OVER, gameId, data: { result, score: game.score }, steptime
                 })
             }
-
             await ctx.runMutation(internal.games.update, {
-                gameId, data: { ...game, laststep: steptime }
+                gameId, data: { ...game, gameId: undefined, defender: undefined, laststep: steptime }
             });
         }
     }

@@ -1,15 +1,16 @@
 import { useConvex } from "convex/react";
 import { gsap } from "gsap";
-import React, { useEffect, useRef } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { api } from "../../../convex/_generated/api";
 import { useBattleManager } from "../../../service/BattleManager";
 import { useSceneManager } from "../../../service/SceneManager";
 import { useUserManager } from "../../../service/UserManager";
 
 const BattleReport: React.FC = () => {
-  const maskRef = useRef<HTMLDivElement | null>(null);
-  const reportRef = useRef<HTMLDivElement | null>(null);
+  const maskDivRef = useRef<HTMLDivElement | null>(null);
+  const reportDivRef = useRef<HTMLDivElement | null>(null);
   const { battle, battleEvent } = useBattleManager();
+  const [battleReport, setBattleReport] = useState<any>(null);
   const { exit } = useSceneManager();
   const { user } = useUserManager();
   const convex = useConvex();
@@ -19,6 +20,8 @@ const BattleReport: React.FC = () => {
         const report = await convex.action(api.battle.findReport, {
           battleId: battle.id,
         });
+
+        setBattleReport(report);
         console.log(report);
       }
     };
@@ -28,7 +31,7 @@ const BattleReport: React.FC = () => {
     }
   }, [battleEvent, battle]);
   useEffect(() => {
-    gsap.to(reportRef.current, { scale: 0, duration: 0 });
+    gsap.to(reportDivRef.current, { scale: 0, duration: 0 });
   }, []);
 
   const openReport = () => {
@@ -37,8 +40,8 @@ const BattleReport: React.FC = () => {
         tl.kill();
       },
     });
-    tl.to(maskRef.current, { autoAlpha: 0.7, duration: 1.8 }).to(
-      reportRef.current,
+    tl.to(maskDivRef.current, { autoAlpha: 0.7, duration: 1.8 }).to(
+      reportDivRef.current,
       { scale: 1, autoAlpha: 1, duration: 1.8 },
       "<"
     );
@@ -48,7 +51,7 @@ const BattleReport: React.FC = () => {
   return (
     <>
       <div
-        ref={maskRef}
+        ref={maskDivRef}
         style={{
           display: "flex",
           justifyContent: "center",
@@ -65,7 +68,7 @@ const BattleReport: React.FC = () => {
       ></div>
 
       <div
-        ref={reportRef}
+        ref={reportDivRef}
         style={{
           display: "flex",
           justifyContent: "center",
@@ -84,10 +87,59 @@ const BattleReport: React.FC = () => {
           style={{
             width: "70%",
             height: "50%",
-            backgroundColor: "white",
+            backgroundColor: "blue",
           }}
-          onClick={exit}
-        ></div>
+        >
+          <div
+            style={{
+              display: "flex",
+              flexDirection: "column",
+              alignItems: "center",
+              justifyContent: "flex-start",
+              width: "100%",
+              height: "100%",
+            }}
+          >
+            <div style={{ height: "15%" }}></div>
+            <div
+              style={{
+                display: "flex",
+                flexDirection: "column",
+                alignItems: "center",
+                width: "70%",
+                height: "70%",
+              }}
+            >
+              {battleReport &&
+                battleReport.map((r: any, index: number) => (
+                  <div
+                    key={r.gameId}
+                    style={{ width: "100%", display: "flex", justifyContent: "space-between", color: "white" }}
+                  >
+                    <span>{"base:" + r.result.base}</span>
+                    <span>{"time:" + r.result.time}</span>
+                    <span>{"goal:" + r.result.goal}</span>
+                  </div>
+                ))}
+            </div>
+            <div
+              style={{
+                display: "flex",
+                justifyContent: "center",
+                alignItems: "center",
+                width: "60%",
+                height: "10%",
+                backgroundColor: "red",
+                borderRadius: 4,
+                color: "white",
+                fontSize: "20px",
+              }}
+              onClick={exit}
+            >
+              <span>Ok</span>
+            </div>
+          </div>
+        </div>
       </div>
     </>
   );
