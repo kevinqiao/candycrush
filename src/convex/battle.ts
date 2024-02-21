@@ -1,6 +1,5 @@
 import { v } from "convex/values";
-import { BattleModel } from "../model/Battle";
-import { BATTLE_DURATION, BATTLE_STATUS } from "../model/Constants";
+import { BATTLE_STATUS } from "../model/Constants";
 import * as GameEngine from "../service/GameEngine";
 import { countRewards, settleGame } from "../service/GameEngine";
 import { internal } from "./_generated/api";
@@ -52,28 +51,36 @@ import { sessionQuery } from "./custom/session";
 //   return rewards;
 // }
 export const create = internalMutation({
-  args: { tournamentId: v.string(), participants: v.number(), searchDueTime: v.number(), startTime: v.number(), duration: v.number(), data: v.any() },
-  handler: async (ctx, { tournamentId, participants, searchDueTime, startTime, duration, data }) => {
-    return await ctx.db.insert("battle", { searchDueTime, startTime, tournamentId, participants, duration, data });
+  args: { tournamentId: v.string(), participants: v.number(), searchDueTime: v.number(), startTime: v.number(), duration: v.number(), endDueTime: v.number(), data: v.any() },
+  handler: async (ctx, { tournamentId, participants, searchDueTime, startTime, duration, endDueTime, data }) => {
+    return await ctx.db.insert("battle", { status: 0, searchDueTime, startTime, tournamentId, participants, duration, endDueTime, data });
   },
 });
 export const findById = internalQuery({
   args: { battleId: v.id("battle") },
   handler: async (ctx, { battleId }) => {
     const battle = await ctx.db.get(battleId);
-    return battle;
+    if (battle)
+      return { ...battle, id: battleId, _id: undefined, _creationTime: undefined };
   },
 });
 export const find = internalQuery({
   args: { battleId: v.id("battle") },
   handler: async (ctx, { battleId }) => {
+
     const battle = await ctx.db.get(battleId);
     const games = await ctx.db
       .query("games")
       .filter((q) => q.eq(q.field("battleId"), battleId))
       .collect();
-    if (battle && games)
-      return { ...battle, id: battle._id, _id: undefined, _creationTime: undefined, games: games.map((g) => ({ uid: g.uid, gameId: g._id })) }
+    if (battle && games) {
+      const gs: any[] = []
+      for (const game of games) {
+        const user = await ctx.db.get(game.uid as Id<"user">)
+        gs.push({ player: { uid: game.uid, name: user?.name, avatar: user?.avatar }, uid: game.uid, gameId: game._id })
+      }
+      return { ...battle, id: battle._id, _id: undefined, _creationTime: undefined, games: gs }
+    }
   },
 });
 // export const findBattle = query({
@@ -106,18 +113,21 @@ export const find = internalQuery({
 export const settleBattle = internalMutation({
   handler: async (ctx) => {
 
-    const startTime = Date.now() - BATTLE_DURATION;
     const battles = await ctx.db.query("battle")
-      .filter((q) => q.and(q.eq(q.field("status"), BATTLE_STATUS.OPEN), q.lt(q.field("startTime"), startTime))).collect();
+      .filter((q) => q.and(q.eq(q.field("status"), BATTLE_STATUS.OPEN), q.lt(q.field("endDueTime"), Date.now()))).collect();
+    console.log("size:" + battles.length)
     for (const b of battles) {
       //check if all games settled
       const games = await ctx.db
         .query("games")
         .filter((q) => q.eq(q.field("battleId"), b._id))
         .collect();
-      const toSettles = games.filter((game) => !game.result);
+      console.log("game size:" + games.length)
+      const toSettles = games.filter((g) => !g.result);
+      console.log("tosettle size:" + toSettles.length)
       for (const game of toSettles) {
-        const result = settleGame(game);
+        const result = settleGame(game, b);
+        console.log(result)
         if (result) {
           game['result'] = result;
           const score = result['base'] + result['time'] + result['goal'];
@@ -125,7 +135,7 @@ export const settleBattle = internalMutation({
           await ctx.db.patch(game._id, { result, score })
         }
       }
-      const battle: BattleModel = Object.assign({}, b, { id: b._id, _id: undefined, games })
+      const battle: any = Object.assign({}, b, { id: b._id, _id: undefined, games })
 
       const tournament = await ctx.db.query("tournament").filter((q) => q.eq(q.field("id"), b.tournamentId)).unique();
       if (tournament) {
@@ -189,20 +199,23 @@ export const findReport = action({
     const bid = battleId as Id<"battle">
     const battle = await ctx.runQuery(internal.battle.findById, { battleId: bid });
     if (battle) {
-      const timeout = (battle.startTime + battle.duration) <= Date.now() ? true : false;
       const report: { uid: string; gameId: string; result?: any }[] = [];
       const games = await ctx.runQuery(internal.games.findBattleGames, { battleId: bid });
       for (const game of games) {
         if (game.result) {
           report.push({ uid: game.uid, gameId: game._id, result: game.result });
-        } else if (timeout) {
-          let result = GameEngine.settleGame(game);
-          if (!result)
-            result = { base: 0, time: 0, goal: 0 }
-          report.push({ uid: game.uid, gameId: game._id, result });
-          await ctx.runMutation(internal.games.update, { gameId: game._id, data: { result } })
-        } else
-          report.push({ uid: game.uid, gameId: game._id })
+        } else {
+          const timeLeft = battle.startTime + battle.duration - Date.now();
+          console.log("game:" + game._id + " time left:" + timeLeft)
+          if (timeLeft < 0) {
+            let result = GameEngine.settleGame(game, battle);
+            if (!result)
+              result = { base: 0, time: 0, goal: 0 }
+            report.push({ uid: game.uid, gameId: game._id, result });
+            await ctx.runMutation(internal.games.update, { gameId: game._id, data: { result } })
+          } else
+            report.push({ uid: game.uid, gameId: game._id })
+        }
       }
       return report
     }
@@ -215,21 +228,26 @@ export const findBattle = action({
     const battle = await ctx.runQuery(internal.battle.findById, { battleId: bid });
     if (battle) {
       const timeout = (battle.startTime + battle.duration) <= Date.now() ? true : false;
-      const report: { uid: string; gameId: string; result?: any }[] = [];
+      const report: { player: any, uid: string; gameId: string; result?: any; data: any }[] = [];
       const games = await ctx.runQuery(internal.games.findBattleGames, { battleId: bid });
       for (const game of games) {
+        const user = await ctx.runQuery(internal.user.find, { id: game.uid as Id<"user"> })
+        if (!user) {
+          throw new Error("player not found");
+        }
+        const player = Object.assign({}, user, { token: undefined, tenant: undefined })
         if (game.result) {
-          report.push({ uid: game.uid, gameId: game._id, result: game.result });
+          report.push({ player, uid: game.uid, gameId: game._id, result: game.result, data: { matched: game.data.matched ?? [] } });
         } else if (timeout) {
-          let result = GameEngine.settleGame(game);
+          let result = GameEngine.settleGame(game, battle);
           if (!result)
             result = { base: 0, time: 0, goal: 0 }
-          report.push({ uid: game.uid, gameId: game._id, result });
+          report.push({ player, uid: game.uid, gameId: game._id, result, data: { matched: game.data.matched ?? [] } });
           await ctx.runMutation(internal.games.update, { gameId: game._id, data: { result } })
         } else
-          report.push({ uid: game.uid, gameId: game._id })
+          report.push({ player, uid: game.uid, gameId: game._id, data: { matched: game.data.matched ?? [] } })
       }
-      return { ...battle, id: battle._id, _id: undefined, games: report }
+      return { ...battle, id: bid, _id: undefined, games: report }
     }
   },
 });

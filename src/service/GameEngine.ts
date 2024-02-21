@@ -2,7 +2,7 @@ import seedrandom from 'seedrandom';
 import goals from "../component/play/goals";
 import { BattleModel, BattleReward } from '../model/Battle';
 import { CellItem } from "../model/CellItem";
-import { BATTLE_DURATION, GAME_ACTION, GAME_EVENT } from '../model/Constants';
+import { GAME_ACTION, GAME_EVENT } from '../model/Constants';
 import { GameModel } from '../model/GameModel';
 import { Tournament } from '../model/Tournament';
 import candy_textures from "../model/candy_textures";
@@ -100,10 +100,10 @@ export const initGame = (defender: any, seed: string) => {
 
 
 
-export const settleGame = (game: any): { base: number; time: number; goal: number } | null | undefined => {
-    let result;
+export const settleGame = (game: any, battle: any): { base: number; time: number; goal: number } | null => {
+    let result = null;
     let goalScore = 0;
-    const goalId = game.defender.goal;
+    const goalId = battle.data.goal;
     const goalModel = goals.find((g: { id: number, goal: { asset: number, quantity: number }[] }) => g.id === goalId);
     if (goalModel && game.data.matched) {
         const goalSuccess = goalModel.goal.map((g) => {
@@ -114,12 +114,11 @@ export const settleGame = (game: any): { base: number; time: number; goal: numbe
         if (goalSuccess) {
             goalScore = 1000;
         }
-
-        const playTime = Date.now() - game.startTime;
-        if ((playTime - BATTLE_DURATION) >= 0 || goalScore > 0) {
+        const timeLeft = battle.duration - Date.now() + battle.startTime;
+        if (timeLeft < 0 || goalScore > 0) {
             const baseScore = game.data.matched.reduce((s: number, a: { asset: number; quantity: number }) => s + a.quantity, 0);
-            const timeScore = (BATTLE_DURATION - playTime) * 10;
-            result = { base: baseScore, time: timeScore ?? 0, goal: goalScore ?? 0 }
+            const timeScore = timeLeft > 0 ? timeLeft * 2 : 0;
+            result = { base: baseScore, time: timeScore > 0 ? Math.floor(timeScore / 1000) : 0, goal: goalScore }
         }
     }
     return result
@@ -134,7 +133,8 @@ export const handleEvent = (name: string, eventData: any, game: any) => {
             [candy.row, target.row] = [target.row, candy.row];
             [candy.column, target.column] = [target.column, candy.column];
         }
-    }
+    } else
+        return
     console.log(eventData)
     applyEventResult(eventData.results, game)
 }
@@ -185,19 +185,14 @@ const applyEventResult = (
 };
 export const countRewards = (tournament: Tournament, battle: BattleModel): BattleReward[] => {
     const rewards: BattleReward[] = [];
-    if (battle.games && battle.games.length > 0) {
-        const uncomplete = battle.games.findIndex((g: any) => !g.status);
-        if (uncomplete < 0)
-            battle.games.sort((a: any, b: any) => {
-                if (!a.score || !a.score.total) return -1;
-                if (!b.score || !b.score.total) return 1;
-                return a.score.total - b.score.total
-            }).forEach((r: any, index: number) => {
-                const reward = tournament.rewards?.find((w) => w.rank === index);
-                if (reward) {
-                    rewards.push({ uid: r.uid, gameId: r.gameId, rank: index, score: r.score?.total ?? 0, points: reward.points, assets: reward.assets })
-                }
-            })
+    if (battle.status === 0 && battle.games && battle.games.length > 0) {
+        battle.games.sort((a: any, b: any) => b.score - a.score).forEach((r: any, index: number) => {
+            const reward = tournament.rewards?.find((w) => w.rank === index);
+            console.log(reward)
+            if (reward) {
+                rewards.push({ uid: r.uid, gameId: r.gameId, rank: index, score: r.score, points: reward.points, assets: reward.assets })
+            }
+        })
     }
     return rewards;
 }

@@ -1,6 +1,6 @@
 import { useConvex } from "convex/react";
 import { gsap } from "gsap";
-import React, { useEffect, useRef, useState } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import { api } from "../../../convex/_generated/api";
 import { useBattleManager } from "../../../service/BattleManager";
 import { useSceneManager } from "../../../service/SceneManager";
@@ -9,31 +9,19 @@ import { useUserManager } from "../../../service/UserManager";
 const BattleReport: React.FC = () => {
   const maskDivRef = useRef<HTMLDivElement | null>(null);
   const reportDivRef = useRef<HTMLDivElement | null>(null);
-  const { battle, battleEvent } = useBattleManager();
+  const { battle, battleEvent, allGameLoaded } = useBattleManager();
   const [battleReport, setBattleReport] = useState<any>(null);
   const { exit } = useSceneManager();
   const { user } = useUserManager();
   const convex = useConvex();
-  useEffect(() => {
-    const findReport = async () => {
-      if (battle) {
-        const report = await convex.action(api.battle.findReport, {
-          battleId: battle.id,
-        });
-
-        setBattleReport(report);
-        console.log(report);
-      }
-    };
-    if (battleEvent?.name === "battleOver") {
-      openReport();
-      findReport();
+  const findReport = useCallback(async () => {
+    if (battle) {
+      const report = await convex.action(api.battle.findReport, {
+        battleId: battle.id,
+      });
+      setBattleReport(report);
     }
-  }, [battleEvent, battle]);
-  useEffect(() => {
-    gsap.to(reportDivRef.current, { scale: 0, duration: 0 });
-  }, []);
-
+  }, [battle]);
   const openReport = () => {
     const tl = gsap.timeline({
       onComplete: () => {
@@ -47,6 +35,22 @@ const BattleReport: React.FC = () => {
     );
     tl.play();
   };
+
+  useEffect(() => {
+    if (!user || !battle || !allGameLoaded) return;
+    const mygame = battle.games?.find((g) => g.uid === user.uid);
+
+    const timeLeft = battle.duration + battle.startTime - Date.now() + user.timelag;
+    console.log("timeLeft:" + timeLeft);
+    if (battle.status || mygame?.result || timeLeft < 0 || battleEvent?.name === "battleOver") {
+      openReport();
+      findReport();
+    }
+  }, [battleEvent, battle, user, allGameLoaded]);
+
+  useEffect(() => {
+    gsap.to(reportDivRef.current, { scale: 0, duration: 0 });
+  }, []);
 
   return (
     <>
@@ -111,16 +115,22 @@ const BattleReport: React.FC = () => {
               }}
             >
               {battleReport &&
-                battleReport.map((r: any, index: number) => (
-                  <div
-                    key={r.gameId}
-                    style={{ width: "100%", display: "flex", justifyContent: "space-between", color: "white" }}
-                  >
-                    <span>{"base:" + r.result.base}</span>
-                    <span>{"time:" + r.result.time}</span>
-                    <span>{"goal:" + r.result.goal}</span>
-                  </div>
-                ))}
+                battleReport.map((r: any, index: number) =>
+                  r.result ? (
+                    <div
+                      key={r.gameId}
+                      style={{ width: "100%", display: "flex", justifyContent: "space-between", color: "white" }}
+                    >
+                      <span>{"base:" + r.result.base}</span>
+                      <span>{"time:" + r.result.time}</span>
+                      <span>{"goal:" + r.result.goal}</span>
+                    </div>
+                  ) : (
+                    <div key={r.gameId}>
+                      <span>playing</span>
+                    </div>
+                  )
+                )}
             </div>
             <div
               style={{

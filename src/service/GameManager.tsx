@@ -39,7 +39,7 @@ export const GameProvider = ({
   const lastEventRef = useRef<any>({ steptime: 0 });
   const [gameEvent, setGameEvent] = useState<GameEvent | null>(null);
   const [gameEvents, setGameEvents] = useState<GameEvent[]>([]);
-  const { battle } = useBattleManager();
+  const { battle, completeGame } = useBattleManager();
   const [laststep, setLaststep] = useState(-1);
 
   const events: GameEvent[] | undefined | null = useQuery(api.events.findByGame, {
@@ -68,7 +68,7 @@ export const GameProvider = ({
         name: "initGame",
         data: g,
       });
-      // loadGame(gameId, { matched: g.data.matched ?? [] });
+      //  loadGame(gameId, { matched: g.data.matched ?? [] });
     }
   }, [convex, gameId]);
 
@@ -76,18 +76,24 @@ export const GameProvider = ({
     (eventList: any[]) => {
       let count = 0;
       for (const event of eventList) {
-        console.log(event);
-        lastEventRef.current = event;
-        setTimeout(() => {
-          if (event.steptime > laststep) {
-            GameEngine.handleEvent(event.name, event.data, gameRef.current);
-            setGameEvent(event);
-            setLaststep(event.steptime);
-          }
-        }, 10 * count++);
+        if (event.name === "gameOver" && gameRef.current) {
+          console.log(event.data);
+          const result = event.data.result;
+          gameRef.current.result = result;
+          completeGame(gameId, result);
+        } else {
+          lastEventRef.current = event;
+          setTimeout(() => {
+            if (event.steptime > laststep) {
+              GameEngine.handleEvent(event.name, event.data, gameRef.current);
+              setGameEvent(event);
+              setLaststep(event.steptime);
+            }
+          }, 10 * count++);
+        }
       }
     },
-    [gameRef.current]
+    [gameId, gameRef.current]
   );
 
   useEffect(() => {

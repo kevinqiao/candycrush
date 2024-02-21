@@ -16,7 +16,9 @@ export const joinTournamentByGroup = action({
             // const battle = { tournamentId: tid, participants: tournament.participants, column: COLUMN, row: ROW, goal: 1, chunk: 10, searchDueTime: Date.now() + 2500, startTime: Date.now() + 15000 };
             const searchDueTime = Date.now() + BATTLE_SEARCH_MAX_TIME;
             const startTime = searchDueTime + BATTLE_COUNT_DOWN_TIME;
-            const battle = { tournamentId: tid, participants: tournament.participants, data: { ...defender.data, _id: undefined, _creationTime: undefined }, searchDueTime, startTime, duration: tournament.battleTime };
+            const battle: any = { tournamentId: tid, participants: tournament.participants, data: { ...defender.data, _id: undefined, _creationTime: undefined }, searchDueTime, startTime, duration: tournament.battleTime };
+            battle['duration'] = 60000;
+            battle['endDueTime'] = startTime + battle['duration'];
             const battleId = await ctx.runMutation(internal.battle.create, battle);
             const games = [];
             const seed = Utils.getRandomSeed(10);
@@ -27,20 +29,21 @@ export const joinTournamentByGroup = action({
                 const game = { defender: defender.id, battleId, tid, data: gameInited, seed, type: 0, laststep: 0 }
                 // console.log("ref:" + game.ref)
                 let gameId: string = await ctx.runMutation(internal.games.create, { game: { ...game, uid } });
-                games.push({ uid, gameId });
+                games.push({ player: { uid, name: "kevin qiao", avatar: 1 }, uid, gameId });
                 await ctx.runMutation(internal.events.create, {
                     name: "gameInited", gameId, data: { gameId, ...game }
                 });
-                const opponent = "1"
-                gameId = await ctx.runMutation(internal.games.create, { game: { ...game, uid: opponent } });
+                const opponent = await ctx.runQuery(internal.user.findOpponent, { battleId })
+                if (!opponent)
+                    throw new Error("opponent not found")
+                gameId = await ctx.runMutation(internal.games.create, { game: { ...game, uid: opponent.uid } });
                 await ctx.runMutation(internal.events.create, {
                     name: "gameInited", gameId, data: { gameId, ...game }
                 });
-                games.push({ uid: opponent, gameId });
-                for (const game of games)
-                    await ctx.runMutation(internal.events.create, {
-                        name: "battleCreated", uid: game.uid, data: { games, id: battleId, ...battle, data: { ...defender.data, _id: undefined, _creationTime: undefined } }
-                    });
+                games.push({ player: { uid: opponent, name: "system", avatar: 2 }, uid: opponent, gameId });
+                await ctx.runMutation(internal.events.create, {
+                    name: "battleCreated", uid, data: { id: battleId }
+                });
             }
 
         }

@@ -127,7 +127,7 @@ export const doAct = sessionAction({
                 await ctx.runMutation(internal.events.create, {
                     name: eventName, gameId, data: sresult, steptime
                 })
-            const result = gameEngine.settleGame(game);
+            const result = gameEngine.settleGame(game, battle);
             if (result) {
                 game.result = result;
                 game.score = result['base'] + result['time'] + result['goal']

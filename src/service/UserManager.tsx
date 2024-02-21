@@ -41,7 +41,7 @@ export const UserProvider = ({ children }: { children: React.ReactNode }) => {
     const pageItem: PageItem = {
       name: "battlePlay",
       ctx: app.context,
-      data: { battle },
+      data: { battleId: battle.id },
       params: { battleId: battle.id },
     };
 

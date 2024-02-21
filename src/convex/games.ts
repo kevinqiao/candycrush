@@ -86,7 +86,6 @@ export const findBattleGames = internalQuery({
       .filter((q) => q.eq(q.field("battleId"), battleId))
       .collect();
     if (games?.length > 0) {
-      console.log("did:" + games[0].defender)
       const defender = await ctx.db.query("defender")
         .filter((q) => q.eq(q.field("id"), games[0].defender)).unique();
       return games.map((g) => Object.assign({}, g, { defender: defender?.data }))

@@ -63,9 +63,10 @@ export default defineSchema({
         term: v.optional(v.number()),//schedule tournament term
         rewards: v.optional(v.any()),
         searchDueTime: v.number(),
+        endDueTime: v.number(),
         startTime: v.number(),
         duration: v.number(),
-        status: v.optional(v.number()),//0-going 1-settled 2-cancelled
+        status: v.number(),//0-going 1-settled 2-cancelled
         data: v.any()
         // row: v.number(),
         // column: v.number(),
@@ -101,6 +102,7 @@ export default defineSchema({
     }),
     user: defineTable({
         name: v.string(),
+        avatar: v.optional(v.number()),
         cuid: v.string(),
         token: v.optional(v.string()),
         tenant: v.optional(v.string()),

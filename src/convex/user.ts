@@ -1,4 +1,5 @@
 import { v } from "convex/values";
+import { getRandom } from "../util/Utils";
 import { internalMutation, internalQuery, mutation, query } from "./_generated/server";
 export const findAll = internalQuery({
   handler: async (ctx) => {
@@ -28,6 +29,17 @@ export const findByCuid = query({
     return { ...user, uid: user?._id, _id: undefined };
   },
 });
+export const findOpponent = internalQuery({
+  args: { battleId: v.id("battle") },
+  handler: async (ctx, { battleId }) => {
+    const users = await ctx.db.query("user").filter((q) => q.eq(q.field("tenant"), "####")).collect();
+    if (users?.length > 0) {
+      const r = getRandom(users.length - 1);
+      return { ...users[r], uid: users[r]._id, _id: undefined };
+    }
+
+  },
+})
 export const create = mutation({
   args: { cuid: v.string(), name: v.string(), tenant: v.optional(v.string()), token: v.optional(v.string()), email: v.optional(v.string()) },
   handler: async (ctx, { cuid, name, tenant, token, email }) => {

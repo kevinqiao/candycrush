@@ -1,4 +1,3 @@
-import { useAnimation } from "component/animation/battle/useAnimation";
 import React, { createContext, useCallback, useContext, useState } from "react";
 import { BattleModel } from "../model/Battle";
 import { useUserManager } from "./UserManager";
@@ -25,7 +24,7 @@ export const BattleProvider = ({ battle, children }: { battle: BattleModel | nul
   // const { createAnimate } = useAnimateManager();
   const [battleEvent, setBattleEvent] = useState<any>(null);
   const { user } = useUserManager();
-  
+
   // const event: GameEvent | undefined | null = useQuery(api.events.findByBattle, {
   //   battleId: battle?.id,
   // });
@@ -67,11 +66,11 @@ export const BattleProvider = ({ battle, children }: { battle: BattleModel | nul
         if (!battle || !battle.games) return;
         const game = battle?.games.find((g) => g.gameId === gameId);
         if (game) {
+          console.log(game);
           game.data = data;
           game.status = 1;
           if (battle.games.every((g) => g.status)) {
             setAllGameLoaded(true);
-            // animation.playInitBattle(battle);
           }
         }
       },
@@ -81,7 +80,6 @@ export const BattleProvider = ({ battle, children }: { battle: BattleModel | nul
 
   return <BattleContext.Provider value={value}> {children} </BattleContext.Provider>;
 };
-
 export const useBattleManager = () => {
   return useContext(BattleContext);
 };

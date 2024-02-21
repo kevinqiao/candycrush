@@ -7,35 +7,35 @@ interface CountdownTimerProps {
 
 const CountdownTimer: React.FC<CountdownTimerProps> = ({ countTime, onTimeout }) => {
   const countdownRef = useRef<HTMLDivElement | null>(null);
-  const [count, setCount] = useState<number>(-1);
+  const [count, setCount] = useState<number>(-2);
 
   useEffect(() => {
-    let interval: any;
-    if (countTime > Date.now()) {
-      interval = setInterval(() => {
-        const time = countTime - Date.now();
-        if (time > 0) {
-          setCount(Math.round(time / 1000));
-        } else {
-          clearInterval(interval);
-          if (onTimeout) {
-            onTimeout();
-          }
-        }
-      }, 1000);
+    if (count === -2) {
+      setCount(Math.ceil((countTime - Date.now()) / 1000));
+      return;
+    }
+    const interval = setInterval(() => {
+      setCount((pre) => pre - 1);
+    }, 1000);
+
+    if (count === 0) {
+      console.log("count complete");
+      clearInterval(interval);
+      if (onTimeout) {
+        onTimeout();
+      }
     }
 
     return () => {
       if (interval) clearInterval(interval);
     };
-  }, [countTime, onTimeout]);
+  }, [countTime, count, onTimeout]);
 
   return (
     <>
       {count >= 0 ? (
         <div className="countdown-timer" ref={countdownRef}>
-          {count > 0 ? count : null}
-          {count === 0 ? "Go" : null}
+          {count > 0 ? count : "Go"}
         </div>
       ) : null}
     </>

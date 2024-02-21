@@ -1,5 +1,5 @@
 import { gsap } from "gsap";
-import React, { useCallback, useEffect, useRef, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useUserManager } from "service/UserManager";
 import { useBattleManager } from "../../service/BattleManager";
 import useDimension from "../../util/useDimension";
@@ -101,16 +101,33 @@ const SearchOpponent = () => {
         closeSearch();
         return;
       }
-      gsap.to(sceneContainerRef.current, { autoAlpha: 1, duration: 0 });
-      const searchTime = battle.searchDueTime ?? 0 - user.timelag - Date.now();
-      if (searchTime > 0) {
-        playSearch();
-        setTimeout(() => {
-          closeSearchAndPlayFound();
-        }, searchTime);
+      if (battle.searchDueTime) {
+        gsap.to(sceneContainerRef.current, { autoAlpha: 1, duration: 0 });
+        const searchTime = battle.searchDueTime - user.timelag - Date.now();
+        if (searchTime > 0) {
+          playSearch();
+          setTimeout(() => {
+            closeSearchAndPlayFound();
+          }, searchTime);
+        }
       }
     }
   }, [battle, allGameLoaded]);
+  const player = useMemo(() => {
+    if (battle?.games) {
+      const game = battle.games.find((g) => g.uid === user.uid);
+      if (game) return game.player;
+    }
+    return;
+  }, [battle]);
+  const opponent = useMemo(() => {
+    if (battle?.games) {
+      const game = battle.games.find((g) => g.uid !== user.uid);
+      if (game) return game.player;
+    }
+    return;
+  }, [battle]);
+
   return (
     <>
       <div
@@ -141,7 +158,7 @@ const SearchOpponent = () => {
             height: 80,
           }}
         >
-          <Avatar />
+          {player ? <Avatar player={player} /> : null}
         </div>
         <div
           ref={opponentAvatarRef}
@@ -154,7 +171,7 @@ const SearchOpponent = () => {
             height: 80,
           }}
         >
-          <Avatar />
+          {opponent ? <Avatar player={opponent} /> : null}
         </div>
         <div
           ref={vsRef}
@@ -223,7 +240,7 @@ const SearchOpponent = () => {
             justifyContent: "center",
           }}
         >
-          <CountdownTimer countTime={countTime} onTimeout={closeSearch} />
+          {countTime > 0 ? <CountdownTimer countTime={countTime} onTimeout={closeSearch} /> : null}
         </div>
       </div>
     </>

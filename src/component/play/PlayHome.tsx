@@ -10,10 +10,10 @@ import useTournamentManager from "../../service/TournamentManager";
 import BattleGround from "./BattleGround";
 import BattleScene from "./BattleScene";
 import GamePlay from "./GamePlay";
+import SearchOpponent from "./SearchOpponent";
 import BattleConsole from "./console/BattleConsole";
 import TimeCount from "./console/TimeCount";
 import BattleReport from "./report/BattleReport";
-import SearchOpponent from "./SearchOpponent";
 
 const PlayHome: React.FC<PageProps> = (pageProp) => {
   const sceneRef = useRef<HTMLDivElement | null>(null);
@@ -40,12 +40,14 @@ const PlayHome: React.FC<PageProps> = (pageProp) => {
     if (pageProp.data?.battleId) {
       findBattle(pageProp.data.battleId).then((b) => {
         sbattleRef.current = b;
+        console.log(b);
         setBattle(JSON.parse(JSON.stringify(b)));
       });
-    } else if (pageProp.data?.battle) {
-      sbattleRef.current = pageProp.data.battle;
-      setBattle(JSON.parse(JSON.stringify(pageProp.data.battle)));
     }
+    // else if (pageProp.data?.battle) {
+    //   sbattleRef.current = pageProp.data.battle;
+    //   setBattle(JSON.parse(JSON.stringify(pageProp.data.battle)));
+    // }
   }, [pageProp]);
 
   return (

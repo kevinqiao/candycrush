@@ -45,10 +45,10 @@ const BattleHome: React.FC = () => {
                 setBattles((pre) => [...bs, ...pre]);
               }
             });
-            // console.log("Div is in the viewport");
+            console.log("Div is in the viewport");
           } else {
             // Div is not in the viewport
-            // console.log("Div is not in the viewport");
+            console.log("Div is not in the viewport");
           }
         });
       },

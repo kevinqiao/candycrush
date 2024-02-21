@@ -14,10 +14,10 @@ const TimeCount = () => {
     const past = (battle.startTime ?? 0) - Date.now() - user.timelag;
     if (past > 0)
       setTimeout(() => {
-        setTimeLeft(Math.floor(battle.duration / 1000));
+        setTimeLeft(Math.ceil(battle.duration / 1000));
       }, past);
     else if (battle.duration + past > 0) {
-      setTimeLeft(Math.floor((battle.duration + past) / 1000));
+      setTimeLeft(Math.ceil((battle.duration + past) / 1000));
     } else createBattleEvent({ name: "battleOver", data: null });
   }, [battle, user]);
 
