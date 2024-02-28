@@ -1,6 +1,6 @@
+import React from "react";
 import { useUserManager } from "service/UserManager";
 import { usePageManager } from "../../service/PageManager";
-import "./menu.css";
 
 const MainMenu: React.FC = () => {
   const { openPage } = usePageManager();
@@ -20,9 +20,9 @@ const MainMenu: React.FC = () => {
         position: "fixed",
         zIndex: 100,
         top: 20,
-        right: 10,
-        width: 70,
-        height: 35,
+        right: 5,
+        width: 50,
+        height: 30,
         borderRadius: 4,
         backgroundColor: "white",
         color: "blue",

@@ -134,12 +134,11 @@ export const PageProvider = ({ children }: { children: React.ReactNode }) => {
   useEffect(() => {
     const handlePopState = (event: any) => {
       const prop = parseURL(window.location);
-      console.log(prop);
       openApp(prop);
     };
 
     const prop = parseURL(window.location);
-
+    console.log(prop);
     if (prop.ctx) {
       if (!prop["navItem"]) {
         prop.stackItems = undefined;

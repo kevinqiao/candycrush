@@ -15,13 +15,10 @@
 /* Items */
 .battle-item {  
   display:flex;
-  flex-direction: column;
-  justify-content: space-around;
-  align-items: stretch;
   width: 100%;
-  min-height:200px;
-  padding: 10px;
-  margin: 5px 0;
+  height:15%;
+  min-height:120px;
+  margin: 10px;
   text-align: center;
   background-color: #e10808;
   border: 1px solid #ddd;
@@ -36,6 +33,45 @@
   background-color: #5590f5;
   border: 1px solid #ddd;
   border-radius: 4px;
+}
+
+.trophy{
+  display:flex;
+  align-items: center;
+  justify-content: center;
+  width: 15%;
+  height:100%;
+  background-color: #5590f5;
+}
+.summary{
+  display:flex;
+  flex-wrap: wrap;
+  align-items: space-aournd;
+  justify-content: flex-start;
+  width: 60%;
+  height:65%;
+  background-color:transparent
+}
+.reward{
+  display:flex;
+  align-items: center;
+  justify-content: center;
+  width: 20%;
+  height:100%;
+  background-color: #c2f555;
+}
+.loader {
+  border: 5px solid #f3f3f3; /* Light grey */
+  border-top: 5px solid #3498db; /* Blue */
+  border-radius: 50%;
+  width: 40px;
+  height: 40px;
+  animation: spin 2s linear infinite;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
 }
 
 

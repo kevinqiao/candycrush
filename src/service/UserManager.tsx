@@ -58,10 +58,7 @@ export const UserProvider = ({ children }: { children: React.ReactNode }) => {
       u.timelag = u.timestamp ? u.timestamp - Date.now() : 0;
       const app: any = getCurrentAppConfig();
       // if (u && app && !app.authLife)
-      localStorage.setItem(
-        "user",
-        JSON.stringify({ uid: u.uid, token: u.token, context: app.context, authEmbed: u.authEmbed ?? 0 })
-      );
+      localStorage.setItem("user", JSON.stringify({ uid: u.uid, token: u.token, authEmbed: u.authEmbed ?? 0 }));
       if (u.battle) {
         const stack = stacks.find((s) => s.name === "battlePlay");
         if (!stack) setTimeout(() => openBattle(u, u.battle), 500);

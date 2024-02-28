@@ -4,6 +4,7 @@ import PageProps, { PagePattern } from "model/PageProps";
 import React, { FunctionComponent, Suspense, lazy, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import useCoord from "service/CoordManager";
 import { usePageManager } from "service/PageManager";
+import { PagePropProvider } from "service/PagePropProvider";
 import { getUriByPop } from "util/PageUtils";
 import useStackAnimation from "./animation/page/StackAnimation";
 import PageCloseConfirm from "./common/StackCloseConfirm";
@@ -30,8 +31,8 @@ const StackPop: React.FC<PopupProps> = ({ zIndex, index }) => {
   const pagePattern: PagePattern | null = useMemo(() => {
     if (pageProp?.config.position) {
       const position = pageProp.config.position;
-      const w = position.width <= 1 ? width * position.width : position.width;
-      const h = position.height <= 1 ? height * position.height : position.height;
+      const w = position.width <= 1 ? width * position.width : Math.min(position.width, width);
+      const h = position.height <= 1 ? height * position.height : Math.min(position.height, height);
       const pattern: PagePattern = {
         vw: width as number,
         vh: height as number,
@@ -39,8 +40,7 @@ const StackPop: React.FC<PopupProps> = ({ zIndex, index }) => {
         height: h,
         direction: position.direction,
       };
-      if (w > width) pattern.width = width;
-      if (h > height) pattern.height = height;
+
       return pattern;
     } else return null;
   }, [pageProp, width, height]);
@@ -57,7 +57,6 @@ const StackPop: React.FC<PopupProps> = ({ zIndex, index }) => {
     if (openRef.current) {
       fit(pagePattern);
     } else {
-      console.log("open stack...");
       openRef.current = true;
       openStack(pagePattern, null);
     }
@@ -68,8 +67,8 @@ const StackPop: React.FC<PopupProps> = ({ zIndex, index }) => {
       let pageCfg;
       if (!stacks[index].ctx) pageCfg = Covers.find((c) => c.name === stacks[index].name);
       else {
-        const app = AppsConfiguration[0];
-        pageCfg = app.stacks.find((s) => s.name === stacks[index].name);
+        const app: any = AppsConfiguration[0];
+        pageCfg = app.stacks?.find((s) => s.name === stacks[index].name);
       }
       if (pageCfg) {
         const prop = { name: stacks[index].name, data: stacks[index].data, config: pageCfg };
@@ -136,37 +135,39 @@ const StackPop: React.FC<PopupProps> = ({ zIndex, index }) => {
   return (
     <>
       {pageProp ? (
-        <div
-          ref={maskRef}
-          className="mask"
-          style={{ zIndex, opacity: 0, width: "100vw", height: "100vh" }}
-          onClick={closeFromMask}
-        ></div>
-      ) : null}
+        <PagePropProvider pageProp={{ ...pageProp, disableCloseBtn, close }}>
+          <div
+            ref={maskRef}
+            className="mask"
+            style={{ zIndex, opacity: 0, width: "100vw", height: "100vh" }}
+            onClick={closeFromMask}
+          ></div>
 
-      <div
-        ref={sceneRef}
-        style={{
-          position: "absolute",
-          borderColor: "black",
-          top: 0,
-          left: 0,
-          width: pagePattern?.width,
-          height: pagePattern?.height,
-          zIndex: zIndex + 10,
-        }}
-      >
-        {renderComponent}
-        <div
-          ref={closeBtnRef}
-          className="closeStackBtn"
-          style={{ cursor: "pointer", borderRadius: 4, opacity: 0 }}
-          onClick={() => close(0)}
-        >
-          Close({index})
-        </div>
-        {confirmOpen ? <PageCloseConfirm onConfirm={exit} onCancel={() => setConfirmOpen(false)} /> : null}
-      </div>
+          <div
+            ref={sceneRef}
+            style={{
+              position: "absolute",
+              borderColor: "black",
+              top: 0,
+              left: 0,
+              width: pagePattern?.width,
+              height: pagePattern?.height,
+              zIndex: zIndex + 10,
+            }}
+          >
+            {renderComponent}
+            <div
+              ref={closeBtnRef}
+              className="closeStackBtn"
+              style={{ cursor: "pointer", borderRadius: 4, opacity: 0 }}
+              onClick={() => close(0)}
+            >
+              Close({index})
+            </div>
+            {confirmOpen ? <PageCloseConfirm onConfirm={exit} onCancel={() => setConfirmOpen(false)} /> : null}
+          </div>
+        </PagePropProvider>
+      ) : null}
     </>
   );
 };

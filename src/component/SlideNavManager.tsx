@@ -1,6 +1,7 @@
 import { gsap } from "gsap";
+
 import PageProps from "model/PageProps";
-import { createContext, lazy, useCallback, useContext, useEffect, useRef, useState } from "react";
+import React, { createContext, lazy, useCallback, useContext, useEffect, useRef, useState } from "react";
 import useCoord from "service/CoordManager";
 
 export interface INavContext {
@@ -15,7 +16,7 @@ export interface INavContext {
 }
 
 const NavContext = createContext<INavContext>({
-  index: 2,
+  index: 0,
   pageProp: null,
   slideContainer: null,
   components: [],
@@ -25,15 +26,7 @@ const NavContext = createContext<INavContext>({
   changeIndex: (index: number) => null,
 });
 
-export const SlideNavProvider = ({
-  pageEvent,
-  pageProp,
-  children,
-}: {
-  pageEvent: any;
-  pageProp: PageProps;
-  children: React.ReactNode;
-}) => {
+export const SlideNavProvider = ({ pageProp, children }: { pageProp: PageProps; children: React.ReactNode }) => {
   const { width, height } = useCoord();
   const startXRef = useRef<number>(0);
   const menusRef = useRef<Map<number, SVGPolygonElement>>(new Map());
@@ -71,36 +64,43 @@ export const SlideNavProvider = ({
       const premenu = menusRef.current.get(menuIndexRef.current);
       const curmenu = menusRef.current.get(index);
       // const component = components.find((c) => c.index === index);
+      if (pageProp.config.children) {
+        const child = pageProp.config.children[index];
+        const uri = "/" + pageProp.ctx + "/" + pageProp.config.uri + "/" + child.uri;
+        window.history.pushState({}, "", uri);
+      }
       const tl = gsap.timeline({
         onComplete: () => {
           tl.kill();
         },
       });
-      tl.to(slideContainer, { duration: delta * 0.3, alpha: 1, x: -index * width });
-      // if (component?.slide) {
-      //   tl.to(component.slide, { autoAlpha: 1, duration: 1.4 }, "<");
-      // }
-      if (premenu) tl.to(premenu, { fill: "grey", duration: 1 }, "<");
-      if (curmenu) {
-        tl.to(curmenu, { fill: "red", duration: 1 }, "<");
+      if (width < height) {
+        tl.to(slideContainer, { duration: delta * 0.3, alpha: 1, x: -index * width });
+        if (premenu) tl.to(premenu, { fill: "grey", duration: 1 }, "<");
+        if (curmenu) {
+          tl.to(curmenu, { fill: "red", duration: 1 }, "<");
+        }
+      } else {
+        const curcom = components.find((c) => c.index === index);
+        if (curcom?.slide) {
+          tl.to(curcom.slide, { autoAlpha: 1, duration: 1 }, "<");
+        }
+        const precom = components.find((c) => c.index === menuIndexRef.current);
+        if (precom?.slide) tl.to(precom.slide, { autoAlpha: 0, duration: 1 }, "<");
       }
+
       tl.play();
       menuIndexRef.current = index;
     },
     [components, width]
   );
-  useEffect(() => {
-    if (pageEvent && pageProp.config.children) {
-      const index = pageProp.config.children.findIndex((c) => c.name === pageProp.child);
-      changeIndex(index);
-    }
-  }, [changeIndex, pageEvent, pageProp]);
+
   useEffect(() => {
     if (pageProp.config?.children) {
       const cs: { name: string; index: number; component: any }[] = [];
 
       let index = 0;
-      for (let child of pageProp.config.children) {
+      for (const child of pageProp.config.children) {
         // if (pageProp.child && pageProp.child === child.name) changeIndex(index);
         const c = child.uri ? lazy(() => import(`${child.path}`)) : null;
         cs.push({ name: child.name, index: index, component: c });
@@ -118,8 +118,8 @@ export const SlideNavProvider = ({
     };
   }, [pageProp]);
   useEffect(() => {
-    initContainer();
-  }, [width, height]);
+    if (components.length > 0) initContainer();
+  }, [components, width, height]);
 
   const initContainer = () => {
     const index = menuIndexRef.current;
@@ -132,8 +132,23 @@ export const SlideNavProvider = ({
         tl.kill();
       },
     });
-    tl.to(slideContainer, { duration: 0, x: -index * width }).to(slideContainer, { duration: 0.3, alpha: 1 });
-    if (curmenu) tl.to(curmenu, { fill: "red", duration: 0.1 }, "<");
+    if (width < height) {
+      tl.to(slideContainer, { duration: 0, x: -index * width }).to(slideContainer, { duration: 0.3, alpha: 1 });
+      if (curmenu) tl.to(curmenu, { fill: "red", duration: 0.1 }, "<");
+    } else {
+      tl.to(slideContainer, { duration: 0, x: 0 });
+      components.forEach((c) => {
+        if (c.slide) {
+          if (c.index === index) tl.to(c.slide, { autoAlpha: 1, duration: 1 }, "<");
+          else tl.to(c.slide, { autoAlpha: 0, duration: 0 }, "<");
+        }
+      });
+      const component = components.find((c) => c.index === index);
+      if (component) {
+        const slide = component.slide;
+        if (slide) tl.to(slide, { autoAlpha: 1, duration: 1 }, "<");
+      }
+    }
     tl.play();
   };
 
@@ -142,12 +157,6 @@ export const SlideNavProvider = ({
   };
   const loadSlideContainer = (ele: HTMLDivElement | null) => {
     if (ele && !slideContainerRef.current) {
-      if (pageProp.config.children) {
-        if (pageProp.child) {
-          const index = pageProp.config.children.findIndex((c: any) => c.name === pageProp.child);
-          if (index >= 0) menuIndexRef.current = index;
-        } else menuIndexRef.current = 2;
-      }
       slideContainerRef.current = ele;
       ele.addEventListener("touchstart", startMove, { passive: true });
       ele.addEventListener("touchend", endMove, { passive: true });

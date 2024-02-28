@@ -1,0 +1,62 @@
+/* Container */
+.tournament-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  width: 100%;
+  max-width: 400px;
+  margin: 0 auto;
+  padding: 20px;
+  border: 1px solid #ccc;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+/* Items */
+.report-item {  
+  display:flex;
+  width: 100%;
+  height:60px;
+  margin: 10px;
+  text-align: center;
+  background-color: hsl(138, 93%, 46%);
+  border: 1px solid #ddd;
+  border-radius: 4px;
+}
+.play-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 180px;
+  height:40px;
+  background-color: #5590f5;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+}
+
+.report-trophy{
+  display:flex;
+  align-items: center;
+  justify-content: center;
+  width: 15%;
+  height:100%;
+  background-color: #5590f5;
+}
+.score-summary{
+  display:flex;
+  align-items: center;
+  justify-content: space-around;
+  width: 85%;
+  height:100%;
+  background-color: #f555a2;
+}
+.reward{
+  display:flex;
+  align-items: center;
+  justify-content: center;
+  width: 20%;
+  height:100%;
+  background-color: #c2f555;
+}
+
+

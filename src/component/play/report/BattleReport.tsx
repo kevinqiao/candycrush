@@ -1,24 +1,28 @@
 import { useConvex } from "convex/react";
 import { gsap } from "gsap";
 import React, { useCallback, useEffect, useRef, useState } from "react";
+import usePageProp from "service/PagePropProvider";
 import { api } from "../../../convex/_generated/api";
 import { useBattleManager } from "../../../service/BattleManager";
-import { useSceneManager } from "../../../service/SceneManager";
 import { useUserManager } from "../../../service/UserManager";
+import ReportItem from "./ReportItem";
 
 const BattleReport: React.FC = () => {
   const maskDivRef = useRef<HTMLDivElement | null>(null);
   const reportDivRef = useRef<HTMLDivElement | null>(null);
   const { battle, battleEvent, allGameLoaded } = useBattleManager();
   const [battleReport, setBattleReport] = useState<any>(null);
-  const { exit } = useSceneManager();
+  // const { exit } = useSceneManager();
+  const { exit } = usePageProp();
   const { user } = useUserManager();
   const convex = useConvex();
   const findReport = useCallback(async () => {
+    const abc = 10;
     if (battle) {
       const report = await convex.action(api.battle.findReport, {
         battleId: battle.id,
       });
+      console.log(report);
       setBattleReport(report);
     }
   }, [battle]);
@@ -41,7 +45,6 @@ const BattleReport: React.FC = () => {
     const mygame = battle.games?.find((g) => g.uid === user.uid);
 
     const timeLeft = battle.duration + battle.startTime - Date.now() + user.timelag;
-    console.log("timeLeft:" + timeLeft);
     if (battle.status || mygame?.result || timeLeft < 0 || battleEvent?.name === "battleOver") {
       openReport();
       findReport();
@@ -51,7 +54,14 @@ const BattleReport: React.FC = () => {
   useEffect(() => {
     gsap.to(reportDivRef.current, { scale: 0, duration: 0 });
   }, []);
-
+  const avatarcss = useCallback((avatar: number) => {
+    return {
+      width: 40,
+      height: 40,
+      backgroundImage: `url("avatars/${avatar}.svg")`,
+      backgroundSize: "cover",
+    };
+  }, []);
   return (
     <>
       <div
@@ -114,23 +124,31 @@ const BattleReport: React.FC = () => {
                 height: "70%",
               }}
             >
-              {battleReport &&
-                battleReport.map((r: any, index: number) =>
-                  r.result ? (
-                    <div
-                      key={r.gameId}
-                      style={{ width: "100%", display: "flex", justifyContent: "space-between", color: "white" }}
-                    >
-                      <span>{"base:" + r.result.base}</span>
-                      <span>{"time:" + r.result.time}</span>
-                      <span>{"goal:" + r.result.goal}</span>
+              <ReportItem />
+              <ReportItem />
+              {/* {battleReport &&
+                battleReport.map((r: any, index: number) => (
+                  <div
+                    key={r.gameId}
+                    style={{
+                      width: "100%",
+                      height: 50,
+                      display: "flex",
+                      justifyContent: "space-between",
+                      alignItems: "center",
+                      color: "white",
+                    }}
+                  >
+                    <div style={{ display: "flex", justifyContent: "flex-start", alignItems: "center" }}>
+                      <div style={{ fontSize: 20, width: 30 }}>{index + 1}</div>
+                      <div style={{ width: 60 }}>
+                        <div style={avatarcss(r.player.avatar)}></div>
+                      </div>
+                      <div style={{ fontSize: 12, width: 100, alignItems: "center" }}>{r.player.name}</div>
                     </div>
-                  ) : (
-                    <div key={r.gameId}>
-                      <span>playing</span>
-                    </div>
-                  )
-                )}
+                    <div style={{ fontSize: 18 }}>{r.score > 0 ? <span>{r.score}</span> : <span>playing</span>}</div>
+                  </div>
+                ))} */}
             </div>
             <div
               style={{

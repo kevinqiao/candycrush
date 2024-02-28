@@ -4,6 +4,7 @@ const CopyPlugin = require("copy-webpack-plugin");
 
 module.exports = {
   entry: {
+    w3: "./src/www_index.tsx", // 第一个入口点
     match3: "./src/index.tsx", // 第一个入口点
     tg: "./src/telegram_index.tsx", // 第二个入口点
   },
@@ -46,6 +47,11 @@ module.exports = {
     // }),
     new HtmlWebpackPlugin({
       template: "./public/index.html",
+      filename: "/index.html",
+      chunks: ["w3"],
+    }),
+    new HtmlWebpackPlugin({
+      template: "./public/index.html",
       filename: "match3/index.html",
       chunks: ["match3"],
     }),
@@ -63,6 +69,7 @@ module.exports = {
   ],
   resolve: {
     alias: {
+      "@": path.resolve(__dirname, "src/"),
       util: path.resolve(__dirname, "src/util/"),
       service: path.resolve(__dirname, "src/service/"),
       model: path.resolve(__dirname, "src/model/"),

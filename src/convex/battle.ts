@@ -199,23 +199,34 @@ export const findReport = action({
     const bid = battleId as Id<"battle">
     const battle = await ctx.runQuery(internal.battle.findById, { battleId: bid });
     if (battle) {
-      const report: { uid: string; gameId: string; result?: any }[] = [];
+      const report: { player?: { uid: string, name: string, avatar: number }, uid: string; gameId: string; result?: any }[] = [];
       const games = await ctx.runQuery(internal.games.findBattleGames, { battleId: bid });
       for (const game of games) {
+        const player = game.uid ? await ctx.runQuery(internal.user.find, { id: game.uid as Id<"user"> }) : undefined;
+        const item: any = { uid: game.uid, gameId: game._id, score: game.score };
         if (game.result) {
-          report.push({ uid: game.uid, gameId: game._id, result: game.result });
+          item.result = game.result;
+          item.score = game.result.base + game.result.time + game.result.goal
+          // report.push({ uid: game.uid, gameId: game._id, result: game.result });
         } else {
           const timeLeft = battle.startTime + battle.duration - Date.now();
-          console.log("game:" + game._id + " time left:" + timeLeft)
+          // console.log("game:" + game._id + " time left:" + timeLeft)
           if (timeLeft < 0) {
             let result = GameEngine.settleGame(game, battle);
             if (!result)
               result = { base: 0, time: 0, goal: 0 }
-            report.push({ uid: game.uid, gameId: game._id, result });
+            item.result = result;
+            item.score = result.base + result.time + result.goal;
+            // report.push({ uid: game.uid, gameId: game._id, result });
             await ctx.runMutation(internal.games.update, { gameId: game._id, data: { result } })
-          } else
-            report.push({ uid: game.uid, gameId: game._id })
+          }
         }
+        if (player) {
+          item.player = {
+            ...player, token: undefined, tenant: undefined, cuid: undefined
+          };
+        }
+        report.push(item)
       }
       return report
     }

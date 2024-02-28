@@ -21,6 +21,7 @@ export interface PageConfig {
     uri: string;
     auth?: boolean;
     nohistory?: boolean;
+    child?: string;
     children?: { name: string; path: string; uri: string }[];
     position?: {
         closeControl?: { btn: number; confirm: number; maskActive: number };
@@ -34,7 +35,7 @@ export default interface PageProps {
     ctx?: string;
     data?: any;
     params?: any;
-    child?: string;
+    sub?: string;
     anchor?: string;
     config: PageConfig;
     disableCloseBtn?: () => void;

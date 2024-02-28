@@ -1,9 +1,10 @@
-import { forwardRef, useMemo } from "react";
+import React, { useMemo } from "react";
 import { usePageManager } from "service/PageManager";
 import StackPop from "./StackPop";
 import "./layout.css";
 
-const StackController: React.FC = forwardRef((props, ref) => {
+// eslint-disable-next-line react/display-name
+const StackController: React.FC = () => {
   const { stacks } = usePageManager();
   const render = useMemo(() => {
     return (
@@ -15,5 +16,5 @@ const StackController: React.FC = forwardRef((props, ref) => {
     );
   }, [stacks]);
   return <>{render}</>;
-});
+};
 export default StackController;

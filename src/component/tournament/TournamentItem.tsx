@@ -1,21 +1,67 @@
+import DollarIcon from "component/icons/DollarIcon";
+import PlayersIcon from "component/icons/PlayersIcon";
 import { Tournament } from "model/Tournament";
-import React, { useRef } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import useTournamentManager from "service/TournamentManager";
 import "./tournament.css";
 interface Props {
-  tournament: Tournament;
+  tournament?: Tournament;
 }
 const TournamentItem: React.FC<Props> = ({ tournament }: Props) => {
-  const itemRef = useRef(null);
   const { join } = useTournamentManager();
-  return (
-    <div ref={itemRef} className="tournament-item">
-      <span style={{ fontSize: "20px", color: "black" }}>Tournament({tournament.id})</span>
-      <div className="play-btn" onClick={() => join(tournament.id)}>
-        Play
+  const divRef = useRef<HTMLDivElement | null>(null);
+  const [fontSize, setFontSize] = useState(25);
+
+  const calculateFontSize = () => {
+    if (divRef.current) {
+      const divWidth = divRef.current.offsetWidth;
+      const newFontSize = divWidth / 70;
+      setFontSize(Math.round(newFontSize));
+    }
+  };
+
+  useEffect(() => {
+    calculateFontSize();
+    window.addEventListener("resize", calculateFontSize);
+    return () => {
+      window.removeEventListener("resize", calculateFontSize);
+    };
+  }, []);
+  const render = useMemo(() => {
+    return (
+      <div ref={divRef} className="tournament-item roboto-bold">
+        <div style={{ width: "20%" }}>
+          <div className="tournament-trophy">
+            <div style={{ height: 20 }}></div>
+            <div style={{ textAlign: "center" }}>
+              <span style={{ fontSize: Math.max(fontSize + 5, 14), color: "yellow" }}>$40</span>
+            </div>
+            <div style={{ height: 10 }}></div>
+            <div style={{ height: "25px" }}>
+              <span style={{ fontSize: Math.max(fontSize - 5, 10), color: "white" }}>PRIZE POOL</span>
+            </div>
+          </div>
+        </div>
+        <div className="tournament-summary">
+          <div style={{ height: 10 }}></div>
+          <div style={{ marginLeft: 20, textAlign: "left" }}>
+            <span style={{ fontSize: Math.max(fontSize + 5, 14) }}>Tournament</span>
+          </div>
+          <div style={{ height: 20 }}></div>
+          <div style={{ marginLeft: 20, width: "10%", minWidth: 120 }}>
+            <PlayersIcon players={5} />
+          </div>
+        </div>
+        <div className="tournament-entryfee">
+          <DollarIcon amount={40} />
+          <div className="play-tournament">
+            <span style={{ fontSize: Math.max(fontSize - 5, 12), color: "yellow" }}>PLAY</span>
+          </div>
+        </div>
       </div>
-    </div>
-  );
+    );
+  }, [fontSize]);
+  return <>{render}</>;
 };
 
 export default TournamentItem;

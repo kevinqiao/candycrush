@@ -16,19 +16,25 @@ const TournamentHome: React.FC = () => {
   return (
     <div
       style={{
-        width: "100vw",
-        height: height,
-        backgroundColor: "red",
+        display: "flex",
+        flexDirection: "column",
+        justifyContent: "flex-start",
+        alignItems: "center",
+        width: "100%",
+        height: "100%",
+        backgroundColor: "white",
         overflowY: "auto",
         overflowX: "hidden",
       }}
     >
-      {tournaments.map((t) => (
-        <TournamentItem key={t.id} tournament={t} />
-      ))}
-      {Array.from({ length: 25 }, (_, k) => k).map((p, index) => (
-        <div key={p} style={{ height: 120, width: "100%", backgroundColor: index % 2 === 0 ? "blue" : "green" }}></div>
-      ))}
+      <div style={{ width: "100%", height: "100%" }}>
+        {tournaments.map((t) => (
+          <TournamentItem key={t.id} tournament={t} />
+        ))}
+        {/* {Array.from({ length: 25 }, (_, k) => k).map((p, index) => (
+          <TournamentItem key={p} />
+        ))} */}
+      </div>
     </div>
   );
 };

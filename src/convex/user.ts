@@ -12,7 +12,7 @@ export const find = internalQuery({
   args: { id: v.id("user") },
   handler: async (ctx, { id }) => {
     const user = await ctx.db.get(id);
-    return { ...user, uid: user?._id, _id: undefined };
+    return { ...user, uid: user?._id, _id: undefined, _creationTime: undefined };
   },
 });
 export const findByUid = query({

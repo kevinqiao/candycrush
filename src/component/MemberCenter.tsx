@@ -5,7 +5,7 @@ import useCoord from "../service/CoordManager";
 import useEventSubscriber from "../service/EventManager";
 import { usePageManager } from "../service/PageManager";
 import "./layout.css";
-import MemberMenu from "./menu/MemberMenu";
+import MemberMenu from "./member/MemberMenu";
 
 const colors = ["red", "green", "blue", "orange", "white"];
 const pageIndexs = [

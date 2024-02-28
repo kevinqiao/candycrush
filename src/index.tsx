@@ -1,3 +1,4 @@
+import React from "react";
 import ReactDOM from "react-dom/client";
 import M3App from "./M3App";
 import "./index.css";

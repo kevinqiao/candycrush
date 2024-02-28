@@ -65,7 +65,7 @@ export const PlayPlace =
     navs: [
         {
             name: "playcenter",
-            path: "./PlayCenter",
+            path: "./lobby/LobbyHome",
             uri: "playcenter",
             child: "battleHome",
             children: [
@@ -117,6 +117,18 @@ export const PlayPlace =
 
     ]
 }
+export const W3Home =
+{
+    name: "w3",
+    context: "/",
+    navs: [
+        {
+            name: "w3player",
+            path: "./www/W3Home",
+            uri: "/",
+        }
+    ],
+}
 export const Covers = [
     {
         name: "signin",
@@ -143,4 +155,4 @@ export const Covers = [
     }
 ]
 
-export const AppsConfiguration = [PlayPlace, Telegram]
+export const AppsConfiguration = [PlayPlace, Telegram, W3Home]

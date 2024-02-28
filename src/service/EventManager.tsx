@@ -10,7 +10,7 @@ export declare type EventModel = {
   delay: number;
   data?: any;
 };
-export interface IContextProps {
+interface IContextProps {
   subject: Subject<EventModel> | null;
 }
 

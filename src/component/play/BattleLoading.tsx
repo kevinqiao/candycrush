@@ -3,7 +3,6 @@ import React, { useEffect, useRef, useState } from "react";
 import { SCENE_NAME } from "../../model/Constants";
 import { useSceneManager } from "../../service/SceneManager";
 import useDimension from "../../util/useDimension";
-import Avatar from "./common/Avatar";
 
 const BattleLoading = ({ battle }: { battle: any }) => {
   const sceneContainerRef = useRef<HTMLDivElement | null>(null);
@@ -118,7 +117,7 @@ const BattleLoading = ({ battle }: { battle: any }) => {
           height: 80,
         }}
       >
-        <Avatar />
+        {/* <Avatar player={null} /> */}
       </div>
       <div
         ref={opponentAvatarRef}
@@ -131,7 +130,7 @@ const BattleLoading = ({ battle }: { battle: any }) => {
           height: 80,
         }}
       >
-        <Avatar />
+        {/* <Avatar /> */}
       </div>
       <div
         ref={vsRef}

@@ -1,44 +1,59 @@
 import { useSlideNavManager } from "component/SlideNavManager";
 import React from "react";
+import styled from "styled-components";
 import useCoord from "../../service/CoordManager";
 import "./menu.css";
-
-const PlayMenu: React.FC = () => {
-  const coord = useCoord();
-  const { pageProp, loadMenu, changeIndex } = useSlideNavManager();
+const MenuItem = styled.div`
+  cursor: pointer;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 80%;
+  height: 35px;
+  background-color: blue;
+  border-radius: 4px;
+  margin-top: 10px;
+`;
+const LobbyMenu: React.FC = () => {
+  const { width, height, LobbyMenuH, LobbyMenuW } = useCoord();
+  const { loadMenu, changeIndex } = useSlideNavManager();
   const openChild = (index: number) => {
-    if (pageProp?.config.children) {
-      const child = pageProp.config.children[index];
-      if (child) {
-        pageProp.child = child.name;
-        const uri = "/" + pageProp.ctx + "/" + pageProp.config.uri + "/" + child.uri;
-        window.history.pushState({}, "", uri);
-        changeIndex(index);
-      }
-    }
+    changeIndex(index);
   };
   return (
     <>
-      {coord.width ? (
+      {width >= height ? (
+        <div style={{ width: LobbyMenuW, height: "99%", backgroundColor: "blue", margin: "5px 10px 15px 5px" }}>
+          <MenuItem key={"tournament"} onClick={() => changeIndex(0)}>
+            <span style={{ color: "white" }}>Tournament</span>
+          </MenuItem>
+          <MenuItem key={"League"} onClick={() => changeIndex(1)}>
+            <span style={{ color: "white" }}>League</span>
+          </MenuItem>
+          <MenuItem key={"Battle"} onClick={() => changeIndex(2)}>
+            <span style={{ color: "white" }}>Record</span>
+          </MenuItem>
+          <MenuItem key={"Account"} onClick={() => changeIndex(3)}>
+            <span style={{ color: "white" }}>Account</span>
+          </MenuItem>
+          <MenuItem key={"Market"} onClick={() => changeIndex(4)}>
+            <span style={{ color: "white" }}>Market</span>
+          </MenuItem>
+        </div>
+      ) : (
         <div
-          id="pixi-container"
-          className="menu-pixi"
           style={{
-            top: coord.mainMenuTop,
-            left: coord.mainMenuLeft,
-            width: coord.mainMenuW,
-            height: coord.mainMenuH,
-            backgroundColor: "white",
+            position: "fixed",
+            width: "100%",
+            height: LobbyMenuH,
+            display: "flex",
+            justifyContent: "center",
+            bottom: 0,
+            left: 0,
+            margin: 0,
           }}
         >
           <svg viewBox="0 0 500 50" preserveAspectRatio="xMinYMin meet">
-            {/* <defs>
-              <pattern id="leaderboardimage" patternUnits="userSpaceOnUse" width="100" height="100">
-                <rect x="0" y="0" width="150" height="100" fill={selected === "option1" ? "blue" : "gray"} />
-                <image x="25" y="10" width="25" height="25" href={myImage} />
-              </pattern>
-            </defs> */}
-            {/* 不规则形状1 */}
             <polygon
               ref={(el) => loadMenu(0, el)}
               id="menu-index0"
@@ -95,9 +110,9 @@ const PlayMenu: React.FC = () => {
             />
           </svg>
         </div>
-      ) : null}
+      )}
     </>
   );
 };
 
-export default PlayMenu;
+export default LobbyMenu;

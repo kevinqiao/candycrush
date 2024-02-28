@@ -1,5 +1,5 @@
 import { gsap } from "gsap";
-import { useEffect } from "react";
+import React, { useEffect } from "react";
 import useCoord from "../../service/CoordManager";
 import { usePageManager } from "../../service/PageManager";
 import "./menu.css";
