@@ -6,18 +6,22 @@ import { action } from "./_generated/server";
 export const authByToken = action({
     args: { uid: v.string(), token: v.string() },
     handler: async (ctx, { uid, token }) => {
-
-        const user: any = await ctx.runQuery(internal.user.find, { id: uid as Id<"user"> })
-        if (user) {
-            const game = await ctx.runQuery(internal.games.findUserGame, { uid });
-            if (game?.battleId && !game.status) {
-                const battle = await ctx.runQuery(internal.battle.findById, { battleId: game.battleId as Id<"battle"> })
-                if (battle && ((battle.duration + battle.startTime) > Date.now()))
-                    user['battle'] = battle
+        console.log("uid:" + uid)
+        try {
+            const user: any = await ctx.runQuery(internal.user.find, { id: uid as Id<"user"> })
+            if (user) {
+                const game = await ctx.runQuery(internal.games.findUserGame, { uid });
+                if (game?.battleId && !game.status) {
+                    const battle = await ctx.runQuery(internal.battle.findById, { battleId: game.battleId as Id<"battle"> })
+                    if (battle && ((battle.duration + battle.startTime) > Date.now()))
+                        user['battle'] = battle
+                }
+                // await ctx.runMutation(internal.user.update, { id: user["_id"], data: {} })
             }
-            // await ctx.runMutation(internal.user.update, { id: user["_id"], data: {} })
+            return { token: "123456", ...user, timestamp: Date.now() }
+        } catch (err) {
+            return null
         }
-        return { token: "123456", ...user, timestamp: Date.now() }
     }
 })
 

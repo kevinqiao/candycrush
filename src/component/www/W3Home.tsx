@@ -67,7 +67,7 @@ const W3Home: React.FC<PageProps | null> = (prop) => {
     return (
       <div style={{ position: "relative", width, height, margin: 0, backgroundColor: "blue" }}>
         <iframe
-          src={"/www.html"}
+          src={"/www/index.html"}
           width={"100%"}
           height={"100%"}
           title={"pixels"}
