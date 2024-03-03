@@ -106,7 +106,6 @@ export const GameProvider = ({
       const g: any | null = await convex.query(api.games.findInitGame, {
         gameId,
       });
-
       if (g) {
         startTimeRef.current = Date.now();
         gameRef.current = g;

@@ -98,12 +98,14 @@ export const SlideNavProvider = ({ pageProp, children }: { pageProp: PageProps; 
   useEffect(() => {
     if (pageProp.config?.children) {
       const cs: { name: string; index: number; component: any }[] = [];
-
       let index = 0;
       for (const child of pageProp.config.children) {
         // if (pageProp.child && pageProp.child === child.name) changeIndex(index);
         const c = child.uri ? lazy(() => import(`${child.path}`)) : null;
         cs.push({ name: child.name, index: index, component: c });
+        if (child.name === pageProp.child) {
+          menuIndexRef.current = index;
+        }
         index = index + 1;
       }
       setComponents(cs);

@@ -5,16 +5,16 @@ import { gsap } from "gsap";
 import MotionPathPlugin from "gsap/MotionPathPlugin";
 import React from "react";
 
+import { ClerkProvider } from "@clerk/clerk-react";
+import SSOProvider from "service/SSOManager";
 import { CoordProvider } from "./service/CoordManager";
 import { PageProvider } from "./service/PageManager";
-import { UserProvider } from "./service/UserManager";
 // Register the plugin once globally
 gsap.registerPlugin(MotionPathPlugin);
 // gsap.registerPlugin(TransformPlugin);
 
 const convex = new ConvexReactClient("https://dazzling-setter-839.convex.cloud");
 function W3App() {
-  console.log("w3 app....");
   const FlattenedProviderTree = (providers: any): any => {
     if (providers?.length === 1) {
       return providers[0][0];
@@ -37,14 +37,12 @@ function W3App() {
     [CoordProvider],
     [PageProvider],
     [ConvexProvider, { client: convex }],
-    [UserProvider],
-    // [Match3AuthProvider],
-    // [ClerkProvider, { publishableKey: "pk_test_bm9ybWFsLXNoZXBoZXJkLTQ5LmNsZXJrLmFjY291bnRzLmRldiQ" }],
+    [ClerkProvider, { publishableKey: "pk_test_bm9ybWFsLXNoZXBoZXJkLTQ5LmNsZXJrLmFjY291bnRzLmRldiQ" }],
+    [SSOProvider],
     // [EventProvider],
   ]);
   return (
     <Providers>
-      {/* <MainMenu /> */}
       <NavPage />
       <StackController />
     </Providers>

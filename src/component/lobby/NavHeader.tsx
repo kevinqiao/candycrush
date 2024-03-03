@@ -1,6 +1,7 @@
 import gsap from "gsap";
 import React, { useEffect, useRef } from "react";
 import useCoord from "service/CoordManager";
+import { useUserManager } from "service/UserManager";
 import styled from "styled-components";
 const CloseButton = styled.div`
   cursor: pointer;
@@ -115,6 +116,7 @@ const MenuIcon = styled.div`
 `;
 
 const NavHeader = () => {
+  const { user } = useUserManager();
   const { headH } = useCoord();
   const maskRef = useRef<HTMLDivElement | null>(null);
   const menuRef = useRef<HTMLDivElement | null>(null);
@@ -143,44 +145,48 @@ const NavHeader = () => {
   };
   useEffect(() => {
     gsap.to(maskRef.current, { autoAlpha: 0, duration: 0 });
-  }, []);
+  }, [user]);
 
   return (
-    <>
-      <div style={{ display: "flex", justifyContent: "center", width: "100%" }}>
-        <NavHead height={`${headH}px`} width={"100%"}>
-          <div style={{ display: "flex", justifyContent: "flex-start", alignItems: "center", height: "100%" }}>
-            <Avatar></Avatar>
-            <div style={{ width: 20 }} />
-            <AssetContainer>
-              <Asset>
-                <Diamond />
-                <span style={{ color: "white", fontSize: 12 }}>40</span>
-              </Asset>
-              <div style={{ width: 40 }} />
-              <Asset>
-                <Coin />
-                <span style={{ color: "white", fontSize: 12 }}>100</span>
-              </Asset>
-            </AssetContainer>
+    <div>
+      {user?.uid ? (
+        <>
+          <div style={{ display: "flex", justifyContent: "center", width: "100%" }}>
+            <NavHead height={`${headH}px`} width={"100%"}>
+              <div style={{ display: "flex", justifyContent: "flex-start", alignItems: "center", height: "100%" }}>
+                <Avatar></Avatar>
+                <div style={{ width: 20 }} />
+                <AssetContainer>
+                  <Asset>
+                    <Diamond />
+                    <span style={{ color: "white", fontSize: 12 }}>40</span>
+                  </Asset>
+                  <div style={{ width: 40 }} />
+                  <Asset>
+                    <Coin />
+                    <span style={{ color: "white", fontSize: 12 }}>100</span>
+                  </Asset>
+                </AssetContainer>
+              </div>
+              <MenuIcon onClick={openMenu} />
+            </NavHead>
           </div>
-          <MenuIcon onClick={openMenu} />
-        </NavHead>
-      </div>
-      <Mask ref={maskRef} onClick={closeMenu} />
-      <MenuPanel ref={menuRef}>
-        <MenuList>
-          {Array.from({ length: 4 }, (_, k) => k).map((p, index) => (
-            <MenuItem key={p}>
-              <span style={{ color: "white" }}>Menu{index}</span>
-            </MenuItem>
-          ))}
-        </MenuList>
-        <CloseButton onClick={closeMenu}>
-          <span>Close</span>
-        </CloseButton>
-      </MenuPanel>
-    </>
+          <Mask ref={maskRef} onClick={closeMenu} />
+          <MenuPanel ref={menuRef}>
+            <MenuList>
+              {Array.from({ length: 4 }, (_, k) => k).map((p, index) => (
+                <MenuItem key={p}>
+                  <span style={{ color: "white" }}>Menu{index}</span>
+                </MenuItem>
+              ))}
+            </MenuList>
+            <CloseButton onClick={closeMenu}>
+              <span>Close</span>
+            </CloseButton>
+          </MenuPanel>
+        </>
+      ) : null}
+    </div>
   );
 };
 

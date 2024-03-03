@@ -38,14 +38,13 @@ const getSwipeTarget = (cellItem: CellItem, direction: number, cells: CellItem[]
     return target;
 }
 
-const useGameScene = () => {
+const useGameScene = ({ loaded }: { loaded: boolean }) => {
     const { gameEvent, game, load, doAct } = useGameManager();
     const { battle, loadGame } = useBattleManager();
     const { textures, scenes } = useSceneManager();
     const { playSwipeFail, playSwipeSuccess, playCandyMatch } = useAnimation();
     const dragRef = useRef<{ startX: number; startY: number; animation: number, cellId: number }>({ startX: 0, startY: 0, cellId: -1, animation: 0 });
-    // const { createAnimate, checkIfAnimate } = useAnimateManager();
-    // console.log(gameEvent)
+
     const swipe = useCallback((direction: number, candyId: number) => {
 
         if (!battle || !game?.gameId || !game?.data.cells) return
@@ -171,11 +170,13 @@ const useGameScene = () => {
 
     useEffect(() => {
 
-        if (!game || !game?.gameId || !scenes) return;
+        if (!game || !game?.gameId || !scenes || !loaded) return;
         const gameScene = scenes.get(game.gameId) as GameScene;
         if (!gameScene) return
+
         if (gameEvent?.name === "initGame") {
             const game = gameEvent.data;
+            console.log(game)
             initCandies(game.data.cells);
             loadGame(game.gameId, { matched: game.data.matched ?? [] });
             // loadGame(game.uid, game.gameId, { data: { matched: game.data.matched } });
@@ -225,7 +226,7 @@ const useGameScene = () => {
         //     createAnimate({ id: Date.now(), name: ANIMATE_NAME.CANDY_SMESHED, gameId: game.gameId, battleId: battle?.id, data })
 
         // }
-    }, [createCandySprite, gameEvent, scenes, game, initCandies])
+    }, [createCandySprite, gameEvent, scenes, game, initCandies, loaded])
 
 }
 export default useGameScene

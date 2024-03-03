@@ -54,26 +54,6 @@ export const SceneProvider = ({
   const [containerBound, setContainerBound] = useState<PagePosition | undefined>();
   const [complete, setComplete] = useState(false);
 
-  const loadAvatarTextures = () => {
-    // const baseTexture = PIXI.BaseTexture.from("assets/avatar.png");
-    PIXI.Assets.load("../assets/avatar.png").then((tture: any) => {
-      const frameWidth = 185;
-      const frameHeight = 185;
-      let count = 1;
-      for (let r = 0; r < 1; r++) {
-        const y = r * frameHeight + 100;
-        for (let c = 0; c < 2; c++) {
-          const x = c * frameWidth + 35;
-          const rect = new PIXI.Rectangle(x, y, frameWidth, frameHeight);
-          // const texture = new PIXI.Texture(baseTexture, rect);
-          const texture = new PIXI.Texture(tture.texture.baseTexture, rect);
-          avatarTexturesRef.current.push({ name: "A" + count, texture: texture });
-          count++;
-        }
-      }
-    });
-  };
-
   const loadCandyTextures = () => {
     PIXI.Assets.load("/assets/assets_candy.png").then((tture: any) => {
       // loader.add("candyTextures", "../assets/assets_candy.png");
@@ -92,17 +72,6 @@ export const SceneProvider = ({
 
       // 资源加载完成后的操作
     });
-    // const baseTexture = PIXI.BaseTexture.from("assets/assets_candy.png");
-    // baseTexture.on("update", () => {
-    //   const frameSize = 100;
-    //   const all = candy_texture_defs.map((c) => {
-    //     const rect = new PIXI.Rectangle(c.x, c.y, frameSize, frameSize);
-    //     const texture = new PIXI.Texture(baseTexture, rect);
-    //     return { id: c.id, texture };
-    //   });
-    //   texturesRef.current.push(...all);
-    //   setComplete(true);
-    // });
   };
   useEffect(() => {
     if (pagePosition) {

@@ -35,7 +35,7 @@ export default interface PageProps {
     ctx?: string;
     data?: any;
     params?: any;
-    sub?: string;
+    child?: string;
     anchor?: string;
     config: PageConfig;
     disableCloseBtn?: () => void;

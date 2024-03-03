@@ -11,12 +11,11 @@ const useTournamentManager = () => {
   const { user } = useUserManager();
   const joinTournamentByGroup = useAction(api.tournamentService.joinTournamentByGroup);
   const convex = useConvex();
-  const checkAuth = (): boolean => {
-    return user && user.uid ? true : false
-  }
 
   const join = useCallback(async (tournamentId: string) => {
-    if (!checkAuth()) {
+    console.log(user)
+    if (!user || !user.uid) {
+      console.log("openning signin")
       openPage({ name: "signin", data: null })
       return;
     }

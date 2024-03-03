@@ -5,6 +5,7 @@ import PrizeIcon from "component/icons/PrizeIcon";
 import RewardIcon from "component/icons/RewardIcon";
 import { BattleModel } from "model/Battle";
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import useCoord from "service/CoordManager";
 import { usePageManager } from "../../service/PageManager";
 import "./battle.css";
 const TounamentTitle: React.FC = () => {
@@ -40,7 +41,7 @@ interface Props {
 
 const BattleItem: React.FC<Props> = ({ battle }) => {
   const { openPage } = usePageManager();
-
+  const { width, height } = useCoord();
   const openReplay = useCallback(
     (report: any) => {
       openPage({ name: "battleReplay", ctx: "playplace", data: { act: "replay", battle, gameId: report.gameId } });
@@ -56,7 +57,7 @@ const BattleItem: React.FC<Props> = ({ battle }) => {
 
   const render = useMemo(() => {
     return (
-      <div className="battle-item roboto-regular">
+      <div className="battle-item roboto-regular" style={{ width: width > height ? "90%" : "100%" }}>
         <div className="trophy">
           <PrizeIcon rank={2}></PrizeIcon>
         </div>

@@ -138,7 +138,7 @@ export const PageProvider = ({ children }: { children: React.ReactNode }) => {
     };
 
     const prop = parseURL(window.location);
-    console.log(prop);
+
     if (prop.ctx) {
       if (!prop["navItem"]) {
         prop.stackItems = undefined;
@@ -164,7 +164,6 @@ export const PageProvider = ({ children }: { children: React.ReactNode }) => {
 
     window.addEventListener("popstate", handlePopState);
 
-    // 组件卸载时取消监听
     return () => {
       window.removeEventListener("popstate", handlePopState);
     };

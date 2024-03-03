@@ -2,12 +2,14 @@ import DollarIcon from "component/icons/DollarIcon";
 import PlayersIcon from "component/icons/PlayersIcon";
 import { Tournament } from "model/Tournament";
 import React, { useEffect, useMemo, useRef, useState } from "react";
+import useCoord from "service/CoordManager";
 import useTournamentManager from "service/TournamentManager";
 import "./tournament.css";
 interface Props {
   tournament?: Tournament;
 }
 const TournamentItem: React.FC<Props> = ({ tournament }: Props) => {
+  const { width, height } = useCoord();
   const { join } = useTournamentManager();
   const divRef = useRef<HTMLDivElement | null>(null);
   const [fontSize, setFontSize] = useState(25);
@@ -19,7 +21,6 @@ const TournamentItem: React.FC<Props> = ({ tournament }: Props) => {
       setFontSize(Math.round(newFontSize));
     }
   };
-
   useEffect(() => {
     calculateFontSize();
     window.addEventListener("resize", calculateFontSize);
@@ -29,7 +30,7 @@ const TournamentItem: React.FC<Props> = ({ tournament }: Props) => {
   }, []);
   const render = useMemo(() => {
     return (
-      <div ref={divRef} className="tournament-item roboto-bold">
+      <div ref={divRef} className="tournament-item roboto-bold" style={{ width: width > height ? "90%" : "100%" }}>
         <div style={{ width: "20%" }}>
           <div className="tournament-trophy">
             <div style={{ height: 20 }}></div>
@@ -54,9 +55,11 @@ const TournamentItem: React.FC<Props> = ({ tournament }: Props) => {
         </div>
         <div className="tournament-entryfee">
           <DollarIcon amount={40} />
-          <div className="play-tournament">
-            <span style={{ fontSize: Math.max(fontSize - 5, 12), color: "yellow" }}>PLAY</span>
-          </div>
+          {tournament ? (
+            <div className="play-tournament" onClick={() => join(tournament.id)}>
+              <span style={{ fontSize: Math.max(fontSize - 5, 12), color: "yellow" }}>PLAY</span>
+            </div>
+          ) : null}
         </div>
       </div>
     );

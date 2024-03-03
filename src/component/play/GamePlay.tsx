@@ -1,88 +1,130 @@
+import { GameScene } from "model/SceneModel";
 import * as PIXI from "pixi.js";
-import React, { useCallback, useEffect, useRef, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useRef } from "react";
+import { useGameManager } from "service/GameManager";
 import { useBattleManager } from "../../service/BattleManager";
 import { useSceneManager } from "../../service/SceneManager";
 import { useUserManager } from "../../service/UserManager";
 import { CandySprite } from "../pixi/CandySprite";
 import useGameScene from "./useGameScene";
-const GamePlay = ({ game }: { game: { gameId: string; uid: string } }) => {
+const GamePlay = () => {
   const sceneContainerRef = useRef<HTMLDivElement | null>(null);
+  const { game } = useGameManager();
   const maskRef = useRef<HTMLDivElement | null>(null);
   const gameOverRef = useRef<HTMLDivElement | null>(null);
   const { battle } = useBattleManager();
   const { scenes, containerBound, stageScene } = useSceneManager();
   const { user } = useUserManager();
-  const [bound, setBound] = useState<{ top: number; left: number; width: number; height: number } | null>(null);
+  // const [bound, setBound] = useState<{ top: number; left: number; width: number; height: number } | null>(null);
+  const bound = useMemo(() => {
+    if (!containerBound || !game) return null;
+    const direction = containerBound.width > containerBound.height ? 1 : 0;
+    // const left = direction>0?containerBound.width * 0.5;
+    const left =
+      user.uid !== game.uid
+        ? direction > 0
+          ? containerBound.width * 0.05
+          : containerBound.width * 0.5
+        : direction > 0
+        ? containerBound.width * 0.5
+        : containerBound.width * 0.1;
+    const top =
+      user.uid !== game.uid
+        ? direction > 0
+          ? containerBound.height * 0.2
+          : containerBound.height * 0.1
+        : direction > 0
+        ? containerBound.height * 0.2
+        : containerBound.height * 0.4;
 
-  useGameScene();
+    const width =
+      user.uid !== game.uid
+        ? containerBound.width * 0.3
+        : direction > 0
+        ? containerBound.width * 0.45
+        : containerBound.width * 0.9;
+    const height =
+      user.uid !== game.uid
+        ? containerBound.width * 0.4
+        : direction > 0
+        ? containerBound.height * 0.8
+        : containerBound.height * 0.5;
+    return { top, left, width, height };
+  }, [containerBound, game]);
+
+  useGameScene({ loaded: bound != null ? true : false });
+
   useEffect(() => {
-    // console.log("game status:" + status);
-    // const tl = gsap.timeline({
-    //   onComplete: () => {
-    //     tl.kill();
-    //   },
-    // });
-    // tl.fromTo(maskRef.current, { autoAlpha: 1 }, { autoAlpha: 0.7, duration: 1.8 }).fromTo(
-    //   gameOverRef.current,
-    //   { autoAlpha: 0 },
-    //   { autoAlpha: 1, duration: 1.8 },
-    //   "<"
-    // );
-    // tl.play();
-  }, []);
+    if (user && battle && bound && scenes && game) {
+      const { left, top, width, height } = bound;
 
-  const init = useCallback(
-    ({
-      top,
-      left,
-      width,
-      height,
-      column,
-      row,
-    }: {
-      top: number;
-      left: number;
-      width: number;
-      height: number;
-      column: number;
-      row: number;
-    }) => {
-      if (sceneContainerRef.current) {
-        const cwidth = Math.floor(width / column);
-        const cheight = Math.floor(width / column);
+      const gameScene: GameScene | undefined = scenes.get(game.gameId) as GameScene;
+
+      // const b = { top, left, width, height };
+      if (gameScene?.app) {
+        const cwidth = Math.floor((0.8 * width) / battle.data.column);
+        const cheight = Math.floor((0.8 * height) / battle.data.row);
+        const scene = gameScene.app as PIXI.Application;
+        scene.renderer.resize(width, height);
+        const radius = Math.min(cwidth, cheight);
+        if (game.data.cells) {
+          game.data.cells.forEach((c: any) => {
+            const candy = gameScene.candies.get(c.id);
+            if (candy) {
+              candy.width = radius;
+              candy.height = radius;
+              candy.x = c.column * radius + Math.floor(radius / 2);
+              candy.y = c.row * radius + Math.floor(radius / 2);
+            }
+          });
+        }
+        gameScene.x = left;
+        gameScene.y = top;
+        gameScene.width = width;
+        gameScene.height = height;
+        gameScene.cwidth = radius;
+        gameScene.cheight = radius;
+      }
+    }
+  }, [battle, scenes, game, bound, user]);
+
+  const load = useCallback(
+    (sceneEle: HTMLDivElement | null) => {
+      if (!game || !battle || !bound || !sceneContainerRef.current) return;
+      const gameScene: GameScene | undefined = scenes.get(game.gameId) as GameScene;
+      if (!gameScene) {
+        console.log("loading game scene");
+        const { left, top, width, height } = bound;
         const app = new PIXI.Application({
           width,
           height,
           backgroundAlpha: 0,
         });
-
+        const cwidth = Math.floor((0.8 * width) / battle.data.column);
+        const cheight = Math.floor((0.8 * height) / battle.data.row);
         const candies = new Map<number, CandySprite>();
-        const scene = { x: left, y: top, app, width, height, cwidth, cheight, candies, column, row };
+        const scene = {
+          x: left,
+          y: top,
+          app,
+          width,
+          height,
+          cwidth,
+          cheight,
+          candies,
+          column: battle.data.column,
+          row: battle.data.row,
+        };
         sceneContainerRef.current.appendChild(app.view as unknown as Node);
         stageScene(game.gameId, scene);
       }
     },
-    [containerBound, battle]
+    [bound, game, scenes, battle, stageScene]
   );
-
-  useEffect(() => {
-    if (user && battle && scenes && containerBound && game) {
-      const left = containerBound.width * 0.5;
-      const top = user.uid !== game.uid ? containerBound.height * 0.1 : containerBound.height * 0.55;
-      const width = containerBound.width * 0.4;
-      const height = containerBound.height * 0.35;
-      const b = { top, left, width, height };
-      const gameScene = scenes.get(game.gameId);
-
-      if (gameScene?.app) {
-        const scene = gameScene.app as PIXI.Application;
-        scene.renderer.resize(width, height);
-      } else init({ ...b, column: battle.data.column, row: battle.data.row });
-      setBound(b);
-    }
-  }, [battle, containerBound, scenes, game, user, init]);
   return (
     <div
+      key={game?.gameId}
+      ref={load}
       style={{
         position: "absolute",
         top: bound?.top,
@@ -92,13 +134,10 @@ const GamePlay = ({ game }: { game: { gameId: string; uid: string } }) => {
         margin: 0,
         border: 0,
         backgroundColor: "transparent",
+        filter: game?.uid !== user.uid ? "blur(25px)" : "blur(0px)",
       }}
     >
-      <div
-        ref={sceneContainerRef}
-        style={{ width: "100%", height: "100%", backgroundColor: "transparent" }}
-        onClick={() => console.log("game play layer...")}
-      ></div>
+      <div ref={sceneContainerRef} style={{ width: "100%", height: "100%", backgroundColor: "transparent" }}></div>
 
       <div
         ref={maskRef}

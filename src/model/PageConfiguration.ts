@@ -62,6 +62,7 @@ export const PlayPlace =
 {
     name: "playPlace",
     context: "match3",
+    auth: true,
     navs: [
         {
             name: "playcenter",
@@ -88,7 +89,7 @@ export const PlayPlace =
             position: {
                 closeControl: { btn: 0, confirm: 1, maskActive: 1 },
                 direction: 0,
-                width: 550,
+                width: 1,
                 height: 1,
             }
         },
@@ -132,7 +133,7 @@ export const W3Home =
 export const Covers = [
     {
         name: "signin",
-        path: "./signin/SignIn",
+        path: "./signin/Signin",
         uri: "signin",
         position: {
             closeControl: { btn: 0, confirm: 1, maskActive: 1 },
@@ -155,4 +156,4 @@ export const Covers = [
     }
 ]
 
-export const AppsConfiguration = [PlayPlace, Telegram, W3Home]
+export const AppsConfiguration: any = [PlayPlace, Telegram, W3Home]

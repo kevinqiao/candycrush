@@ -32,6 +32,7 @@ const AccountHome: React.FC = () => {
     tl.to(maskRef.current, { autoAlpha: 0, duration: 0.3 });
     tl.to(signoutRef.current, { autoAlpha: 0, duration: 0.3 });
     tl.play();
+    window.location.href = "/?signout=1";
   };
   const isActive = useCallback(() => {
     const stack = stacks.find((s) => s.name === "signin");

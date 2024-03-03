@@ -14,7 +14,7 @@
 
 .tournament-item {  
   display:flex;
-  width: 100%;
+  width: 90%;
   height:12%;
   min-height:120px;
   margin: 10px;
@@ -24,6 +24,7 @@
   border-radius: 4px;
 }
 .play-tournament {
+  cursor:pointer;
   display: flex;
   align-items: center;
   justify-content: center;

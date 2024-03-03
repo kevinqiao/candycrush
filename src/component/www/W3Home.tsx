@@ -1,17 +1,43 @@
-import Signout from "component/signin/Signout";
+import SSOSignout from "component/signin/SSOSignout";
 import gsap from "gsap";
-import React, { useCallback, useEffect, useMemo, useRef } from "react";
+import React, { useEffect, useMemo, useRef } from "react";
 import useCoord from "service/CoordManager";
 import { usePageManager } from "service/PageManager";
-import { useUserManager } from "service/UserManager";
+import { useSSOManager } from "service/SSOManager";
 import PageProps from "../../model/PageProps";
-const W3Home: React.FC<PageProps> = (prop) => {
+const W3Home: React.FC<PageProps | null> = (prop) => {
   const maskRef = useRef<HTMLDivElement | null>(null);
   const signoutRef = useRef<HTMLDivElement | null>(null);
   const { width, height } = useCoord();
-  const { stacks, openPage } = usePageManager();
-  const { user } = useUserManager();
+  const { openPage } = usePageManager();
+  const { user } = useSSOManager();
+  // useEffect(() => {
+  //   console.log(user);
+  //   const searchParams = new URLSearchParams(location.search);
+  //   for (const param of searchParams) {
+  //     console.log(param);
+  //     if (user?.uid && param[0] === "redirect") window.location.href = param[1];
+  //   }
+  // }, [user]);
+  useEffect(() => {
+    const messageHandler = (event: any) => {
+      if (event.origin !== "http://localhost:3000") {
+        return;
+      }
+      if (event.data.type === "test") {
+        if (user?.uid) window.location.href = "/match3/playcenter/battle/home";
+        else openPage({ name: "signin", data: { src: "/match3" } });
+        // window.location.href = "/match3/playcenter/battle/home";
+        // console.log("Received message:", event.data);
+      }
+    };
 
+    window.addEventListener("message", messageHandler);
+
+    return () => {
+      window.removeEventListener("message", messageHandler);
+    };
+  }, [user]);
   useEffect(() => {
     gsap.to(maskRef.current, { duration: 0, autoAlpha: 0 });
     gsap.to(signoutRef.current, { duration: 0, autoAlpha: 0 });
@@ -36,21 +62,16 @@ const W3Home: React.FC<PageProps> = (prop) => {
     tl.to(signoutRef.current, { autoAlpha: 0, duration: 0.3 });
     tl.play();
   };
-  const isActive = useCallback(() => {
-    const stack = stacks.find((s) => s.name === "signin");
-    if (stack) return false;
-    else return true;
-  }, [stacks]);
+
   const render = useMemo(() => {
     return (
-      <div style={{ position: "relative", width, height, backgroundColor: "blue" }}>
+      <div style={{ position: "relative", width, height, margin: 0, backgroundColor: "blue" }}>
         <iframe
-          src={"https://pixels.xyz"}
+          src={"http://localhost:3000/www.html"}
           width={"100%"}
           height={"100%"}
           title={"pixels"}
-          frameBorder={0}
-          allowFullScreen={true} // 使用该属性
+          style={{ border: "none", margin: "0px 0px 0px 0px" }}
         />
 
         {user ? (
@@ -92,8 +113,7 @@ const W3Home: React.FC<PageProps> = (prop) => {
               color: "white",
             }}
             onClick={(e) => {
-              // openPage({ name: "signin", data: {} });
-              window.location.href = "/match3/playcenter/tournament/home";
+              openPage({ name: "signin", data: {} });
             }}
           >
             <span style={{ fontSize: 25 }}>Login</span>
@@ -126,7 +146,7 @@ const W3Home: React.FC<PageProps> = (prop) => {
             height: "100%",
           }}
         >
-          {user && isActive() ? <Signout onComplete={closeSignout} onCancel={closeSignout} /> : null}
+          {user ? <SSOSignout onComplete={closeSignout} onCancel={closeSignout} /> : null}
         </div>
       </div>
     );

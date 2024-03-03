@@ -1,30 +1,23 @@
-import { useAuth, useClerk } from "@clerk/clerk-react";
+import { useClerk } from "@clerk/clerk-react";
 import React, { useCallback } from "react";
-import { useUserManager } from "service/UserManager";
-
+import { useSSOManager } from "service/SSOManager";
 interface Props {
   onComplete: () => void;
   onCancel: () => void;
 }
-
-const LogoutHome: React.FC<Props> = ({ onComplete, onCancel }) => {
+const SSOSignout: React.FC<Props> = ({ onComplete, onCancel }) => {
+  const { signout } = useSSOManager();
   const { signOut } = useClerk();
-  const { signout } = useUserManager();
   const complete = useCallback(() => {
     signout();
     signOut().then((s) => {
-      console.log("complete signout from clerk");
       onComplete();
     });
-
-    // onComplete();
-  }, [signOut, signout]);
+  }, [signout, signOut]);
   const cancel = () => {
     onCancel();
   };
-  // useEffect(() => {
-  //   if (!isSignedIn) onComplete();
-  // }, [isSignedIn]);
+
   return (
     <div
       style={{
@@ -66,4 +59,4 @@ const LogoutHome: React.FC<Props> = ({ onComplete, onCancel }) => {
   );
 };
 
-export default LogoutHome;
+export default SSOSignout;

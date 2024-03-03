@@ -11,6 +11,7 @@ const BattleConsole = () => {
   const { containerBound, stageScene } = useSceneManager();
   const { battle, allGameLoaded } = useBattleManager();
   const { user } = useUserManager();
+  // const [bound, setBound] = useState<{ top: number; left: number; width: number; height: number } | null>(null);
 
   const playerGame = useMemo(() => {
     if (battle?.games && user) {
@@ -27,17 +28,29 @@ const BattleConsole = () => {
     }
     return null;
   }, [battle, user, allGameLoaded]);
+  const bound = useMemo(() => {
+    if (!containerBound) return null;
+    const direction = containerBound.width > containerBound.height ? 1 : 0;
+    const left = direction > 0 ? containerBound.width * 0.3 : containerBound.width * 0.05;
+    const top = direction > 0 ? 20 : 40;
+    const width = containerBound.width * 0.4;
+    return { top, left, width, height: 40 };
+  }, [containerBound]);
 
   const load = useCallback(
     (sceneEle: HTMLDivElement | null) => {
       if (containerBound && sceneEle && !sceneContainerRef.current) {
+        const direction = containerBound.width > containerBound.height ? 1 : 0;
+        const left = direction > 0 ? containerBound.width * 0.3 : containerBound.width * 0.05;
+        const top = direction > 0 ? 20 : 40;
+        const width = containerBound.width * 0.4;
         sceneContainerRef.current = sceneEle;
         const scene = {
           app: sceneEle,
           type: SCENE_TYPE.HTML_DIVELEMENT,
-          x: 10,
-          y: 20,
-          width: containerBound.width * 0.5,
+          x: left,
+          y: top,
+          width,
           height: 0,
         };
         stageScene(SCENE_NAME.BATTLE_CONSOLE, scene);
@@ -47,48 +60,42 @@ const BattleConsole = () => {
   );
 
   return (
-    <>
-      {containerBound ? (
-        <div
-          ref={load}
-          style={{
-            // opacity: 0,
-            position: "relative",
-            top: 100,
-            left: 10,
-            width: containerBound.width * 0.45,
-            margin: 0,
-            borderRadius: 0,
-            opacity: 0,
-            backgroundColor: "transparent",
-          }}
-          onClick={() => console.log("console clicked")}
-        >
-          <div style={{ display: "flex", justifyContent: "space-between", width: "90%" }}>
-            {playerGame ? (
-              <div style={{ width: "45%", height: 45 }}>
-                <AvatarBar key="player" layout={0} game={playerGame} />
-              </div>
-            ) : null}
-
-            {opponentGame ? (
-              <div style={{ width: "45%", height: 45 }}>
-                <AvatarBar key="opponent" layout={1} game={opponentGame} />
-              </div>
-            ) : null}
+    <div
+      ref={load}
+      style={{
+        position: "relative",
+        top: bound ? bound.top : 0,
+        left: bound ? bound.left : 0,
+        width: bound ? bound.width : 0,
+        margin: 0,
+        borderRadius: 0,
+        opacity: 0,
+        backgroundColor: "transparent",
+      }}
+    >
+      <div style={{ display: "flex", justifyContent: "space-between", width: "90%" }}>
+        {playerGame ? (
+          <div style={{ width: "45%", height: 45 }}>
+            <AvatarBar key="player" layout={0} game={playerGame} />
           </div>
-          <div style={{ display: "flex", justifyContent: "space-between", width: "90%", marginTop: 10 }}>
-            <div style={{ position: "relative", left: 10, width: "35%" }}>
-              {playerGame ? <GoalPanel layout={0} game={playerGame} /> : null}
-            </div>
+        ) : null}
 
-            <div style={{ position: "relative", left: -10, width: "35%" }}>
-              {opponentGame ? <GoalPanel layout={1} game={opponentGame} /> : null}
-            </div>
+        {opponentGame ? (
+          <div style={{ width: "45%", height: 45 }}>
+            <AvatarBar key="opponent" layout={1} game={opponentGame} />
           </div>
+        ) : null}
+      </div>
+      <div style={{ display: "flex", justifyContent: "space-between", width: "90%", marginTop: 10 }}>
+        <div style={{ position: "relative", left: 10, width: "35%" }}>
+          {playerGame ? <GoalPanel layout={0} game={playerGame} /> : null}
         </div>
-      ) : null}
-    </>
+
+        <div style={{ position: "relative", left: -10, width: "35%" }}>
+          {opponentGame ? <GoalPanel layout={1} game={opponentGame} /> : null}
+        </div>
+      </div>
+    </div>
   );
 };
 

@@ -176,7 +176,7 @@ export const settleBattle = internalMutation({
 export const findMyBattles = sessionQuery({
   args: { uid: v.string(), to: v.number(), from: v.optional(v.number()) },
   handler: async (ctx, { uid, from, to }) => {
-    // console.log(from + ":" + to)
+    console.log(from + ":" + to)
     const mybattles = [];
     let games;
     if (from)
@@ -186,7 +186,8 @@ export const findMyBattles = sessionQuery({
 
     for (const game of games) {
       const b: any = await ctx.db.get(game.battleId as Id<"battle">);
-      if (b && b.status > 0) {
+
+      if (b) {
         mybattles.push({ ...b, id: b._id, _id: undefined, time: game._creationTime, _creationTime: undefined })
       }
     }

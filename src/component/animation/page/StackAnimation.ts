@@ -23,7 +23,7 @@ const useStackAnimation = ({ scene, mask, closeBtn, pageProp }: StackProps) => {
         // tl.to(scene.current, { width: pagePattern.width, height: pagePattern.height })
         switch (pagePattern.direction) {
             case STACK_PAGE_DIRECTION.CENTER:
-                tl.to(scene.current, { x: (pagePattern.vw - pagePattern.width) / 2, y: 0 }, "<");
+                tl.to(scene.current, { x: (pagePattern.vw - pagePattern.width) / 2, y: (pagePattern.vh - pagePattern.height) / 2 }, "<");
                 break;
             case STACK_PAGE_DIRECTION.RIGHT:
                 tl.to(scene.current, { x: pagePattern.vw - pagePattern.width }, "<");
@@ -53,15 +53,15 @@ const useStackAnimation = ({ scene, mask, closeBtn, pageProp }: StackProps) => {
         });
         switch (pagePattern.direction) {
             case STACK_PAGE_DIRECTION.CENTER:
-                tl.fromTo(scene.current, { scale: 0, autoAlpha: 1, x: (pagePattern.vw - pagePattern.width) / 2, y: 0 }, { duration: 1.2, scale: 1 }, ">+=1");
+                tl.fromTo(scene.current, { scale: 0, autoAlpha: 1, x: (pagePattern.vw - pagePattern.width) / 2, y: (pagePattern.vh - pagePattern.height) / 2 }, { duration: 1.2, scale: 1 }, ">+=1");
                 tl.to(mask.current, { autoAlpha: 0.7, duration: 1.2 }, "<");
                 // if (pageProp.config.closeType !== CLOSE_TYPE.NO_BUTTON)
                 tl.to(closeBtn.current, { autoAlpha: 1, duration: 0.5 }, ">")
                 break;
             case STACK_PAGE_DIRECTION.RIGHT:
-                tl.to(scene.current, { scale: 1, autoAlpha: 0, x: pagePattern.vw, y: 0, duration: 0 });
-                tl.to(scene.current, { autoAlpha: 1, x: pagePattern.vw - pagePattern.width, duration: 0.8 });
-                tl.to(mask.current, { autoAlpha: 0.7, duration: 0.8 }, "<");
+                tl.to(scene.current, { autoAlpha: 0, x: pagePattern.vw, y: 0, duration: 0 });
+                tl.to(scene.current, { autoAlpha: 1, x: pagePattern.vw - pagePattern.width, duration: 0.6 });
+                tl.to(mask.current, { autoAlpha: 0.7, duration: 0.6 }, "<");
                 tl.to(closeBtn.current, { autoAlpha: 1, duration: 0 }, "<")
                 break;
             case STACK_PAGE_DIRECTION.BOTTOM:

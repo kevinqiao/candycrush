@@ -70,7 +70,7 @@ const PlayHome: React.FC<PageProps> = (pageProp) => {
               <BattleConsole />
               {battle.games.map((g) => (
                 <GameProvider key={g.gameId} gameId={g.gameId} load={BATTLE_LOAD.PLAY}>
-                  <GamePlay game={g} />
+                  <GamePlay />
                 </GameProvider>
               ))}
               <BattleScene />

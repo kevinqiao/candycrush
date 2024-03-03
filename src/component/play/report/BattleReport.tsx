@@ -101,6 +101,8 @@ const BattleReport: React.FC = () => {
           style={{
             width: "70%",
             height: "50%",
+            maxWidth: 350,
+            maxHeight: 500,
             backgroundColor: "blue",
           }}
         >
