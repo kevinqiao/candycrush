@@ -133,7 +133,7 @@ export const W3Home =
 export const Covers = [
     {
         name: "signin",
-        path: "./signin/Signin",
+        path: "./signin/LogIn",
         uri: "signin",
         position: {
             closeControl: { btn: 0, confirm: 1, maskActive: 1 },

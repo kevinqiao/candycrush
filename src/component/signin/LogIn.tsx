@@ -3,7 +3,7 @@ import PageProps from "model/PageProps";
 import React, { useEffect, useMemo } from "react";
 import { useSSOManager } from "service/SSOManager";
 
-const Signin: React.FC<PageProps> = (pageProp) => {
+const LogIn: React.FC<PageProps> = (pageProp) => {
   const { signOut } = useClerk();
   const { user, sessionCheck, authComplete } = useSSOManager();
   const { getToken, isSignedIn } = useAuth();
@@ -72,4 +72,4 @@ const Signin: React.FC<PageProps> = (pageProp) => {
   );
 };
 
-export default Signin;
+export default LogIn;
