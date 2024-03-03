@@ -47,7 +47,7 @@ module.exports = {
     // }),
     new HtmlWebpackPlugin({
       template: "./public/index.html",
-      filename: "w3.html",
+      filename: "index.html",
       chunks: ["w3"],
     }),
     new HtmlWebpackPlugin({
