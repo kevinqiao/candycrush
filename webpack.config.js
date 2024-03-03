@@ -62,6 +62,7 @@ module.exports = {
     }),
     new CopyPlugin({
       patterns: [
+        { from: "public/www", to: "www" }, // 将 public 目录下的所有内容复制到构建目录下的 public
         { from: "public/assets", to: "assets" }, // 将 public 目录下的所有内容复制到构建目录下的 public
         { from: "public/*.png", to: "images/[name][ext]", noErrorOnMissing: true },
       ],
