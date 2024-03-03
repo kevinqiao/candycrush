@@ -20,6 +20,16 @@ module.exports = {
   // },
   module: {
     rules: [
+      {
+        test: /\.js$/,
+        exclude: /node_modules/,
+        use: {
+          loader: "babel-loader",
+          options: {
+            plugins: ["@babel/plugin-syntax-dynamic-import"],
+          },
+        },
+      },
       // 处理 .ts 或 .tsx 文件
       {
         test: /\.(ts|tsx)$/,

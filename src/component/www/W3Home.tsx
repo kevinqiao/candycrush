@@ -21,9 +21,9 @@ const W3Home: React.FC<PageProps | null> = (prop) => {
   // }, [user]);
   useEffect(() => {
     const messageHandler = (event: any) => {
-      if (event.origin !== "http://localhost:3000") {
-        return;
-      }
+      // if (event.origin !== "http://localhost:3000") {
+      //   return;
+      // }
       if (event.data.type === "test") {
         if (user?.uid) window.location.href = "/match3/playcenter/battle/home";
         else openPage({ name: "signin", data: { src: "/match3" } });
