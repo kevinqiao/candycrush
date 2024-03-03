@@ -1,4 +1,5 @@
 import { useAuth, useClerk } from "@clerk/clerk-react";
+import { useAuthorize } from "component/signin/useAuthorize";
 import { useAction } from "convex/react";
 import { User } from "model/User";
 import React, { createContext, useCallback, useContext, useEffect, useState } from "react";
@@ -26,6 +27,7 @@ export const SSOProvider = ({ children }: { children: React.ReactNode }) => {
   const [sessionCheck, setSessionCheck] = useState(0); //0-to check 1-checked
   const authByToken = useAction(api.UserService.authByToken);
   const { getToken, isSignedIn } = useAuth();
+  const { authClerk, authTgbot } = useAuthorize();
 
   const authComplete = useCallback(
     (u: User) => {
@@ -51,65 +53,53 @@ export const SSOProvider = ({ children }: { children: React.ReactNode }) => {
     }
   }, [user]);
   useEffect(() => {
-    const fetchDataFromExternalResource = async () => {
-      const token = await getToken();
-      if (!token) return;
-      const url = "http://localhost/clerk";
-      // const url = "https://telegram-bot-8bgi.onrender.com/clerk";
-      const res = await fetch(url, {
-        method: "GET", // 或 'POST', 'PUT', 'DELETE' 等
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`, // 将 token 添加到请求头中
-          mode: "cors",
-        },
-      });
-      const json = await res.json();
-
-      if (json.status === "success") {
-        authComplete(json.message);
+    const channelAuth = async () => {
+      let res;
+      if (isSignedIn) {
+        const t: string | null = await getToken();
+        res = await authClerk(t);
+      } else if (window.Telegram) {
+        const telegramData = window.Telegram.WebApp.initData;
+        res = await authTgbot(telegramData);
+      }
+      if (res?.status === "success") {
+        authComplete(res.message);
       }
     };
-    if (isSignedIn && sessionCheck === 1) {
-      fetchDataFromExternalResource();
-    }
-  }, [isSignedIn, sessionCheck]);
+
+    if (sessionCheck === 1) channelAuth();
+  }, [isSignedIn, sessionCheck, window.Telegram]);
 
   useEffect(() => {
     if (user || !currentPage) return;
-    let uid, token;
-    let authEmbed = 0; //0-external browser 1-telegram bot 2-browser url
-    if (currentPage.params?.uid && currentPage.params?.token) {
-      uid = currentPage.params?.uid;
-      token = currentPage.params?.token;
-    } else {
-      const userJSON = localStorage.getItem("user");
-      if (userJSON !== null) {
-        const userObj = JSON.parse(userJSON);
-        if (userObj["uid"] && userObj["token"]) {
-          uid = userObj["uid"];
-          token = userObj["token"];
-          authEmbed = userObj["authEmbed"] ?? 0;
+    const checkSession = async () => {
+      let uid, token;
+      if (currentPage.params?.uid && currentPage.params?.token) {
+        uid = currentPage.params?.uid;
+        token = currentPage.params?.token;
+      } else {
+        const userJSON = localStorage.getItem("user");
+        if (userJSON !== null) {
+          const userObj = JSON.parse(userJSON);
+          if (userObj["uid"] && userObj["token"]) {
+            uid = userObj["uid"];
+            token = userObj["token"];
+          }
         }
       }
-    }
-    if (uid && token) {
-      let status = 1;
-      authByToken({ uid, token })
-        .then((u: any) => {
-          if (u) {
-            u.timelag = u.timestamp - Date.now();
-            authComplete({ ...u, authEmbed });
-            status = 2;
-          }
-        })
-        .catch((err) => {
-          console.log(err);
-        })
-        .finally(() => {
-          setSessionCheck(status);
-        });
-    } else setSessionCheck(1);
+      if (uid && token) {
+        const u = await authByToken({ uid, token });
+        console.log(u);
+        if (u) {
+          u.timelag = u.timestamp - Date.now();
+          authComplete(u);
+          setSessionCheck(2);
+          return;
+        }
+      }
+      setSessionCheck(1);
+    };
+    checkSession();
   }, [user, currentPage]);
 
   const value = {
