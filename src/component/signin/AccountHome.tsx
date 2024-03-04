@@ -20,19 +20,19 @@ const AccountHome: React.FC = () => {
       },
     });
     tl.to(maskRef.current, { autoAlpha: 0.7, duration: 0.3 });
-    tl.to(signoutRef.current, { autoAlpha: 1, duration: 0.3 });
+    tl.to(signoutRef.current, { autoAlpha: 1, duration: 0.3 }, "<");
     tl.play();
   };
-  const closeSignout = () => {
+  const closeSignout = (type: number) => {
     const tl = gsap.timeline({
       onComplete: () => {
         tl.kill();
       },
     });
     tl.to(maskRef.current, { autoAlpha: 0, duration: 0.3 });
-    tl.to(signoutRef.current, { autoAlpha: 0, duration: 0.3 });
+    tl.to(signoutRef.current, { autoAlpha: 0, duration: 0.3 }, "<");
     tl.play();
-    window.location.href = "/?signout=1";
+    if (type > 0) window.location.href = "/?signout=1";
   };
   const isActive = useCallback(() => {
     const stack = stacks.find((s) => s.name === "signin");
@@ -97,7 +97,7 @@ const AccountHome: React.FC = () => {
           height: "100%",
         }}
       >
-        {user && isActive() ? <Signout onComplete={closeSignout} onCancel={closeSignout} /> : null}
+        {user && isActive() ? <Signout onComplete={() => closeSignout(1)} onCancel={() => closeSignout(0)} /> : null}
       </div>
     </div>
   );
