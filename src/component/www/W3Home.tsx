@@ -63,7 +63,7 @@ const W3Home: React.FC<PageProps | null> = (prop) => {
   const playNow = useCallback(() => {
     if (user?.uid) window.location.href = "/match3/playcenter/battle/home";
     else openPage({ name: "signin", data: { src: "/match3" } });
-  }, [isSignedIn]);
+  }, [user, isSignedIn]);
   const render = useMemo(() => {
     return (
       <div style={{ position: "relative", width, height, margin: 0, backgroundColor: "blue" }}>
