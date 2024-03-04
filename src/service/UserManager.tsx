@@ -77,15 +77,15 @@ export const UserProvider = ({ children }: { children: React.ReactNode }) => {
       setLastTime(userEvent.time);
     }
   }, [user, userEvent]);
-
-  useEffect(() => {
-    if (sessionCheck === 1) {
-      const app: any = getCurrentAppConfig();
-      if (app?.auth) {
-        window.location.href = "/";
-      }
-    }
-  }, [sessionCheck]);
+  console.log(user);
+  // useEffect(() => {
+  //   if (sessionCheck === 1) {
+  //     const app: any = getCurrentAppConfig();
+  //     if (app?.auth) {
+  //       window.location.href = "/";
+  //     }
+  //   }
+  // }, [sessionCheck]);
 
   useEffect(() => {
     if (user || !currentPage) return;

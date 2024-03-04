@@ -46,12 +46,22 @@ export const SSOProvider = ({ children }: { children: React.ReactNode }) => {
         setUser(null);
       }
     };
+    if (sessionCheck === 0) return;
+    console.log(user);
+
     const searchParams = new URLSearchParams(location.search);
     for (const param of searchParams) {
-      if (user?.uid && param[0] === "redirect") window.location.href = param[1];
-      if (param[0] === "signout") exit();
+      console.log(param);
+      if (param[0] === "redirect") {
+        console.log("redirecting:" + param[1]);
+        if (user?.uid) {
+          window.location.href = param[1];
+          return;
+        }
+      }
+      if (user?.uid && param[0] === "signout") exit();
     }
-  }, [user, isSignedIn]);
+  }, [user, isSignedIn, sessionCheck]);
   useEffect(() => {
     const channelAuth = async () => {
       let res;
