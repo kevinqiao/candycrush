@@ -53,8 +53,10 @@ const LogIn: React.FC<PageProps> = (pageProp) => {
         alignItems: "center",
         width: "100%",
         height: "100vh",
+        backgroundColor: "white",
       }}
     >
+      <div style={{ fontSize: "20px", color: "blue" }}>Welcome!</div>
       <SignIn redirectUrl={redirectURL} afterSignInUrl={redirectURL} />
       {/* <SignedOut>{pageProp ? <SignIn redirectUrl={redirectURL} afterSignInUrl={redirectURL} /> : null}</SignedOut> */}
       {/* <SignedIn>

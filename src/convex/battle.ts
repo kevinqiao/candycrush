@@ -180,9 +180,13 @@ export const findMyBattles = sessionQuery({
     const mybattles = [];
     let games;
     if (from)
-      games = await ctx.db.query("games").filter((q) => q.and(q.eq(q.field("uid"), uid), q.lt(q.field("_creationTime"), to), q.gt(q.field("_creationTime"), from))).order("desc").collect();
+      games = await ctx.db.query("games").filter((q) => q.and(q.lt(q.field("_creationTime"), to), q.gt(q.field("_creationTime"), from))).order("desc").collect();
     else
-      games = await ctx.db.query("games").filter((q) => q.and(q.eq(q.field("uid"), uid), q.lt(q.field("_creationTime"), to))).order("desc").take(10);
+      games = await ctx.db.query("games").filter((q) => q.and(q.lt(q.field("_creationTime"), to))).order("desc").take(10);
+    // if (from)
+    //   games = await ctx.db.query("games").filter((q) => q.and(q.eq(q.field("uid"), uid), q.lt(q.field("_creationTime"), to), q.gt(q.field("_creationTime"), from))).order("desc").collect();
+    // else
+    //   games = await ctx.db.query("games").filter((q) => q.and(q.eq(q.field("uid"), uid), q.lt(q.field("_creationTime"), to))).order("desc").take(10);
 
     for (const game of games) {
       const b: any = await ctx.db.get(game.battleId as Id<"battle">);

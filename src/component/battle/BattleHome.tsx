@@ -26,6 +26,7 @@ const BattleHome: React.FC = () => {
   const [battles, setBattles] = useState<any>(null);
   // const pageIndexRef = useRef<number>(0);
   const convex = useConvex();
+  console.log(user);
   useEffect(() => {
     if (!user) return;
     const observer = new IntersectionObserver(

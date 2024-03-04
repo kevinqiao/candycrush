@@ -6,6 +6,7 @@ import useCoord from "service/CoordManager";
 import { usePageManager } from "service/PageManager";
 import { useSSOManager } from "service/SSOManager";
 import PageProps from "../../model/PageProps";
+import "./www.css";
 const W3Home: React.FC<PageProps | null> = (prop) => {
   const maskRef = useRef<HTMLDivElement | null>(null);
   const signoutRef = useRef<HTMLDivElement | null>(null);
@@ -14,14 +15,6 @@ const W3Home: React.FC<PageProps | null> = (prop) => {
   const { isSignedIn } = useAuth();
   const { user } = useSSOManager();
 
-  // useEffect(() => {
-  //   console.log(user);
-  //   const searchParams = new URLSearchParams(location.search);
-  //   for (const param of searchParams) {
-  //     console.log(param);
-  //     if (user?.uid && param[0] === "redirect") window.location.href = param[1];
-  //   }
-  // }, [user]);
   useEffect(() => {
     const messageHandler = (event: any) => {
       // if (event.origin !== "http://localhost:3000") {
@@ -30,8 +23,6 @@ const W3Home: React.FC<PageProps | null> = (prop) => {
       if (event.data.type === "test") {
         if (user?.uid) window.location.href = "/match3/playcenter/battle/home";
         else openPage({ name: "signin", data: { src: "/match3" } });
-        // window.location.href = "/match3/playcenter/battle/home";
-        // console.log("Received message:", event.data);
       }
     };
 
@@ -69,93 +60,32 @@ const W3Home: React.FC<PageProps | null> = (prop) => {
     if (!isSignedIn) openPage({ name: "signin", data: {} });
   }, [isSignedIn]);
 
+  const playNow = useCallback(() => {
+    if (user?.uid) window.location.href = "/match3/playcenter/battle/home";
+    else openPage({ name: "signin", data: { src: "/match3" } });
+  }, [isSignedIn]);
   const render = useMemo(() => {
     return (
       <div style={{ position: "relative", width, height, margin: 0, backgroundColor: "blue" }}>
         <iframe
-          src={"/www/index.html"}
+          src={"https://pixels.xyz"}
           width={"100%"}
           height={"100%"}
           title={"pixels"}
           style={{ border: "none", margin: "0px 0px 0px 0px" }}
         />
 
-        {user?.uid ? (
-          <div
-            style={{
-              cursor: "pointer",
-              display: "flex",
-              justifyContent: "center",
-              alignItems: "center",
-              position: "absolute",
-              zIndex: 10000,
-              top: 50,
-              right: 55,
-              width: 250,
-              height: 60,
-              backgroundColor: "red",
-              color: "white",
-            }}
-            onClick={(e) => {
-              openSignout();
-            }}
-          >
-            <span style={{ fontSize: 25 }}>Logout</span>
-          </div>
-        ) : (
-          <div
-            style={{
-              cursor: "pointer",
-              display: "flex",
-              justifyContent: "center",
-              alignItems: "center",
-              position: "absolute",
-              zIndex: 10000,
-              top: 50,
-              right: 55,
-              width: 250,
-              height: 60,
-              backgroundColor: "red",
-              color: "white",
-            }}
-            onClick={login}
-          >
-            <span style={{ fontSize: 25 }}>Login</span>
-          </div>
-        )}
-        <div
-          ref={maskRef}
-          style={{
-            position: "absolute",
-            top: 0,
-            left: 0,
-            opacity: 0,
-            width: "100%",
-            height: "100%",
-            backgroundColor: "black",
-          }}
-        ></div>
+        <div className="play_btn" onClick={playNow}>
+          <span style={{ fontSize: 25 }}>Play Now</span>
+        </div>
+        <div ref={maskRef} className="mask_w3"></div>
 
-        <div
-          ref={signoutRef}
-          style={{
-            position: "absolute",
-            zIndex: 10000,
-            opacity: 0,
-            top: 0,
-            left: 0,
-            display: "flex",
-            justifyContent: "center",
-            alignItems: "center",
-            width: "100%",
-            height: "100%",
-          }}
-        >
+        <div ref={signoutRef} className="signout_btn">
           {user?.uid ? <SSOSignout onComplete={closeSignout} onCancel={closeSignout} /> : null}
         </div>
       </div>
     );
-  }, [prop, height, user, isSignedIn]);
+  }, [prop, width, height, user]);
   return <>{render}</>;
 };
 
