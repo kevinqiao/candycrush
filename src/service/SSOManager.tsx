@@ -39,19 +39,19 @@ export const SSOProvider = ({ children }: { children: React.ReactNode }) => {
     [stacks]
   );
   useEffect(() => {
+    const exit = async () => {
+      if (isSignedIn) await signOut();
+      if (user?.uid) {
+        localStorage.removeItem("user");
+        setUser(null);
+      }
+    };
     const searchParams = new URLSearchParams(location.search);
     for (const param of searchParams) {
       if (user?.uid && param[0] === "redirect") window.location.href = param[1];
-      if (param[0] === "signout") {
-        signOut().then(() => {
-          if (user?.uid) {
-            localStorage.removeItem("user");
-            setUser(null);
-          }
-        });
-      }
+      if (param[0] === "signout") exit();
     }
-  }, [user]);
+  }, [user, isSignedIn]);
   useEffect(() => {
     const channelAuth = async () => {
       let res;
@@ -62,11 +62,11 @@ export const SSOProvider = ({ children }: { children: React.ReactNode }) => {
         const telegramData = window.Telegram.WebApp.initData;
         res = await authTgbot(telegramData);
       }
+      console.log(res);
       if (res?.status === "success") {
         authComplete(res.message);
       }
     };
-
     if (sessionCheck === 1) channelAuth();
   }, [isSignedIn, sessionCheck, window.Telegram]);
 
@@ -89,7 +89,7 @@ export const SSOProvider = ({ children }: { children: React.ReactNode }) => {
       }
       if (uid && token) {
         const u = await authByToken({ uid, token });
-        console.log(u);
+
         if (u) {
           u.timelag = u.timestamp - Date.now();
           authComplete(u);
@@ -106,10 +106,14 @@ export const SSOProvider = ({ children }: { children: React.ReactNode }) => {
     user,
     sessionCheck,
     authComplete,
-    signout: useCallback(() => {
+    signout: useCallback(async () => {
+      if (isSignedIn) {
+        console.log("signout from clerk");
+        await signOut();
+      }
       localStorage.removeItem("user");
       setUser(null);
-    }, []),
+    }, [signOut, isSignedIn]),
   };
 
   return <UserContext.Provider value={value}>{children}</UserContext.Provider>;

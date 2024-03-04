@@ -1,6 +1,7 @@
+import { useAuth } from "@clerk/clerk-react";
 import SSOSignout from "component/signin/SSOSignout";
 import gsap from "gsap";
-import React, { useEffect, useMemo, useRef } from "react";
+import React, { useCallback, useEffect, useMemo, useRef } from "react";
 import useCoord from "service/CoordManager";
 import { usePageManager } from "service/PageManager";
 import { useSSOManager } from "service/SSOManager";
@@ -10,7 +11,9 @@ const W3Home: React.FC<PageProps | null> = (prop) => {
   const signoutRef = useRef<HTMLDivElement | null>(null);
   const { width, height } = useCoord();
   const { openPage } = usePageManager();
+  const { isSignedIn } = useAuth();
   const { user } = useSSOManager();
+
   // useEffect(() => {
   //   console.log(user);
   //   const searchParams = new URLSearchParams(location.search);
@@ -49,7 +52,7 @@ const W3Home: React.FC<PageProps | null> = (prop) => {
       },
     });
     tl.to(maskRef.current, { autoAlpha: 0.7, duration: 0.3 });
-    tl.to(signoutRef.current, { autoAlpha: 1, duration: 0.3 });
+    tl.to(signoutRef.current, { autoAlpha: 1, duration: 0.3 }, "<");
     tl.play();
   };
   const closeSignout = () => {
@@ -59,9 +62,12 @@ const W3Home: React.FC<PageProps | null> = (prop) => {
       },
     });
     tl.to(maskRef.current, { autoAlpha: 0, duration: 0.3 });
-    tl.to(signoutRef.current, { autoAlpha: 0, duration: 0.3 });
+    tl.to(signoutRef.current, { autoAlpha: 0, duration: 0.3 }, "<");
     tl.play();
   };
+  const login = useCallback(() => {
+    if (!isSignedIn) openPage({ name: "signin", data: {} });
+  }, [isSignedIn]);
 
   const render = useMemo(() => {
     return (
@@ -74,7 +80,7 @@ const W3Home: React.FC<PageProps | null> = (prop) => {
           style={{ border: "none", margin: "0px 0px 0px 0px" }}
         />
 
-        {user ? (
+        {user?.uid ? (
           <div
             style={{
               cursor: "pointer",
@@ -112,9 +118,7 @@ const W3Home: React.FC<PageProps | null> = (prop) => {
               backgroundColor: "red",
               color: "white",
             }}
-            onClick={(e) => {
-              openPage({ name: "signin", data: {} });
-            }}
+            onClick={login}
           >
             <span style={{ fontSize: 25 }}>Login</span>
           </div>
@@ -136,6 +140,7 @@ const W3Home: React.FC<PageProps | null> = (prop) => {
           ref={signoutRef}
           style={{
             position: "absolute",
+            zIndex: 10000,
             opacity: 0,
             top: 0,
             left: 0,
@@ -146,11 +151,11 @@ const W3Home: React.FC<PageProps | null> = (prop) => {
             height: "100%",
           }}
         >
-          {user ? <SSOSignout onComplete={closeSignout} onCancel={closeSignout} /> : null}
+          {user?.uid ? <SSOSignout onComplete={closeSignout} onCancel={closeSignout} /> : null}
         </div>
       </div>
     );
-  }, [prop, height, user]);
+  }, [prop, height, user, isSignedIn]);
   return <>{render}</>;
 };
 

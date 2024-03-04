@@ -1,39 +1,42 @@
-import { SignedIn, SignedOut, SignIn, useAuth, useClerk } from "@clerk/clerk-react";
+import { SignIn, useAuth, useClerk } from "@clerk/clerk-react";
 import PageProps from "model/PageProps";
-import React, { useEffect, useMemo } from "react";
+import React, { useMemo } from "react";
 import { useSSOManager } from "service/SSOManager";
 
 const LogIn: React.FC<PageProps> = (pageProp) => {
   const { signOut } = useClerk();
   const { user, sessionCheck, authComplete } = useSSOManager();
   const { getToken, isSignedIn } = useAuth();
-  console.log(isSignedIn);
-  useEffect(() => {
-    const fetchDataFromExternalResource = async () => {
-      const token = await getToken();
-      if (!token) return;
-      // const url = "http://localhost/clerk";
-      const url = "https://telegram-bot-8bgi.onrender.com/clerk";
-      const res = await fetch(url, {
-        method: "GET", // 或 'POST', 'PUT', 'DELETE' 等
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`, // 将 token 添加到请求头中
-          mode: "cors",
-        },
-      });
-      const json = await res.json();
-      console.log(json);
-      if (json.status === "success") {
-        authComplete(json.message);
-      } else {
-        await signOut();
-      }
-    };
-    if (isSignedIn && sessionCheck) {
-      if (!user) fetchDataFromExternalResource();
-    }
-  }, [user, isSignedIn, sessionCheck, pageProp]);
+  // console.log(isSignedIn);
+  // useEffect(() => {
+  //   if (isSignedIn) signOut();
+  // }, [isSignedIn]);
+  // useEffect(() => {
+  //   const fetchDataFromExternalResource = async () => {
+  //     const token = await getToken();
+  //     if (!token) return;
+  //     // const url = "http://localhost/clerk";
+  //     const url = "https://telegram-bot-8bgi.onrender.com/clerk";
+  //     const res = await fetch(url, {
+  //       method: "GET", // 或 'POST', 'PUT', 'DELETE' 等
+  //       headers: {
+  //         "Content-Type": "application/json",
+  //         Authorization: `Bearer ${token}`, // 将 token 添加到请求头中
+  //         mode: "cors",
+  //       },
+  //     });
+  //     const json = await res.json();
+  //     console.log(json);
+  //     if (json.status === "success") {
+  //       authComplete(json.message);
+  //     } else {
+  //       await signOut();
+  //     }
+  //   };
+  //   if (isSignedIn && sessionCheck) {
+  //     if (!user) fetchDataFromExternalResource();
+  //   }
+  // }, [user, isSignedIn, sessionCheck, pageProp]);
 
   const redirectURL = useMemo(() => {
     const url = pageProp.data?.src
@@ -52,8 +55,9 @@ const LogIn: React.FC<PageProps> = (pageProp) => {
         height: "100vh",
       }}
     >
-      <SignedOut>{pageProp ? <SignIn redirectUrl={redirectURL} afterSignInUrl={redirectURL} /> : null}</SignedOut>
-      <SignedIn>
+      <SignIn redirectUrl={redirectURL} afterSignInUrl={redirectURL} />
+      {/* <SignedOut>{pageProp ? <SignIn redirectUrl={redirectURL} afterSignInUrl={redirectURL} /> : null}</SignedOut> */}
+      {/* <SignedIn>
         <div
           style={{
             display: "flex",
@@ -67,7 +71,7 @@ const LogIn: React.FC<PageProps> = (pageProp) => {
         >
           <span style={{ fontSize: 20, color: "blue" }}>Authenticating...</span>
         </div>
-      </SignedIn>
+      </SignedIn> */}
     </div>
   );
 };

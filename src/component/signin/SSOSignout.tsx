@@ -1,4 +1,3 @@
-import { useClerk } from "@clerk/clerk-react";
 import React, { useCallback } from "react";
 import { useSSOManager } from "service/SSOManager";
 interface Props {
@@ -7,13 +6,12 @@ interface Props {
 }
 const SSOSignout: React.FC<Props> = ({ onComplete, onCancel }) => {
   const { signout } = useSSOManager();
-  const { signOut } = useClerk();
-  const complete = useCallback(() => {
+  // const { signOut } = useClerk();
+  const complete = useCallback(async () => {
     signout();
-    signOut().then((s) => {
-      onComplete();
-    });
-  }, [signout, signOut]);
+
+    onComplete();
+  }, [signout]);
   const cancel = () => {
     onCancel();
   };
