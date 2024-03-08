@@ -6,7 +6,7 @@ import { useSceneManager } from "../../../service/SceneManager";
 const TimeCount = () => {
   const { user } = useUserManager();
   const { containerBound } = useSceneManager();
-  const { battle, createBattleEvent } = useBattleManager();
+  const { battle, timeout } = useBattleManager();
   const [timeLeft, setTimeLeft] = useState<number>(-1);
 
   useEffect(() => {
@@ -18,7 +18,7 @@ const TimeCount = () => {
       }, past);
     else if (battle.duration + past > 0) {
       setTimeLeft(Math.ceil((battle.duration + past) / 1000));
-    } else createBattleEvent({ name: "battleOver", data: null });
+    } else timeout();
   }, [battle, user]);
 
   useEffect(() => {
@@ -29,17 +29,15 @@ const TimeCount = () => {
 
     if (timeLeft === 0) {
       clearInterval(timer);
-      createBattleEvent({ name: "battleOver", data: null });
+      timeout();
     }
     // 清除计时器
     return () => clearInterval(timer);
   }, [timeLeft]); // 每次 timeLeft 更新时重新执行
 
-  // 将剩余时间格式化为 HH:MM:SS
   const formatTime = (time: number): string => {
     const minutes = Math.floor((time % 3600) / 60);
     const seconds = time % 60;
-
     return `${minutes}:${seconds < 10 ? "0" : ""}${seconds}`;
   };
 

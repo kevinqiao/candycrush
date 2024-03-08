@@ -7,11 +7,9 @@ interface ISceneContext {
   containerBound: PagePosition | null | undefined;
   textures: { id: number; texture: PIXI.Texture }[];
   avatarTextures: { name: string; texture: PIXI.Texture }[];
-  scenes: Map<string, SceneModel>;
+  scenes: Map<string, any>;
   sceneEvent: SceneEvent | null;
-  updateScene: (name: string, data: any) => void;
   stageScene: (id: string, scene: SceneModel | null) => void;
-  checkLoad: (names: string[]) => boolean;
   disableCloseBtn: () => void;
   exit: () => void;
 }
@@ -22,9 +20,8 @@ const SceneContext = createContext<ISceneContext>({
   scenes: new Map(),
   sceneEvent: null,
 
-  updateScene: (name: string, data: any) => null,
-  stageScene: (id: string, scene: SceneModel | null) => null,
-  checkLoad: (names: string[]) => false,
+  stageScene: (id: string, scene: any) => null,
+
   disableCloseBtn: () => null,
   exit: () => null,
 });
@@ -47,7 +44,7 @@ export const SceneProvider = ({
   pagePosition: PagePosition;
   children: React.ReactNode;
 }) => {
-  const scenesRef = useRef<Map<string, SceneModel>>(new Map());
+  const scenesRef = useRef<Map<string, any>>(new Map());
   const texturesRef = useRef<{ id: number; texture: PIXI.Texture }[]>([]);
   const avatarTexturesRef = useRef<{ name: string; texture: PIXI.Texture }[]>([]);
   const [sceneEvent, setSceneEvent] = useState<SceneEvent | null>(null);
@@ -73,6 +70,7 @@ export const SceneProvider = ({
       // 资源加载完成后的操作
     });
   };
+
   useEffect(() => {
     if (pagePosition) {
       setContainerBound(pagePosition);
@@ -108,22 +106,12 @@ export const SceneProvider = ({
         pageProp.disableCloseBtn();
       }
     }, [pageProp]),
-    updateScene: useCallback((name: string, data: any) => {
-      const scene = scenesRef.current.get(name);
-      if (scene) {
-        if (data) Object.assign(scene, data);
-        //  setSceneEvent({ name, type: SCENE_EVENT_TYPE.UPDATE });
-      }
-    }, []),
 
     stageScene: useCallback((id: string, scene: SceneModel | null) => {
       if (scene && !scenesRef.current.get(id)) {
         scenesRef.current.set(id, scene);
         setSceneEvent({ name: id, type: SCENE_EVENT_TYPE.CREATE });
       }
-    }, []),
-    checkLoad: useCallback((names: string[]) => {
-      return names.every((name) => Array.from(scenesRef.current.keys()).includes(name));
     }, []),
   };
 

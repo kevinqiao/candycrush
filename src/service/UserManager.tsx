@@ -55,9 +55,6 @@ export const UserProvider = ({ children }: { children: React.ReactNode }) => {
   const authComplete = useCallback(
     (u: User) => {
       u.timelag = u.timestamp ? u.timestamp - Date.now() : 0;
-      const app: any = getCurrentAppConfig();
-      // if (u && app && !app.authLife)
-      console.log(u);
       localStorage.setItem("user", JSON.stringify({ uid: u.uid, token: u.token, authEmbed: u.authEmbed ?? 0 }));
       if (u.battle) {
         const stack = stacks.find((s) => s.name === "battlePlay");
@@ -71,21 +68,12 @@ export const UserProvider = ({ children }: { children: React.ReactNode }) => {
   );
   useEffect(() => {
     if (userEvent && user) {
-      if (userEvent?.name === "battleCreated") {
-        openBattle(user, userEvent.data);
-      }
+      // if (userEvent?.name === "battleCreated") {
+      //   openBattle(user, userEvent.data);
+      // }
       setLastTime(userEvent.time);
     }
   }, [user, userEvent]);
-  console.log(user);
-  // useEffect(() => {
-  //   if (sessionCheck === 1) {
-  //     const app: any = getCurrentAppConfig();
-  //     if (app?.auth) {
-  //       window.location.href = "/";
-  //     }
-  //   }
-  // }, [sessionCheck]);
 
   useEffect(() => {
     if (user || !currentPage) return;

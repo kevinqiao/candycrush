@@ -1,62 +1,54 @@
-import React, { createContext, useCallback, useContext, useState } from "react";
+import React, { createContext, useCallback, useContext, useEffect, useState } from "react";
 import { BattleModel } from "../model/Battle";
 import { useUserManager } from "./UserManager";
 
 interface IBattleContext {
   battle: BattleModel | null;
   allGameLoaded: boolean;
-  battleEvent: any;
-  createBattleEvent: (event: any) => void;
+  battleOver: number;
+  // battleEvent: any;
+  timeout: () => void;
   completeGame: (gameId: string, score: { base: number; time: number; goal: number }) => void;
   loadGame: (gameId: string, data: any) => void;
 }
 const BattleContext = createContext<IBattleContext>({
   allGameLoaded: false,
   battle: null,
-  battleEvent: null,
-  createBattleEvent: () => null,
+  battleOver: 0,
+  // battleEvent: null,
+  timeout: () => null,
   completeGame: (gameId: string, score: { base: number; time: number; goal: number }) => null,
   loadGame: (gameId: string, data: any) => null,
 });
 
 export const BattleProvider = ({ battle, children }: { battle: BattleModel | null; children: React.ReactNode }) => {
   const [allGameLoaded, setAllGameLoaded] = useState(false);
-  // const { createAnimate } = useAnimateManager();
-  const [battleEvent, setBattleEvent] = useState<any>(null);
+  const [battleOver, setBattleOver] = useState(0);
   const { user } = useUserManager();
 
-  // const event: GameEvent | undefined | null = useQuery(api.events.findByBattle, {
-  //   battleId: battle?.id,
-  // });
-
-  // useEffect(() => {
-  //   if (event && event["name"] === "battleOver") {
-  //     if (battle) {
-  //       battle.status = 1;
-  //       battle.rewards = event["data"];
-  //       setBattleEvent(event);
-  //     }
-  //   }
-  // }, [event]);
+  useEffect(() => {
+    if (!user || !battle) return;
+    const mygame = battle.games?.find((g) => g.uid === user.uid);
+    const timeLeft = battle.duration + battle.startTime - Date.now() + user.timelag;
+    if (battle.status || mygame?.result || timeLeft < 0) setBattleOver(1);
+  }, [battle, user]);
 
   const value = {
     allGameLoaded,
     battle,
-    battleEvent,
-    createBattleEvent: useCallback(
-      (event: any) => {
-        // console.log(event);
-        setBattleEvent(event);
-      },
-      [battle]
-    ),
+    battleOver,
+    // battleEvent,
+    timeout: useCallback(() => {
+      // console.log(event);
+      setBattleOver(2);
+    }, [battle]),
     completeGame: useCallback(
       (gameId: string, result: any) => {
         if (!battle || !battle.games) return;
         const game = battle?.games.find((g) => g.gameId === gameId);
         if (game && game.uid === user.uid) {
           game.result = result;
-          setBattleEvent({ name: "battleOver", data: null });
+          setBattleOver(1);
         }
       },
       [battle]
@@ -66,9 +58,9 @@ export const BattleProvider = ({ battle, children }: { battle: BattleModel | nul
         if (!battle || !battle.games) return;
         const game = battle?.games.find((g) => g.gameId === gameId);
         if (game) {
-          console.log(game);
           game.data = data;
           game.status = 1;
+
           if (battle.games.every((g) => g.status)) {
             setAllGameLoaded(true);
           }

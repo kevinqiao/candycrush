@@ -1,6 +1,7 @@
 import { Id } from "convex/_generated/dataModel";
 import { useAction, useConvex } from "convex/react";
 import { useCallback } from "react";
+import { getCurrentAppConfig } from "util/PageUtils";
 import { api } from "../convex/_generated/api";
 import { usePageManager } from "./PageManager";
 import { useUserManager } from "./UserManager";
@@ -13,13 +14,15 @@ const useTournamentManager = () => {
   const convex = useConvex();
 
   const join = useCallback(async (tournamentId: string) => {
-    console.log(user)
+
     if (!user || !user.uid) {
-      console.log("openning signin")
       openPage({ name: "signin", data: null })
       return;
     }
-    await joinTournamentByGroup({ tid: tournamentId, uid: user.uid })
+    const app = getCurrentAppConfig();
+    openPage({ name: "battlePlay", ctx: app.context, data: {} })
+    setTimeout(async () =>
+      await joinTournamentByGroup({ tid: tournamentId, uid: user.uid }), 5000)
   }, [user])
   const listActives = useCallback(
     async (): Promise<any[]> => {
@@ -31,7 +34,6 @@ const useTournamentManager = () => {
   const findBattle = useCallback(
     async (battleId: Id<"battle">): Promise<any> => {
       const battle: any = await convex.action(api.battle.findBattle, { battleId });
-      console.log(battle)
       return battle;
     },
     [convex]

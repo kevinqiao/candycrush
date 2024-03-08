@@ -93,7 +93,6 @@ const GamePlay = () => {
       if (!game || !battle || !bound || !sceneContainerRef.current) return;
       const gameScene: GameScene | undefined = scenes.get(game.gameId) as GameScene;
       if (!gameScene) {
-        console.log("loading game scene");
         const { left, top, width, height } = bound;
         const app = new PIXI.Application({
           width,

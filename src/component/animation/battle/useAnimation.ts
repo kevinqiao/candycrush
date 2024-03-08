@@ -26,6 +26,7 @@ export const useAnimation = () => {
         });
         // const bl = gsap.timeline();
         // tl.add(bl, ">+=1.0")
+
         battle.games.forEach((g) => {
             const gl = gsap.timeline();
             bl.add(gl, "<");
@@ -34,7 +35,7 @@ export const useAnimation = () => {
             const sl = gsap.timeline();
             bl.add(sl, "<");
             const isPlayer = user.uid === g.uid ? true : false
-            console.log(g.gameId + ":" + isPlayer)
+
             initConsole.play(isPlayer, g.gameId, score, sl);
         })
         if (!timeline)

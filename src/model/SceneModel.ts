@@ -17,13 +17,14 @@ export interface GameScene extends SceneModel {
     candies: Map<number, CandySprite>;
 }
 
-export interface SearchScene extends SceneModel {
-    sceneEle: HTMLDivElement;
-    searchTxTEle: HTMLDivElement;
-    vsEle: HTMLDivElement;
-    foundTxTEle: HTMLDivElement;
-    playerAvatarEle: HTMLDivElement;
-    opponentAvatarEle: HTMLDivElement;
+export interface SearchScene {
+    containerEle: HTMLDivElement;
+    searchEle: HTMLDivElement;
+    // searchTxTEle: HTMLDivElement;
+    // vsEle: HTMLDivElement;
+    // foundTxTEle: HTMLDivElement;
+    // playerAvatarEle: HTMLDivElement;
+    // opponentAvatarEle: HTMLDivElement;
 }
 export interface ConsoleScene extends SceneModel {
     avatarBars: { gameId: string; avatar: HTMLElement | null; bar: HTMLElement | null; score: HTMLElement | null; plus: HTMLElement | null }[];

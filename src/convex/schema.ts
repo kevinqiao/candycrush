@@ -62,7 +62,6 @@ export default defineSchema({
         tournamentId: v.string(),
         term: v.optional(v.number()),//schedule tournament term
         rewards: v.optional(v.any()),
-        searchDueTime: v.number(),
         endDueTime: v.number(),
         startTime: v.number(),
         duration: v.number(),

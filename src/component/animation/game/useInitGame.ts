@@ -11,6 +11,7 @@ const useInitGame = () => {
         (gameId: string, timeline: any) => {
 
             const gameScene = scenes.get(gameId) as GameScene;
+
             const tl = timeline ?? gsap.timeline();
             if (gameScene && gameScene.candies && gameScene.column && gameScene.row) {
 

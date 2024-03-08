@@ -26,17 +26,17 @@ const BattleHome: React.FC = () => {
   const [battles, setBattles] = useState<any>(null);
   // const pageIndexRef = useRef<number>(0);
   const convex = useConvex();
-  console.log(user);
+
   useEffect(() => {
     if (!user) return;
     const observer = new IntersectionObserver(
       (entries) => {
         entries.forEach((entry) => {
-          console.log(entry.intersectionRatio);
+          // console.log(entry.intersectionRatio);
           if (entry.isIntersecting) {
             const to = Date.now() + user.timelag;
             const from = lastTimeRef.current > 0 ? lastTimeRef.current : undefined;
-            console.log(from + ":" + to);
+            // console.log(from + ":" + to);
             convex.query(api.battle.findMyBattles, { uid: user.uid, from, to }).then((bs: any) => {
               if (bs.length > 0) {
                 bs.forEach((b: any) => {
@@ -47,10 +47,10 @@ const BattleHome: React.FC = () => {
                 setTimeout(() => setBattles((pre: any) => (pre ? [...bs, ...pre] : bs)), 1000);
               }
             });
-            console.log("Div is in the viewport");
+            // console.log("Div is in the viewport");
           } else {
             // Div is not in the viewport
-            console.log("Div is not in the viewport");
+            // console.log("Div is not in the viewport");
           }
         });
       },

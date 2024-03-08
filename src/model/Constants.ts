@@ -48,7 +48,8 @@ export const SCENE_NAME = {
     BATTLE_CONSOLE: "battle_console",
     BATTLE_GROUND: "battle_ground",
     BATTLE_FRONT: "battle_front",
-    BATTLE_SCENE: "battle_scene"
+    BATTLE_SCENE: "battle_scene",
+    BATTLE_SEARCH: "battle_search"
 }
 export const SCENE_TYPE = {
     PIXI_APPLICATION: 0,

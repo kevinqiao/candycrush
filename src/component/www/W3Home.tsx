@@ -14,7 +14,7 @@ const W3Home: React.FC<PageProps | null> = (prop) => {
   const { openPage } = usePageManager();
   const { isSignedIn } = useAuth();
   const { user } = useSSOManager();
-
+  console.log(user);
   useEffect(() => {
     const messageHandler = (event: any) => {
       // if (event.origin !== "http://localhost:3000") {

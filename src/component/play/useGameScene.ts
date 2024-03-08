@@ -176,7 +176,6 @@ const useGameScene = ({ loaded }: { loaded: boolean }) => {
 
         if (gameEvent?.name === "initGame") {
             const game = gameEvent.data;
-            console.log(game)
             initCandies(game.data.cells);
             loadGame(game.gameId, { matched: game.data.matched ?? [] });
             // loadGame(game.uid, game.gameId, { data: { matched: game.data.matched } });

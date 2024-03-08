@@ -130,7 +130,6 @@ const NavHeader = () => {
     tl.to(maskRef.current, { autoAlpha: 1, duration: 0.7 });
     tl.to(menuRef.current, { x: -190, duration: 0.7 }, "<");
     tl.play();
-    console.log("open menu");
   };
   const closeMenu = () => {
     const tl = gsap.timeline({
@@ -141,7 +140,6 @@ const NavHeader = () => {
     tl.to(maskRef.current, { autoAlpha: 0, duration: 0.7 });
     tl.to(menuRef.current, { x: 0, duration: 0.7 }, "<");
     tl.play();
-    console.log("close menu");
   };
   useEffect(() => {
     gsap.to(maskRef.current, { autoAlpha: 0, duration: 0 });

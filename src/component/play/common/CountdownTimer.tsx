@@ -8,10 +8,9 @@ interface CountdownTimerProps {
 const CountdownTimer: React.FC<CountdownTimerProps> = ({ countTime, onTimeout }) => {
   const countdownRef = useRef<HTMLDivElement | null>(null);
   const [count, setCount] = useState<number>(-2);
-
   useEffect(() => {
     if (count === -2) {
-      setCount(Math.ceil((countTime - Date.now()) / 1000));
+      setCount(Math.ceil(countTime / 1000));
       return;
     }
     const interval = setInterval(() => {
@@ -19,7 +18,6 @@ const CountdownTimer: React.FC<CountdownTimerProps> = ({ countTime, onTimeout })
     }, 1000);
 
     if (count === 0) {
-      console.log("count complete");
       clearInterval(interval);
       if (onTimeout) {
         onTimeout();

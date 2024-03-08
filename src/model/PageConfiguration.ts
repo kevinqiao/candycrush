@@ -85,7 +85,7 @@ export const PlayPlace =
             path: "./play/PlayHome",
             uri: "./play/PlayHome",
             auth: true,
-            nohistory: false,
+            nohistory: true ,
             position: {
                 closeControl: { btn: 0, confirm: 1, maskActive: 1 },
                 direction: 0,
@@ -98,6 +98,7 @@ export const PlayPlace =
             path: "./play/PlayHome",
             uri: "./play/PlayHome",
             auth: true,
+            nohistory: true,
             position: {
                 direction: 4,
                 width: 550,

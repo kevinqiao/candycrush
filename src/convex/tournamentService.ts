@@ -1,5 +1,5 @@
 import { v } from "convex/values";
-import { BATTLE_COUNT_DOWN_TIME, BATTLE_SEARCH_MAX_TIME } from "../model/Constants";
+import { BATTLE_COUNT_DOWN_TIME } from "../model/Constants";
 import { initGame } from "../service/GameEngine";
 import * as Utils from "../util/Utils";
 import { internal } from "./_generated/api";
@@ -14,9 +14,9 @@ export const joinTournamentByGroup = action({
 
         if (tournament && defender?.data) {
             // const battle = { tournamentId: tid, participants: tournament.participants, column: COLUMN, row: ROW, goal: 1, chunk: 10, searchDueTime: Date.now() + 2500, startTime: Date.now() + 15000 };
-            const searchDueTime = Date.now() + BATTLE_SEARCH_MAX_TIME;
-            const startTime = searchDueTime + BATTLE_COUNT_DOWN_TIME;
-            const battle: any = { tournamentId: tid, participants: tournament.participants, data: { ...defender.data, _id: undefined, _creationTime: undefined }, searchDueTime, startTime, duration: tournament.battleTime };
+            // const searchDueTime = Date.now() + BATTLE_SEARCH_MAX_TIME;
+            const startTime = Date.now() + BATTLE_COUNT_DOWN_TIME;
+            const battle: any = { tournamentId: tid, participants: tournament.participants, data: { ...defender.data, _id: undefined, _creationTime: undefined }, startTime, duration: tournament.battleTime };
             battle['duration'] = 60000;
             battle['endDueTime'] = startTime + battle['duration'];
             const battleId = await ctx.runMutation(internal.battle.create, battle);

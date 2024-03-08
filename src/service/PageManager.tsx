@@ -84,7 +84,6 @@ export const PageProvider = ({ children }: { children: React.ReactNode }) => {
 
   const openPage = useCallback(
     (page: PageItem) => {
-      console.log(page);
       const hash = window.location.hash;
       if (hash && hash.lastIndexOf(page.name) > 0) return;
       if (!page.ctx) {

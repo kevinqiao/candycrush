@@ -51,9 +51,9 @@ import { sessionQuery } from "./custom/session";
 //   return rewards;
 // }
 export const create = internalMutation({
-  args: { tournamentId: v.string(), participants: v.number(), searchDueTime: v.number(), startTime: v.number(), duration: v.number(), endDueTime: v.number(), data: v.any() },
-  handler: async (ctx, { tournamentId, participants, searchDueTime, startTime, duration, endDueTime, data }) => {
-    return await ctx.db.insert("battle", { status: 0, searchDueTime, startTime, tournamentId, participants, duration, endDueTime, data });
+  args: { tournamentId: v.string(), participants: v.number(), startTime: v.number(), duration: v.number(), endDueTime: v.number(), data: v.any() },
+  handler: async (ctx, { tournamentId, participants, startTime, duration, endDueTime, data }) => {
+    return await ctx.db.insert("battle", { status: 0, startTime, tournamentId, participants, duration, endDueTime, data });
   },
 });
 export const findById = internalQuery({
@@ -198,6 +198,7 @@ export const findMyBattles = sessionQuery({
     return mybattles
   },
 });
+
 export const findReport = action({
   args: { battleId: v.string() },
   handler: async (ctx, { battleId }): Promise<any> => {
