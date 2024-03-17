@@ -7,7 +7,7 @@ const BattleGround: React.FC<{ children: ReactNode }> = ({ children }) => {
   const { stageScene } = useSceneManager();
 
   const load = useCallback((sceneEle: HTMLDivElement | null) => {
-    if (sceneEle && !containerRef.current) {
+    if (sceneEle) {
       containerRef.current = sceneEle;
       const scene = {
         app: sceneEle,

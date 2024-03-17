@@ -23,7 +23,7 @@ export default defineSchema({
         battleId: v.string(),
         ref: v.optional(v.string()),
         seed: v.string(),
-        defender: v.string(),
+        diffcult: v.string(),
         laststep: v.optional(v.number()),
         startTime: v.optional(v.number()),
         endTime: v.optional(v.number()),
@@ -50,7 +50,7 @@ export default defineSchema({
         gameId: v.string(),
         cells: v.any(),
     }),
-    defender: defineTable({
+    diffcult: defineTable({
         id: v.string(),
         level: v.number(),
         hard: v.number(),
@@ -66,7 +66,8 @@ export default defineSchema({
         startTime: v.number(),
         duration: v.number(),
         status: v.number(),//0-going 1-settled 2-cancelled
-        data: v.any()
+        diffcult: v.string(),
+        // data: v.any()
         // row: v.number(),
         // column: v.number(),
         // goal: v.optional(v.number()),
@@ -121,6 +122,11 @@ export default defineSchema({
         asset: v.number(),
         amount: v.number(),
         uid: v.string()
+    }),
+    matchqueue: defineTable({
+        uid: v.string(),
+        tournamentId: v.string(),
+        term: v.number(),
     }),
     leaderboard: defineTable({
         tournamentId: v.string(),

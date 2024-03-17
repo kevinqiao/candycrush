@@ -12,7 +12,8 @@ export const MATCH_DIRECTION = {
 };
 export const BATTLE_LOAD = {
     PLAY: 0,
-    REPLAY: 1,
+    RELOAD: 1,
+    REPLAY: 2
 }
 
 export const GAME_MODE = {
@@ -56,12 +57,18 @@ export const SCENE_TYPE = {
     HTML_DIVELEMENT: 1
 }
 
+export const BATTLE_EVENT = {
+    BATTLE_RELOAD: "battleReload",
+    BATTLE_PAUSE: "battlePause"
+};
+
 export const GAME_EVENT = {
     SWIPE_CANDY: "cellSwapped",
     SMESH_CANDY: "cellSmeshed",
     USE_SKILL: "skillUsed",
     GAME_OVER: "gameOver"
-} as { [key: string]: string };
+};
+
 export const GAME_STATUS = {
     OPEN: 0,
     END: 1,

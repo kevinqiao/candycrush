@@ -130,7 +130,7 @@ const useCandyMatch = () => {
                         playChange(res.toChange, gameScene, textures, cl);
                     }
                     if (res.toRemove) {
-                        console.log(res.toRemove)
+                        // console.log(res.toRemove)
                         playRemove(res.toRemove, gameScene, textures, cl)
                         cl.call(
                             () => playCollect(gameId, res, null),

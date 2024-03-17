@@ -15,6 +15,7 @@ export interface GameScene extends SceneModel {
     column: number;
     row: number;
     candies: Map<number, CandySprite>;
+    status?: number;//1-scene created 2-sprites inited
 }
 
 export interface SearchScene {

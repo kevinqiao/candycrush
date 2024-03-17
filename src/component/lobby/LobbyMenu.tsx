@@ -44,7 +44,7 @@ const LobbyMenu: React.FC = () => {
         <div
           style={{
             position: "fixed",
-            zIndex: 1000,
+            zIndex: 100,
             width: "100%",
             height: LobbyMenuH,
             display: "flex",

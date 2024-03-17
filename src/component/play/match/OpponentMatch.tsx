@@ -1,5 +1,5 @@
 import { gsap } from "gsap";
-import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useRef } from "react";
 import { useUserManager } from "service/UserManager";
 import { useBattleManager } from "../../../service/BattleManager";
 import useDimension from "../../../util/useDimension";
@@ -9,7 +9,9 @@ import { useSearchMatch } from "component/animation/battle/useSearchMatch";
 import Avatar from "../common/Avatar";
 import CountdownTimer from "../common/CountdownTimer";
 import "./search.css";
-
+const timeLeft = (time: number) => {
+  return time - Date.now();
+};
 const OpponentMatch = () => {
   const sceneContainerRef = useRef<HTMLDivElement | null>(null);
   const foundRef = useRef<HTMLDivElement | null>(null);
@@ -19,11 +21,12 @@ const OpponentMatch = () => {
   const opponentAvatarRef = useRef<HTMLDivElement | null>(null);
   // const { scenes, stageScene } = useSceneManager();
   const { width, height } = useDimension(sceneContainerRef);
-  const [countTime, setCountTime] = useState(0);
+  // const [countTime, setCountTime] = useState(0);
   const { battle, allGameLoaded } = useBattleManager();
   const { user } = useUserManager();
   const { playMatching, playCloseMatching, closeSearch } = useSearchMatch();
   const { playInitBattle } = useAnimation();
+  const countTime = battle && user ? timeLeft(battle.startTime - user.timelag) : 0;
   const eles = useCallback(() => {
     const es = new Map<string, HTMLDivElement>();
     if (sceneContainerRef.current) es.set("container", sceneContainerRef.current);
@@ -42,13 +45,6 @@ const OpponentMatch = () => {
     opponentAvatarRef.current,
   ]);
 
-  // const countTime = useMemo(() => {
-  //   if (battle && battle.startTime && user) {
-  //     const time = battle.startTime - Date.now() - user.timelag;
-  //     return time;
-  //   } else return 0;
-  // }, [battle, user]);
-
   const player = useMemo(() => {
     if (battle?.games) {
       const game = battle.games.find((g) => g.uid === user.uid);
@@ -64,8 +60,9 @@ const OpponentMatch = () => {
     return;
   }, [battle]);
   const matchComplete = useCallback(() => {
-    if (!battle || !allGameLoaded) return;
+    // console.log("matching completed,timeleft:" + countTime + ":" + allGameLoaded);
 
+    if (!battle || !allGameLoaded || countTime < 0) return;
     const tl = gsap.timeline({
       onComplete: () => {
         tl.kill();
@@ -77,11 +74,13 @@ const OpponentMatch = () => {
     playInitBattle(battle, bl);
     tl.play();
   }, [battle, eles, allGameLoaded]);
-  useEffect(() => {
-    if (battle && battle.startTime && user) {
-      const time = battle.startTime - Date.now() - user.timelag;
 
-      if (time > 0) {
+  useEffect(() => {
+    if (battle && battle.startTime && user && allGameLoaded) {
+      // const time = battle.startTime - Date.now() - user.timelag;
+      // const time = timeLeft(battle.startTime - user.timelag);
+      // console.log("timeLeft:" + time);
+      if (countTime > 0) {
         const tl = gsap.timeline({
           onComplete: () => {
             // setCountTime(battle.startTime - Date.now() - user.timelag);
@@ -90,8 +89,9 @@ const OpponentMatch = () => {
         });
         const sl = gsap.timeline({
           onComplete: () => {
-            const time = battle.startTime - Date.now() - user.timelag;
-            setCountTime(time);
+            // const time = timeLeft(battle.startTime - user.timelag);
+            // console.log("count time left:" + time);
+            // setCountTime(time);
           },
         });
         tl.add(sl);
@@ -101,9 +101,10 @@ const OpponentMatch = () => {
         tl.add(ml, "<");
         playMatching(eles(), ml);
         tl.play();
-      } else if (allGameLoaded) matchComplete();
+      } else matchComplete();
     }
   }, [battle, user, allGameLoaded]);
+
   return (
     <>
       <div ref={sceneContainerRef} className="match_container">
@@ -188,7 +189,7 @@ const OpponentMatch = () => {
             justifyContent: "center",
           }}
         >
-          {countTime > 0 ? <CountdownTimer countTime={countTime} onTimeout={matchComplete} /> : null}
+          <CountdownTimer countTime={countTime} onTimeout={matchComplete} />
         </div>
       </div>
     </>

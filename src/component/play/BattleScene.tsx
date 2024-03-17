@@ -1,48 +1,62 @@
-import { PagePosition } from "model/PageProps";
+import { SceneModel } from "model/SceneModel";
 import * as PIXI from "pixi.js";
-import React, { useCallback, useEffect, useRef } from "react";
+import React, { useCallback, useEffect } from "react";
 import { SCENE_NAME } from "../../model/Constants";
 import { useSceneManager } from "../../service/SceneManager";
 
 const BattleScene = () => {
-  const sceneContainerRef = useRef<HTMLDivElement | null>(null);
   const { scenes, containerBound, stageScene } = useSceneManager();
-
-  const init = useCallback((bound: PagePosition) => {
-    if (!sceneContainerRef.current) return;
-    const app: PIXI.Application = new PIXI.Application({
-      width: bound.width,
-      height: bound.height,
-      backgroundAlpha: 0,
-    });
-    const scene = { x: bound.left, y: bound.top, app, width: bound.width, height: bound.height };
-    sceneContainerRef.current.appendChild(app.view as unknown as Node);
-    stageScene(SCENE_NAME.BATTLE_SCENE, scene);
-  }, []);
 
   useEffect(() => {
     if (containerBound && scenes) {
-      const battleScene = scenes.get(SCENE_NAME.BATTLE_SCENE);
+      const { left, top, width, height } = containerBound;
+      const battleScene = scenes.get(SCENE_NAME.BATTLE_SCENE) as SceneModel;
+      // const b = { top, left, width, height };
       if (battleScene?.app) {
-        battleScene.width = containerBound.width;
-        battleScene.height = containerBound.height;
         const scene = battleScene.app as PIXI.Application;
-        scene.renderer.resize(containerBound.width, containerBound.height);
-      } else init(containerBound);
+        scene.renderer.resize(width, height);
+        battleScene.x = left;
+        battleScene.y = top;
+        battleScene.width = width;
+        battleScene.height = height;
+      }
     }
-  }, [scenes, containerBound, init]);
-
+  }, [scenes, containerBound]);
+  const load = useCallback(
+    (sceneEle: HTMLDivElement | null) => {
+      if (containerBound && scenes && sceneEle) {
+        let battleScene = scenes.get(SCENE_NAME.BATTLE_SCENE) as SceneModel;
+        let app: PIXI.Application<PIXI.ICanvas>;
+        if (!battleScene) {
+          const { left, top, width, height } = containerBound;
+          app = new PIXI.Application({
+            width,
+            height,
+            backgroundAlpha: 0,
+          });
+          battleScene = {
+            x: left,
+            y: top,
+            app,
+            width,
+            height,
+          };
+        } else app = battleScene.app as PIXI.Application<PIXI.ICanvas>;
+        sceneEle.appendChild(app.view as unknown as Node);
+        stageScene(SCENE_NAME.BATTLE_SCENE, battleScene);
+      }
+    },
+    [containerBound, scenes, stageScene]
+  );
   return (
     <div
-      ref={sceneContainerRef}
+      ref={load}
       style={{
         position: "absolute",
         top: 0,
         left: 0,
         width: "100%",
         height: "100%",
-        margin: 0,
-        border: 0,
         backgroundColor: "transparent",
         pointerEvents: "none",
       }}

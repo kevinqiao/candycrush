@@ -7,27 +7,32 @@ import { useBattleManager } from "../../../service/BattleManager";
 import { useUserManager } from "../../../service/UserManager";
 import ReportItem from "./ReportItem";
 import "./report.css";
-
+export interface ReportItemModel {
+  player?: { uid: string; name: string; avatar: number };
+  uid: string;
+  gameId: string;
+  result?: any;
+}
 const BattleReport: React.FC = () => {
   const maskDivRef = useRef<HTMLDivElement | null>(null);
   const reportDivRef = useRef<HTMLDivElement | null>(null);
-  const { battle, battleOver, allGameLoaded } = useBattleManager();
-  const [battleReport, setBattleReport] = useState<any>(null);
+  const { battle, battleOver } = useBattleManager();
+  const [battleReport, setBattleReport] = useState<ReportItemModel[] | null>(null);
   // const { exit } = useSceneManager();
   const { exit } = usePageProp();
   const { user } = useUserManager();
   const convex = useConvex();
+
   const findReport = useCallback(async () => {
-    const abc = 10;
     if (battle) {
       const report = await convex.action(api.battle.findReport, {
         battleId: battle.id,
       });
-
+      console.log(report);
       setBattleReport(report);
     }
   }, [battle]);
-  const openReport = () => {
+  const openReport = useCallback(() => {
     const tl = gsap.timeline({
       onComplete: () => {
         tl.kill();
@@ -39,7 +44,7 @@ const BattleReport: React.FC = () => {
       "<"
     );
     tl.play();
-  };
+  }, [battle]);
 
   useEffect(() => {
     if (battleOver > 0) {
@@ -49,8 +54,8 @@ const BattleReport: React.FC = () => {
   }, [battleOver]);
 
   useEffect(() => {
-    gsap.to(reportDivRef.current, { scale: 0, duration: 0 });
-  }, []);
+    if (battle) gsap.to(reportDivRef.current, { autoAlpha: 0, scale: 0, duration: 0 });
+  }, [battle]);
 
   return (
     <>
@@ -61,11 +66,12 @@ const BattleReport: React.FC = () => {
           <div className="report_content">
             <div style={{ height: "15%" }}></div>
             <div className="items_container">
-              <ReportItem />
-              <ReportItem />
+              {battleReport?.map((r) => (
+                <ReportItem key={r.gameId} {...r} />
+              ))}
             </div>
             <div className="ok_btn" onClick={exit}>
-              <span>Ok</span>
+              <span>Ok1</span>
             </div>
           </div>
         </div>

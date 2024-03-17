@@ -19,6 +19,7 @@ const useCollectCandies = () => {
         if (game?.data.matched) {
             prematchedRef.current = JSON.parse(JSON.stringify(game.data.matched));
         }
+
     }, [game])
     const getGoalTarget = (gameId: string, asset: number) => {
 
@@ -32,7 +33,6 @@ const useCollectCandies = () => {
             if (panel) {
 
                 const goal = panel.goals.find((g) => g.asset === asset);
-
                 if (goal?.iconEle) {
                     const goalBound = (goal.iconEle as HTMLElement).getBoundingClientRect();
                     const groundBound = (ground.app as HTMLDivElement).getBoundingClientRect();
@@ -71,6 +71,7 @@ const useCollectCandies = () => {
 
                     result.toRemove.forEach((cell: CellItem) => {
                         const target = getGoalTarget(gameId, cell.asset);
+
                         const texture = textures?.find((d) => d.id === cell.asset);
                         if (texture && target) {
                             const cl = gsap.timeline();

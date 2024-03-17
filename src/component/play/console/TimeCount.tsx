@@ -46,13 +46,15 @@ const TimeCount = () => {
       {containerBound ? (
         <div
           style={{
-            position: "absolute",
-            top: 20,
-            left: 10,
-            width: containerBound.width * 0.45,
+            display: "flex",
+            justifyContent: "center",
+            alignItems: "center",
+            width: 60,
+            height: 25,
             margin: 0,
             borderRadius: 0,
-            backgroundColor: "blue",
+            backgroundColor: "white",
+            color: "blue",
           }}
         >
           <div>{timeLeft > 0 ? formatTime(timeLeft) : "00:00"}</div>

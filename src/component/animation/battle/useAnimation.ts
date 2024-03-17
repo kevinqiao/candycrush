@@ -17,13 +17,14 @@ export const useAnimation = () => {
     const { play: playCandyMatch } = useCandyMatch();
 
     const playInitBattle = useCallback((battle: BattleModel, timeline: any) => {
-
+        console.log("play init battle")
         if (!battle?.games) return;
         const bl = timeline ?? gsap.timeline({
             onComplete: () => {
                 bl.kill();
             }
         });
+
         // const bl = gsap.timeline();
         // tl.add(bl, ">+=1.0")
 

@@ -60,8 +60,8 @@ export type MatchItem = {
 //     return results
 // }
 
-export const initGame = (defender: any, seed: string) => {
-    const { row, column } = defender.data as { row: number; column: number };
+export const initGame = (diffcult: any, seed: string) => {
+    const { row, column } = diffcult.data as { row: number; column: number };
     const rng = seedrandom(seed)
     // const cellTypes = Array.from({ length: 6 }, (_, k) => k);
     const cells: CellItem[] = [];

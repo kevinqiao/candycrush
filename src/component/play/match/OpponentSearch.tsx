@@ -2,6 +2,7 @@ import { useSearchMatch } from "component/animation/battle/useSearchMatch";
 import { SCENE_NAME } from "model/Constants";
 import React, { useCallback, useMemo, useRef } from "react";
 import { useSceneManager } from "service/SceneManager";
+import "./search.css";
 interface Props {
   battleId: string | null;
 }
@@ -46,16 +47,7 @@ const OpponentSearch: React.FC<Props> = ({ battleId }) => {
     return (
       <>
         <div ref={(el) => load(0, el)} className="search_container">
-          <div
-            ref={(el) => load(1, el)}
-            style={{
-              display: "flex",
-              width: "100%",
-              height: "100%",
-              justifyContent: "center",
-              alignItems: "center",
-            }}
-          >
+          <div ref={(el) => load(1, el)} className="search_sprite">
             <span style={{ fontSize: 20 }}>Searching...</span>
           </div>
         </div>

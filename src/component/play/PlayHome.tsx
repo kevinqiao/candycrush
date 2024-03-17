@@ -1,6 +1,5 @@
 import { Id } from "convex/_generated/dataModel";
 import { BattleModel } from "model/Battle";
-import { BATTLE_LOAD } from "model/Constants";
 import React, { useEffect, useRef, useState } from "react";
 import BattleProvider from "service/BattleManager";
 import GameProvider from "service/GameManager";
@@ -16,30 +15,18 @@ import BattleConsole from "./console/BattleConsole";
 import TimeCount from "./console/TimeCount";
 import OpponentMatch from "./match/OpponentMatch";
 import OpponentSearch from "./match/OpponentSearch";
+import "./play.css";
 import BattleReport from "./report/BattleReport";
 
 interface ControlProps {
   battleId: string;
-  load: number; //0-load from search opponent 1-load from non search
+  load: number; //0-load from search opponent 1-reload not finished 2-replay
 }
 const PlayControl: React.FC<ControlProps> = ({ battleId, load }) => {
   // const sceneRef = useRef<HTMLDivElement | null>(null);
   const sbattleRef = useRef<BattleModel | null>(null);
   const [battle, setBattle] = useState<BattleModel | null>(null);
   const { findBattle } = useTournamentManager();
-  // const pagePosition = useDimension(sceneRef);
-
-  useEffect(() => {
-    document.addEventListener("visibilitychange", () => {
-      if (document.visibilityState === "visible") {
-        console.log("标签页切换到可见状态");
-        setBattle(JSON.parse(JSON.stringify(sbattleRef.current)));
-      } else {
-        console.log("标签页切换到不可见状态");
-        setBattle(null);
-      }
-    });
-  }, []);
 
   useEffect(() => {
     if (!sbattleRef.current && battleId) {
@@ -59,7 +46,7 @@ const PlayControl: React.FC<ControlProps> = ({ battleId, load }) => {
             <BattleConsole />
             {battle.games &&
               battle.games.map((g) => (
-                <GameProvider key={g.gameId} gameId={g.gameId} load={BATTLE_LOAD.PLAY}>
+                <GameProvider key={g.gameId} gameId={g.gameId} load={load}>
                   <GamePlay />
                 </GameProvider>
               ))}
@@ -74,31 +61,21 @@ const PlayControl: React.FC<ControlProps> = ({ battleId, load }) => {
 };
 
 const PlayHome: React.FC<PageProps> = (pageProp) => {
-  const [load, setLoad] = useState<number>(pageProp.data.battleId ? 1 : 0);
   const sceneRef = useRef<HTMLDivElement | null>(null);
   const pagePosition = useDimension(sceneRef);
   const { userEvent } = useUserManager();
   const [battleId, setBattleId] = useState<string | null>(pageProp.data.battleId);
   useEffect(() => {
+    // console.log(userEvent);
     if (userEvent?.name === "battleCreated") {
       setBattleId(userEvent.data.id);
     }
   }, [userEvent]);
   return (
     <>
-      <div
-        ref={sceneRef}
-        style={{
-          position: "relative",
-          top: 0,
-          left: 0,
-          width: "100%",
-          height: "100%",
-          backgroundColor: "transparent",
-        }}
-      >
+      <div ref={sceneRef} className="play_container">
         <SceneProvider pageProp={pageProp} pagePosition={pagePosition}>
-          {battleId ? <PlayControl load={load} battleId={battleId} /> : null}
+          {battleId ? <PlayControl load={pageProp.data.battleId ? 1 : 0} battleId={battleId} /> : null}
           <OpponentSearch battleId={battleId} />
         </SceneProvider>
       </div>

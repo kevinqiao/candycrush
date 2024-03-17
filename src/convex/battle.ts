@@ -51,17 +51,21 @@ import { sessionQuery } from "./custom/session";
 //   return rewards;
 // }
 export const create = internalMutation({
-  args: { tournamentId: v.string(), participants: v.number(), startTime: v.number(), duration: v.number(), endDueTime: v.number(), data: v.any() },
-  handler: async (ctx, { tournamentId, participants, startTime, duration, endDueTime, data }) => {
-    return await ctx.db.insert("battle", { status: 0, startTime, tournamentId, participants, duration, endDueTime, data });
+  args: { tournamentId: v.string(), participants: v.number(), startTime: v.number(), duration: v.number(), endDueTime: v.number(), diffcult: v.string() },
+  handler: async (ctx, { tournamentId, participants, startTime, duration, endDueTime, diffcult }) => {
+    return await ctx.db.insert("battle", { status: 0, startTime, tournamentId, participants, duration, endDueTime, diffcult });
   },
 });
 export const findById = internalQuery({
   args: { battleId: v.id("battle") },
   handler: async (ctx, { battleId }) => {
     const battle = await ctx.db.get(battleId);
-    if (battle)
-      return { ...battle, id: battleId, _id: undefined, _creationTime: undefined };
+    if (battle) {
+      const diffcult = await ctx.db.query("diffcult")
+        .filter((q) => q.eq(q.field("id"), battle.diffcult)).unique();
+      if (!diffcult) return;
+      return { ...battle, id: battleId, _id: undefined, _creationTime: undefined, data: diffcult.data };
+    }
   },
 });
 export const find = internalQuery({
@@ -69,17 +73,22 @@ export const find = internalQuery({
   handler: async (ctx, { battleId }) => {
 
     const battle = await ctx.db.get(battleId);
-    const games = await ctx.db
-      .query("games")
-      .filter((q) => q.eq(q.field("battleId"), battleId))
-      .collect();
-    if (battle && games) {
-      const gs: any[] = []
-      for (const game of games) {
-        const user = await ctx.db.get(game.uid as Id<"user">)
-        gs.push({ player: { uid: game.uid, name: user?.name, avatar: user?.avatar }, uid: game.uid, gameId: game._id })
+    if (battle && battle.diffcult) {
+      const diffcult = await ctx.db.query("diffcult")
+        .filter((q) => q.eq(q.field("id"), battle.diffcult)).unique();
+      if (!diffcult) return;
+      const games = await ctx.db
+        .query("games")
+        .filter((q) => q.eq(q.field("battleId"), battleId))
+        .collect();
+      if (battle && games) {
+        const gs: any[] = []
+        for (const game of games) {
+          const user = await ctx.db.get(game.uid as Id<"user">)
+          gs.push({ player: { uid: game.uid, name: user?.name, avatar: user?.avatar }, uid: game.uid, gameId: game._id })
+        }
+        return { ...battle, id: battle._id, _id: undefined, _creationTime: undefined, games: gs, data: diffcult.data }
       }
-      return { ...battle, id: battle._id, _id: undefined, _creationTime: undefined, games: gs }
     }
   },
 });
@@ -244,6 +253,7 @@ export const findBattle = action({
     const bid = battleId as Id<"battle">
     const battle = await ctx.runQuery(internal.battle.findById, { battleId: bid });
     if (battle) {
+
       const timeout = (battle.startTime + battle.duration) <= Date.now() ? true : false;
       const report: { player: any, uid: string; gameId: string; result?: any; data: any }[] = [];
       const games = await ctx.runQuery(internal.games.findBattleGames, { battleId: bid });

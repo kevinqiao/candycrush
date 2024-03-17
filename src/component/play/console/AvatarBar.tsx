@@ -1,8 +1,11 @@
-import React, { useCallback, useRef } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
+import { useBattleManager } from "service/BattleManager";
 import { SCENE_NAME } from "../../../model/Constants";
 import { ConsoleScene } from "../../../model/SceneModel";
 import { useSceneManager } from "../../../service/SceneManager";
+import * as GameUtils from "../../../util/MatchGameUtils";
 import useDimension from "../../../util/useDimension";
+
 const frameSize = 185;
 interface Props {
   layout: number;
@@ -13,6 +16,8 @@ const AvatarBar: React.FC<Props> = ({ layout, game }) => {
   const sceneContainerRef = useRef<HTMLDivElement | null>(null);
   const { width, height } = useDimension(sceneContainerRef);
   const { scenes } = useSceneManager();
+  const { battleEvent, allGameLoaded } = useBattleManager();
+  const [score, setScore] = useState<number>(0);
 
   const calculateBackgroundPosition = () => {
     const x = 45;
@@ -75,6 +80,17 @@ const AvatarBar: React.FC<Props> = ({ layout, game }) => {
     },
     [scenes, game]
   );
+  // const score = useMemo(() => {
+  //   if (allGameLoaded && game) return GameUtils.countBaseScore(game.data.matched);
+  //   return 0;
+  // }, [game, allGameLoaded]);
+  useEffect(() => {
+    if (game) {
+      const s = GameUtils.countBaseScore(game.data.matched);
+      // console.log("score:" + s);
+      setScore(s);
+    }
+  }, [game, battleEvent]);
 
   return (
     <div
@@ -96,7 +112,7 @@ const AvatarBar: React.FC<Props> = ({ layout, game }) => {
         }}
       >
         <div style={{ position: "relative", top: 0, left: 0 }}>
-          <span ref={(el) => load(2, el)}>0</span>
+          <span ref={(el) => load(2, el)}>{score}</span>
         </div>
         <div
           ref={(el) => load(3, el)}

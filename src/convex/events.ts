@@ -35,6 +35,7 @@ export const getByUser = query({
   args: { uid: v.string(), lastTime: v.number() },
   handler: async (ctx, { uid, lastTime }) => {
     if (uid === "###") return;
+    console.log("uid:" + uid + " lastime:" + lastTime)
     let time = lastTime;
     if (time === 0) {
       const id = uid as Id<"user">

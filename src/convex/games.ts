@@ -34,9 +34,9 @@ export const getGame = internalQuery({
   handler: async (ctx, { gameId }): Promise<any> => {
     const game = await ctx.db.get(gameId);
     if (!game) return
-    const defender = await ctx.db.query("defender")
-      .filter((q) => q.eq(q.field("id"), game.defender)).unique()
-    return { ...game, gameId: game._id, _id: undefined, _creationTime: undefined, defender: defender?.data };
+    const diffcult = await ctx.db.query("diffcult")
+      .filter((q) => q.eq(q.field("id"), game.diffcult)).unique()
+    return { ...game, gameId: game._id, _id: undefined, _creationTime: undefined, defender: diffcult?.data };
   },
 });
 export const findGame = query({
@@ -44,9 +44,9 @@ export const findGame = query({
   handler: async (ctx, { gameId }): Promise<any> => {
     const game = await ctx.db.get(gameId);
     if (game) {
-      const defender = await ctx.db.query("defender")
-        .filter((q) => q.eq(q.field("id"), game.defender)).unique()
-      return { ...game, gameId: game._id, _id: undefined, _creationTime: undefined, defender: defender?.data };
+      const diffcult = await ctx.db.query("diffcult")
+        .filter((q) => q.eq(q.field("id"), game.diffcult)).unique()
+      return { ...game, gameId: game._id, _id: undefined, _creationTime: undefined, defender: diffcult?.data };
     }
   },
 });
@@ -86,9 +86,10 @@ export const findBattleGames = internalQuery({
       .filter((q) => q.eq(q.field("battleId"), battleId))
       .collect();
     if (games?.length > 0) {
-      const defender = await ctx.db.query("defender")
-        .filter((q) => q.eq(q.field("id"), games[0].defender)).unique();
-      return games.map((g) => Object.assign({}, g, { defender: defender?.data }))
+      const diffcult = await ctx.db.query("diffcult")
+        .filter((q) => q.eq(q.field("id"), games[0].diffcult)).unique();
+      if (diffcult)
+        return games.map((g) => Object.assign({}, g, { defender: diffcult?.data }))
     }
     return games;
   },

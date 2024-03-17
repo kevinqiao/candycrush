@@ -38,7 +38,7 @@ const getSwipeTarget = (cellItem: CellItem, direction: number, cells: CellItem[]
     return target;
 }
 
-const useGameScene = ({ loaded }: { loaded: boolean }) => {
+const useGameScene = () => {
     const { gameEvent, game, load, doAct } = useGameManager();
     const { battle, loadGame } = useBattleManager();
     const { textures, scenes } = useSceneManager();
@@ -79,8 +79,6 @@ const useGameScene = ({ loaded }: { loaded: boolean }) => {
                         // swapCell(ncell.id, ntarget.id)
                     } else {
                         playSwipeFail(game.gameId, candyId, target.id, null)
-                        // createEvent({ name: ANIMATE_NAME.SWIPE_FAIL, type: ANIMATE_EVENT_TYPE.CREATE, data: { gameId: game.gameId, candyId, targetId: target.id } })
-                        // createAnimate({ id: Date.now(), name: ANIMATE_NAME.SWIPE_FAIL, gameId, battleId: battle?.id, eles: [], data: { candyId, targetId: target.id } })
                     }
                 }
             }
@@ -94,6 +92,7 @@ const useGameScene = ({ loaded }: { loaded: boolean }) => {
         const texture = textures?.find((d) => d.id === cell.asset);
 
         if (texture && gameScene?.app && gameScene.cwidth) {
+            // console.log("exactly create candy sprite")
             const stage = (gameScene.app as PIXI.Application).stage;
 
             const sprite = new CandySprite(texture.texture, cell.id, cell.column, cell.row)
@@ -161,7 +160,7 @@ const useGameScene = ({ loaded }: { loaded: boolean }) => {
                 const y = c.row * cwidth + Math.floor(cwidth / 2);
                 const sprite = createCandySprite(c, x, y);
                 if (sprite) {
-                    sprite.alpha = 0
+                    sprite.alpha = 1
                     gameScene.candies?.set(c.id, sprite as CandySprite)
                 }
             })
@@ -170,13 +169,17 @@ const useGameScene = ({ loaded }: { loaded: boolean }) => {
 
     useEffect(() => {
 
-        if (!game || !game?.gameId || !scenes || !loaded) return;
+        if (!game || !game?.gameId || !scenes) return;
         const gameScene = scenes.get(game.gameId) as GameScene;
         if (!gameScene) return
 
         if (gameEvent?.name === "initGame") {
-            const game = gameEvent.data;
-            initCandies(game.data.cells);
+            // console.log(gameEvent)
+            Array.from(gameScene.candies.values()).forEach((c) => c.destroy())
+            gameScene.candies.clear();
+            const g = gameEvent.data;
+            // console.log("init candies for game:" + game.gameId)
+            initCandies(g.data.cells);
             loadGame(game.gameId, { matched: game.data.matched ?? [] });
             // loadGame(game.uid, game.gameId, { data: { matched: game.data.matched } });
         } else if (gameEvent?.name === "cellSwapped" || gameEvent?.name === "cellSmeshed") {
@@ -204,28 +207,11 @@ const useGameScene = ({ loaded }: { loaded: boolean }) => {
                 default:
                     break;
             }
-            // playCandySwap(game.gameId, data, null)
-            // createAnimate({ id: Date.now(), name: ANIMATE_NAME.CANDY_SWAPPED, gameId: game.gameId, battleId: battle?.id, data })
 
         }
-        //  else if (gameEvent?.name === "cellSmeshed") {
-        //     const data: { candyId: number; results: { toChange: CellItem[]; toCreate: CellItem[]; toMove: CellItem[]; toRemove: CellItem[] }[] } = gameEvent.data;
-        //     for (const res of data.results) {
-        //         const cwidth = gameScene.cwidth;
-        //         if (cwidth)
-        //             res.toCreate.forEach((cell: CellItem) => {
-        //                 const x = cell.column * cwidth + Math.floor(cwidth / 2);
-        //                 const y = -cwidth;
-        //                 const sprite = createCandySprite(cell, x, y);
-        //                 if (sprite) {
-        //                     gameScene.candies.set(cell.id, sprite as CandySprite)
-        //                 }
-        //             })
-        //     }
-        //     createAnimate({ id: Date.now(), name: ANIMATE_NAME.CANDY_SMESHED, gameId: game.gameId, battleId: battle?.id, data })
 
-        // }
-    }, [createCandySprite, gameEvent, scenes, game, initCandies, loaded])
+    }, [gameEvent, scenes, initCandies])
+
 
 }
 export default useGameScene

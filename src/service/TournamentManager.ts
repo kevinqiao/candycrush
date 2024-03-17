@@ -13,16 +13,19 @@ const useTournamentManager = () => {
   const joinTournamentByGroup = useAction(api.tournamentService.joinTournamentByGroup);
   const convex = useConvex();
 
-  const join = useCallback(async (tournamentId: string) => {
+  const join = useCallback(async (tournamentId: string): Promise<{ ok: boolean } | null> => {
 
     if (!user || !user.uid) {
       openPage({ name: "signin", data: null })
-      return;
+      return null;
+    } else {
+      const app = getCurrentAppConfig();
+      openPage({ name: "battlePlay", ctx: app.context, data: {} })
+      const rs = await convex.action(api.tournamentService.join, { uid: user.uid, tid: tournamentId })
+      return rs
     }
-    const app = getCurrentAppConfig();
-    openPage({ name: "battlePlay", ctx: app.context, data: {} })
-    setTimeout(async () =>
-      await joinTournamentByGroup({ tid: tournamentId, uid: user.uid }), 5000)
+    // setTimeout(async () =>
+    //   await joinTournamentByGroup({ tid: tournamentId, uid: user.uid }), 5000)
   }, [user])
   const listActives = useCallback(
     async (): Promise<any[]> => {

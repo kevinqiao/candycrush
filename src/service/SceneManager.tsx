@@ -72,11 +72,6 @@ export const SceneProvider = ({
   };
 
   useEffect(() => {
-    if (pagePosition) {
-      setContainerBound(pagePosition);
-    }
-  }, [pagePosition]);
-  useEffect(() => {
     loadCandyTextures();
     // loadAvatarTextures();
     return () => {
@@ -93,7 +88,7 @@ export const SceneProvider = ({
   }, []);
 
   const value = {
-    containerBound,
+    containerBound: pagePosition,
     textures: texturesRef.current,
     avatarTextures: avatarTexturesRef.current,
     scenes: scenesRef.current,
@@ -108,7 +103,7 @@ export const SceneProvider = ({
     }, [pageProp]),
 
     stageScene: useCallback((id: string, scene: SceneModel | null) => {
-      if (scene && !scenesRef.current.get(id)) {
+      if (scene) {
         scenesRef.current.set(id, scene);
         setSceneEvent({ name: id, type: SCENE_EVENT_TYPE.CREATE });
       }

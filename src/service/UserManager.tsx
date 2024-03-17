@@ -71,6 +71,7 @@ export const UserProvider = ({ children }: { children: React.ReactNode }) => {
       // if (userEvent?.name === "battleCreated") {
       //   openBattle(user, userEvent.data);
       // }
+
       setLastTime(userEvent.time);
     }
   }, [user, userEvent]);
