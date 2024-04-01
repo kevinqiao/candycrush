@@ -1,6 +1,7 @@
 import { useAnimation } from "component/animation/battle/useAnimation";
 import * as PIXI from "pixi.js";
 import { useCallback, useEffect, useRef } from "react";
+import { useUserManager } from "service/UserManager";
 import { checkSwipe } from "util/MatchGameUtils";
 import { CellItem } from "../../model/CellItem";
 import * as Constant from "../../model/Constants";
@@ -39,9 +40,10 @@ const getSwipeTarget = (cellItem: CellItem, direction: number, cells: CellItem[]
 }
 
 const useGameScene = () => {
-    const { gameEvent, game, load, doAct } = useGameManager();
+    const { user } = useUserManager();
+    const { gameEvent, game, doAct } = useGameManager();
     const { battle, loadGame } = useBattleManager();
-    const { textures, scenes } = useSceneManager();
+    const { load, textures, scenes } = useSceneManager();
     const { playSwipeFail, playSwipeSuccess, playCandyMatch } = useAnimation();
     const dragRef = useRef<{ startX: number; startY: number; animation: number, cellId: number }>({ startX: 0, startY: 0, cellId: -1, animation: 0 });
 
@@ -71,7 +73,9 @@ const useGameScene = () => {
                     for (const unit of ncells) {
                         grid[unit.row][unit.column] = unit;
                     }
+
                     if (checkSwipe(grid)) {
+                        console.log("match valid check")
                         // createEvent({ name: ANIMATE_NAME.SWIPE_SUCCESS, type: ANIMATE_EVENT_TYPE.CREATE, data: { gameId: game.gameId, candy: ncell, target: ntarget } })
                         playSwipeSuccess(game.gameId, ncell, ntarget, null)
                         // createAnimate({ id: Date.now(), name: ANIMATE_NAME.SWIPE_SUCCESS, gameId, battleId: battle?.id, eles: [], data: { candy: ncell, target: ntarget } })
@@ -185,6 +189,7 @@ const useGameScene = () => {
         } else if (gameEvent?.name === "cellSwapped" || gameEvent?.name === "cellSmeshed") {
             const data: { candy: CellItem; target: CellItem; results: { toChange: CellItem[]; toCreate: CellItem[]; toMove: CellItem[]; toRemove: CellItem[] }[] } = gameEvent.data;
             for (const res of data.results) {
+                console.log(res)
                 const cwidth = gameScene.cwidth;
                 if (cwidth)
                     res.toCreate.forEach((cell: CellItem) => {
@@ -199,6 +204,10 @@ const useGameScene = () => {
             const eventName = gameEvent.name;
             switch (eventName) {
                 case "cellSwapped":
+                    console.log(game.uid + ":" + user.uid)
+                    console.log(data)
+                    if (game.uid !== user.uid)
+                        playSwipeSuccess(game.gameId, data.candy, data.target, null)
                     playCandyMatch(game.gameId, data, null)
                     break;
                 case "cellSmeshed":

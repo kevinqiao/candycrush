@@ -45,7 +45,7 @@ export const Telegram =
             }
         },
         {
-            name: "leaderBoard",
+            name: "leaderboard",
             path: "./leaderboard/LeaderBoardHome",
             uri: "./leaderboard/LeaderBoardHome",
             position: {
@@ -85,7 +85,7 @@ export const PlayPlace =
             path: "./play/PlayHome",
             uri: "./play/PlayHome",
             auth: true,
-            nohistory: true ,
+            nohistory: true,
             position: {
                 closeControl: { btn: 0, confirm: 1, maskActive: 1 },
                 direction: 0,
@@ -95,25 +95,26 @@ export const PlayPlace =
         },
         {
             name: "battleReplay",
-            path: "./play/PlayHome",
-            uri: "./play/PlayHome",
+            path: "./play/ReplayHome",
+            uri: "./battle/replay",
             auth: true,
             nohistory: true,
             position: {
-                direction: 4,
-                width: 550,
+                closeControl: { btn: 0, confirm: 0, maskActive: 0 },
+                direction: 0,
+                width: 1,
                 height: 1,
             }
         },
         {
-            name: "leaderBoard",
-            path: "./leaderboard/LeaderBoardHome",
-            uri: "./leaderboard/LeaderBoardHome",
+            name: "leaderboard",
+            path: "./battle/BattleLeaderboard",
+            uri: "./battle/leaderboard",
             position: {
-                closeControl: { btn: 0, confirm: 1, maskActive: 1 },
-                direction: 3,
-                width: 1,
-                height: 0.7,
+                closeControl: { btn: 0, confirm: 0, maskActive: 1 },
+                direction: 2,
+                width: 0.3,
+                height: 1,
             }
         }
 

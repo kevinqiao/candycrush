@@ -1,13 +1,11 @@
 import { v } from "convex/values";
 import { BattleModel } from "../model/Battle";
-import { GAME_EVENT, GAME_STATUS, getEventByAction } from "../model/Constants";
+import { GAME_EVENT, getEventByAction } from "../model/Constants";
 import { GameModel } from "../model/GameModel";
-import * as gameEngine from "../service/GameEngine";
+import * as GameEngine from "../service/GameEngine";
 import { internal } from "./_generated/api";
 import { Id } from "./_generated/dataModel";
 import { sessionAction } from "./custom/session";
-
-
 
 // const executeSmash = (game: any, candyId: number): SmashResult => {
 //     const results: any[] = [];
@@ -110,35 +108,36 @@ import { sessionAction } from "./custom/session";
 // }
 
 export const doAct = sessionAction({
-    args: { act: v.string(), gameId: v.id("games"), data: v.any() },
+    args: { act: v.string(), gameId: v.string(), data: v.any() },
     handler: async (ctx, { act, gameId, data }) => {
         // console.log(ctx.user)
-        const game: GameModel | undefined | null = await ctx.runQuery(internal.games.getGame, { gameId });
+        console.log("do action:" + act)
+        const game: GameModel | undefined | null = await ctx.runQuery(internal.games.getGame, { gameId: gameId as Id<"games"> });
         if (!game || !game?.battleId) return;
         // if (!game.data.matched) game.data.matched = [];
         const battle: BattleModel | undefined | null = await ctx.runQuery(internal.battle.find, { battleId: game.battleId as Id<"battle"> });
         if (!battle?.data || !battle.startTime) return;
         const steptime = Math.round(Date.now() - battle['startTime']);
-
-        const sresult = gameEngine.executeAct(game, battle, { name: act, data });
+        // console.log("steptime:" + steptime)
+        const sresult = GameEngine.executeAct(game, battle, { name: act, data });
         if (sresult) {
             const eventName = getEventByAction(act);
             if (eventName)
                 await ctx.runMutation(internal.events.create, {
                     name: eventName, gameId, data: sresult, steptime
                 })
-            const result = gameEngine.settleGame(game, battle);
-            if (result) {
-                game.result = result;
-                game.score = result['base'] + result['time'] + result['goal']
-                game.status = GAME_STATUS.SETTLED;
-                await ctx.runMutation(internal.events.create, {
-                    name: GAME_EVENT.GAME_OVER, gameId, data: { result, score: game.score }, steptime
-                })
+            const diff = await ctx.runQuery(internal.diffcult.find, { id: game.diffcult })
+            if (diff?.data) {
+                const result = GameEngine.settleGame(game, battle, diff.data.goal);
+                if (result) {
+                    await ctx.runMutation(internal.events.create, {
+                        name: GAME_EVENT.GAME_OVER, gameId, data: { result, score: game.score }, steptime
+                    })
+                }
+                await ctx.runMutation(internal.games.update, {
+                    gameId: gameId as Id<"games">, data: { ...game, gameId: undefined, defender: undefined, laststep: steptime }
+                });
             }
-            await ctx.runMutation(internal.games.update, {
-                gameId, data: { ...game, gameId: undefined, defender: undefined, laststep: steptime }
-            });
         }
     }
 })

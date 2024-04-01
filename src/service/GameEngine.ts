@@ -2,11 +2,11 @@ import seedrandom from 'seedrandom';
 import goals from "../component/play/goals";
 import { BattleModel, BattleReward } from '../model/Battle';
 import { CellItem } from "../model/CellItem";
-import { GAME_ACTION, GAME_EVENT } from '../model/Constants';
+import { GAME_ACTION, GAME_EVENT, GAME_STATUS } from '../model/Constants';
 import { GameModel } from '../model/GameModel';
 import { Tournament } from '../model/Tournament';
 import candy_textures from "../model/candy_textures";
-import { checkMatches, getFreeCandy } from '../util/MatchGameUtils';
+import { findMatch3, findMatch3Plus, getFreeCandy, hasMatch } from '../util/MatchGameUtils';
 interface SwipeResult {
     candy: CellItem;
     target: CellItem;
@@ -20,45 +20,15 @@ export type Match = {
     items: MatchItem[]
 };
 export type MatchItem = {
+    id?: number;
     units: CellItem[];
     start: { row: number; column: number };
     end: { row: number; column: number };
-    orientation: 'horizontal' | 'vertical';
+    orientation: 'horizontal' | 'vertical' | 'T' | 'L';
+    size: number;
     status?: number;//0-active 1-inactive
 };
 
-// export const getSwipeResult = (candyId: number, targetId: number, cells: CellItem[], row: number, column: number): { toChange: CellItem[], toRemove: CellItem[] } => {
-//     const results: { toChange: CellItem[], toRemove: CellItem[] } = { toChange: [], toRemove: [] }
-//     const candy = cells.find((c: CellItem) => c.id === candyId);
-//     const target = cells.find((c: CellItem) => c.id === targetId);
-//     if (!candy || !target) return results;
-//     [candy.row, target.row] = [target.row, candy.row];
-//     [candy.column, target.column] = [target.column, candy.column];
-//     cells.sort((a, b) => a.row !== b.row ? a.row - b.row : a.column - b.column)
-//     const grid: CellItem[][] = Array.from({ length: row }, () => Array(column).fill(null));
-//     for (const unit of cells) {
-//         // console.log(unit.row + ":" + unit.column + ":" + unit.asset)
-//         grid[unit.row][unit.column] = unit;
-//     }
-//     const matches: Match[] = checkMatches(grid)
-//     matches.filter((match) => match.size > 3).forEach((m) => {
-//         m.items[0].units.sort((a, b) => (a.row + a.column) - (b.row + b.column));
-//         const start = m.items[0].units[0];
-//         const end = m.items[0].units[m.items[0].units.length - 1];
-//         results.toRemove.push(Object.assign({}, start, { id: -1 }))
-//         if (m.items[0].orientation === "horizontal") {
-//             [start.column, end.column] = [end.column, start.column]
-//             end.asset = 28;
-//         } else {
-//             [start.row, end.row] = [end.row, start.row]
-//             end.asset = 29;
-//         }
-//         end.status = 0;
-//         results.toChange.push(JSON.parse(JSON.stringify(end)))
-//     })
-//     results.toRemove.push(...cells.filter((c: CellItem) => c.status && c.status > 0))
-//     return results
-// }
 
 export const initGame = (diffcult: any, seed: string) => {
     const { row, column } = diffcult.data as { row: number; column: number };
@@ -100,11 +70,13 @@ export const initGame = (diffcult: any, seed: string) => {
 
 
 
-export const settleGame = (game: any, battle: any): { base: number; time: number; goal: number } | null => {
+export const settleGame = (game: any, battle: any, goalId: number): { base: number; time: number; goal: number } | null => {
+
     let result = null;
     let goalScore = 0;
-    const goalId = battle.data.goal;
+    // const goalId = battle.data.goal;
     const goalModel = goals.find((g: { id: number, goal: { asset: number, quantity: number }[] }) => g.id === goalId);
+
     if (goalModel && game.data.matched) {
         const goalSuccess = goalModel.goal.map((g) => {
             const m = game.data.matched.find((m: { asset: number; quantity: number }) => m.asset === g.asset);
@@ -115,10 +87,15 @@ export const settleGame = (game: any, battle: any): { base: number; time: number
             goalScore = 1000;
         }
         const timeLeft = battle.duration - Date.now() + battle.startTime;
+
         if (timeLeft < 0 || goalScore > 0) {
             const baseScore = game.data.matched.reduce((s: number, a: { asset: number; quantity: number }) => s + a.quantity, 0);
-            const timeScore = timeLeft > 0 ? timeLeft * 2 : 0;
-            result = { base: baseScore, time: timeScore > 0 ? Math.floor(timeScore / 1000) : 0, goal: goalScore }
+            const timeScore = timeLeft > 0 ? Math.floor(timeLeft * 2 / 1000) : 0;
+            const score = baseScore + timeScore + goalScore;
+            result = { base: baseScore, time: timeScore, goal: goalScore }
+            game['result'] = result;
+            game['score'] = score;
+            game['status'] = GAME_STATUS.SETTLED;
         }
     }
     return result
@@ -133,10 +110,11 @@ export const handleEvent = (name: string, eventData: any, game: any) => {
             [candy.row, target.row] = [target.row, candy.row];
             [candy.column, target.column] = [target.column, candy.column];
         }
-    } else
-        return
-    console.log(eventData)
-    applyEventResult(eventData.results, game)
+    }
+    // applyEventResult(eventData.results, game)
+    for (const result of eventData.results) {
+        applyShiftResult(result, game)
+    }
 }
 const applyEventResult = (
     results: { toCreate: CellItem[]; toChange: CellItem[]; toRemove: CellItem[]; toMove: CellItem[] }[],
@@ -187,11 +165,13 @@ export const countRewards = (tournament: Tournament, battle: BattleModel): Battl
     const rewards: BattleReward[] = [];
     if (battle.status === 0 && battle.games && battle.games.length > 0) {
         battle.games.sort((a: any, b: any) => b.score - a.score).forEach((r: any, index: number) => {
+
             const reward = tournament.rewards?.find((w) => w.rank === index);
             console.log(reward)
             if (reward) {
-                rewards.push({ uid: r.uid, gameId: r.gameId, rank: index, score: r.score, points: reward.points, assets: reward.assets })
-            }
+                rewards.push({ uid: r.uid, gameId: r._id, rank: index, score: r.score, points: reward.points, assets: reward.assets });
+            } else
+                rewards.push({ uid: r.uid, gameId: r._id, rank: index, score: r.score, points: 0, assets: [] });
         })
     }
     return rewards;
@@ -212,39 +192,47 @@ export const executeAct = (game: GameModel, battle: BattleModel, action: { name:
     return result;
 }
 const executeSwipe = (game: GameModel, candyId: number, targetId: number, row: number, column: number): SwipeResult | null => {
+
     const candy: CellItem | null = game.data.cells.find((c: CellItem) => c.id === candyId);
     const target: CellItem | null = game.data.cells.find((c: CellItem) => c.id === targetId);
+    console.log(candy);
+    console.log(target)
     if (!candy || !target) return null;
     [candy.row, target.row] = [target.row, candy.row];
     [candy.column, target.column] = [target.column, candy.column];
-    const results: { toChange: CellItem[]; toCreate?: CellItem[]; toMove: CellItem[]; toRemove: CellItem[] }[] = [];
-    const data: SwipeResult = { candy: JSON.parse(JSON.stringify(candy)), target: JSON.parse(JSON.stringify(target)), results };
-    let loop = true
+    console.log("start resolve match....")
+    const results = resolveMatch(game, row, column);
 
-    while (loop) {
-        game.data.cells.sort((a: CellItem, b: CellItem) => a.row !== b.row ? a.row - b.row : a.column - b.column)
-        const grid: CellItem[][] = Array.from({ length: row }, () => Array(column).fill(null));
 
-        for (const unit of game.data.cells) {
-            grid[unit.row][unit.column] = unit;
-        }
-        const matches: Match[] = checkMatches(grid);
-        if (matches.length === 0) {
-            loop = false
-            break;
-        }
+    // const results: { toChange: CellItem[]; toCreate?: CellItem[]; toMove: CellItem[]; toRemove: CellItem[] }[] = [];
+    // const data: SwipeResult = { candy: JSON.parse(JSON.stringify(candy)), target: JSON.parse(JSON.stringify(target)), results };
+    // let loop = true
 
-        const result: { toChange: CellItem[]; toCreate: CellItem[]; toMove: CellItem[]; toRemove: CellItem[] } | null = processMatch(game, matches);
-        if (result)
-            results.push(result)
-    }
+    // while (loop) {
+    //     game.data.cells.sort((a: CellItem, b: CellItem) => a.row !== b.row ? a.row - b.row : a.column - b.column)
+    //     const grid: CellItem[][] = Array.from({ length: row }, () => Array(column).fill(null));
+    //     for (const unit of game.data.cells) {
+    //         grid[unit.row][unit.column] = unit;
+    //     }
+    //     const matches: Match[] = checkMatches(grid);
+    //     if (matches.length === 0) {
+    //         loop = false
+    //         break;
+    //     }
+
+    //     const result: { toChange: CellItem[]; toCreate: CellItem[]; toMove: CellItem[]; toRemove: CellItem[] } | null = processMatch(game, matches);
+    //     if (result)
+    //         results.push(result)
+    // }
+
     game.data.cells.sort((a: CellItem, b: CellItem) => {
         if (a.row !== b.row)
             return a.row - b.row
         else
             return a.column - b.column
     })
-    return data;
+    return { candy: JSON.parse(JSON.stringify(candy)), target: JSON.parse(JSON.stringify(target)), results }
+    // return data;
 }
 const processMatch = (game: any, matches: Match[]): { toMove: CellItem[]; toRemove: CellItem[]; toCreate: CellItem[]; toChange: CellItem[] } | null => {
 
@@ -306,8 +294,167 @@ const processMatch = (game: any, matches: Match[]): { toMove: CellItem[]; toRemo
     return res
 
 }
+const resolveMatch = (game: GameModel, rows: number, columns: number) => {
+    const results: { toChange: CellItem[]; toCreate: CellItem[]; toMove: CellItem[]; toRemove: CellItem[] }[] = [];
+    game.data.cells.sort((a: CellItem, b: CellItem) => a.row !== b.row ? a.row - b.row : a.column - b.column)
+    let grid: CellItem[][] = Array.from({ length: rows }, () => Array(columns).fill(null));
+    for (const unit of game.data.cells) {
+        grid[unit.row][unit.column] = unit;
+    }
+    while (hasMatch(grid)) {
+
+        const m3plusChanges = resolveMatch3Plus(grid);
+        const crossChanges = resolveMatchCross(grid);
+        const match3 = findMatch3(grid);
+
+        if (match3?.length > 0) {
+            match3.forEach((m) => m.units.forEach((u) => u.status = 1))
+        }
+        const res = shiftMatch(rows, columns, game);
+        console.log(res)
+        const toChange = [...m3plusChanges, ...crossChanges]
+        results.push({ ...res, toChange });
+
+        applyShiftResult({ ...res, toChange }, game);
+
+        game.data.cells.sort((a: CellItem, b: CellItem) => a.row !== b.row ? a.row - b.row : a.column - b.column)
+        grid = Array.from({ length: rows }, () => Array(columns).fill(null));
+        for (const unit of game.data.cells) {
+            grid[unit.row][unit.column] = unit;
+        }
+        console.log("shift completed and sort grid again,cell size:" + game.data.cells.length)
+    }
+    console.log(results)
+    return results
+}
+
+const resolveMatch3Plus = (grid: CellItem[][]): CellItem[] => {
+    const toChange: CellItem[] = [];
+    let matches = findMatch3Plus(grid);
+
+    console.log("m3plus size:" + matches?.length)
+    while (matches.length > 0) {
+        for (const m of matches) {
+            if (m.units.filter((u) => u.status).length === 0) {
+                if (m.size === 4) {
+                    toChange.push({ ...m.units[0], asset: m.orientation === "horizontal" ? 28 : 29 })
+                } else {
+                    toChange.push({ ...m.units[0], asset: 31 })
+                }
+                m.units.forEach((u, index) => {
+                    if (index > 0) u.status = 1
+                })
+            }
+        }
+        matches = findMatch3Plus(grid);
+    }
+    return toChange;
+}
+
+const resolveMatchCross = (grid: CellItem[][]): CellItem[] => {
+    const toChange: CellItem[] = [];
+    let matches = findMatch3(grid);
+    while (matches.length > 1) {
+        for (const match of matches) {
+            if (!match.status) {
+                const ls = matches.find((m) => match.id !== m.id && !m.status && m.units.find((obj1) => match.units.some(obj2 => obj1['id'] === obj2['id'])));
+                if (ls) {
+                    const conn = match.units.find((mu) => ls.units.some((lu) => lu.id === mu.id));
+                    if (conn) {
+                        toChange.push({ ...conn, asset: 30 });
+                        match.units.forEach((u) => u.status = 1);
+                        ls.units.forEach((u) => u.status = 1);
+                    }
+                }
+            }
+        }
+        matches = findMatch3(grid);
+    }
+    console.log("complete match cross find");
+    console.log(toChange)
+    return toChange;
+}
+const shiftMatch = (rows: number, columns: number, game: any) => {
+    const toMove: CellItem[] = [];
+    const toCreate: CellItem[] = [];
+    console.log("shift matching start...")
+    for (let column = 0; column < columns; column++) {
+        const toColCreate: CellItem[] = [];
+        const colRemoved = game.data.cells.filter((c: any) => c.column === column && c.status);
+        for (const r of colRemoved) {
+            const candy = getFreeCandy(game.seed, game.data.lastCellId++);
+            candy.column = column;
+            candy.row = toColCreate.length;
+            toColCreate.push(candy);
+            const toMoves: CellItem[] = game.data.cells.filter((c: CellItem) => !c.status && c.column === column && c.row < r.row);
+            toMoves.forEach((ms) => {
+                const tm = toMove.find((m) => m.id === ms.id);
+                if (tm) {
+                    tm.row++;
+                } else
+                    toMove.push({ ...ms, row: ms.row + 1 })
+            })
+
+        }
+        toCreate.push(...toColCreate)
+    }
+
+    const toRemove: CellItem[] = game.data.cells.filter((c: CellItem) => c.status);
+    return { toRemove, toCreate, toMove }
+
+}
+
+const applyShiftResult = (
+    result: { toCreate: CellItem[]; toChange: CellItem[]; toRemove: CellItem[]; toMove: CellItem[] },
+    game: GameModel
+) => {
 
 
+    game.data.cells.sort((a: CellItem, b: CellItem) => {
+        if (a.row === b.row) return a.column - b.column;
+        else return a.row - b.row;
+    });
+    if (!game.data.matched)
+        game.data.matched = [];
+    const { toCreate, toChange, toRemove, toMove } = result;
+    if (toRemove) {
+        const acells: CellItem[] = game.data.cells.filter((c: CellItem) => {
+            const cr = toRemove.find((r) => r.id === c.id);
+            if (cr) return false;
+            else return true;
+        });
+        game.data.cells.length = 0;
+        game.data.cells.push(...acells);
+        console.log("cell size after remove:" + game.data.cells.length)
 
+        for (const r of toRemove) {
+            const mitem = game.data.matched.find((m: { asset: number; quantity: number }) => m.asset === r.asset);
+            if (mitem) mitem.quantity++;
+            else game.data.matched.push({ asset: r.asset, quantity: 1 });
+        }
+    }
+    if (toCreate?.length > 0) {
+        game.data.cells.push(...toCreate);
+    }
+
+    if (toChange) {
+        toChange.forEach((c) => {
+            const cell = game.data.cells.find((s: CellItem) => s.id === c.id);
+            Object.assign(cell, c);
+        });
+    }
+
+    if (toMove) {
+        for (const m of toMove) {
+            const cell = game.data.cells.find((c: CellItem) => c.id === m.id);
+            if (cell) {
+                Object.assign(cell, m);
+            }
+        }
+    }
+
+    console.log("apply shift completed")
+
+};
 
 

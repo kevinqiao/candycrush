@@ -1,94 +1,67 @@
+import BattleGround from "component/play/BattleGround";
+import BattleScene from "component/play/BattleScene";
+import GamePlay from "component/play/GamePlay";
+import GameConsole from "component/play/console/GameConsole";
+import TimeCount from "component/play/console/TimeCount";
+import { Id } from "convex/_generated/dataModel";
 import { BattleModel } from "model/Battle";
 import { BATTLE_LOAD } from "model/Constants";
+import PageProps from "model/PageProps";
 import React, { useEffect, useRef, useState } from "react";
 import BattleProvider from "service/BattleManager";
 import GameProvider from "service/GameManager";
 import SceneProvider from "service/SceneManager";
+import useTournamentManager from "service/TournamentManager";
 import useDimension from "util/useDimension";
-import PageProps from "../../model/PageProps";
-import useTournamentManager from "../../service/TournamentManager";
-import BattleGround from "./BattleGround";
-import BattleScene from "./BattleScene";
-import GamePlay from "./GamePlay";
-import SearchOpponent from "./SearchOpponent";
-import GameConsole from "./console/GameConsole";
-
-const ReplayHome: React.FC<PageProps> = (pageProp) => {
-  const sceneRef = useRef<HTMLDivElement | null>(null);
-  const sbattleRef = useRef<BattleModel | null>(null);
+interface ControlProps {
+  battleId: string;
+  gameId: string;
+}
+const RePlayControl: React.FC<ControlProps> = ({ battleId, gameId }) => {
   const [battle, setBattle] = useState<BattleModel | null>(null);
-
-  const [game, setGame] = useState<{ gameId: string; uid: string; matched: any } | null>(null);
   const { findBattle } = useTournamentManager();
 
-  const pagePosition = useDimension(sceneRef);
   useEffect(() => {
-    const gameId = pageProp.data?.gameId;
-    if (gameId) {
-      if (pageProp.data.battleId) {
-        findBattle(pageProp.data.battleId).then((b) => {
-          if (b) {
-            sbattleRef.current = b;
-            setBattle(JSON.parse(JSON.stringify(b)));
-            if (b.games.length > 0) {
-              const g = b.games.find((c: any) => c.gameId === gameId);
-              setGame(g);
-            }
-          }
-        });
-      } else if (pageProp.data.battle) {
-        sbattleRef.current = pageProp.data.battle;
-        setBattle(JSON.parse(JSON.stringify(pageProp.data.battle)));
-        if (pageProp.data.battle.games.length > 0) {
-          const g = pageProp.data.battle.games.find((c: any) => c.gameId === gameId);
-          setGame(g);
-        }
-      }
+    if (!battle && battleId) {
+      findBattle(battleId as Id<"battle">).then((b) => {
+        // sbattleRef.current = b;
+        setBattle(b);
+      });
     }
-  }, [pageProp]);
-
+  }, [battleId]);
+  return (
+    <>
+      {battle ? (
+        <BattleProvider battle={battle}>
+          <BattleGround>
+            <TimeCount />
+            <GameConsole gameId={gameId} />
+            <GameProvider gameId={gameId}>
+              <GamePlay />
+            </GameProvider>
+            <BattleScene />
+          </BattleGround>
+        </BattleProvider>
+      ) : null}
+    </>
+  );
+};
+const ReplayHome: React.FC<PageProps> = (pageProp) => {
+  const sceneRef = useRef<HTMLDivElement | null>(null);
+  const pagePosition = useDimension(sceneRef);
+  const { battleId, gameId } = pageProp.data;
   return (
     <div
       ref={sceneRef}
       style={{
-        position: "relative",
-        top: 0,
-        left: 0,
         width: "100%",
         height: "100%",
-        backgroundColor: "transparent",
+        backgroundColor: "blue",
       }}
     >
-      {battle && game ? (
-        <SceneProvider pageProp={pageProp} pagePosition={pagePosition}>
-          <BattleProvider battle={battle}>
-            <BattleGround>
-              <GameConsole game={game} />
-              <GameProvider key={game.gameId} game={game} load={BATTLE_LOAD.REPLAY}>
-                <GamePlay game={game} />
-              </GameProvider>
-              <BattleScene />
-            </BattleGround>
-            <SearchOpponent />
-          </BattleProvider>
-        </SceneProvider>
-      ) : (
-        <div
-          style={{
-            position: "absolute",
-            top: 0,
-            left: 0,
-            display: "flex",
-            width: "100%",
-            height: "100vh",
-            justifyContent: "center",
-            alignItems: "center",
-            backgroundColor: "blue",
-          }}
-        >
-          <span style={{ fontSize: 25, color: "white" }}>Loading</span>
-        </div>
-      )}
+      <SceneProvider load={BATTLE_LOAD.REPLAY} pageProp={pageProp} pagePosition={pagePosition}>
+        {battleId ? <RePlayControl battleId={battleId} gameId={gameId} /> : null}
+      </SceneProvider>
     </div>
   );
 };

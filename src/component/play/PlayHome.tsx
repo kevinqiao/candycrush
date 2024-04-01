@@ -1,5 +1,6 @@
 import { Id } from "convex/_generated/dataModel";
 import { BattleModel } from "model/Battle";
+import { BATTLE_LOAD } from "model/Constants";
 import React, { useEffect, useRef, useState } from "react";
 import BattleProvider from "service/BattleManager";
 import GameProvider from "service/GameManager";
@@ -20,19 +21,19 @@ import BattleReport from "./report/BattleReport";
 
 interface ControlProps {
   battleId: string;
-  load: number; //0-load from search opponent 1-reload not finished 2-replay
 }
-const PlayControl: React.FC<ControlProps> = ({ battleId, load }) => {
+const PlayControl: React.FC<ControlProps> = ({ battleId }) => {
   // const sceneRef = useRef<HTMLDivElement | null>(null);
-  const sbattleRef = useRef<BattleModel | null>(null);
+  // const sbattleRef = useRef<BattleModel | null>(null);
   const [battle, setBattle] = useState<BattleModel | null>(null);
   const { findBattle } = useTournamentManager();
+  console.log(battle);
 
   useEffect(() => {
-    if (!sbattleRef.current && battleId) {
+    if (!battle && battleId) {
       findBattle(battleId as Id<"battle">).then((b) => {
-        sbattleRef.current = b;
-        setBattle(JSON.parse(JSON.stringify(b)));
+        // sbattleRef.current = b;
+        setBattle(b);
       });
     }
   }, [battleId]);
@@ -46,7 +47,7 @@ const PlayControl: React.FC<ControlProps> = ({ battleId, load }) => {
             <BattleConsole />
             {battle.games &&
               battle.games.map((g) => (
-                <GameProvider key={g.gameId} gameId={g.gameId} load={load}>
+                <GameProvider key={g.gameId} gameId={g.gameId}>
                   <GamePlay />
                 </GameProvider>
               ))}
@@ -74,8 +75,12 @@ const PlayHome: React.FC<PageProps> = (pageProp) => {
   return (
     <>
       <div ref={sceneRef} className="play_container">
-        <SceneProvider pageProp={pageProp} pagePosition={pagePosition}>
-          {battleId ? <PlayControl load={pageProp.data.battleId ? 1 : 0} battleId={battleId} /> : null}
+        <SceneProvider
+          load={pageProp.data.battleId ? BATTLE_LOAD.RELOAD : BATTLE_LOAD.PLAY}
+          pageProp={pageProp}
+          pagePosition={pagePosition}
+        >
+          {battleId ? <PlayControl battleId={battleId} /> : null}
           <OpponentSearch battleId={battleId} />
         </SceneProvider>
       </div>

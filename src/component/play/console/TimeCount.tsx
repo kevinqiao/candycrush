@@ -1,3 +1,4 @@
+import { BATTLE_LOAD } from "model/Constants";
 import React, { useEffect, useState } from "react";
 import { useUserManager } from "service/UserManager";
 import { useBattleManager } from "../../../service/BattleManager";
@@ -5,21 +6,28 @@ import { useSceneManager } from "../../../service/SceneManager";
 
 const TimeCount = () => {
   const { user } = useUserManager();
-  const { containerBound } = useSceneManager();
+  const { load, containerBound } = useSceneManager();
   const { battle, timeout } = useBattleManager();
   const [timeLeft, setTimeLeft] = useState<number>(-1);
 
   useEffect(() => {
     if (!battle || !user) return;
-    const past = (battle.startTime ?? 0) - Date.now() - user.timelag;
-    if (past > 0)
-      setTimeout(() => {
-        setTimeLeft(Math.ceil(battle.duration / 1000));
-      }, past);
-    else if (battle.duration + past > 0) {
-      setTimeLeft(Math.ceil((battle.duration + past) / 1000));
-    } else timeout();
-  }, [battle, user]);
+
+    if (load === BATTLE_LOAD.REPLAY) setTimeLeft(Math.ceil(battle.duration / 1000));
+    else {
+      const time = Math.ceil((battle.duration + ((battle.startTime ?? 0) - Date.now() - user.timelag)) / 1000);
+      if (time > 0) setTimeLeft(time);
+      else timeout();
+    }
+    // const past = (battle.startTime ?? 0) - Date.now() - user.timelag;
+    // if (past > 0)
+    //   setTimeout(() => {
+    //     setTimeLeft(Math.ceil(battle.duration / 1000));
+    //   }, past);
+    // else if (battle.duration + past > 0) {
+    //   setTimeLeft(Math.ceil((battle.duration + past) / 1000));
+    // } else timeout();
+  }, [load, battle, user]);
 
   useEffect(() => {
     if (timeLeft < 0) return;

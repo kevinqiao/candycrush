@@ -7,7 +7,6 @@ export interface BattleModel {
     tournamentId: string;
     status?: number;//0-active 1-over 2-settled
     rewards?: BattleReward[];
-    searchDueTime?: number;
     startTime: number;
     data: any;
 }

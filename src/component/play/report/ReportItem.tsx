@@ -5,8 +5,10 @@ import "./report.css";
 
 const ReportItem: React.FC<ReportItemModel> = ({ player, result }) => {
   const score = useMemo(() => {
-    if (result) return 100;
-    else return null;
+    if (result) {
+      const { base, time, goal } = result;
+      return base + time + goal;
+    } else return null;
   }, [result]);
   return (
     <div className="report-item">

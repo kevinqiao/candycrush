@@ -1,9 +1,11 @@
+import { SCENE_NAME } from "model/Constants";
 import candy_textures from "model/candy_textures";
 import * as PIXI from "pixi.js";
 import React, { createContext, useCallback, useContext, useEffect, useRef, useState } from "react";
 import PageProps, { PagePosition } from "../model/PageProps";
 import { SceneModel } from "../model/SceneModel";
 interface ISceneContext {
+  load: number; //0-play 1-replay;
   containerBound: PagePosition | null | undefined;
   textures: { id: number; texture: PIXI.Texture }[];
   avatarTextures: { name: string; texture: PIXI.Texture }[];
@@ -14,6 +16,7 @@ interface ISceneContext {
   exit: () => void;
 }
 const SceneContext = createContext<ISceneContext>({
+  load: 0,
   containerBound: null,
   textures: [],
   avatarTextures: [],
@@ -36,10 +39,12 @@ const SCENE_EVENT_TYPE = {
 };
 
 export const SceneProvider = ({
+  load,
   pageProp,
   pagePosition,
   children,
 }: {
+  load: number;
   pageProp: PageProps;
   pagePosition: PagePosition;
   children: React.ReactNode;
@@ -48,7 +53,7 @@ export const SceneProvider = ({
   const texturesRef = useRef<{ id: number; texture: PIXI.Texture }[]>([]);
   const avatarTexturesRef = useRef<{ name: string; texture: PIXI.Texture }[]>([]);
   const [sceneEvent, setSceneEvent] = useState<SceneEvent | null>(null);
-  const [containerBound, setContainerBound] = useState<PagePosition | undefined>();
+  // const [containerBound, setContainerBound] = useState<PagePosition | undefined>();
   const [complete, setComplete] = useState(false);
 
   const loadCandyTextures = () => {
@@ -72,15 +77,12 @@ export const SceneProvider = ({
   };
 
   useEffect(() => {
+    scenesRef.current.set(SCENE_NAME.BATTLE_CONSOLE, {});
     loadCandyTextures();
     // loadAvatarTextures();
     return () => {
       for (const scene of scenesRef.current.values()) {
         if (scene && !scene.type) {
-          // const gameScene = scene as GameScene;
-          // if (gameScene.candies) {
-          //   Array.from(gameScene.candies.values()).forEach((c) => c.destroy(true));
-          // }
           (scene.app as PIXI.Application).destroy(true);
         }
       }
@@ -88,6 +90,7 @@ export const SceneProvider = ({
   }, []);
 
   const value = {
+    load,
     containerBound: pagePosition,
     textures: texturesRef.current,
     avatarTextures: avatarTexturesRef.current,
@@ -104,7 +107,10 @@ export const SceneProvider = ({
 
     stageScene: useCallback((id: string, scene: SceneModel | null) => {
       if (scene) {
-        scenesRef.current.set(id, scene);
+        const pscene = scenesRef.current.get(id);
+        if (pscene) {
+          Object.assign(pscene, scene);
+        } else scenesRef.current.set(id, scene);
         setSceneEvent({ name: id, type: SCENE_EVENT_TYPE.CREATE });
       }
     }, []),

@@ -2,8 +2,9 @@ import React, { useEffect, useRef, useState } from "react";
 interface IconProps {
   //   color: string; // Define the type of the color prop
   amount: number;
+  vertical?: number;
 }
-const DollarIcon: React.FC<IconProps> = ({ amount }) => {
+const DollarIcon: React.FC<IconProps> = ({ amount, vertical }) => {
   const divRef = useRef<HTMLDivElement | null>(null);
   const [fontSize, setFontSize] = useState(20);
 
@@ -28,6 +29,7 @@ const DollarIcon: React.FC<IconProps> = ({ amount }) => {
       ref={divRef}
       style={{
         display: "flex",
+        flexDirection: vertical ? "column" : "row",
         justifyContent: "center",
         alignItems: "center",
         width: "100%",

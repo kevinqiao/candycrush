@@ -54,8 +54,51 @@ export const checkSwipe = (grid: CellItem[][]): boolean => {
 
     return false;
 }
-export const findMatches = (grid: CellItem[][]): MatchItem[] => {
+export const hasMatch = (grid: CellItem[][]): boolean => {
 
+    const rows = grid.length;
+    const columns = grid[0].length;
+    for (let row = 0; row < rows; row++) {
+        let col = 0;
+        let start = grid[row][0];
+        let units: CellItem[] = [];
+        while (col < columns) {
+            if (!grid[row][col])
+                console.log("row:" + row + ";col:" + col + " is null")
+            if (grid[row][col].asset === start.asset) {
+                units.push(grid[row][col])
+            } else {
+                if (units.length >= 3) return true;
+                start = grid[row][col]
+                units = [start]
+            }
+            col++; // Move to the next column if no match was found
+        }
+        if (units.length >= 3) return true;
+    }
+
+    for (let col = 0; col < columns; col++) {
+        let row = 0;
+        let start = grid[0][col];
+        let units: CellItem[] = [];
+        while (row < rows) {
+            // console.log(col + "," + row + ";" + grid[row][col].asset + ":" + start.asset + ":" + units.length)
+            if (grid[row][col].asset === start.asset) {
+                units.push(grid[row][col])
+            } else {
+                if (units.length >= 3) return true;
+                start = grid[row][col]
+                units = [start]
+            }
+            row++; // Move to the next column if no match was found
+        }
+        if (units.length >= 3) return true;
+    }
+
+    return false;
+}
+export const findMatch3 = (grid: CellItem[][]): MatchItem[] => {
+    let id = 0;
     const rows = grid.length;
     const columns = grid[0].length;
     const matches: MatchItem[] = [];
@@ -70,7 +113,8 @@ export const findMatches = (grid: CellItem[][]): MatchItem[] => {
                 units.push(grid[row][col])
             } else {
                 if (units.length >= 3) {
-                    matches.push({ units: [...units], start: { row: start.row, column: start.column }, end: { row: row, column: col - 1 }, orientation: "horizontal" })
+                    id++;
+                    matches.push({ id, units: [...units], start: { row: start.row, column: start.column }, end: { row: row, column: col - 1 }, orientation: "horizontal", size: units.length })
                 }
                 start = grid[row][col]
                 units = [start]
@@ -78,7 +122,8 @@ export const findMatches = (grid: CellItem[][]): MatchItem[] => {
             col++; // Move to the next column if no match was found
         }
         if (units.length >= 3) {
-            matches.push({ units: [...units], start: { row: start.row, column: start.column }, end: { row: row, column: col - 1 }, orientation: "horizontal" })
+            id++;
+            matches.push({ id, units: [...units], start: { row: start.row, column: start.column }, end: { row: row, column: col - 1 }, orientation: "horizontal", size: units.length })
         }
     }
 
@@ -92,7 +137,8 @@ export const findMatches = (grid: CellItem[][]): MatchItem[] => {
                 units.push(grid[row][col])
             } else {
                 if (units.length >= 3) {
-                    matches.push({ units: [...units], start: { row: start.row, column: start.column }, end: { row: row - 1, column: col }, orientation: "vertical" })
+                    id++;
+                    matches.push({ id, units: [...units], start: { row: start.row, column: start.column }, end: { row: row - 1, column: col }, orientation: "vertical", size: units.length })
                 }
                 start = grid[row][col]
                 units = [start]
@@ -100,7 +146,65 @@ export const findMatches = (grid: CellItem[][]): MatchItem[] => {
             row++; // Move to the next column if no match was found
         }
         if (units.length >= 3) {
-            matches.push({ units: [...units], start: { row: start.row, column: start.column }, end: { row: row - 1, column: col }, orientation: "vertical" })
+            id++;
+            matches.push({ id, units: [...units], start: { row: start.row, column: start.column }, end: { row: row - 1, column: col }, orientation: "vertical", size: units.length })
+        }
+    }
+
+    return matches;
+}
+
+export const findMatch3Plus = (grid: CellItem[][]): MatchItem[] => {
+    let id = 0;
+    const rows = grid.length;
+    const columns = grid[0].length;
+    const matches: MatchItem[] = [];
+    for (let row = 0; row < rows; row++) {
+        let col = 0;
+        let start = grid[row][0];
+        let units: CellItem[] = [];
+        while (col < columns) {
+            if (!grid[row][col])
+                console.log("row:" + row + ";col:" + col + " is null")
+            if (grid[row][col].asset === start.asset) {
+                units.push(grid[row][col])
+            } else {
+                if (units.length > 3) {
+                    id++;
+                    matches.push({ id, units: [...units], start: { row: start.row, column: start.column }, end: { row: row, column: col - 1 }, orientation: "horizontal", size: units.length })
+                }
+                start = grid[row][col]
+                units = [start]
+            }
+            col++; // Move to the next column if no match was found
+        }
+        if (units.length > 3) {
+            id++;
+            matches.push({ id, units: [...units], start: { row: start.row, column: start.column }, end: { row: row, column: col - 1 }, orientation: "horizontal", size: units.length })
+        }
+    }
+
+    for (let col = 0; col < columns; col++) {
+        let row = 0;
+        let start = grid[0][col];
+        let units: CellItem[] = [];
+        while (row < rows) {
+            // console.log(col + "," + row + ";" + grid[row][col].asset + ":" + start.asset + ":" + units.length)
+            if (grid[row][col].asset === start.asset) {
+                units.push(grid[row][col])
+            } else {
+                if (units.length > 3) {
+                    id++;
+                    matches.push({ id, units: [...units], start: { row: start.row, column: start.column }, end: { row: row - 1, column: col }, orientation: "vertical", size: units.length })
+                }
+                start = grid[row][col]
+                units = [start]
+            }
+            row++; // Move to the next column if no match was found
+        }
+        if (units.length > 3) {
+            id++;
+            matches.push({ id, units: [...units], start: { row: start.row, column: start.column }, end: { row: row - 1, column: col }, orientation: "vertical", size: units.length })
         }
     }
 
@@ -109,7 +213,7 @@ export const findMatches = (grid: CellItem[][]): MatchItem[] => {
 
 export const checkMatches = (grid: CellItem[][]): Match[] => {
 
-    const allmatches: MatchItem[] = findMatches(grid);
+    const allmatches: MatchItem[] = findMatch3(grid);
     const matches4: Match[] = getMatchPlus4(allmatches);
     const specials: Match[] = getSpecials(allmatches);
 
@@ -150,7 +254,8 @@ export const getMatchPlus4 = (matches: MatchItem[]): Match[] => {
                             units,
                             start: { row: units[0].row, column: units[0].column },
                             end: { row: units[len - 1].row, column: units[len - 1].column },
-                            orientation: m.orientation
+                            orientation: m.orientation,
+                            size: units.length
                         }
                         if (len === 2) {
                             matches.push(item)

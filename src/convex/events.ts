@@ -84,17 +84,20 @@ export const findByBattle = query({
 export const findByGame = query({
   args: { gameId: v.optional(v.string()), laststep: v.number() },
   handler: async (ctx, { gameId, laststep }) => {
-
+    // console.log("laststep:" + laststep)
     if (laststep >= 0 && gameId) {
       const game = await ctx.db.get(gameId as Id<"games">);
-      if (game) {
+      if (game?.startTime) {
         const from = laststep;
+        // const from = Date.now() - game.startTime;
         const to = game.laststep ?? 0;
-
+        const gid = game['ref'] !== "####" ? game['ref'] : gameId
+        // console.log("from:" + from + "; to:" + to + " gameId:" + gid)
         const events = await ctx.db
-          .query("events").withIndex("by_game", (q) => q.eq("gameId", game?.ref ?? gameId))
+          .query("events").withIndex("by_game", (q) => q.eq("gameId", gid))
           .filter((q) => q.and(q.gt(q.field("steptime"), from), q.lte(q.field("steptime"), to))).order("asc")
           .collect();
+        // console.log("event size:" + events?.length)
         return events.map((event) => Object.assign({}, event, { id: event?._id, _creationTime: undefined, _id: undefined }))
       }
     }
@@ -102,15 +105,20 @@ export const findByGame = query({
 });
 export const findAllByGame = query({
   args: { gameId: v.string() },
-  handler: async (ctx, args) => {
-
-    if (args.gameId !== "0000") {
+  handler: async (ctx, { gameId }) => {
+    if (gameId !== "0000") {
       const events = await ctx.db
         .query("events")
-        .filter((q) => q.and(q.eq(q.field("gameId"), args.gameId), q.neq(q.field("name"), "gameInited"))).order("asc").collect();
+        .filter((q) => q.and(q.eq(q.field("gameId"), gameId), q.neq(q.field("name"), "gameInited"))).order("asc").collect();
       const elist = events.map((e) => {
-        return { id: e._id, name: e.name, data: e.data, steptime: e.steptime ?? 0 }
+        return { id: e._id as string, name: e.name, data: e.data, steptime: e.steptime ?? 0 }
       })
+      const gameOverEvent = events.find((e) => e.name === "gameOver");
+      if (!gameOverEvent) {
+        const game = await ctx.db.get(gameId as Id<"games">);
+        if (game?.dueTime && game.startTime)
+          elist.push({ id: Date.now() + "", name: "gameOver", data: { result: game.result }, steptime: game['dueTime'] - game['startTime'] })
+      }
       return elist
     }
   },

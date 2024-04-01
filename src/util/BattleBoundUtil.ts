@@ -63,3 +63,26 @@ export const getDualBounds = (width: number, height: number, column: number, row
     }
     return bounds;
 }
+
+export const getMonoBounds = (width: number, height: number, column: number, row: number): { name: string; top: number; left: number; width: number; height: number; radius?: number }[] => {
+    const bounds: { name: string; top: number; left: number; width: number; height: number; radius?: number }[] = [];
+
+    bounds.push({ name: "console", top: 30, left: width * 0.2, width: width * 0.6, height: height * 0.3 - 10 });
+
+    const pw = Math.floor((0.8 * width) / column);
+    const ph = Math.floor(0.63 * height / row);
+    const pradius = Math.min(pw, ph);
+    const pwidth = pradius * column;
+    const pheight = pradius * row;
+    const ptop = 0.3 * height + (0.7 * height - pheight) / 2;
+    const pleft = (width - pwidth) / 2;
+    bounds.push({
+        name: "player",
+        top: ptop,
+        left: pleft,
+        width: pwidth,
+        height: pheight,
+        radius: pradius,
+    });
+    return bounds;
+}

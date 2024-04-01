@@ -39,76 +39,73 @@ const LobbyContent = () => {
 
   const render = useMemo(() => {
     return (
-      <div
-        id="main-home"
-        key={"main-home"}
-        ref={loadSlideContainer}
-        style={{ width: "100%", height: "100%", backgroundColor: "transparent" }}
-      >
-        {/* <div style={{ width: "100%", height: height - 60, backgroundColor: "green" }}></div> */}
-        {width < height ? (
-          <SlideContainer width={`${5 * width}px`} height={"100%"}>
-            {components.map((c, index) => {
-              if (c.component) {
-                const SelectedComponent: FunctionComponent = c.component;
-                return (
-                  <div
-                    key={c.name}
-                    ref={(ele) => loadSlide(index, ele)}
-                    style={{ display: "flex", justifyContent: "center", width: "100vw", height: "100%" }}
-                  >
-                    <SlideNav>
-                      <Suspense fallback={<div>Loading...</div>}>
-                        <SelectedComponent />
-                      </Suspense>
-                    </SlideNav>
-                  </div>
-                );
-              } else {
-                return (
-                  <div
-                    key={c.name}
-                    ref={(ele) => loadSlide(index, ele)}
-                    style={{ display: "flex", justifyContent: "center", width: "100vw", height: "100%" }}
-                  >
-                    <SlideNav style={{ backgroundColor: colors[index] }}></SlideNav>
-                  </div>
-                );
-              }
-            })}
-          </SlideContainer>
-        ) : (
-          <SideContainer width={"100%"} height={"100%"}>
-            {components.map((c, index) => {
-              if (c.component) {
-                const SelectedComponent: FunctionComponent = c.component;
-                return (
-                  <div
-                    key={c.name}
-                    ref={(ele) => loadSlide(c.index, ele)}
-                    style={{ position: "absolute", top: 0, left: 0, opacity: 0, width: "100%", height: "100%" }}
-                  >
-                    <SideNav>
-                      <Suspense fallback={<div>Loading...</div>}>
-                        <SelectedComponent />
-                      </Suspense>
-                    </SideNav>
-                  </div>
-                );
-              } else
-                return (
-                  <div
-                    key={c.name}
-                    ref={(ele) => loadSlide(c.index, ele)}
-                    style={{ position: "absolute", top: 0, left: 0, opacity: 0, width: "100%", height: "100%" }}
-                  >
-                    <SideNav style={{ backgroundColor: colors[c.index] }}></SideNav>
-                  </div>
-                );
-            })}
-          </SideContainer>
-        )}
-      </div>
+      <>
+        <div id="main-home" key={"main-home"} ref={loadSlideContainer} style={{ width: "100%", height: "100%" }}>
+          {/* <div style={{ width: "100%", height: height - 60, backgroundColor: "green" }}></div> */}
+          {width < height ? (
+            <SlideContainer width={`${5 * width}px`} height={"100%"}>
+              {components.map((c, index) => {
+                if (c.component) {
+                  const SelectedComponent: FunctionComponent = c.component;
+                  return (
+                    <div
+                      key={c.name}
+                      ref={(ele) => loadSlide(index, ele)}
+                      style={{ display: "flex", justifyContent: "center", width: "100vw", height: "100%" }}
+                    >
+                      <SlideNav>
+                        <Suspense fallback={<div>Loading...</div>}>
+                          <SelectedComponent />
+                        </Suspense>
+                      </SlideNav>
+                    </div>
+                  );
+                } else {
+                  return (
+                    <div
+                      key={c.name}
+                      ref={(ele) => loadSlide(index, ele)}
+                      style={{ display: "flex", justifyContent: "center", width: "100vw", height: "100%" }}
+                    >
+                      <SlideNav style={{ backgroundColor: colors[index] }}></SlideNav>
+                    </div>
+                  );
+                }
+              })}
+            </SlideContainer>
+          ) : (
+            <SideContainer width={"100%"} height={"100%"}>
+              {components.map((c, index) => {
+                if (c.component) {
+                  const SelectedComponent: FunctionComponent = c.component;
+                  return (
+                    <div
+                      key={c.name}
+                      ref={(ele) => loadSlide(c.index, ele)}
+                      style={{ position: "absolute", top: 0, left: 0, opacity: 0, width: "100%", height: "100%" }}
+                    >
+                      <SideNav>
+                        <Suspense fallback={<div>Loading...</div>}>
+                          <SelectedComponent />
+                        </Suspense>
+                      </SideNav>
+                    </div>
+                  );
+                } else
+                  return (
+                    <div
+                      key={c.name}
+                      ref={(ele) => loadSlide(c.index, ele)}
+                      style={{ position: "absolute", top: 0, left: 0, opacity: 0, width: "100%", height: "100%" }}
+                    >
+                      <SideNav style={{ backgroundColor: colors[c.index] }}></SideNav>
+                    </div>
+                  );
+              })}
+            </SideContainer>
+          )}
+        </div>
+      </>
     );
   }, [loadSlideContainer, width, height, components, loadSlide]);
 

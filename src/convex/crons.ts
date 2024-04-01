@@ -1,5 +1,7 @@
+import { cronJobs } from "convex/server";
+import { internal } from "./_generated/api";
 
-// const crons = cronJobs();
+const crons = cronJobs();
 
 // crons.interval(
 //     "auto game",
@@ -8,7 +10,13 @@
 // );
 // crons.interval(
 //     "settle battle",
-//     { seconds: 2 }, // every minute
+//     { seconds: 10 }, // every minute
 //     internal.battle.settleBattle,
 // );
-// export default crons
+
+crons.interval(
+    "settle match opponent",
+    { seconds: 1 }, // every minute
+    internal.matchqueue.settleMatch,
+);
+export default crons

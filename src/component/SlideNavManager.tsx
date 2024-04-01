@@ -6,6 +6,7 @@ import useCoord from "service/CoordManager";
 
 export interface INavContext {
   index: number;
+  menuIndex: number;
   pageProp: PageProps | null;
   slideContainer: HTMLDivElement | null;
   components: { name: string; index: number; component: any; slide?: HTMLDivElement }[];
@@ -17,6 +18,7 @@ export interface INavContext {
 
 const NavContext = createContext<INavContext>({
   index: 0,
+  menuIndex: 0,
   pageProp: null,
   slideContainer: null,
   components: [],
@@ -31,6 +33,7 @@ export const SlideNavProvider = ({ pageProp, children }: { pageProp: PageProps; 
   const startXRef = useRef<number>(0);
   const menusRef = useRef<Map<number, SVGPolygonElement>>(new Map());
   const menuIndexRef = useRef<number>(2);
+  const [menuIndex, setMenuIndex] = useState<number>(2);
   const slideContainerRef = useRef<HTMLDivElement | null>(null);
 
   const [components, setComponents] = useState<
@@ -91,6 +94,7 @@ export const SlideNavProvider = ({ pageProp, children }: { pageProp: PageProps; 
 
       tl.play();
       menuIndexRef.current = index;
+      setMenuIndex(index);
     },
     [components, width]
   );
@@ -102,6 +106,7 @@ export const SlideNavProvider = ({ pageProp, children }: { pageProp: PageProps; 
       for (const child of pageProp.config.children) {
         // if (pageProp.child && pageProp.child === child.name) changeIndex(index);
         const c = child.uri ? lazy(() => import(`${child.path}`)) : null;
+
         cs.push({ name: child.name, index: index, component: c });
         if (child.name === pageProp.child) {
           menuIndexRef.current = index;
@@ -173,6 +178,7 @@ export const SlideNavProvider = ({ pageProp, children }: { pageProp: PageProps; 
   };
   const value = {
     index: menuIndexRef.current,
+    menuIndex,
     pageProp,
     slideContainer: slideContainerRef.current,
     components,

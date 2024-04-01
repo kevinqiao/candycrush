@@ -1,11 +1,12 @@
-import { BATTLE_EVENT } from "model/Constants";
+import { BATTLE_EVENT, BATTLE_LOAD } from "model/Constants";
 import React, { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
-import { getDualBounds } from "util/BattleBoundUtil";
+import { getDualBounds, getMonoBounds } from "util/BattleBoundUtil";
 import { BattleModel } from "../model/Battle";
 import { useSceneManager } from "./SceneManager";
 import { useUserManager } from "./UserManager";
 
 interface IBattleContext {
+  load: number;
   battle: BattleModel | null;
   allGameLoaded: boolean;
   battleOver: number;
@@ -17,6 +18,7 @@ interface IBattleContext {
   loadGame: (gameId: string, data: any) => void;
 }
 const BattleContext = createContext<IBattleContext>({
+  load: 0,
   allGameLoaded: false,
   battle: null,
   battleOver: 0,
@@ -33,8 +35,8 @@ export const BattleProvider = ({ battle, children }: { battle: BattleModel | nul
   const [battleOver, setBattleOver] = useState(0);
   const [battleEvent, setBattleEvent] = useState<{ name: string } | null>(null);
   const { user } = useUserManager();
-  const { containerBound } = useSceneManager();
-
+  const { load, containerBound } = useSceneManager();
+  console.log("load:" + load);
   useEffect(() => {
     if (!user || !battle) return;
     const mygame = battle.games?.find((g) => g.uid === user.uid);
@@ -43,14 +45,15 @@ export const BattleProvider = ({ battle, children }: { battle: BattleModel | nul
   }, [battle, user]);
 
   const bounds = useMemo(() => {
-    if (!battle || !containerBound) return null;
+    if (!battle || !containerBound || load < 0) return null;
     const { column, row } = battle.data;
     const { width, height } = containerBound;
-    const bs = getDualBounds(width, height, column, row);
+    const bs = load <= 1 ? getDualBounds(width, height, column, row) : getMonoBounds(width, height, column, row);
     return bs;
-  }, [battle, containerBound]);
+  }, [load, battle, containerBound]);
 
   const value = {
+    load,
     allGameLoaded,
     battle,
     battleOver,
@@ -92,6 +95,7 @@ export const BattleProvider = ({ battle, children }: { battle: BattleModel | nul
     }, [battle]),
   };
   useEffect(() => {
+    if (load === BATTLE_LOAD.REPLAY) return;
     const handleVisibilityChange = () => {
       if (document.visibilityState === "visible") {
         // console.log("tab visible");
@@ -104,10 +108,9 @@ export const BattleProvider = ({ battle, children }: { battle: BattleModel | nul
     };
     document.addEventListener("visibilitychange", handleVisibilityChange);
     return () => {
-      console.log("remove listener for tab invisible");
       document.removeEventListener("visibilitychange", handleVisibilityChange);
     };
-  }, []);
+  }, [load]);
   return <BattleContext.Provider value={value}> {children} </BattleContext.Provider>;
 };
 export const useBattleManager = () => {

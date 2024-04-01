@@ -4,9 +4,9 @@ import PlayersIcon from "component/icons/PlayersIcon";
 import PrizeIcon from "component/icons/PrizeIcon";
 import RewardIcon from "component/icons/RewardIcon";
 import { BattleModel } from "model/Battle";
-import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import useCoord from "service/CoordManager";
-import { usePageManager } from "../../service/PageManager";
+import { usePageManager } from "service/PageManager";
 import "./battle.css";
 const TounamentTitle: React.FC = () => {
   const divRef = useRef<HTMLDivElement | null>(null);
@@ -40,53 +40,44 @@ interface Props {
 }
 
 const BattleItem: React.FC<Props> = ({ battle }) => {
-  const { openPage } = usePageManager();
   const { width, height } = useCoord();
-  const openReplay = useCallback(
-    (report: any) => {
-      openPage({ name: "battleReplay", ctx: "playplace", data: { act: "replay", battle, gameId: report.gameId } });
-    },
-    [battle, openPage]
-  );
+  const { openPage } = usePageManager();
   const collect = useCallback(() => {
     console.log("do collection");
   }, [battle]);
-  const openLeaderBoard = useCallback(() => {
-    openPage({ name: "leaderBoard", ctx: "playplace", data: { battle } });
-  }, [battle, openPage]);
+  const openLeaderboard = () => {
+    openPage({ name: "leaderboard", ctx: "match3", data: battle });
+  };
 
-  const render = useMemo(() => {
-    return (
-      <div className="battle-item roboto-regular" style={{ width: width > height ? "90%" : "100%" }}>
-        <div className="trophy">
-          <PrizeIcon rank={2}></PrizeIcon>
+  return (
+    <div className="battle-item roboto-regular" style={{ width: width > height ? "90%" : "100%" }}>
+      <div className="trophy">
+        <PrizeIcon rank={2}></PrizeIcon>
+      </div>
+      <div style={{ width: "65%" }}>
+        <div style={{ height: "30%", width: "100%" }}>
+          <TounamentTitle />
         </div>
-        <div style={{ width: "65%" }}>
-          <div style={{ height: "30%", width: "100%" }}>
-            <TounamentTitle />
+        <div className="summary roboto-regular">
+          <div style={{ width: "45%", maxWidth: 150, marginLeft: 5 }}>
+            <PlayersIcon players={5} />
           </div>
-          <div className="summary roboto-regular">
-            <div style={{ width: "45%", maxWidth: 150, marginLeft: 5 }}>
-              <PlayersIcon players={5} />
-            </div>
-            <div style={{ width: "45%", maxWidth: 150 }}>
-              <DateIcon date={"24/02/2024"} />
-            </div>
-            <div style={{ width: "55%", maxWidth: 200, marginLeft: 30 }} onClick={openLeaderBoard}>
-              <LeaderboardIcon />
-            </div>
+          <div style={{ width: "45%", maxWidth: 150 }}>
+            <DateIcon date={"24/02/2024"} />
           </div>
-          <div style={{ height: 20 }}></div>
+          <div style={{ width: "55%", maxWidth: 200, marginLeft: 30 }} onClick={openLeaderboard}>
+            <LeaderboardIcon />
+          </div>
         </div>
-        <div className="reward">
-          <div style={{ height: "100%" }}>
-            <RewardIcon amount={"12"} />
-          </div>
+        <div style={{ height: 20 }}></div>
+      </div>
+      <div className="reward">
+        <div style={{ height: "100%" }}>
+          <RewardIcon amount={"12"} />
         </div>
       </div>
-    );
-  }, [battle]);
-  return <>{render}</>;
+    </div>
+  );
 };
 
 export default BattleItem;

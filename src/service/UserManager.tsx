@@ -56,9 +56,10 @@ export const UserProvider = ({ children }: { children: React.ReactNode }) => {
     (u: User) => {
       u.timelag = u.timestamp ? u.timestamp - Date.now() : 0;
       localStorage.setItem("user", JSON.stringify({ uid: u.uid, token: u.token, authEmbed: u.authEmbed ?? 0 }));
+
       if (u.battle) {
         const stack = stacks.find((s) => s.name === "battlePlay");
-        if (!stack) setTimeout(() => openBattle(u, u.battle), 500);
+        if (!stack) openBattle(u, u.battle);
       }
       setLastTime(u.timelag + Date.now());
       setUser(u);
@@ -68,10 +69,10 @@ export const UserProvider = ({ children }: { children: React.ReactNode }) => {
   );
   useEffect(() => {
     if (userEvent && user) {
-      // if (userEvent?.name === "battleCreated") {
-      //   openBattle(user, userEvent.data);
-      // }
-
+      if (userEvent?.name === "battleCreated") {
+        const stack = stacks.find((s) => s.name === "battlePlay");
+        if (!stack) openBattle(user, userEvent.data);
+      }
       setLastTime(userEvent.time);
     }
   }, [user, userEvent]);

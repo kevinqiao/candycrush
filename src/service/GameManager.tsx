@@ -9,7 +9,6 @@ import { GameEvent } from "../model/GameEvent";
 import { useBattleManager } from "./BattleManager";
 import * as GameEngine from "./GameEngine";
 interface IGameContext {
-  load: number;
   game: GameModel | null;
   gameEvent?: GameEvent | null;
   // swapCell: (candyId: number, targetId: number) => Promise<any>;
@@ -17,7 +16,6 @@ interface IGameContext {
   doAct: (gameId: string, data: any) => void;
 }
 const GameContext = createContext<IGameContext>({
-  load: BATTLE_LOAD.PLAY,
   game: null,
   gameEvent: null,
   // swapCell: async (candyId: number, targetId: number) => null,
@@ -25,21 +23,13 @@ const GameContext = createContext<IGameContext>({
   doAct: async (gameId: string, data: any) => null,
 });
 
-export const GameProvider = ({
-  load,
-  gameId,
-  children,
-}: {
-  load: number;
-  gameId: string;
-  children: React.ReactNode;
-}) => {
+export const GameProvider = ({ gameId, children }: { gameId: string; children: React.ReactNode }) => {
   const gameRef = useRef<GameModel | null>(null);
   const startTimeRef = useRef<number>(Date.now());
   const lastEventRef = useRef<any>({ steptime: 0 });
   const [gameEvent, setGameEvent] = useState<GameEvent | null>(null);
   const [gameEvents, setGameEvents] = useState<GameEvent[]>([]);
-  const { allGameLoaded, battle, battleEvent, completeGame } = useBattleManager();
+  const { load, battle, battleEvent, completeGame } = useBattleManager();
   const [laststep, setLaststep] = useState(-1);
 
   const events: GameEvent[] | undefined | null = useQuery(api.events.findByGame, {
@@ -52,9 +42,23 @@ export const GameProvider = ({
   const doAct = useAction(api.gameService.doAct);
 
   const sync = useCallback(async () => {
-    const g: any = await convex.query(api.games.findGame, {
-      gameId: gameId as Id<"games">,
-    });
+    let g: any;
+    if (load === BATTLE_LOAD.PLAY || load === BATTLE_LOAD.RELOAD)
+      g = await convex.query(api.games.findGame, {
+        gameId: gameId as Id<"games">,
+      });
+    else if (load === BATTLE_LOAD.REPLAY) {
+      g = await convex.query(api.games.findInitGame, {
+        gameId,
+      });
+      const allEvents = await convex.query(api.events.findAllByGame, {
+        gameId,
+      });
+      if (allEvents) {
+        startTimeRef.current = Date.now();
+        setGameEvents(allEvents);
+      }
+    }
 
     if (g) {
       g.data.cells.sort((a: CellItem, b: CellItem) => {
@@ -63,15 +67,13 @@ export const GameProvider = ({
       });
       if (gameRef.current) Object.assign(gameRef.current, g);
       else gameRef.current = g;
-      setLaststep(g.laststep);
+      if (load !== BATTLE_LOAD.REPLAY) setLaststep(g.laststep);
       setGameEvent({
         id: Date.now() + "" + Math.floor(Math.random() * 100),
         steptime: g.laststep,
         name: "initGame",
         data: g,
       });
-      // console.log("create init game event..." + g.gameId);
-      //  loadGame(gameId, { matched: g.data.matched ?? [] });
     }
   }, [convex, gameId]);
 
@@ -86,11 +88,13 @@ export const GameProvider = ({
           completeGame(gameId, result);
         } else {
           lastEventRef.current = event;
+          // console.log(event);
           setTimeout(() => {
+            // console.log(event.steptime + ":" + laststep);
             if (event.steptime > laststep) {
               GameEngine.handleEvent(event.name, event.data, gameRef.current);
               setGameEvent(event);
-              setLaststep(event.steptime);
+              if (load !== BATTLE_LOAD.REPLAY) setLaststep(event.steptime);
             }
           }, 10 * count++);
         }
@@ -100,68 +104,29 @@ export const GameProvider = ({
   );
 
   useEffect(() => {
-    sync();
-  }, [battle]);
-
-  useEffect(() => {
-    if (battleEvent?.name === BATTLE_EVENT.BATTLE_RELOAD) sync();
+    if (!battleEvent || battleEvent?.name === BATTLE_EVENT.BATTLE_RELOAD) sync();
     else if (battleEvent?.name === BATTLE_EVENT.BATTLE_PAUSE) {
       setLaststep(-1);
     }
   }, [battleEvent]);
 
-  // useEffect(() => {
-  //   if (!gameId || !battle || !convex) return;
-  //   const handleVisibilityChange = () => {
-  //     if (document.visibilityState === "visible") {
-  //       console.log("tab visible");
-  //       sync();
-  //     } else {
-  //       setLaststep(-1);
-  //       console.log("tab invisible");
-  //     }
-  //   };
-  //   sync();
-  //   document.addEventListener("visibilitychange", handleVisibilityChange);
-
-  //   return () => {
-  //     console.log("remove listener for tab invisible");
-  //     document.removeEventListener("visibilitychange", handleVisibilityChange);
-  //   };
-  // }, [gameId, battle, convex]);
-
   useEffect(() => {
-    if (battle?.data.goal && events && events.length > 0 && allGameLoaded) {
+    if (battle?.data.goal && events && events.length > 0) {
       processEvents(events);
     }
-  }, [events, battle, gameRef.current, allGameLoaded]);
-
-  // useEffect(() => {
-  //   const loadInit = async () => {
-  //     const g: any | null = await convex.query(api.games.findInitGame, {
-  //       gameId,
-  //     });
-  //     if (g) {
-  //       startTimeRef.current = Date.now();
-  //       gameRef.current = g;
-  //       setGameEvent({ id: "0", steptime: 0, name: "initGame", data: g });
-  //     }
-  //   };
-  //   if (gameId && battle) {
-  //     load === BATTLE_LOAD.REPLAY ? loadInit() : sync();
-  //   }
-  // }, [gameId, battle, convex, sync]);
+  }, [events, battle, gameRef.current]);
 
   useEffect(() => {
-    if (gameEvents?.length === 0 || !gameEvents) return;
+    if (gameEvents?.length === 0 || load !== BATTLE_LOAD.REPLAY) return;
     const timer = setInterval(() => {
       const pastTime = Date.now() - startTimeRef.current;
       const laststep = lastEventRef.current.steptime;
-
+      // console.log(pastTime + ":" + laststep);
       if (pastTime - laststep > 500) {
         const pastEvents = gameEvents
           .filter((event) => event.steptime && event.steptime > laststep && event.steptime < pastTime)
           .sort((a, b) => a.steptime - b.steptime);
+        // console.log(pastEvents);
         if (pastEvents?.length > 0) {
           processEvents(pastEvents);
         }
@@ -172,39 +137,31 @@ export const GameProvider = ({
     };
   }, [gameEvents, processEvents]);
 
-  useEffect(() => {
-    const loadEvents = async () => {
-      if (gameId) {
-        const events = await convex.query(api.events.findAllByGame, {
-          gameId,
-        });
-        if (events) {
-          startTimeRef.current = Date.now();
-          setGameEvents(events);
-        }
-      }
-    };
-    if (gameId && convex && load === BATTLE_LOAD.REPLAY) loadEvents();
-  }, [load, convex, gameId]);
-
   const value = {
     load,
     game: gameRef.current,
     gameEvent,
     doAct: useCallback(
       async (name: string, data: any): Promise<null> => {
-        // console.log("do action with load:" + load + " play:" + BATTLE_LOAD.PLAY);
+        console.log("do action with load:" + load + " play:" + BATTLE_LOAD.PLAY);
         if (load !== BATTLE_LOAD.REPLAY) {
-          doAct({
-            sessionId: "12345",
+          console.log("send act requestion:" + gameId + ":" + name);
+
+          await convex.action(api.gameService.doAct, {
             act: name,
-            gameId: gameId as Id<"games">,
+            gameId,
             data,
           });
+          // await doAct({
+          //   sessionId: "12345",
+          //   act: name,
+          //   gameId: gameId as Id<"games">,
+          //   data,
+          // });
         }
         return null;
       },
-      [load, battle, doAct, gameId]
+      [load, battle, convex, gameId]
     ),
   };
 

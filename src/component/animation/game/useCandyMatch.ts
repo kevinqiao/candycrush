@@ -42,6 +42,8 @@ export const playChange = (toChange: CellItem[], gameScene: GameScene, textures:
     }
 }
 export const playMove = (toMove: CellItem[], gameScene: GameScene, textures: Texture[], tl: any) => {
+    console.log(toMove);
+
     const candyMap = gameScene.candies;
     const cwidth = gameScene.cwidth;
     if (candyMap && cwidth)
@@ -59,12 +61,12 @@ export const playMove = (toMove: CellItem[], gameScene: GameScene, textures: Tex
                         y: cy,
                         duration: 1,
                         ease: 'power2.out',
-                        onStart: () => {
-                            if (!candy || !candy.position) {
-                                console.log("kill timeline")
-                                tl.kill();
-                            }
-                        },
+                        // onStart: () => {
+                        //     if (!candy || !candy.position) {
+                        //         console.log("kill timeline")
+                        //         tl.kill();
+                        //     }
+                        // },
                     }, "<")
             }
         })
@@ -114,10 +116,11 @@ const useCandyMatch = () => {
 
     const play = useCallback(
         (gameId: string, data: any, timeline: any) => {
+
             const gameScene: GameScene = scenes.get(gameId) as GameScene;
             const tl = timeline ?? gsap.timeline()
             const { candy, target, results } = data;
-            swipeSuccess(gameId, candy, target, tl);
+            // swipeSuccess(gameId, candy, target, tl);
             if (results && gameScene) {
 
                 for (const res of results) {
@@ -130,7 +133,6 @@ const useCandyMatch = () => {
                         playChange(res.toChange, gameScene, textures, cl);
                     }
                     if (res.toRemove) {
-                        // console.log(res.toRemove)
                         playRemove(res.toRemove, gameScene, textures, cl)
                         cl.call(
                             () => playCollect(gameId, res, null),
@@ -142,6 +144,11 @@ const useCandyMatch = () => {
                         const mt = gsap.timeline();
                         ml.add(mt, "<")
                         playMove(res.toMove, gameScene, textures, mt)
+                    }
+                    if (res.toCreate) {
+                        const ct = gsap.timeline();
+                        ml.add(ct, "<")
+                        playMove(res.toCreate, gameScene, textures, ct)
                     }
 
                 }

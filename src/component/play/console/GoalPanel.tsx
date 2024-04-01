@@ -15,7 +15,6 @@ const GoalPanel: React.FC<Props> = ({ layout, game }) => {
   const { battle } = useBattleManager();
   const [goals, setGoals] = useState<{ asset: number; quantity: number }[][]>([]);
   const { scenes } = useSceneManager();
-
   useEffect(() => {
     if (battle?.data.goal) {
       const battleGoal = game_goals.find((g) => g.id === battle.data.goal);
@@ -98,7 +97,7 @@ const GoalPanel: React.FC<Props> = ({ layout, game }) => {
                 </div>
                 <div style={{ position: "absolute", top: -8, left: layout === 0 ? -6 : 20, color: "white" }}>
                   <span ref={(el: HTMLElement) => loadGoal(0, el, a)} style={{ fontSize: 15 }}>
-                    {a.quantity>0?a.quantity:"✔️"}
+                    {a.quantity > 0 ? a.quantity : "✔️"}
                   </span>
                 </div>
               </div>

@@ -16,7 +16,7 @@ const AvatarBar: React.FC<Props> = ({ layout, game }) => {
   const sceneContainerRef = useRef<HTMLDivElement | null>(null);
   const { width, height } = useDimension(sceneContainerRef);
   const { scenes } = useSceneManager();
-  const { battleEvent, allGameLoaded } = useBattleManager();
+  const { battleEvent } = useBattleManager();
   const [score, setScore] = useState<number>(0);
 
   const calculateBackgroundPosition = () => {
@@ -36,58 +36,67 @@ const AvatarBar: React.FC<Props> = ({ layout, game }) => {
     transform: `scale(${height / frameSize},${height / frameSize})`,
     transformOrigin: "top left",
   };
-  const load = useCallback(
-    (type: number, el: HTMLElement | null) => {
-      if (scenes && el && game) {
-        // let game = battle.games.find((g) => g.uid === user.uid);
-        // if (layout > 0) {
-        //   const gs = battle?.games.filter((g) => g.uid !== user.uid);
-        //   if (gs.length > 0) {
-        //     game = gs[0];
-        //   }
-        // }
-        // console.log("layout:" + layout);
-        const consoleScene = scenes.get(SCENE_NAME.BATTLE_CONSOLE) as ConsoleScene;
+  const getAvatarBar = useCallback(() => {
+    if (!game || !scenes) return;
 
-        if (consoleScene && game?.gameId) {
-          // setBattleGame(game);
-          const gameId = game.gameId;
-          if (!consoleScene.avatarBars) consoleScene.avatarBars = [];
-          let avatarBar = consoleScene.avatarBars.find((a) => a.gameId === gameId);
-          if (!avatarBar) {
-            avatarBar = { gameId: game.gameId, avatar: null, bar: null, score: null, plus: null };
-            consoleScene.avatarBars.push(avatarBar);
-          }
+    const consoleScene = scenes.get(SCENE_NAME.BATTLE_CONSOLE) as ConsoleScene;
+    let avatarBar;
 
-          switch (type) {
-            case 0:
-              avatarBar.avatar = el;
-              break;
-            case 1:
-              avatarBar.bar = el;
-              break;
-            case 2:
-              avatarBar.score = el;
-              break;
-            case 3:
-              avatarBar.plus = el;
-              break;
-            default:
-              break;
-          }
+    if (consoleScene && game?.gameId) {
+      // setBattleGame(game);
+      const gameId = game.gameId;
+      if (!consoleScene.avatarBars) consoleScene.avatarBars = [];
+      avatarBar = consoleScene.avatarBars.find((a) => a.gameId === gameId);
+      if (!avatarBar) {
+        avatarBar = { gameId: game.gameId, avatar: null, bar: null, score: null, plus: null };
+        consoleScene.avatarBars.push(avatarBar);
+      }
+    }
+    return avatarBar;
+  }, [game, scenes]);
+
+  const loadAvatar = useCallback(
+    (el: HTMLElement | null) => {
+      if (el) {
+        const avatarBar = getAvatarBar();
+        if (avatarBar) {
+          avatarBar.avatar = el;
         }
       }
     },
-    [scenes, game]
+    [game, scenes]
   );
-  // const score = useMemo(() => {
-  //   if (allGameLoaded && game) return GameUtils.countBaseScore(game.data.matched);
-  //   return 0;
-  // }, [game, allGameLoaded]);
+  const loadBar = useCallback(
+    (el: HTMLElement | null) => {
+      if (el) {
+        const avatarBar = getAvatarBar();
+        if (avatarBar) avatarBar.bar = el;
+      }
+    },
+    [game, scenes]
+  );
+  const loadScore = useCallback(
+    (el: HTMLElement | null) => {
+      if (el) {
+        const avatarBar = getAvatarBar();
+        if (avatarBar) avatarBar.score = el;
+      }
+    },
+    [game, scenes]
+  );
+  const loadPlus = useCallback(
+    (el: HTMLElement | null) => {
+      if (el) {
+        const avatarBar = getAvatarBar();
+        if (avatarBar) avatarBar.plus = el;
+      }
+    },
+    [game, scenes]
+  );
+
   useEffect(() => {
     if (game) {
       const s = GameUtils.countBaseScore(game.data.matched);
-      // console.log("score:" + s);
       setScore(s);
     }
   }, [game, battleEvent]);
@@ -98,7 +107,7 @@ const AvatarBar: React.FC<Props> = ({ layout, game }) => {
       style={{ position: "relative", width: "100%", height: "100%", backgroundColor: "transparent" }}
     >
       <div
-        ref={(el) => load(1, el)}
+        ref={loadBar}
         style={{
           display: "flex",
           justifyContent: layout === 0 ? "flex-end" : "flex-start",
@@ -112,10 +121,10 @@ const AvatarBar: React.FC<Props> = ({ layout, game }) => {
         }}
       >
         <div style={{ position: "relative", top: 0, left: 0 }}>
-          <span ref={(el) => load(2, el)}>{score}</span>
+          <span ref={loadScore}>{score}</span>
         </div>
         <div
-          ref={(el) => load(3, el)}
+          ref={loadPlus}
           style={{
             position: "absolute",
             top: 0,
@@ -130,7 +139,7 @@ const AvatarBar: React.FC<Props> = ({ layout, game }) => {
           }}
         ></div>
       </div>
-      <div ref={(el) => load(0, el)} style={{ position: "absolute", top: 0, left: layout === 0 ? 0 : width - height }}>
+      <div ref={loadAvatar} style={{ position: "absolute", top: 0, left: layout === 0 ? 0 : width - height }}>
         <div style={avatarSheetStyle}></div>
       </div>
     </div>

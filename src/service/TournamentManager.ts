@@ -1,5 +1,5 @@
 import { Id } from "convex/_generated/dataModel";
-import { useAction, useConvex } from "convex/react";
+import { useConvex } from "convex/react";
 import { useCallback } from "react";
 import { getCurrentAppConfig } from "util/PageUtils";
 import { api } from "../convex/_generated/api";
@@ -10,18 +10,21 @@ import { useUserManager } from "./UserManager";
 const useTournamentManager = () => {
   const { openPage } = usePageManager()
   const { user } = useUserManager();
-  const joinTournamentByGroup = useAction(api.tournamentService.joinTournamentByGroup);
   const convex = useConvex();
 
-  const join = useCallback(async (tournamentId: string): Promise<{ ok: boolean } | null> => {
+  const join = useCallback(async (tournamentId: string): Promise<{ ok: boolean, code?: number } | null> => {
 
     if (!user || !user.uid) {
       openPage({ name: "signin", data: null })
       return null;
     } else {
+      const rs = await convex.action(api.tournamentService.join, { uid: user.uid, tid: tournamentId })
+      if (!rs.ok) {
+        console.log(rs);
+        return rs
+      }
       const app = getCurrentAppConfig();
       openPage({ name: "battlePlay", ctx: app.context, data: {} })
-      const rs = await convex.action(api.tournamentService.join, { uid: user.uid, tid: tournamentId })
       return rs
     }
     // setTimeout(async () =>

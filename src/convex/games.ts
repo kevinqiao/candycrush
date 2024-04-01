@@ -107,7 +107,7 @@ export const create = internalMutation({
 export const update = internalMutation({
   args: { gameId: v.id("games"), data: v.any() },
   handler: async (ctx, { gameId, data }) => {
-    console.log(data)
+    // console.log(data)
     await ctx.db.patch(gameId, { ...data });
   },
 });
@@ -117,7 +117,16 @@ export const log = internalMutation({
     await ctx.db.insert("rounds", { cells: args.cells, gameId: args.gameId });
   },
 });
-
+export const settle = internalMutation({
+  args: { gameId: v.id("games") },
+  handler: async (ctx, { gameId }) => {
+    const game = await ctx.db.get(gameId);
+    if (game) {
+      const df = await ctx.db.query("diffcult")
+        .filter((q) => q.eq(q.field("id"), game?.diffcult)).unique()
+    }
+  },
+});
 // export const settleGame = internalMutation({
 //   args: { battleId: v.id("battle"), uid: v.string(), gameId: v.string(), score: v.number() },
 //   handler: async (ctx, { battleId, gameId, uid, score }) => {
@@ -200,3 +209,23 @@ export const log = internalMutation({
 
 //   },
 // });
+export const agent = internalMutation({
+  handler: async (ctx) => {
+    const games = await ctx.db
+      .query("games")
+      .filter((q) => q.and(q.eq(q.field("status"), 0), q.neq(q.field("ref"), "####"), q.lte(q.field("dueTime"), Date.now()))).order("asc").collect();
+    for (const game of games) {
+      const { ref, laststep, startTime } = game;
+      if (ref && startTime) {
+        const curstep = Date.now() - startTime;
+        const events = await ctx.db
+          .query("events").withIndex("by_game", (q) => q.eq("gameId", ref))
+          .filter((q) => q.and(q.gt(q.field("steptime"), laststep ?? 0), q.lte(q.field("steptime"), curstep))).order("desc")
+          .collect();
+        if (events?.length > 0) {
+          await ctx.db.patch(game._id, { laststep: events[0].steptime });
+        }
+      }
+    }
+  },
+});

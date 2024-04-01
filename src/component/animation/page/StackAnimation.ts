@@ -53,8 +53,8 @@ const useStackAnimation = ({ scene, mask, closeBtn, pageProp }: StackProps) => {
         });
         switch (pagePattern.direction) {
             case STACK_PAGE_DIRECTION.CENTER:
-                tl.fromTo(scene.current, { scale: 0, autoAlpha: 1, x: (pagePattern.vw - pagePattern.width) / 2, y: (pagePattern.vh - pagePattern.height) / 2 }, { duration: 1.2, scale: 1 }, ">+=1");
-                tl.to(mask.current, { autoAlpha: 0.7, duration: 1.2 }, "<");
+                tl.fromTo(scene.current, { scale: 0, autoAlpha: 1, x: (pagePattern.vw - pagePattern.width) / 2, y: (pagePattern.vh - pagePattern.height) / 2 }, { duration: 0.7, scale: 1 }, ">+=1");
+                tl.to(mask.current, { autoAlpha: 0.7, duration: 0.7 }, "<");
                 // if (pageProp.config.closeType !== CLOSE_TYPE.NO_BUTTON)
                 tl.to(closeBtn.current, { autoAlpha: 1, duration: 0.5 }, ">")
                 break;

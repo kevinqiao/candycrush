@@ -1,3 +1,4 @@
+import React from "react";
 import PageProps from "../../model/PageProps";
 
 const LeaderBoardHome: React.FC<PageProps> = (pageProp) => {

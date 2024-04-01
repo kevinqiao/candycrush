@@ -67,7 +67,7 @@ export const GAME_EVENT = {
     SMESH_CANDY: "cellSmeshed",
     USE_SKILL: "skillUsed",
     GAME_OVER: "gameOver"
-};
+} as { [key: string]: string };
 
 export const GAME_STATUS = {
     OPEN: 0,

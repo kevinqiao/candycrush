@@ -1,9 +1,11 @@
 import DollarIcon from "component/icons/DollarIcon";
 import PlayersIcon from "component/icons/PlayersIcon";
 import { Tournament } from "model/Tournament";
-import React, { useEffect, useMemo, useRef, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import useCoord from "service/CoordManager";
+import { usePageManager } from "service/PageManager";
 import useTournamentManager from "service/TournamentManager";
+import { getCurrentAppConfig } from "util/PageUtils";
 import "./tournament.css";
 interface Props {
   tournament?: Tournament;
@@ -13,6 +15,7 @@ const TournamentItem: React.FC<Props> = ({ tournament }: Props) => {
   const { join } = useTournamentManager();
   const divRef = useRef<HTMLDivElement | null>(null);
   const [fontSize, setFontSize] = useState(25);
+  const { openPage } = usePageManager();
 
   const calculateFontSize = () => {
     if (divRef.current) {
@@ -28,6 +31,20 @@ const TournamentItem: React.FC<Props> = ({ tournament }: Props) => {
       window.removeEventListener("resize", calculateFontSize);
     };
   }, []);
+
+  const joinTournament = useCallback(async () => {
+    if (tournament) {
+      const rs = await join(tournament.id);
+      if (rs && !rs.ok) {
+        if (rs.code === 1) {
+          console.log("you are in battle now");
+        } else if (rs.code === 2) {
+          const app = getCurrentAppConfig();
+          openPage({ name: "battlePlay", ctx: app.context, data: {} });
+        }
+      }
+    }
+  }, [tournament, join]);
   const render = useMemo(() => {
     return (
       <div ref={divRef} className="tournament-item roboto-bold" style={{ width: width > height ? "90%" : "100%" }}>
@@ -56,7 +73,7 @@ const TournamentItem: React.FC<Props> = ({ tournament }: Props) => {
         <div className="tournament-entryfee">
           <DollarIcon amount={40} />
           {tournament ? (
-            <div className="play-tournament" onClick={() => join(tournament.id)}>
+            <div className="play-tournament" onClick={joinTournament}>
               <span style={{ fontSize: Math.max(fontSize - 5, 12), color: "yellow" }}>PLAY</span>
             </div>
           ) : null}

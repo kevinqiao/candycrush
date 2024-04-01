@@ -13,7 +13,8 @@ const useBattleBoard = () => {
 
     const initConsole = useCallback(
         (uid: string, gameId: string, score: number, timeline: any) => {
-            const scene: ConsoleScene | undefined = scenes.get(SCENE_NAME.BATTLE_CONSOLE) as ConsoleScene;
+
+            const scene: ConsoleScene | undefined = scenes.get(SCENE_NAME.BATTLE_CONSOLE) as ConsoleScene
             if (!scene?.goalPanels || !user) return;
             const tl = timeline ?? gsap.timeline();
             tl.to(scene.app, {
@@ -93,7 +94,9 @@ const useBattleBoard = () => {
         (gameId: string, score: { from: number, to: number }, timeline: any) => {
 
             const scene: ConsoleScene | undefined = scenes.get(SCENE_NAME.BATTLE_CONSOLE) as ConsoleScene;
+
             if (!scene || !score) return;
+
             const tl = timeline ?? gsap.timeline();
             const avatarbar = scene.avatarBars.find((a) => a.gameId === gameId);
             if (!avatarbar) return

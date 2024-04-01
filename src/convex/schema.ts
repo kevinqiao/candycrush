@@ -26,7 +26,7 @@ export default defineSchema({
         diffcult: v.string(),
         laststep: v.optional(v.number()),
         startTime: v.optional(v.number()),
-        endTime: v.optional(v.number()),
+        dueTime: v.optional(v.number()),
         result: v.optional(v.any()),//{base:number;time:number;goal:number}
         score: v.optional(v.number()),//final score used by index
         status: v.optional(v.number()),//0-open 1-end
@@ -62,8 +62,8 @@ export default defineSchema({
         tournamentId: v.string(),
         term: v.optional(v.number()),//schedule tournament term
         rewards: v.optional(v.any()),
-        endDueTime: v.number(),
         startTime: v.number(),
+        dueTime: v.optional(v.number()),
         duration: v.number(),
         status: v.number(),//0-going 1-settled 2-cancelled
         diffcult: v.string(),

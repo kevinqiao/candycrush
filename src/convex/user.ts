@@ -1,5 +1,6 @@
 import { v } from "convex/values";
 import { getRandom } from "../util/Utils";
+import { Id } from "./_generated/dataModel";
 import { internalMutation, internalQuery, mutation, query } from "./_generated/server";
 export const findAll = internalQuery({
   handler: async (ctx) => {
@@ -15,11 +16,27 @@ export const find = internalQuery({
     return { ...user, uid: user?._id, _id: undefined, _creationTime: undefined };
   },
 });
+
 export const findByUid = query({
   args: { id: v.id("user") },
   handler: async (ctx, { id }) => {
     const user = await ctx.db.get(id);
     return user;
+  },
+});
+
+export const findPlayers = query({
+  args: { uids: v.any() },
+  handler: async (ctx, { uids }) => {
+    const players = [];
+    for (const userId of uids) {
+      const player = await ctx.db.get(userId as Id<"user">);
+      if (player) {
+        const { _id: uid, avatar, name } = player;
+        players.push({ uid, avatar, name })
+      }
+    }
+    return players
   },
 });
 export const findByCuid = query({
