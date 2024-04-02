@@ -1,8 +1,7 @@
 import { CellItem } from '../model/CellItem';
-import { CANDY_MATCH_TYPE } from '../model/Constants';
 import { GAME_GOAL } from '../model/Match3Constants';
 import candy_textures from '../model/candy_textures';
-import { Match, MatchItem } from '../service/GameEngine';
+import { MatchItem } from '../service/GameEngine';
 import * as Utils from "./Utils";
 export const checkSwipe = (grid: CellItem[][]): boolean => {
     const rows = grid.length;
@@ -55,7 +54,7 @@ export const checkSwipe = (grid: CellItem[][]): boolean => {
     return false;
 }
 export const hasMatch = (grid: CellItem[][]): boolean => {
-
+    let matched = false;
     const rows = grid.length;
     const columns = grid[0].length;
     for (let row = 0; row < rows; row++) {
@@ -63,18 +62,24 @@ export const hasMatch = (grid: CellItem[][]): boolean => {
         let start = grid[row][0];
         let units: CellItem[] = [];
         while (col < columns) {
-            if (!grid[row][col])
-                console.log("row:" + row + ";col:" + col + " is null")
+            // if (!grid[row][col])
+            //     console.log("row:" + row + ";col:" + col + " is null")
             if (grid[row][col].asset === start.asset) {
                 units.push(grid[row][col])
+                if (units.length >= 3) {
+                    matched = true;
+                    break;
+                }
             } else {
-                if (units.length >= 3) return true;
                 start = grid[row][col]
                 units = [start]
             }
             col++; // Move to the next column if no match was found
         }
-        if (units.length >= 3) return true;
+        if (units.length >= 3) {
+            matched = true;
+            break;
+        }
     }
 
     for (let col = 0; col < columns; col++) {
@@ -85,16 +90,51 @@ export const hasMatch = (grid: CellItem[][]): boolean => {
             // console.log(col + "," + row + ";" + grid[row][col].asset + ":" + start.asset + ":" + units.length)
             if (grid[row][col].asset === start.asset) {
                 units.push(grid[row][col])
+                if (units.length >= 3) {
+                    matched = true;
+                    break;
+                }
             } else {
-                if (units.length >= 3) return true;
                 start = grid[row][col]
                 units = [start]
             }
             row++; // Move to the next column if no match was found
         }
-        if (units.length >= 3) return true;
+        if (matched) break;
+        if (units.length >= 3) {
+            matched = true;
+            break;
+        }
     }
 
+    return matched;
+}
+
+export const hasMatch3 = (grid: CellItem[][]): boolean => {
+
+    const rows = grid.length;
+    const columns = grid[0].length;
+    for (let row = 0; row < rows; row++) {
+        const units: CellItem[] = [];
+        for (let col = 0; col < columns; col++) {
+            units.push(grid[row][col])
+            if (col === columns - 1 || grid[row][col].asset !== grid[row][col + 1].asset) {
+                if (units.length >= 3) return true;
+                units.length = 0;
+            }
+        }
+    }
+
+    for (let col = 0; col < columns; col++) {
+        const units: CellItem[] = [];
+        for (let row = 0; row < rows; row++) {
+            units.push(grid[row][col])
+            if (row === rows - 1 || grid[row][col].asset !== grid[row + 1][col].asset) {
+                if (units.length >= 3) return true;
+                units.length = 0;
+            }
+        }
+    }
     return false;
 }
 export const findMatch3 = (grid: CellItem[][]): MatchItem[] => {
@@ -103,219 +143,76 @@ export const findMatch3 = (grid: CellItem[][]): MatchItem[] => {
     const columns = grid[0].length;
     const matches: MatchItem[] = [];
     for (let row = 0; row < rows; row++) {
-        let col = 0;
-        let start = grid[row][0];
-        let units: CellItem[] = [];
-        while (col < columns) {
-            if (!grid[row][col])
-                console.log("row:" + row + ";col:" + col + " is null")
-            if (grid[row][col].asset === start.asset) {
-                units.push(grid[row][col])
-            } else {
-                if (units.length >= 3) {
+        const units: CellItem[] = [];
+        for (let col = 0; col < columns; col++) {
+            if (grid[row][col].status) continue;
+            units.push(grid[row][col])
+            if (col === columns - 1 || grid[row][col].asset !== grid[row][col + 1].asset || grid[row][col + 1].status) {
+                if (units.length === 3) {
                     id++;
-                    matches.push({ id, units: [...units], start: { row: start.row, column: start.column }, end: { row: row, column: col - 1 }, orientation: "horizontal", size: units.length })
+                    matches.push({ id, units: [...units], start: { row, column: units[0]['column'] }, end: { row, column: units[units.length - 1]['column'] }, orientation: "horizontal", size: units.length })
                 }
-                start = grid[row][col]
-                units = [start]
+                units.length = 0;
             }
-            col++; // Move to the next column if no match was found
-        }
-        if (units.length >= 3) {
-            id++;
-            matches.push({ id, units: [...units], start: { row: start.row, column: start.column }, end: { row: row, column: col - 1 }, orientation: "horizontal", size: units.length })
         }
     }
+
 
     for (let col = 0; col < columns; col++) {
-        let row = 0;
-        let start = grid[0][col];
-        let units: CellItem[] = [];
-        while (row < rows) {
-            // console.log(col + "," + row + ";" + grid[row][col].asset + ":" + start.asset + ":" + units.length)
-            if (grid[row][col].asset === start.asset) {
-                units.push(grid[row][col])
-            } else {
-                if (units.length >= 3) {
+        const units: CellItem[] = [];
+        for (let row = 0; row < rows; row++) {
+            if (grid[row][col].status) continue;
+            units.push(grid[row][col])
+            if (row === rows - 1 || grid[row][col].asset !== grid[row + 1][col].asset || grid[row + 1][col].status) {
+                if (units.length === 3) {
                     id++;
-                    matches.push({ id, units: [...units], start: { row: start.row, column: start.column }, end: { row: row - 1, column: col }, orientation: "vertical", size: units.length })
+                    matches.push({ id, units: [...units], start: { row: units[0]['row'], column: col }, end: { row: units[units.length - 1]['row'], column: col }, orientation: "vertical", size: units.length })
                 }
-                start = grid[row][col]
-                units = [start]
+                units.length = 0;
             }
-            row++; // Move to the next column if no match was found
-        }
-        if (units.length >= 3) {
-            id++;
-            matches.push({ id, units: [...units], start: { row: start.row, column: start.column }, end: { row: row - 1, column: col }, orientation: "vertical", size: units.length })
         }
     }
-
     return matches;
 }
-
 export const findMatch3Plus = (grid: CellItem[][]): MatchItem[] => {
     let id = 0;
     const rows = grid.length;
     const columns = grid[0].length;
     const matches: MatchItem[] = [];
     for (let row = 0; row < rows; row++) {
-        let col = 0;
-        let start = grid[row][0];
-        let units: CellItem[] = [];
-        while (col < columns) {
-            if (!grid[row][col])
-                console.log("row:" + row + ";col:" + col + " is null")
-            if (grid[row][col].asset === start.asset) {
-                units.push(grid[row][col])
-            } else {
+        const units: CellItem[] = [];
+        for (let col = 0; col < columns; col++) {
+            if (grid[row][col].status) continue;
+            units.push(grid[row][col])
+            if (col === columns - 1 || grid[row][col].asset !== grid[row][col + 1].asset || grid[row][col + 1].status) {
                 if (units.length > 3) {
                     id++;
-                    matches.push({ id, units: [...units], start: { row: start.row, column: start.column }, end: { row: row, column: col - 1 }, orientation: "horizontal", size: units.length })
+                    matches.push({ id, units: [...units], start: { row, column: units[0]['column'] }, end: { row, column: units[units.length - 1]['column'] }, orientation: "horizontal", size: units.length })
                 }
-                start = grid[row][col]
-                units = [start]
+                units.length = 0;
             }
-            col++; // Move to the next column if no match was found
-        }
-        if (units.length > 3) {
-            id++;
-            matches.push({ id, units: [...units], start: { row: start.row, column: start.column }, end: { row: row, column: col - 1 }, orientation: "horizontal", size: units.length })
         }
     }
+
 
     for (let col = 0; col < columns; col++) {
-        let row = 0;
-        let start = grid[0][col];
-        let units: CellItem[] = [];
-        while (row < rows) {
-            // console.log(col + "," + row + ";" + grid[row][col].asset + ":" + start.asset + ":" + units.length)
-            if (grid[row][col].asset === start.asset) {
-                units.push(grid[row][col])
-            } else {
+        const units: CellItem[] = [];
+        for (let row = 0; row < rows; row++) {
+            if (grid[row][col].status) continue;
+            units.push(grid[row][col])
+            if (row === rows - 1 || grid[row][col].asset !== grid[row + 1][col].asset || grid[row + 1][col].status) {
                 if (units.length > 3) {
                     id++;
-                    matches.push({ id, units: [...units], start: { row: start.row, column: start.column }, end: { row: row - 1, column: col }, orientation: "vertical", size: units.length })
+                    matches.push({ id, units: [...units], start: { row: units[0]['row'], column: col }, end: { row: units[units.length - 1]['row'], column: col }, orientation: "vertical", size: units.length })
                 }
-                start = grid[row][col]
-                units = [start]
+                units.length = 0;
             }
-            row++; // Move to the next column if no match was found
-        }
-        if (units.length > 3) {
-            id++;
-            matches.push({ id, units: [...units], start: { row: start.row, column: start.column }, end: { row: row - 1, column: col }, orientation: "vertical", size: units.length })
         }
     }
-
     return matches;
 }
 
-export const checkMatches = (grid: CellItem[][]): Match[] => {
 
-    const allmatches: MatchItem[] = findMatch3(grid);
-    const matches4: Match[] = getMatchPlus4(allmatches);
-    const specials: Match[] = getSpecials(allmatches);
-
-    const matches3: MatchItem[] = allmatches.filter((m) => !m.status)
-    const matches: Match[] = [];
-    for (const m of matches3) {
-        m.status = 1;
-        m.units.forEach((u) => u.status = 1);
-        matches.push({ type: CANDY_MATCH_TYPE.LINE, size: 3, items: [m] })
-    }
-    matches.push(...matches4);
-    matches.push(...specials)
-    return matches
-}
-export const getMatchPlus4 = (matches: MatchItem[]): Match[] => {
-    const matches4: Match[] = [];
-    let loop = true;
-    while (loop) {
-        const m4 = matches.filter((m) => !m.status && m.units.length >= 4).sort((a, b) => {
-            return b.units.length - a.units.length
-        })
-        if (m4.length === 0) {
-            loop = false;
-            break;
-        }
-        for (const m of m4) {
-            const ms: number[] = [];
-            m.units.forEach((u, index) => {
-                if (u.status)
-                    ms.push(index)
-            })
-            if (ms.length > 0) {
-                for (let i = 0; i < ms.length; i++) {
-                    const len = ms[i + 1] - ms[i];
-                    if (len >= 2) {
-                        const units = m.units.slice(ms[i], ms[i + 1])
-                        const item = {
-                            units,
-                            start: { row: units[0].row, column: units[0].column },
-                            end: { row: units[len - 1].row, column: units[len - 1].column },
-                            orientation: m.orientation,
-                            size: units.length
-                        }
-                        if (len === 2) {
-                            matches.push(item)
-                        } else {
-                            item.units.forEach((u) => u.status = 1)
-                            matches4.push({ type: CANDY_MATCH_TYPE.LINE, size: units.length, items: [item] });
-                        }
-                    }
-                }
-            } else {
-                m.units.forEach((u) => u.status = 1)
-                matches4.push({ type: CANDY_MATCH_TYPE.LINE, size: m.units.length, items: [m] });
-            }
-            m.status = 1;
-        }
-    }
-    return matches4
-
-}
-
-export const getSpecials = (matches: MatchItem[]): Match[] => {
-    const matches3: MatchItem[] = matches.filter((m) => {
-        const us = m.units.filter((u) => u.status);
-        if (!m.status && us.length === 0 && m.units.length === 3)
-            return true;
-        else
-            return false;
-    })
-    const specials: Match[] = [];
-    const vmatches: MatchItem[] = matches3.filter(m => m.orientation === 'vertical');
-    const hmatches: MatchItem[] = matches3.filter(m => m.orientation === 'horizontal');
-    for (const vmatch of vmatches) {
-        if (vmatch.units.filter((u) => !u.status).length === 3) {
-            for (const hmatch of hmatches) {
-                const len = hmatch.units.filter((u) => !u.status).length;
-                if (len === 3 && hmatch.start.row >= vmatch.start.row &&
-                    hmatch.start.row <= vmatch.end.row &&
-                    vmatch.start.column >= hmatch.start.column &&
-                    vmatch.start.column <= hmatch.end.column) {
-                    const verticalAtEndpoint = hmatch.start.row === vmatch.end.row && (hmatch.start.column === vmatch.end.column ||
-                        hmatch.end.column === vmatch.end.column);
-
-                    const verticalAtStartpoint = hmatch.start.row === vmatch.start.row && (hmatch.start.column === vmatch.start.column ||
-                        hmatch.end.column === vmatch.start.column);
-                    console.log(verticalAtEndpoint + ":" + verticalAtStartpoint)
-                    const mtype = verticalAtEndpoint || verticalAtStartpoint ? CANDY_MATCH_TYPE.LMODEL : CANDY_MATCH_TYPE.TMODEL;
-
-                    if (mtype) {
-                        vmatch.status = 1;
-                        hmatch.status = 1;
-                        specials.push({ type: mtype, size: 5, items: [vmatch, hmatch] });
-                        vmatch.units.forEach((u) => u.status = 1)
-                        hmatch.units.forEach((u) => u.status = 1);
-                    }
-                }
-            }
-        }
-    }
-    return specials
-}
 
 export const getFreeCandy = (seed: string, cellId: number) => {
     const random = Utils.getNthRandom(seed, cellId);

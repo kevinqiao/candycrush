@@ -1,4 +1,5 @@
 import { useAnimation } from "component/animation/battle/useAnimation";
+import { gsap } from "gsap";
 import * as PIXI from "pixi.js";
 import { useCallback, useEffect, useRef } from "react";
 import { useUserManager } from "service/UserManager";
@@ -189,7 +190,6 @@ const useGameScene = () => {
         } else if (gameEvent?.name === "cellSwapped" || gameEvent?.name === "cellSmeshed") {
             const data: { candy: CellItem; target: CellItem; results: { toChange: CellItem[]; toCreate: CellItem[]; toMove: CellItem[]; toRemove: CellItem[] }[] } = gameEvent.data;
             for (const res of data.results) {
-                console.log(res)
                 const cwidth = gameScene.cwidth;
                 if (cwidth)
                     res.toCreate.forEach((cell: CellItem) => {
@@ -202,13 +202,23 @@ const useGameScene = () => {
                     })
             }
             const eventName = gameEvent.name;
+
             switch (eventName) {
                 case "cellSwapped":
-                    console.log(game.uid + ":" + user.uid)
-                    console.log(data)
-                    if (game.uid !== user.uid)
-                        playSwipeSuccess(game.gameId, data.candy, data.target, null)
-                    playCandyMatch(game.gameId, data, null)
+                    if (game.uid !== user.uid || load === Constant.BATTLE_LOAD.REPLAY) {
+                        const tl = gsap.timeline({
+                            onComplete: () => {
+                                tl.kill();
+                            }
+                        });
+                        const sl = gsap.timeline();
+                        tl.add(sl, "<")
+                        playSwipeSuccess(game.gameId, data.candy, data.target, null);
+                        const ml = gsap.timeline();
+                        tl.add(ml, ">")
+                        playCandyMatch(game.gameId, data, ml)
+                    } else
+                        playCandyMatch(game.gameId, data, null)
                     break;
                 case "cellSmeshed":
                     playCandyMatch(game.gameId, data, null)
@@ -219,7 +229,7 @@ const useGameScene = () => {
 
         }
 
-    }, [gameEvent, scenes, initCandies])
+    }, [load, gameEvent, scenes, initCandies])
 
 
 }
