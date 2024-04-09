@@ -36,7 +36,7 @@ export const BattleProvider = ({ battle, children }: { battle: BattleModel | nul
   const [battleEvent, setBattleEvent] = useState<{ name: string } | null>(null);
   const { user } = useUserManager();
   const { load, containerBound } = useSceneManager();
-  console.log("load:" + load);
+  // console.log("load:" + load);
   useEffect(() => {
     if (!user || !battle) return;
     const mygame = battle.games?.find((g) => g.uid === user.uid);

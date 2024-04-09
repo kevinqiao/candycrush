@@ -1,4 +1,4 @@
-import { useAction, useConvex, useQuery } from "convex/react";
+import { useConvex, useQuery } from "convex/react";
 import { GameModel } from "model/GameModel";
 import React, { createContext, useCallback, useContext, useEffect, useRef, useState } from "react";
 import { api } from "../convex/_generated/api";
@@ -39,9 +39,10 @@ export const GameProvider = ({ gameId, children }: { gameId: string; children: R
   });
 
   const convex = useConvex();
-  const doAct = useAction(api.gameService.doAct);
+  // const doAct = useAction(api.gameService.doAct);
 
   const sync = useCallback(async () => {
+    if (!battle?.data) return;
     let g: any;
     if (load === BATTLE_LOAD.PLAY || load === BATTLE_LOAD.RELOAD)
       g = await convex.query(api.games.findGame, {
@@ -65,6 +66,9 @@ export const GameProvider = ({ gameId, children }: { gameId: string; children: R
         if (a.row === b.row) return a.column - b.column;
         else return a.row - b.row;
       });
+      // const { column, row } = battle.data;
+      // const moves = findMove(g.data.cells, row, column);
+      // console.log(moves);
       if (gameRef.current) Object.assign(gameRef.current, g);
       else gameRef.current = g;
       if (load !== BATTLE_LOAD.REPLAY) setLaststep(g.laststep);
@@ -75,7 +79,7 @@ export const GameProvider = ({ gameId, children }: { gameId: string; children: R
         data: g,
       });
     }
-  }, [convex, gameId]);
+  }, [convex, gameId, battle]);
 
   const processEvents = useCallback(
     (eventList: any[]) => {
@@ -92,6 +96,7 @@ export const GameProvider = ({ gameId, children }: { gameId: string; children: R
           setTimeout(() => {
             // console.log(event.steptime + ":" + laststep);
             if (event.steptime > laststep) {
+              // console.log(event);
               GameEngine.handleEvent(event.name, event.data, gameRef.current);
               setGameEvent(event);
               if (load !== BATTLE_LOAD.REPLAY) setLaststep(event.steptime);
@@ -143,21 +148,12 @@ export const GameProvider = ({ gameId, children }: { gameId: string; children: R
     gameEvent,
     doAct: useCallback(
       async (name: string, data: any): Promise<null> => {
-        console.log("do action with load:" + load + " play:" + BATTLE_LOAD.PLAY);
         if (load !== BATTLE_LOAD.REPLAY) {
-          console.log("send act requestion:" + gameId + ":" + name);
-
           await convex.action(api.gameService.doAct, {
             act: name,
             gameId,
             data,
           });
-          // await doAct({
-          //   sessionId: "12345",
-          //   act: name,
-          //   gameId: gameId as Id<"games">,
-          //   data,
-          // });
         }
         return null;
       },

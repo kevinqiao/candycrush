@@ -20,22 +20,3 @@ export const getRandomSeed = (length: number) => {
 export const getRandom = (max: number) => {
     return Math.floor(Math.random() * max);
 }
-// export const convertCellsToArray = (units: CellItem[]): CellItem[][] => {
-//     // Determine the number of rows and columns
-//     let maxRow = 0;
-//     let maxColumn = 0;
-//     for (const unit of units) {
-//         maxRow = Math.max(maxRow, unit.row);
-//         maxColumn = Math.max(maxColumn, unit.column);
-//     }
-
-//     // Initialize the two-dimensional array
-//     const result: CellItem[][] = Array.from({ length: maxRow + 1 }, () => Array(maxColumn + 1).fill(null));
-
-//     // Populate the two-dimensional array
-//     for (const unit of units) {
-//         result[unit.row][unit.column] = unit;
-//     }
-
-//     return result;
-// }

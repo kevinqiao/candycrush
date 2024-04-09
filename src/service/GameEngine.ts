@@ -1,12 +1,11 @@
-import seedrandom from 'seedrandom';
 import goals from "../component/play/goals";
 import { BattleModel, BattleReward } from '../model/Battle';
 import { CellItem } from "../model/CellItem";
 import { GAME_ACTION, GAME_EVENT, GAME_STATUS } from '../model/Constants';
 import { GameModel } from '../model/GameModel';
 import { Tournament } from '../model/Tournament';
-import candy_textures from "../model/candy_textures";
-import { findMatch3, findMatch3Plus, getFreeCandy, hasMatch } from '../util/MatchGameUtils';
+import { findMatch3, findMatch3Plus, findMove, getFreeCandy, getRandomAsset } from '../util/MatchGameUtils';
+import { getRandom, getRandomSeed } from '../util/Utils';
 interface SwipeResult {
     candy: CellItem;
     target: CellItem;
@@ -29,43 +28,42 @@ export type MatchItem = {
     status?: number;//0-active 1-inactive
 };
 
+export const createGame = (diffcult: { column: number; row: number; chunk: number; goal: number }): { seed: string; data: { cells: CellItem[]; lastCellId: number } } | null => {
+    const { row, column } = diffcult;
+    const grid: CellItem[][] = [];
+    let done = false;
+    let id = 0;
+    let gameData: { seed: string; data: { cells: CellItem[]; lastCellId: number } } | null = null;
+    let seed = getRandomSeed(10);
 
-export const initGame = (diffcult: any, seed: string) => {
-    const { row, column } = diffcult.data as { row: number; column: number };
-    const rng = seedrandom(seed)
-    // const cellTypes = Array.from({ length: 6 }, (_, k) => k);
-    const cells: CellItem[] = [];
-    let lastCellId = 1;
-    for (let y = 0; y < row; y++) {
-        for (let x = 0; x < column; x++) {
-            let asset = -1;
-            let loop = true;
-            while (loop) {
-                const index = Math.floor(rng() * 10);
-                asset = candy_textures[index]['id'] ?? 0;
-                if (x >= 2) {
-                    const x0 = cells.find((c) => c.row === y && c.column === x - 1);
-                    const x1 = cells.find((c) => c.row === y && c.column === x - 2);
-                    if (x0?.asset === asset && x1?.asset === asset) {
-                        continue;
-                    }
-                }
-                if (y >= 2) {
-                    const y0 = cells.find((c) => c.row === y - 1 && c.column === x);
-                    const y1 = cells.find((c) => c.row === y - 2 && c.column === x);
-                    if (y0?.asset === asset && y1?.asset === asset) {
-                        continue;
-                    }
-                }
-                loop = false
-                break;
+    while (!done) {
+
+        for (let y = 0; y < row; y++) {
+            grid[y] = [];
+            for (let x = 0; x < column; x++) {
+                const asset: number = getRandomAsset(seed, id);
+                grid[y][x] = { id, row: y, column: x, asset }
+                id++;
             }
-
-            cells.push({ id: lastCellId++, row: y, column: x, asset });
         }
+        // const matches = findMatch3(grid);
+        // console.log("match size:" + matches.length)
+        gameData = { seed, data: { cells: grid.flatMap((r) => r), lastCellId: id } }
+
+        resolveMatch(gameData, row, column);
+        // console.log(result)
+        // matches = findMatch3(grid);
+
+        const moves: { candy: CellItem, target: CellItem }[] = findMove(gameData.data.cells, row, column);
+        console.log("moves size:" + moves.length)
+        if (moves.length > 1)
+            done = true;
+        else
+            seed = getRandomSeed(10);
     }
-    return { lastCellId, cells };
+    return gameData
 }
+
 
 
 
@@ -113,7 +111,7 @@ export const handleEvent = (name: string, eventData: any, game: any) => {
     }
     // applyEventResult(eventData.results, game)
     for (const result of eventData.results) {
-        applyShiftResult(result, game)
+        applyShiftResult(result, game.data)
     }
 }
 
@@ -133,13 +131,49 @@ export const countRewards = (tournament: Tournament, battle: BattleModel): Battl
     return rewards;
 }
 export const executeAct = (game: GameModel, battle: BattleModel, action: { name: string; data: any }): any => {
-    let result;
-
+    if (!game.seed) return;
+    const result: { data: any; result: any } = { data: null, result: null }
+    const { row, column } = battle.data;
+    const results: { toChange: CellItem[]; toCreate: CellItem[]; toMove: CellItem[]; toRemove: CellItem[]; toSmesh: CellItem[] }[] = []
+    const smeshIds = [28, 29, 30, 31]
     switch (action.name) {
         case GAME_ACTION.SWIPE_CANDY: {
-            const { row, column } = battle.data;
             const { candyId, targetId } = action.data;
-            result = executeSwipe(game, candyId, targetId, row, column);
+            const candy: CellItem | null = game.data.cells.find((c: CellItem) => c.id === candyId);
+            const target: CellItem | null = game.data.cells.find((c: CellItem) => c.id === targetId);
+            if (!candy || !target) return null;
+            [candy.row, target.row] = [target.row, candy.row];
+            [candy.column, target.column] = [target.column, candy.column];
+            result['data'] = { candy, target };
+
+            if (smeshIds.includes(candy['asset'])) {
+                if (smeshIds.includes(target['asset'])) {
+                    let casset = -1
+                    if (candy.asset === 31) {
+                        const r = getRandom(7)
+                        const c = getRandom(7);
+                        const t = game.data.cells.find((cell: any) => cell.row === r && cell.column === c);
+                        casset = t.asset;
+                    }
+                    let res = resolveSmash({ seed: game.seed, data: game.data }, row, column, candy, casset);
+                    results.push(res)
+                    if (target.asset === 31) {
+                        const r = getRandom(7)
+                        const c = getRandom(7);
+                        const t = game.data.cells.find((cell: any) => cell.row === r && cell.column === c);
+                        casset = t.asset;
+                    }
+                    res = resolveSmash({ seed: game.seed, data: game.data }, row, column, target, casset);
+                    results.push(res)
+                } else {
+                    const casset = candy.asset === 31 ? target.asset : -1;
+                    resolveSmash({ seed: game.seed, data: game.data }, row, column, candy, casset)
+                }
+            } else if (smeshIds.includes(target['asset'])) {
+                const casset = target.asset === 31 ? candy.asset : -1;
+                resolveSmash({ seed: game.seed, data: game.data }, row, column, target, casset)
+            }
+
             break;
         }
         default:
@@ -147,60 +181,65 @@ export const executeAct = (game: GameModel, battle: BattleModel, action: { name:
     }
     return result;
 }
-const executeSwipe = (game: GameModel, candyId: number, targetId: number, row: number, column: number): SwipeResult | null => {
 
-    const candy: CellItem | null = game.data.cells.find((c: CellItem) => c.id === candyId);
-    const target: CellItem | null = game.data.cells.find((c: CellItem) => c.id === targetId);
+export const resolveSmash = (gameData: { seed: string; data: { cells: CellItem[]; lastCellId: number } }, rows: number, columns: number, candy: CellItem, asset: number): { toChange: CellItem[]; toCreate: CellItem[]; toMove: CellItem[]; toRemove: CellItem[]; toSmesh: CellItem[] } => {
 
-    if (!candy || !target) return null;
-    [candy.row, target.row] = [target.row, candy.row];
-    [candy.column, target.column] = [target.column, candy.column];
-    console.log("start resolve match....")
-    const results = resolveMatch(game, row, column);
-
-    game.data.cells.sort((a: CellItem, b: CellItem) => {
-        if (a.row !== b.row)
-            return a.row - b.row
-        else
-            return a.column - b.column
-    })
-    return { candy: JSON.parse(JSON.stringify(candy)), target: JSON.parse(JSON.stringify(target)), results }
-    // return data;
-}
-
-const resolveMatch = (game: GameModel, rows: number, columns: number) => {
-    const results: { toChange: CellItem[]; toCreate: CellItem[]; toMove: CellItem[]; toRemove: CellItem[] }[] = [];
-    game.data.cells.sort((a: CellItem, b: CellItem) => a.row !== b.row ? a.row - b.row : a.column - b.column)
-    let grid: CellItem[][] = Array.from({ length: rows }, () => Array(columns).fill(null));
-    for (const unit of game.data.cells) {
-        grid[unit.row][unit.column] = unit;
+    gameData.data.cells.sort((a: CellItem, b: CellItem) => a.row !== b.row ? a.row - b.row : a.column - b.column)
+    const grid: CellItem[][] = Array.from({ length: rows }, () => Array(columns).fill(null));
+    for (const unit of gameData.data.cells) {
+        grid[unit.row][unit.column] = { ...unit };
     }
 
-    while (hasMatch(grid)) {
+    const plus4changes = solveMatch(grid, 5, 7);
+    const crossChanges = solveCrossMatch(grid);
+    const fourChanges = solveMatch(grid, 3, 4);
+    const toChange = [...plus4changes, ...crossChanges, ...fourChanges];
+    const toSmesh: CellItem[] = [];
+    switch (candy.asset) {
+        case 28:
+            grid[candy.column].forEach((c) => {
+                c.status = 1;
+                toSmesh.push(c)
+            })
+            break;
+        case 29:
+            grid[candy.row].forEach((c) => {
+                c.status = 1;
+                toSmesh.push(c)
+            })
+            break;
+        case 30:
+            for (let i = -1; i <= 1; i++) {
+                for (let j = -1; j <= 1; j++) {
+                    const row = i + candy['row'];
+                    const col = j + candy['column'];
+                    if (row >= 0 && col >= 0) {
+                        grid[row][col].status = 1;
+                        toSmesh.push(grid[row][col])
+                    }
+                }
+            }
 
-        // console.log("matched is happend")
-        const m3plusChanges = resolveMatch3Plus(grid);
-        const crossChanges = resolveMatchCross(grid);
-        const match3 = findMatch3(grid);
-
-        if (match3?.length > 0) {
-            match3.forEach((m) => m.units.forEach((u) => u.status = 1))
-        }
-        const res = shiftMatch(rows, columns, game);
-        const result = { ...res, toChange: [...m3plusChanges, ...crossChanges] };
-        results.push(result)
-        applyShiftResult(result, game);
-
-        game.data.cells.sort((a: CellItem, b: CellItem) => a.row !== b.row ? a.row - b.row : a.column - b.column)
-        grid = Array.from({ length: rows }, () => Array(columns).fill(null));
-        for (const unit of game.data.cells) {
-            grid[unit.row][unit.column] = unit;
-        }
-        console.log("shift completed and sort grid again,cell size:" + game.data.cells.length)
+            break;
+        case 31:
+            if (asset) {
+                const smeshs: CellItem[] = gameData.data.cells.filter((c: CellItem) => c.asset === asset);
+                toSmesh.push(...smeshs);
+            }
+            break;
+        default:
+            break;
     }
 
-    return results
+    const res = shiftMatch(gameData.seed, gameData.data, grid);
+
+    const result = { ...res, toChange, toSmesh };
+    applyShiftResult(result, gameData.data);
+
+    return result
+
 }
+
 
 const resolveMatch3Plus = (grid: CellItem[][]): CellItem[] => {
     const toChange: CellItem[] = [];
@@ -227,38 +266,141 @@ const resolveMatch3Plus = (grid: CellItem[][]): CellItem[] => {
 
 const resolveMatchCross = (grid: CellItem[][]): CellItem[] => {
     const toChange: CellItem[] = [];
-    let matches: MatchItem[] = findMatch3(grid);
-    while (matches.length > 1) {
+    const matches: MatchItem[] = findMatch3(grid);
+
+    if (matches.length > 1) {
+
         for (const match of matches) {
             if (!match.status) {
                 const ls = matches.find((m) => match.id !== m.id && !m.status && m.units.find((obj1) => match.units.some(obj2 => obj1['id'] === obj2['id'])));
+
                 if (ls) {
                     const conn = match.units.find((mu) => ls.units.some((lu) => lu.id === mu.id));
                     if (conn) {
                         toChange.push({ ...conn, asset: 30 });
-                        match.units.forEach((u) => u.status = 1);
-                        ls.units.forEach((u) => u.status = 1);
+                        match.units.forEach((u) => {
+                            if (u.id !== conn.id)
+                                u.status = 1
+                        });
+                        ls.units.forEach((u) => {
+                            if (u.id !== conn.id)
+                                u.status = 1
+                        });
+                        ls.status = 1;
                     }
                 }
+                match.status = 1;
             }
         }
-        matches = findMatch3(grid);
+    }
+
+    return toChange;
+}
+const solveCrossMatch = (grid: CellItem[][]): CellItem[] => {
+    const toChange: CellItem[] = [];
+    const matches: MatchItem[] = findMatch3(grid);
+
+    for (const match of matches) {
+        if (!match.status) {
+            const ls = matches.find((m) => match.id !== m.id && !m.status && m.units.find((obj1) => match.units.some(obj2 => obj1['id'] === obj2['id'])));
+
+            if (ls) {
+                const conn = match.units.find((mu) => ls.units.some((lu) => lu.id === mu.id));
+                if (conn) {
+                    toChange.push({ ...conn, asset: 30 });
+                    match.units.forEach((u) => {
+                        if (u.id !== conn.id)
+                            u.status = 1
+                    });
+                    ls.units.forEach((u) => {
+                        if (u.id !== conn.id)
+                            u.status = 1
+                    });
+                    ls.status = 1;
+                }
+            }
+            match.status = 1;
+        }
     }
     return toChange;
 }
-const shiftMatch = (rows: number, columns: number, game: any) => {
+const solveSmesh = (grid: CellItem[][], candy: CellItem, target: number, allMeshes: { target: number; candy: CellItem; smesh?: CellItem[] }[]) => {
+    const row = grid.length;
+    const column = grid[0].length;
+    const smeshIds = [28, 29, 30, 31];
+    switch (candy.asset) {
+        case 28:
+            allMeshes.push({ target, candy });
+            for (let i = 0; i < row; i++) {
+                const c = grid[i][candy.column];
+                c.status = 1;
+                if (smeshIds.includes(c.asset))
+                    solveSmesh(grid, c, -1, allMeshes)
+            }
+
+            break;
+        case 29:
+            allMeshes.push({ target, candy });
+            for (let i = 0; i < column; i++) {
+                const c = grid[candy.row][i];
+                c.status = 1;
+                if (smeshIds.includes(c.asset))
+                    solveSmesh(grid, c, -1, allMeshes)
+            }
+            break;
+        case 30:
+            {
+                const smesh: CellItem[] = [];
+                for (let i = -1; i <= 1; i++) {
+                    for (let j = -1; j <= 1; j++) {
+                        const row = i + candy['row'];
+                        const col = j + candy['column'];
+                        if (row >= 0 && col >= 0) {
+                            if (smeshIds.includes(grid[row][col].asset))
+                                solveSmesh(grid, grid[row][col], -1, allMeshes)
+                            smesh.push(grid[row][col])
+                        }
+                    }
+                }
+                smesh.push(candy)
+                smesh.forEach((c) => c.status = 1);
+                allMeshes.push({ target, candy, smesh })
+            }
+            break;
+        case 31:
+            {
+                let asset = target;
+                if (target < 0) {
+                    const candies = grid.flatMap((r) => r);
+                    const cs = candies.filter((c) => !c.status);
+                    const c = candies[getRandom(cs.length)];
+                    asset = c.asset;
+                }
+                const smesh = [...grid.flatMap((r) => r).filter((c: CellItem) => c.asset === asset), candy];
+                smesh.forEach((c) => c.status = 1)
+                allMeshes.push({ target, candy, smesh })
+            }
+            break;
+        default:
+            break;
+    }
+    return;
+}
+
+const shiftMatch = (seed: string, data: { lastCellId: number }, grid: CellItem[][]) => {
     const toMove: CellItem[] = [];
     const toCreate: CellItem[] = [];
-
+    const columns = grid[0].length;
+    const cells = grid.flatMap((row) => row)
     for (let column = 0; column < columns; column++) {
         const toColCreate: CellItem[] = [];
-        const colRemoved = game.data.cells.filter((c: any) => c.column === column && c.status);
+        const colRemoved = cells.filter((c: any) => c.column === column && c.status);
         for (const r of colRemoved) {
-            const candy = getFreeCandy(game.seed, game.data.lastCellId++);
+            const candy = getFreeCandy(seed, data.lastCellId++);
             candy.column = column;
             candy.row = toColCreate.length;
             toColCreate.push(candy);
-            const toMoves: CellItem[] = game.data.cells.filter((c: CellItem) => !c.status && c.column === column && c.row < r.row);
+            const toMoves: CellItem[] = cells.filter((c: CellItem) => !c.status && c.column === column && c.row < r.row);
             toMoves.forEach((ms) => {
                 const tm = toMove.find((m) => m.id === ms.id);
                 if (tm) {
@@ -271,61 +413,53 @@ const shiftMatch = (rows: number, columns: number, game: any) => {
         toCreate.push(...toColCreate)
     }
 
-    const toRemove: CellItem[] = game.data.cells.filter((c: CellItem) => c.status);
+    const toRemove: CellItem[] = cells.filter((c: CellItem) => c.status);
     return { toRemove, toCreate, toMove }
 
 }
 
 const applyShiftResult = (
     result: { toCreate: CellItem[]; toChange: CellItem[]; toRemove: CellItem[]; toMove: CellItem[] },
-    game: GameModel
+    data: { cells: CellItem[] }
 ) => {
 
 
-    game.data.cells.sort((a: CellItem, b: CellItem) => {
+    data.cells.sort((a: CellItem, b: CellItem) => {
         if (a.row === b.row) return a.column - b.column;
         else return a.row - b.row;
     });
-    if (!game.data.matched)
-        game.data.matched = [];
+
     const { toCreate, toChange, toRemove, toMove } = result;
     if (toRemove) {
-        const acells: CellItem[] = game.data.cells.filter((c: CellItem) => {
+        const acells: CellItem[] = data.cells.filter((c: CellItem) => {
             const cr = toRemove.find((r) => r.id === c.id);
             if (cr) return false;
             else return true;
         });
-        game.data.cells.length = 0;
-        game.data.cells.push(...acells);
-
-        for (const r of toRemove) {
-            const mitem = game.data.matched.find((m: { asset: number; quantity: number }) => m.asset === r.asset);
-            if (mitem) mitem.quantity++;
-            else game.data.matched.push({ asset: r.asset, quantity: 1 });
-        }
+        data.cells.length = 0;
+        data.cells.push(...acells);
     }
     if (toCreate?.length > 0) {
-        game.data.cells.push(...toCreate);
+        data.cells.push(...toCreate);
     }
 
     if (toChange) {
         toChange.forEach((c) => {
-            const cell = game.data.cells.find((s: CellItem) => s.id === c.id);
-            Object.assign(cell, c);
+            const cell = data.cells.find((s: CellItem) => s.id === c.id);
+            if (cell)
+                cell.asset = c.asset;
         });
     }
 
     if (toMove) {
         for (const m of toMove) {
-            const cell = game.data.cells.find((c: CellItem) => c.id === m.id);
+            const cell = data.cells.find((c: CellItem) => c.id === m.id);
             if (cell) {
-                Object.assign(cell, m);
+                cell.column = m.column;
+                cell.row = m.row;
             }
         }
     }
-
-    console.log("apply shift completed")
-
 };
 
 

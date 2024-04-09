@@ -1,4 +1,5 @@
 import { gsap } from "gsap";
+import { GAME_GOAL } from "model/Match3Constants";
 import * as PIXI from "pixi.js";
 import { useCallback, useEffect, useRef } from "react";
 import { useBattleManager } from "service/BattleManager";
@@ -8,13 +9,12 @@ import { SCENE_NAME } from "../../../model/Constants";
 import { ConsoleScene, GameScene, SceneModel } from "../../../model/SceneModel";
 import { useSceneManager } from "../../../service/SceneManager";
 import * as GameUtils from "../../../util/MatchGameUtils";
-import useBattleBoard from "./useBattleBoard";
 const useCollectCandies = () => {
-    const prematchedRef = useRef<any>(null)
+    const prematchedRef = useRef<{ asset: number; quantity: number }[]>([])
     const { battle } = useBattleManager();
     const { game } = useGameManager();
     const { scenes, textures } = useSceneManager();
-    const { changeGoal, changeScore } = useBattleBoard();
+
     useEffect(() => {
         if (game?.data.matched) {
             prematchedRef.current = JSON.parse(JSON.stringify(game.data.matched));
@@ -47,75 +47,171 @@ const useCollectCandies = () => {
         return null;
 
     }
-    const playCollect = useCallback((gameId: string, result: any, timeline: any) => {
 
+    const playCollect = useCallback((gameId: string, result: any, timeline: any) => {
+        const matched: { asset: number; quantity: number }[] = JSON.parse(JSON.stringify(prematchedRef.current));
+        result.toRemove.forEach((r: CellItem) => {
+            const ma = matched.find((m) => m.asset === r.asset);
+            if (ma)
+                ma.quantity++;
+            else
+                matched.push({ asset: r.asset, quantity: 1 });
+        })
+        const from = GameUtils.countBaseScore(prematchedRef.current);
+        const to = GameUtils.countBaseScore(matched);
+        const tl = timeline ?? gsap.timeline();
+        const sl = gsap.timeline();
+        tl.add(sl);
+
+        playChangeScore(gameId, { from, to }, sl);
+        const gl = gsap.timeline();
+        playGoalCollect(gameId, result.toRemove, gl);
+        prematchedRef.current = matched;
+        tl.add(gl, "<");
+        if (!timeline)
+            tl.play();
+    }, [])
+    const playChangeScore = useCallback((gameId: string, score: { from: number; to: number }, timeline: any) => {
+        const scene: ConsoleScene | undefined = scenes.get(SCENE_NAME.BATTLE_CONSOLE) as ConsoleScene;
+        const avatarbar = scene.avatarBars.find((a) => a.gameId === gameId);
+
+        if (!avatarbar || !scene) return
+
+        const tl = timeline ?? gsap.timeline();
+        const sl = gsap.timeline();
+        tl.add(sl, "<");
+        sl.from(avatarbar.bar, {
+            duration: 0.7, onUpdate: () => {
+                const progress = sl.progress();
+                const animatedValue = progress * (score.to - score.from) + score.from;
+                if (avatarbar.score)
+                    avatarbar.score.innerHTML = Math.floor(animatedValue) + "";
+            }
+        }, "<");
+
+        if (avatarbar.plus) {
+            const span = document.createElement('span');
+            avatarbar.plus.appendChild(span)
+            const pl = gsap.timeline({
+                onComplete: () => {
+                    if (avatarbar.plus) {
+                        console.log("remove span")
+                        avatarbar.plus?.removeChild(span)
+                    }
+                }
+            });
+            tl.add(pl, "<");
+            span.innerHTML = "+" + (score.to - score.from)
+            pl.to(span, { autoAlpha: 1, duration: 0 }, "<");
+            pl.to(span, { y: -20, duration: 0.3 }, ">");
+            pl.to(span, { autoAlpha: 0, y: -60, duration: 0.8 }, ">");
+            pl.to(span, { y: 0, duration: 0 }, ">");
+        }
+
+    }, [game, battle])
+
+    const playGoalCollect = useCallback((gameId: string, removes: CellItem[], timeline: any) => {
         const gameScene: GameScene | undefined = scenes.get(gameId) as GameScene;
         const battleScene: SceneModel | undefined = scenes.get(SCENE_NAME.BATTLE_SCENE);
-
-        if (battle && result.toRemove?.length > 0 && gameScene && battleScene && textures && gameScene?.cwidth) {
-            const pre = prematchedRef.current ?? [];
-            const cwidth = gameScene?.cwidth;
-
-            if (game?.data.matched && cwidth) {
-                const tl = timeline ?? gsap.timeline();
-                prematchedRef.current = JSON.parse(JSON.stringify(game.data.matched));
-                const sl = gsap.timeline();
-                tl.add(sl);
-                const scoreFrom = GameUtils.countBaseScore(pre);
-                const scoreTo = GameUtils.countBaseScore(prematchedRef.current)
-                changeScore(gameId, { from: scoreFrom, to: scoreTo }, sl)
-                const { goal } = battle.data;
-                const goalChanges = GameUtils.solveGoalChanges(goal, pre, prematchedRef.current);
-
-                if (goalChanges?.length > 0) {
-
-                    result.toRemove.forEach((cell: CellItem) => {
-                        const target = getGoalTarget(gameId, cell.asset);
-
-                        const texture = textures?.find((d) => d.id === cell.asset);
-                        if (texture && target) {
-                            const cl = gsap.timeline();
-                            tl.add(cl, "<");
-                            const sprite = new PIXI.Sprite(texture.texture);
-                            sprite.anchor.set(0.5);
-                            sprite.width = cwidth;
-                            sprite.height = cwidth;
-                            const x = gameScene.x + cell.column * cwidth + Math.floor(cwidth / 2);
-                            const y = gameScene.y + cwidth * cell.row + Math.floor(cwidth / 2);
-                            sprite.x = x;
-                            sprite.y = y;
-                            sprite.alpha = 0;
-                            const controlPoint = { x: x + 20, y: y - cwidth };
-                            (battleScene.app as PIXI.Application).stage.addChild(sprite as PIXI.DisplayObject);
-                            // const target = { x: battleScene.x + 100, y: 100 }
-                            cl.to(sprite, {
-                                alpha: 1,
-                                x: controlPoint.x,
-                                y: controlPoint.y,
-                                duration: 2,
-                                ease: 'circ.out',
-                            })
-
-                            cl.to(sprite, {
-                                x: target.x,
-                                y: target.y,
-                                duration: 0.9,
-                                ease: 'circ.in',
-
-                            }, ">").to(sprite.scale, { duration: 0.9, x: 0, y: 0, ease: 'circ.in' }, "<");
-
-                        }
-                    });
-                    const gl = gsap.timeline();
-                    tl.add(gl, ">");
-                    changeGoal(gameId, goalChanges, gl)
+        const cwidth = gameScene?.cwidth;
+        if (battle && gameScene && battleScene && textures && cwidth) {
+            const { goal: goalId } = battle.data;
+            const goalObj = GAME_GOAL.find((g) => g.id === goalId);
+            if (goalObj) {
+                const goalChanges: { asset: number; from: number; to: number }[] = [];
+                const mt = gsap.timeline();
+                removes.forEach((r, index) => {
+                    const goal = goalObj.assets.find((a) => a.asset === r.asset);
+                    let matched = prematchedRef.current.find((c) => c.asset === r.asset);
+                    if (!matched)
+                        matched = { asset: r.asset, quantity: 0 }
+                    if (goal && matched.quantity < goal.quantity) {
+                        const change = goalChanges.find((a) => a.asset === r.asset);
+                        change ? change.to-- :
+                            goalChanges.push({ asset: goal.asset, from: goal.quantity - matched.quantity, to: goal.quantity - matched.quantity - 1 });
+                        playGoalMove(gameId, r, mt)
+                    }
+                })
+                if (goalChanges.length > 0) {
+                    timeline.add(mt)
+                    const gt = gsap.timeline();
+                    playChangeGoal(gameId, goalChanges, gt)
+                    timeline.add(gt, ">");
                 }
+            }
+        }
 
+    }, [battle])
+    const playGoalMove = useCallback((gameId: string, candy: CellItem, tl: any) => {
+        const gameScene: GameScene | undefined = scenes.get(gameId) as GameScene;
+        const battleScene: SceneModel | undefined = scenes.get(SCENE_NAME.BATTLE_SCENE);
+        const target = getGoalTarget(gameId, candy.asset);
+        const cwidth = gameScene?.cwidth;
+        const texture = textures?.find((d) => d.id === candy.asset);
+        if (battleScene && gameScene && texture && target) {
+            const cl = gsap.timeline();
+            tl.add(cl, "<");
+            const sprite = new PIXI.Sprite(texture.texture);
+            sprite.anchor.set(0.5);
+            sprite.width = cwidth;
+            sprite.height = cwidth;
+            const x = gameScene.x + candy.column * cwidth + Math.floor(cwidth / 2);
+            const y = gameScene.y + cwidth * candy.row + Math.floor(cwidth / 2);
+            sprite.x = x;
+            sprite.y = y;
+            sprite.alpha = 0;
+            const controlPoint = { x: x + 20, y: y - cwidth };
+            (battleScene.app as PIXI.Application).stage.addChild(sprite as PIXI.DisplayObject);
+            // const target = { x: battleScene.x + 100, y: 100 }
+            cl.to(sprite, {
+                alpha: 1,
+                x: controlPoint.x,
+                y: controlPoint.y,
+                duration: 2,
+                ease: 'circ.out',
+            })
+
+            cl.to(sprite, {
+                x: target.x,
+                y: target.y,
+                duration: 0.9,
+                ease: 'circ.in',
+
+            }, ">").to(sprite.scale, { duration: 0.9, x: 0, y: 0, ease: 'circ.in' }, "<");
+
+        }
+        return;
+    }, [scenes])
+
+    const playChangeGoal = useCallback(
+        (gameId: string, goalChanges: { asset: number; from: number; to: number }[], timeline: any) => {
+            const consoleScene = scenes.get(SCENE_NAME.BATTLE_CONSOLE) as ConsoleScene;
+            if (consoleScene) {
+                const tl = timeline ?? gsap.timeline();
+                const panel = consoleScene.goalPanels.find((p) => p.gameId === gameId);
+                for (const item of goalChanges) {
+                    // if (item.from <= 0) continue;
+                    const et = gsap.timeline();
+                    tl.add(et, "<")
+                    const m = panel?.goals.find((g) => g.asset === item.asset);
+                    if (m?.qtyEle) {
+                        et.to(m.qtyEle, {
+                            duration: 0.7, onUpdate: () => {
+                                const progress = et.progress();
+                                const animatedValue = item.from - progress * (item.from - item.to);
+                                if (m.qtyEle)
+                                    m.qtyEle.innerHTML = animatedValue <= 0 ? "✔️" : Math.floor(animatedValue) + "";
+                            }
+                        }, "<");
+
+                    }
+                }
                 if (!timeline)
                     tl.play();
             }
-        }
-    }, [game, battle])
+        },
+        [scenes]
+    );
     return { playCollect }
 
 

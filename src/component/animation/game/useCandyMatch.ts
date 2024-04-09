@@ -34,7 +34,7 @@ export const playChange = (toChange: CellItem[], gameScene: GameScene, textures:
                         },
                         x: cx,
                         y: cy,
-                        duration: 0.1,
+                        duration: 0.5,
                         ease: 'power2.out',
                     }, "<")
             }
@@ -42,7 +42,7 @@ export const playChange = (toChange: CellItem[], gameScene: GameScene, textures:
     }
 }
 export const playMove = (toMove: CellItem[], gameScene: GameScene, textures: Texture[], tl: any) => {
-    console.log(toMove);
+    // console.log(toMove);
 
     const candyMap = gameScene.candies;
     const cwidth = gameScene.cwidth;
@@ -59,7 +59,7 @@ export const playMove = (toMove: CellItem[], gameScene: GameScene, textures: Tex
                     {
                         x: cx,
                         y: cy,
-                        duration: 1,
+                        duration: 0.9,
                         ease: 'power2.out',
                         // onStart: () => {
                         //     if (!candy || !candy.position) {
@@ -85,7 +85,7 @@ export const playRemove = (toRemove: CellItem[], gameScene: GameScene, textures:
                     candy,
                     {
                         alpha: 0,
-                        duration: 1,
+                        duration: 0.4,
                         ease: 'power2.out',
                         onComplete: () => {
                             candy.parent.removeChild(candy as PIXI.DisplayObject)
@@ -118,38 +118,42 @@ const useCandyMatch = () => {
         (gameId: string, data: any, timeline: any) => {
 
             const gameScene: GameScene = scenes.get(gameId) as GameScene;
-            const tl = timeline ?? gsap.timeline()
-            const { candy, target, results } = data;
-            // swipeSuccess(gameId, candy, target, tl);
+            const tl = timeline ?? gsap.timeline({
+                onComplete: () => { tl.kill() }
+            })
+            const { results } = data;
+
             if (results && gameScene) {
 
                 for (const res of results) {
-                    const ml = gsap.timeline();
-                    tl.add(ml, ">");
-                    const cl = gsap.timeline();
-                    ml.add(cl)
-
-                    if (res.toChange) {
-                        playChange(res.toChange, gameScene, textures, cl);
-                    }
+                    const sl = gsap.timeline();
+                    tl.add(sl, ">");
                     if (res.toRemove) {
-                        playRemove(res.toRemove, gameScene, textures, cl)
-                        cl.call(
+                        const rl = gsap.timeline();
+                        sl.add(rl, "<");
+                        playRemove(res.toRemove, gameScene, textures, rl)
+                        rl.call(
                             () => playCollect(gameId, res, null),
                             [],
                             "<"
                         );
                     }
+                    if (res.toChange) {
+                        const cl = gsap.timeline();
+                        sl.add(cl, "<");
+                        playChange(res.toChange, gameScene, textures, cl);
+                    }
+
                     if (res.toMove) {
-                        const mt = gsap.timeline();
-                        ml.add(mt, "<")
-                        playMove(res.toMove, gameScene, textures, mt)
+                        const ml = gsap.timeline();
+                        sl.add(ml, ">-0.3");
+                        playMove([...res.toMove, ...res.toCreate], gameScene, textures, ml)
                     }
-                    if (res.toCreate) {
-                        const ct = gsap.timeline();
-                        ml.add(ct, "<")
-                        playMove(res.toCreate, gameScene, textures, ct)
-                    }
+                    // if (res.toCreate) {
+                    //     const ct = gsap.timeline();
+                    //     ml.add(ct, "<")
+                    //     playMove(res.toCreate, gameScene, textures, ct)
+                    // }
 
                 }
             }

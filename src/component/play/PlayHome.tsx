@@ -27,7 +27,6 @@ const PlayControl: React.FC<ControlProps> = ({ battleId }) => {
   // const sbattleRef = useRef<BattleModel | null>(null);
   const [battle, setBattle] = useState<BattleModel | null>(null);
   const { findBattle } = useTournamentManager();
-  console.log(battle);
 
   useEffect(() => {
     if (!battle && battleId) {

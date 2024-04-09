@@ -76,12 +76,8 @@ const useGameScene = () => {
                     }
 
                     if (checkSwipe(grid)) {
-                        console.log("match valid check")
-                        // createEvent({ name: ANIMATE_NAME.SWIPE_SUCCESS, type: ANIMATE_EVENT_TYPE.CREATE, data: { gameId: game.gameId, candy: ncell, target: ntarget } })
                         playSwipeSuccess(game.gameId, ncell, ntarget, null)
-                        // createAnimate({ id: Date.now(), name: ANIMATE_NAME.SWIPE_SUCCESS, gameId, battleId: battle?.id, eles: [], data: { candy: ncell, target: ntarget } })
                         doAct(Constant.GAME_ACTION.SWIPE_CANDY, { candyId: ncell.id, targetId: ntarget.id })
-                        // swapCell(ncell.id, ntarget.id)
                     } else {
                         playSwipeFail(game.gameId, candyId, target.id, null)
                     }

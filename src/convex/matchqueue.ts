@@ -1,6 +1,7 @@
 import { v } from "convex/values";
+import { CellItem } from "../model/CellItem";
 import { BATTLE_COUNT_DOWN_TIME } from "../model/Constants";
-import { initGame } from "../service/GameEngine";
+import { createGame } from "../service/GameEngine";
 import * as Utils from "../util/Utils";
 import { Id } from "./_generated/dataModel";
 import { internalMutation, internalQuery } from "./_generated/server";
@@ -55,16 +56,20 @@ export const settleMatch = internalMutation({
 
         const m = allToMatch[0];
         await ctx.db.delete(m._id);
-        let game;
+
         let opponentGame;
+        const gameData: { seed: string; data: { cells: CellItem[]; lastCellId: number } } | null = createGame(diffcult.data);
+
+        if (!gameData) return;
+        const game = { diffcult: diffcult.id, battleId, tid: tournament.id, data: { cells: gameData?.data.cells, lastCellId: gameData.data.lastCellId }, seed, type: 0, laststep: 0, uid: m.uid, startTime, dueTime: battle['dueTime'], ref: "####" };
+
         if (allToMatch.length === 1) {
-          const gameData: { gameId: string; data: any; seed: string; diffcult: string } | null = await createGameInitData(ctx, m.uid, tournament);
-          game = { diffcult: diffcult.id, battleId, tid: tournament.id, data: gameData?.data, seed, type: 0, laststep: 0, uid: m.uid, startTime, dueTime: battle['dueTime'], ref: "####" };
+          // const gameData: { gameId: string; data: any; seed: string; diffcult: string } | null = await findGameInitData(ctx, m.uid, tournament);
           const opponent = await findOpponent(ctx);
-          opponentGame = { ...game, uid: opponent, ref: gameData?.gameId }
+          opponentGame = { ...game, uid: opponent, ref: "####" }
         } else {
-          const gameInitData = initGame(diffcult, seed);
-          game = { diffcult: diffcult.id, battleId, tid: tournament.id, data: gameInitData, seed, type: 0, laststep: 0, uid: m.uid, startTime, dueTime: battle['dueTime'], ref: "####" };
+          // const gameInitData = initGame(diffcult, seed);
+          // game = { diffcult: diffcult.id, battleId, tid: tournament.id, data: gameInitData, seed, type: 0, laststep: 0, uid: m.uid, startTime, dueTime: battle['dueTime'], ref: "####" };
           await ctx.db.delete(allToMatch[1]._id);
           opponentGame = { ...game, uid: allToMatch[1].uid, ref: "####" }
         }
@@ -80,7 +85,7 @@ export const settleMatch = internalMutation({
   },
 });
 
-const createGameInitData = async (ctx: any, uid: string, tournament: any) => {
+const findGameInitData = async (ctx: any, uid: string, tournament: any) => {
   const game = await ctx.db.get("32b04scsrn3ny7qm2sj70tsm9njpcxr" as Id<"games">)
   const event = await ctx.db
     .query("events").withIndex("by_game", (q: any) => q.eq("gameId", "32b04scsrn3ny7qm2sj70tsm9njpcxr"))

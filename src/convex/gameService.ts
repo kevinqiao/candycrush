@@ -1,6 +1,7 @@
 import { v } from "convex/values";
 import { BattleModel } from "../model/Battle";
-import { GAME_EVENT, getEventByAction } from "../model/Constants";
+import { CellItem } from "../model/CellItem";
+import { GAME_ACTION, GAME_EVENT, getEventByAction } from "../model/Constants";
 import { GameModel } from "../model/GameModel";
 import * as GameEngine from "../service/GameEngine";
 import { internal } from "./_generated/api";
@@ -106,34 +107,63 @@ import { sessionAction } from "./custom/session";
 //     return { cell, toCreate, toMove, toRemove };
 
 // }
+const processAction = (game: GameModel, battle: BattleModel, action: { name: string; data: any }) => {
+    const data: any = {}
+    switch (action.name) {
+        case GAME_ACTION.SWIPE_CANDY: {
+            const { candyId, targetId } = action.data;
+            const candy: CellItem | null = game.data.cells.find((c: CellItem) => c.id === candyId);
+            const target: CellItem | null = game.data.cells.find((c: CellItem) => c.id === targetId);
+            if (!candy || !target) return null;
+            [candy.row, target.row] = [target.row, candy.row];
+            [candy.column, target.column] = [target.column, candy.column];
+            data['candy'] = candy;
+            data['target'] = target;
+            break;
+        }
+        default:
+            break;
+    }
+    return data;
 
+}
 export const doAct = sessionAction({
     args: { act: v.string(), gameId: v.string(), data: v.any() },
     handler: async (ctx, { act, gameId, data }) => {
         // console.log(ctx.user)
         console.log("do action:" + act)
-        const game: GameModel | undefined | null = await ctx.runQuery(internal.games.getGame, { gameId: gameId as Id<"games"> });
+        const game: any = await ctx.runQuery(internal.games.getGame, { gameId: gameId as Id<"games"> });
         if (!game || !game?.battleId) return;
         // if (!game.data.matched) game.data.matched = [];
         const battle: BattleModel | undefined | null = await ctx.runQuery(internal.battle.find, { battleId: game.battleId as Id<"battle"> });
         if (!battle?.data || !battle.startTime) return;
-        const steptime = Math.round(Date.now() - battle['startTime']);
-        // console.log("steptime:" + steptime)
-        const sresult = GameEngine.executeAct(game, battle, { name: act, data });
-        if (sresult) {
+
+        // const actionData = processAction(game, battle, { name: act, data })
+        // const matchResult: { toChange: CellItem[]; toCreate: CellItem[]; toMove: CellItem[]; toRemove: CellItem[] }[] | undefined = GameEngine.resolveMatch({ seed: game.seed, data: game.data }, battle.data.row, battle.data.column)
+
+        const actionResult: { data: any; result: any } = GameEngine.executeAct(game, battle, { name: act, data });
+        if (actionResult) {
             const eventName = getEventByAction(act);
+            const steptime = Math.round(Date.now() - battle['startTime']);
             if (eventName)
                 await ctx.runMutation(internal.events.create, {
-                    name: eventName, gameId, data: sresult, steptime
+                    name: eventName, gameId, data: { data: actionResult.data, results: actionResult.result }, steptime
                 })
             const diff = await ctx.runQuery(internal.diffcult.find, { id: game.diffcult })
             if (diff?.data) {
+                game.data.cells.sort((a: CellItem, b: CellItem) => {
+                    if (a.row !== b.row)
+                        return a.row - b.row
+                    else
+                        return a.column - b.column
+                })
                 const result = GameEngine.settleGame(game, battle, diff.data.goal);
                 if (result) {
                     await ctx.runMutation(internal.events.create, {
                         name: GAME_EVENT.GAME_OVER, gameId, data: { result, score: game.score }, steptime
                     })
                 }
+
                 await ctx.runMutation(internal.games.update, {
                     gameId: gameId as Id<"games">, data: { ...game, gameId: undefined, defender: undefined, laststep: steptime }
                 });
