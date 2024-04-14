@@ -166,9 +166,10 @@ export const findMatch = (grid: CellItem[][], size: number): MatchItem[] => {
     for (let row = 0; row < rows; row++) {
         const units: CellItem[] = [];
         for (let col = 0; col < columns; col++) {
-            if (grid[row][col].status) continue;
+            const status = grid[row][col]['status'] ?? 0;
+            if (status > 0 || grid[row][col].asset > 20) continue;
             units.push(grid[row][col])
-            if (col === columns - 1 || grid[row][col].asset !== grid[row][col + 1].asset || grid[row][col + 1].status) {
+            if (col === columns - 1 || grid[row][col].asset !== grid[row][col + 1].asset || grid[row][col + 1].status || grid[row][col + 1].asset > 20) {
                 if (units.length === size) {
                     id++;
                     matches.push({ id, units: [...units], start: { row, column: units[0]['column'] }, end: { row, column: units[units.length - 1]['column'] }, orientation: "horizontal", size: units.length })

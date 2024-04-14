@@ -48,7 +48,7 @@ export const settleMatch = internalMutation({
       if (tournament && diffcult) {
         const startTime = Date.now() + BATTLE_COUNT_DOWN_TIME;
         const battle: any = { tournamentId: tournament.id, participants: tournament.participants, diffcult: diffcult?.id, startTime, duration: tournament.battleTime };
-        battle['duration'] = 60000;
+        battle['duration'] = 300000;
         battle['dueTime'] = startTime + battle['duration'];
 
         const battleId = await ctx.db.insert("battle", { ...battle, status: 0 });
@@ -68,8 +68,6 @@ export const settleMatch = internalMutation({
           const opponent = await findOpponent(ctx);
           opponentGame = { ...game, uid: opponent, ref: "####" }
         } else {
-          // const gameInitData = initGame(diffcult, seed);
-          // game = { diffcult: diffcult.id, battleId, tid: tournament.id, data: gameInitData, seed, type: 0, laststep: 0, uid: m.uid, startTime, dueTime: battle['dueTime'], ref: "####" };
           await ctx.db.delete(allToMatch[1]._id);
           opponentGame = { ...game, uid: allToMatch[1].uid, ref: "####" }
         }

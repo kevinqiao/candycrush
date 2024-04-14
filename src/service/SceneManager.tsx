@@ -82,7 +82,7 @@ export const SceneProvider = ({
     // loadAvatarTextures();
     return () => {
       for (const scene of scenesRef.current.values()) {
-        if (scene && !scene.type) {
+        if (scene?.app && !scene.type) {
           (scene.app as PIXI.Application).destroy(true);
         }
       }

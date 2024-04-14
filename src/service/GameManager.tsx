@@ -96,7 +96,7 @@ export const GameProvider = ({ gameId, children }: { gameId: string; children: R
           setTimeout(() => {
             // console.log(event.steptime + ":" + laststep);
             if (event.steptime > laststep) {
-              // console.log(event);
+              console.log(event);
               GameEngine.handleEvent(event.name, event.data, gameRef.current);
               setGameEvent(event);
               if (load !== BATTLE_LOAD.REPLAY) setLaststep(event.steptime);

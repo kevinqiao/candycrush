@@ -1,8 +1,7 @@
 import { v } from "convex/values";
 import { BattleModel } from "../model/Battle";
 import { CellItem } from "../model/CellItem";
-import { GAME_ACTION, GAME_EVENT, getEventByAction } from "../model/Constants";
-import { GameModel } from "../model/GameModel";
+import { GAME_EVENT, getEventByAction } from "../model/Constants";
 import * as GameEngine from "../service/GameEngine";
 import { internal } from "./_generated/api";
 import { Id } from "./_generated/dataModel";
@@ -107,26 +106,7 @@ import { sessionAction } from "./custom/session";
 //     return { cell, toCreate, toMove, toRemove };
 
 // }
-const processAction = (game: GameModel, battle: BattleModel, action: { name: string; data: any }) => {
-    const data: any = {}
-    switch (action.name) {
-        case GAME_ACTION.SWIPE_CANDY: {
-            const { candyId, targetId } = action.data;
-            const candy: CellItem | null = game.data.cells.find((c: CellItem) => c.id === candyId);
-            const target: CellItem | null = game.data.cells.find((c: CellItem) => c.id === targetId);
-            if (!candy || !target) return null;
-            [candy.row, target.row] = [target.row, candy.row];
-            [candy.column, target.column] = [target.column, candy.column];
-            data['candy'] = candy;
-            data['target'] = target;
-            break;
-        }
-        default:
-            break;
-    }
-    return data;
 
-}
 export const doAct = sessionAction({
     args: { act: v.string(), gameId: v.string(), data: v.any() },
     handler: async (ctx, { act, gameId, data }) => {
@@ -138,7 +118,7 @@ export const doAct = sessionAction({
         const battle: BattleModel | undefined | null = await ctx.runQuery(internal.battle.find, { battleId: game.battleId as Id<"battle"> });
         if (!battle?.data || !battle.startTime) return;
 
-        // const actionData = processAction(game, battle, { name: act, data })
+
         // const matchResult: { toChange: CellItem[]; toCreate: CellItem[]; toMove: CellItem[]; toRemove: CellItem[] }[] | undefined = GameEngine.resolveMatch({ seed: game.seed, data: game.data }, battle.data.row, battle.data.column)
 
         const actionResult: { data: any; result: any } = GameEngine.executeAct(game, battle, { name: act, data });
@@ -147,7 +127,7 @@ export const doAct = sessionAction({
             const steptime = Math.round(Date.now() - battle['startTime']);
             if (eventName)
                 await ctx.runMutation(internal.events.create, {
-                    name: eventName, gameId, data: { data: actionResult.data, results: actionResult.result }, steptime
+                    name: eventName, gameId, data: { ...actionResult.data, results: actionResult.result }, steptime
                 })
             const diff = await ctx.runQuery(internal.diffcult.find, { id: game.diffcult })
             if (diff?.data) {

@@ -74,8 +74,8 @@ const useGameScene = () => {
                     for (const unit of ncells) {
                         grid[unit.row][unit.column] = unit;
                     }
-
-                    if (checkSwipe(grid)) {
+                    const smeshIds = [28, 29, 30, 31]
+                    if (smeshIds.includes(cell['asset']) || smeshIds.includes(target['asset']) || checkSwipe(grid)) {
                         playSwipeSuccess(game.gameId, ncell, ntarget, null)
                         doAct(Constant.GAME_ACTION.SWIPE_CANDY, { candyId: ncell.id, targetId: ntarget.id })
                     } else {
@@ -96,7 +96,7 @@ const useGameScene = () => {
             // console.log("exactly create candy sprite")
             const stage = (gameScene.app as PIXI.Application).stage;
 
-            const sprite = new CandySprite(texture.texture, cell.id, cell.column, cell.row)
+            const sprite = new CandySprite(texture.texture, cell.id, cell.asset, cell.column, cell.row)
             sprite.anchor.set(0.5);
             sprite.width = gameScene.cwidth;
             sprite.height = gameScene.cwidth;

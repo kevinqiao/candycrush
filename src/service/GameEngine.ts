@@ -4,7 +4,7 @@ import { CellItem } from "../model/CellItem";
 import { GAME_ACTION, GAME_EVENT, GAME_STATUS } from '../model/Constants';
 import { GameModel } from '../model/GameModel';
 import { Tournament } from '../model/Tournament';
-import { findMatch3, findMatch3Plus, findMove, getFreeCandy, getRandomAsset } from '../util/MatchGameUtils';
+import { findMatch, findMatch3, findMove, getFreeCandy, getRandomAsset, hasMatch3 } from '../util/MatchGameUtils';
 import { getRandom, getRandomSeed } from '../util/Utils';
 interface SwipeResult {
     candy: CellItem;
@@ -46,13 +46,9 @@ export const createGame = (diffcult: { column: number; row: number; chunk: numbe
                 id++;
             }
         }
-        // const matches = findMatch3(grid);
-        // console.log("match size:" + matches.length)
-        gameData = { seed, data: { cells: grid.flatMap((r) => r), lastCellId: id } }
 
-        resolveMatch(gameData, row, column);
-        // console.log(result)
-        // matches = findMatch3(grid);
+        gameData = { seed, data: { cells: grid.flatMap((r) => r), lastCellId: id } }
+        resolveMatch(gameData.seed, gameData.data, row, column);
 
         const moves: { candy: CellItem, target: CellItem }[] = findMove(gameData.data.cells, row, column);
         console.log("moves size:" + moves.length)
@@ -132,137 +128,100 @@ export const countRewards = (tournament: Tournament, battle: BattleModel): Battl
 }
 export const executeAct = (game: GameModel, battle: BattleModel, action: { name: string; data: any }): any => {
     if (!game.seed) return;
-    const result: { data: any; result: any } = { data: null, result: null }
+    const actionResult: any = {};
     const { row, column } = battle.data;
-    const results: { toChange: CellItem[]; toCreate: CellItem[]; toMove: CellItem[]; toRemove: CellItem[]; toSmesh: CellItem[] }[] = []
-    const smeshIds = [28, 29, 30, 31]
+    const results: { toChange: CellItem[]; toCreate: CellItem[]; toMove: CellItem[]; toRemove: CellItem[]; toSmesh?: { target: number; candy: CellItem; smesh?: number[] }[][] }[] = []
+    const smeshIds = [28, 29, 30, 31];
+    const grid: CellItem[][] = Array.from({ length: row }, () => Array(column).fill(null));
     switch (action.name) {
         case GAME_ACTION.SWIPE_CANDY: {
             const { candyId, targetId } = action.data;
             const candy: CellItem | null = game.data.cells.find((c: CellItem) => c.id === candyId);
             const target: CellItem | null = game.data.cells.find((c: CellItem) => c.id === targetId);
             if (!candy || !target) return null;
+            actionResult['data'] = { candy, target };
             [candy.row, target.row] = [target.row, candy.row];
             [candy.column, target.column] = [target.column, candy.column];
-            result['data'] = { candy, target };
-
-            if (smeshIds.includes(candy['asset'])) {
-                if (smeshIds.includes(target['asset'])) {
-                    let casset = -1
-                    if (candy.asset === 31) {
-                        const r = getRandom(7)
-                        const c = getRandom(7);
-                        const t = game.data.cells.find((cell: any) => cell.row === r && cell.column === c);
-                        casset = t.asset;
-                    }
-                    let res = resolveSmash({ seed: game.seed, data: game.data }, row, column, candy, casset);
-                    results.push(res)
-                    if (target.asset === 31) {
-                        const r = getRandom(7)
-                        const c = getRandom(7);
-                        const t = game.data.cells.find((cell: any) => cell.row === r && cell.column === c);
-                        casset = t.asset;
-                    }
-                    res = resolveSmash({ seed: game.seed, data: game.data }, row, column, target, casset);
-                    results.push(res)
-                } else {
-                    const casset = candy.asset === 31 ? target.asset : -1;
-                    resolveSmash({ seed: game.seed, data: game.data }, row, column, candy, casset)
-                }
-            } else if (smeshIds.includes(target['asset'])) {
-                const casset = target.asset === 31 ? candy.asset : -1;
-                resolveSmash({ seed: game.seed, data: game.data }, row, column, target, casset)
+            for (const unit of game.data.cells) {
+                grid[unit.row][unit.column] = { ...unit };
             }
+            const plus4Changes = solveMatch(grid, 5, 7);
+            const crossChanges = solveCrossMatch(grid);
+            const fourChanges = solveMatch(grid, 3, 4);
+            const toChange = [...plus4Changes, ...crossChanges, ...fourChanges]
 
+            const toSmesh: { target: number; candy: CellItem; smesh?: number[] }[][] = [];
+            if (smeshIds.includes(candy.asset)) {
+                const meshes: { target: number; candy: CellItem; smesh?: number[] }[] = [];
+                const targetAsset = smeshIds.includes(target.asset) ? -1 : target.asset;
+                solveSmesh(grid, candy, targetAsset, meshes);
+                toSmesh.push(meshes);
+            }
+            if (smeshIds.includes(target.asset)) {
+                const meshes: { target: number; candy: CellItem; smesh?: number[] }[] = [];
+                const targetAsset = smeshIds.includes(candy.asset) ? -1 : candy.asset;
+                solveSmesh(grid, candy, targetAsset, meshes);
+                toSmesh.push(meshes)
+            }
+            const res = shiftMatch(game.seed, game.data, grid);
+            const result = { ...res, toChange, toSmesh }
+            results.push(result);
+            applyShiftResult(result, game.data);
+
+            const matchResults = resolveMatch(game.seed, game.data, row, column);
+            results.push(...matchResults);
+            actionResult['result'] = results;
             break;
         }
         default:
             break;
     }
-    return result;
+    return actionResult;
+
 }
 
-export const resolveSmash = (gameData: { seed: string; data: { cells: CellItem[]; lastCellId: number } }, rows: number, columns: number, candy: CellItem, asset: number): { toChange: CellItem[]; toCreate: CellItem[]; toMove: CellItem[]; toRemove: CellItem[]; toSmesh: CellItem[] } => {
-
-    gameData.data.cells.sort((a: CellItem, b: CellItem) => a.row !== b.row ? a.row - b.row : a.column - b.column)
+const resolveMatch = (seed: string, data: { cells: CellItem[], lastCellId: number }, rows: number, columns: number): { toChange: CellItem[]; toCreate: CellItem[]; toMove: CellItem[]; toRemove: CellItem[] }[] => {
+    const results: { toChange: CellItem[]; toCreate: CellItem[]; toMove: CellItem[]; toRemove: CellItem[] }[] = [];
     const grid: CellItem[][] = Array.from({ length: rows }, () => Array(columns).fill(null));
-    for (const unit of gameData.data.cells) {
+    for (const unit of data.cells) {
         grid[unit.row][unit.column] = { ...unit };
     }
-
-    const plus4changes = solveMatch(grid, 5, 7);
-    const crossChanges = solveCrossMatch(grid);
-    const fourChanges = solveMatch(grid, 3, 4);
-    const toChange = [...plus4changes, ...crossChanges, ...fourChanges];
-    const toSmesh: CellItem[] = [];
-    switch (candy.asset) {
-        case 28:
-            grid[candy.column].forEach((c) => {
-                c.status = 1;
-                toSmesh.push(c)
-            })
-            break;
-        case 29:
-            grid[candy.row].forEach((c) => {
-                c.status = 1;
-                toSmesh.push(c)
-            })
-            break;
-        case 30:
-            for (let i = -1; i <= 1; i++) {
-                for (let j = -1; j <= 1; j++) {
-                    const row = i + candy['row'];
-                    const col = j + candy['column'];
-                    if (row >= 0 && col >= 0) {
-                        grid[row][col].status = 1;
-                        toSmesh.push(grid[row][col])
-                    }
-                }
-            }
-
-            break;
-        case 31:
-            if (asset) {
-                const smeshs: CellItem[] = gameData.data.cells.filter((c: CellItem) => c.asset === asset);
-                toSmesh.push(...smeshs);
-            }
-            break;
-        default:
-            break;
+    while (hasMatch3(grid)) {
+        const plus4Changes = solveMatch(grid, 5, 7);
+        const crossChanges = solveCrossMatch(grid);
+        const fourChanges = solveMatch(grid, 3, 4);
+        const res = shiftMatch(seed, data, grid);
+        const result = { ...res, toChange: [...plus4Changes, ...crossChanges, ...fourChanges] }
+        results.push(result);
+        applyShiftResult(result, data);
+        for (const unit of data.cells) {
+            grid[unit.row][unit.column] = { ...unit };
+        }
     }
-
-    const res = shiftMatch(gameData.seed, gameData.data, grid);
-
-    const result = { ...res, toChange, toSmesh };
-    applyShiftResult(result, gameData.data);
-
-    return result
-
+    return results;
 }
 
-
-const resolveMatch3Plus = (grid: CellItem[][]): CellItem[] => {
+const solveMatch = (grid: CellItem[][], min: number, max: number): CellItem[] => {
     const toChange: CellItem[] = [];
-    let matches: MatchItem[] = findMatch3Plus(grid);
-    // console.log("m3plus size:" + matches?.length)
-    while (matches.length > 0) {
+    for (let i = max; i >= min; i--) {
+        const matches: MatchItem[] = findMatch(grid, i);
         for (const m of matches) {
             if (m.units.filter((u) => u.status).length === 0) {
                 if (m.size === 4) {
-                    toChange.push({ ...m.units[0], asset: m.orientation === "horizontal" ? 28 : 29 })
-                } else {
+                    toChange.push({ ...m.units[0], asset: m.orientation === "horizontal" ? 28 : 29 });
+
+                } else if (m.size >= 5) {
                     toChange.push({ ...m.units[0], asset: 31 })
                 }
                 m.units.forEach((u, index) => {
-                    if (index > 0) u.status = 1
+                    if (m.size === 3 || (m.size >= 4 && index > 0)) u.status = 1
                 })
             }
         }
-        matches = findMatch3Plus(grid);
-        console.log(" after resolved m3plus size:" + matches?.length)
     }
     return toChange;
 }
+
 
 const resolveMatchCross = (grid: CellItem[][]): CellItem[] => {
     const toChange: CellItem[] = [];
@@ -296,6 +255,7 @@ const resolveMatchCross = (grid: CellItem[][]): CellItem[] => {
 
     return toChange;
 }
+
 const solveCrossMatch = (grid: CellItem[][]): CellItem[] => {
     const toChange: CellItem[] = [];
     const matches: MatchItem[] = findMatch3(grid);
@@ -324,33 +284,38 @@ const solveCrossMatch = (grid: CellItem[][]): CellItem[] => {
     }
     return toChange;
 }
-const solveSmesh = (grid: CellItem[][], candy: CellItem, target: number, allMeshes: { target: number; candy: CellItem; smesh?: CellItem[] }[]) => {
+
+const solveSmesh = (grid: CellItem[][], candy: CellItem, target: number, allMeshes: { target: number; candy: CellItem, smesh?: number[] }[]) => {
+
     const row = grid.length;
     const column = grid[0].length;
     const smeshIds = [28, 29, 30, 31];
+    const smesh: number[] = [];
     switch (candy.asset) {
-        case 28:
-            allMeshes.push({ target, candy });
+        case 29:
+            allMeshes.push({ target, candy, smesh });
             for (let i = 0; i < row; i++) {
                 const c = grid[i][candy.column];
-                c.status = 1;
-                if (smeshIds.includes(c.asset))
+                c.status = 2;
+                smesh.push(c.id);
+                if (i !== candy.row && smeshIds.includes(c.asset))
                     solveSmesh(grid, c, -1, allMeshes)
             }
-
             break;
-        case 29:
-            allMeshes.push({ target, candy });
+        case 28:
+            allMeshes.push({ target, candy, smesh });
             for (let i = 0; i < column; i++) {
                 const c = grid[candy.row][i];
-                c.status = 1;
-                if (smeshIds.includes(c.asset))
+                c.status = 2;
+                smesh.push(c.id);
+                if (i !== candy.column && smeshIds.includes(c.asset))
                     solveSmesh(grid, c, -1, allMeshes)
             }
             break;
         case 30:
+            allMeshes.push({ target, candy, smesh });
             {
-                const smesh: CellItem[] = [];
+
                 for (let i = -1; i <= 1; i++) {
                     for (let j = -1; j <= 1; j++) {
                         const row = i + candy['row'];
@@ -358,13 +323,12 @@ const solveSmesh = (grid: CellItem[][], candy: CellItem, target: number, allMesh
                         if (row >= 0 && col >= 0) {
                             if (smeshIds.includes(grid[row][col].asset))
                                 solveSmesh(grid, grid[row][col], -1, allMeshes)
-                            smesh.push(grid[row][col])
+                            grid[row][col].status = 2;
+                            smesh.push(grid[row][col].id)
                         }
                     }
                 }
-                smesh.push(candy)
-                smesh.forEach((c) => c.status = 1);
-                allMeshes.push({ target, candy, smesh })
+
             }
             break;
         case 31:
@@ -376,9 +340,10 @@ const solveSmesh = (grid: CellItem[][], candy: CellItem, target: number, allMesh
                     const c = candies[getRandom(cs.length)];
                     asset = c.asset;
                 }
-                const smesh = [...grid.flatMap((r) => r).filter((c: CellItem) => c.asset === asset), candy];
-                smesh.forEach((c) => c.status = 1)
-                allMeshes.push({ target, candy, smesh })
+                const mesh = [...grid.flatMap((r) => r).filter((c: CellItem) => c.asset === asset), candy];
+                mesh.forEach((c) => c.status = 2);
+                smesh.push(...mesh.map((m) => m.id))
+                allMeshes.push({ target: asset, candy, smesh })
             }
             break;
         default:
@@ -394,12 +359,12 @@ const shiftMatch = (seed: string, data: { lastCellId: number }, grid: CellItem[]
     const cells = grid.flatMap((row) => row)
     for (let column = 0; column < columns; column++) {
         const toColCreate: CellItem[] = [];
-        const colRemoved = cells.filter((c: any) => c.column === column && c.status);
+        const colRemoved = cells.filter((c: any) => c.column === column && c.status > 0);
         for (const r of colRemoved) {
             const candy = getFreeCandy(seed, data.lastCellId++);
-            candy.column = column;
-            candy.row = toColCreate.length;
             toColCreate.push(candy);
+            candy.column = column;
+            candy.row = colRemoved.length - toColCreate.length;
             const toMoves: CellItem[] = cells.filter((c: CellItem) => !c.status && c.column === column && c.row < r.row);
             toMoves.forEach((ms) => {
                 const tm = toMove.find((m) => m.id === ms.id);
@@ -413,13 +378,13 @@ const shiftMatch = (seed: string, data: { lastCellId: number }, grid: CellItem[]
         toCreate.push(...toColCreate)
     }
 
-    const toRemove: CellItem[] = cells.filter((c: CellItem) => c.status);
+    const toRemove: CellItem[] = cells.filter((c: CellItem) => c.status === 1);
     return { toRemove, toCreate, toMove }
 
 }
 
 const applyShiftResult = (
-    result: { toCreate: CellItem[]; toChange: CellItem[]; toRemove: CellItem[]; toMove: CellItem[] },
+    result: { toCreate: CellItem[]; toChange: CellItem[]; toRemove: CellItem[]; toMove: CellItem[]; toSmesh?: { target: number; candy: CellItem; smesh?: number[] }[][] },
     data: { cells: CellItem[] }
 ) => {
 
@@ -429,7 +394,7 @@ const applyShiftResult = (
         else return a.row - b.row;
     });
 
-    const { toCreate, toChange, toRemove, toMove } = result;
+    const { toCreate, toChange, toRemove, toMove, toSmesh } = result;
     if (toRemove) {
         const acells: CellItem[] = data.cells.filter((c: CellItem) => {
             const cr = toRemove.find((r) => r.id === c.id);
@@ -438,6 +403,33 @@ const applyShiftResult = (
         });
         data.cells.length = 0;
         data.cells.push(...acells);
+    }
+    if (toSmesh) {
+        for (let i = 0; i < toSmesh.length; i++) {
+            for (let j = 0; j < toSmesh[i].length; j++) {
+                const mesh = toSmesh[i][j];
+                if (mesh?.candy) {
+                    const asset = mesh.candy.asset;
+                    switch (asset) {
+                        case 28:
+                            {
+                                const scells: CellItem[] = data.cells.filter((c: CellItem) => c.row !== mesh.candy.row);
+                                data.cells = scells;
+                            }
+                            break;
+                        case 29:
+                            {
+                                const scells: CellItem[] = data.cells.filter((c: CellItem) => c.column !== mesh.candy.column);
+                                data.cells = scells;
+                            }
+                            break;
+
+                        default:
+                            break;
+                    }
+                }
+            }
+        }
     }
     if (toCreate?.length > 0) {
         data.cells.push(...toCreate);
