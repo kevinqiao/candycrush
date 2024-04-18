@@ -56,12 +56,14 @@ export const checkSwipe = (grid: CellItem[][]): boolean => {
 
 
 export const hasMatch3 = (grid: CellItem[][]): boolean => {
+
     // console.log(grid.flatMap((r) => r))
     const rows = grid.length;
     const columns = grid[0].length;
     for (let row = 0; row < rows; row++) {
         const units: CellItem[] = [];
         for (let col = 0; col < columns; col++) {
+            // console.log(grid[row][col])
             units.push(grid[row][col])
             if (col === columns - 1 || grid[row][col].asset !== grid[row][col + 1].asset) {
                 if (units.length >= 3) return true;
@@ -69,10 +71,10 @@ export const hasMatch3 = (grid: CellItem[][]): boolean => {
             }
         }
     }
-
     for (let col = 0; col < columns; col++) {
         const units: CellItem[] = [];
         for (let row = 0; row < rows; row++) {
+            // console.log(grid[row][col])
             units.push(grid[row][col])
             if (row === rows - 1 || grid[row][col].asset !== grid[row + 1][col].asset) {
                 if (units.length >= 3) {

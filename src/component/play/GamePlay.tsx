@@ -69,7 +69,7 @@ const GamePlay = () => {
       if (!game || !battle || !bound || !sceneEle) return;
 
       let gameScene: GameScene | undefined = scenes.get(game.gameId) as GameScene;
-      let app: PIXI.Application<PIXI.ICanvas>;
+      let app: PIXI.Application;
       if (!gameScene) {
         const { left, top, width, height } = bound;
         app = new PIXI.Application({
@@ -77,6 +77,8 @@ const GamePlay = () => {
           height,
           backgroundAlpha: 0,
         });
+      
+
         const cwidth = Math.floor((0.8 * width) / battle.data.column);
         const cheight = Math.floor((0.8 * height) / battle.data.row);
         const candies = new Map<number, CandySprite>();
@@ -96,6 +98,7 @@ const GamePlay = () => {
       } else {
         app = gameScene.app as PIXI.Application<PIXI.ICanvas>;
       }
+
       sceneEle.appendChild(app.view as unknown as Node);
     },
     [bound, game, scenes, battle, stageScene]
@@ -126,75 +129,80 @@ const GamePlay = () => {
   }, [game, load]);
   const render = useMemo(() => {
     return (
-      <div
-        style={{
-          position: "absolute",
-          top: bound?.top,
-          left: bound?.left,
-          width: bound?.width,
-          height: bound?.height,
-          margin: 0,
-          border: 0,
-          backgroundColor: "transparent",
-          filter: game?.uid !== user.uid ? "blur(0px)" : "blur(0px)",
-        }}
-      >
-        <div ref={loadScene} style={{ width: "100%", height: "100%", backgroundColor: "transparent" }}></div>
-
+      <>
         <div
-          ref={maskRef}
           style={{
             position: "absolute",
-            top: 0,
-            left: 0,
-            width: "100%",
-            height: "100%",
-            opacity: 0,
-            backgroundColor: "black",
-            pointerEvents: "none",
-          }}
-        ></div>
-        <div
-          ref={gameOverRef}
-          style={{
-            display: "flex",
-            flexDirection: "column",
-            justifyContent: "center",
-            alignItems: "center",
-            position: "absolute",
-            top: 0,
-            left: 0,
-            width: "100%",
-            height: "100%",
-            backgroundColor: "transparent",
-            pointerEvents: "none",
-            opacity: 0,
-            color: "white",
+            top: bound?.top,
+            left: bound?.left,
+            width: bound?.width,
+            height: bound?.height,
+            margin: 0,
+            border: 0,
+            zIndex: game?.uid === user.uid ? 200 : 100,
+            filter: game?.uid !== user.uid ? "blur(0px)" : "blur(0px)",
           }}
         >
-          <div style={{ width: "80%", display: "flex", justifyContent: "center" }}>
-            <span style={{ fontSize: 20, color: "white" }}>Game Over</span>
-          </div>
-          <div style={{ width: "80%", display: "flex", justifyContent: "space-between" }}>
-            <span style={{ fontSize: 15, color: "white" }}>Base</span>
-            <span ref={baseRef} style={{ fontSize: 15, color: "white" }}>
-              {100}
-            </span>
-          </div>
-          <div style={{ width: "80%", display: "flex", justifyContent: "space-between" }}>
-            <span style={{ fontSize: 15, color: "white" }}>Goal</span>
-            <span ref={goalRef} style={{ fontSize: 15, color: "white" }}>
-              {100}
-            </span>
-          </div>
-          <div style={{ width: "80%", display: "flex", justifyContent: "space-between" }}>
-            <span style={{ fontSize: 15, color: "white" }}>Time Bonus</span>
-            <span ref={timeRef} style={{ fontSize: 15, color: "white" }}>
-              {100}
-            </span>
+          <div
+            ref={loadScene}
+            style={{ width: "100%", height: "100%", backgroundColor: "transparent", touchAction: "none" }}
+          ></div>
+
+          <div
+            ref={maskRef}
+            style={{
+              position: "absolute",
+              top: 0,
+              left: 0,
+              width: "100%",
+              height: "100%",
+              opacity: 0,
+              backgroundColor: "black",
+              pointerEvents: "none",
+            }}
+          ></div>
+          <div
+            ref={gameOverRef}
+            style={{
+              display: "flex",
+              flexDirection: "column",
+              justifyContent: "center",
+              alignItems: "center",
+              position: "absolute",
+              top: 0,
+              left: 0,
+              width: "100%",
+              height: "100%",
+              backgroundColor: "transparent",
+              pointerEvents: "none",
+              opacity: 0,
+              color: "white",
+            }}
+          >
+            <div style={{ width: "80%", display: "flex", justifyContent: "center" }}>
+              <span style={{ fontSize: 20, color: "white" }}>Game Over</span>
+            </div>
+            <div style={{ width: "80%", display: "flex", justifyContent: "space-between" }}>
+              <span style={{ fontSize: 15, color: "white" }}>Base</span>
+              <span ref={baseRef} style={{ fontSize: 15, color: "white" }}>
+                {100}
+              </span>
+            </div>
+            <div style={{ width: "80%", display: "flex", justifyContent: "space-between" }}>
+              <span style={{ fontSize: 15, color: "white" }}>Goal</span>
+              <span ref={goalRef} style={{ fontSize: 15, color: "white" }}>
+                {100}
+              </span>
+            </div>
+            <div style={{ width: "80%", display: "flex", justifyContent: "space-between" }}>
+              <span style={{ fontSize: 15, color: "white" }}>Time Bonus</span>
+              <span ref={timeRef} style={{ fontSize: 15, color: "white" }}>
+                {100}
+              </span>
+            </div>
           </div>
         </div>
-      </div>
+      </>
     );
   }, [game, bound, load]);
   return <>{render}</>;

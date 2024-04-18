@@ -111,6 +111,7 @@ export const doAct = sessionAction({
     args: { act: v.string(), gameId: v.string(), data: v.any() },
     handler: async (ctx, { act, gameId, data }) => {
         // console.log(ctx.user)
+        console.log(data)
         console.log("do action:" + act)
         const game: any = await ctx.runQuery(internal.games.getGame, { gameId: gameId as Id<"games"> });
         if (!game || !game?.battleId) return;
@@ -121,9 +122,10 @@ export const doAct = sessionAction({
 
         // const matchResult: { toChange: CellItem[]; toCreate: CellItem[]; toMove: CellItem[]; toRemove: CellItem[] }[] | undefined = GameEngine.resolveMatch({ seed: game.seed, data: game.data }, battle.data.row, battle.data.column)
 
-        const actionResult: { data: any; result: any } = GameEngine.executeAct(game, battle, { name: act, data });
+        const actionResult: any = GameEngine.executeAct(game, battle, { name: act, data });
         if (actionResult) {
             const eventName = getEventByAction(act);
+            console.log("event name:" + eventName)
             const steptime = Math.round(Date.now() - battle['startTime']);
             if (eventName)
                 await ctx.runMutation(internal.events.create, {

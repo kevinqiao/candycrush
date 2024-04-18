@@ -11,20 +11,19 @@ import PageProps from "../../model/PageProps";
 import useTournamentManager from "../../service/TournamentManager";
 import BattleGround from "./BattleGround";
 import BattleScene from "./BattleScene";
-import GamePlay from "./GamePlay";
 import BattleConsole from "./console/BattleConsole";
 import TimeCount from "./console/TimeCount";
+import GamePlay from "./GamePlay";
 import OpponentMatch from "./match/OpponentMatch";
 import OpponentSearch from "./match/OpponentSearch";
 import "./play.css";
 import BattleReport from "./report/BattleReport";
+import SkillControl from "./SkillControl";
 
 interface ControlProps {
   battleId: string;
 }
 const PlayControl: React.FC<ControlProps> = ({ battleId }) => {
-  // const sceneRef = useRef<HTMLDivElement | null>(null);
-  // const sbattleRef = useRef<BattleModel | null>(null);
   const [battle, setBattle] = useState<BattleModel | null>(null);
   const { findBattle } = useTournamentManager();
 
@@ -52,6 +51,7 @@ const PlayControl: React.FC<ControlProps> = ({ battleId }) => {
               ))}
             <BattleScene />
           </BattleGround>
+          <SkillControl />
           <BattleReport />
           <OpponentMatch />
         </BattleProvider>

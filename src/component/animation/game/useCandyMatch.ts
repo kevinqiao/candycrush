@@ -62,12 +62,6 @@ export const playMove = (toMove: CellItem[], gameScene: GameScene, textures: Tex
                         y: cy,
                         duration: 0.9,
                         ease: 'power2.out',
-                        // onStart: () => {
-                        //     if (!candy || !candy.position) {
-                        //         console.log("kill timeline")
-                        //         tl.kill();
-                        //     }
-                        // },
                     }, "<")
             }
         })
@@ -107,130 +101,8 @@ export const playRemove = (toRemove: CellItem[], gameScene: GameScene, textures:
     }
 
 }
-const buildSmeshAnimate = (newCandies: number[], candyMap: Map<number, CandySprite>, candy: CandySprite, tl: any) => {
-    const cl = gsap.timeline();
-    candy.status = 1;
-    tl.add(cl);
-    cl.to(
-        candy,
-        {
-            alpha: 0,
-            duration: 0.2,
-            ease: 'power2.out',
-        }, "<");
-    const candies: CandySprite[] = Array.from(candyMap.values());
-    switch (candy.asset) {
-        case 28:
-            {
-                const cells: CandySprite[] = candies.filter((c) => !newCandies.includes(c.id) && c.row === candy.row && c.status === 0);
-                const left = cells.filter((c) => c.column < candy.column);
-                const right = cells.filter((c) => c.column > candy.column);
 
-                const sl = gsap.timeline();
-                tl.add(sl, ">");
-                if (left.length > 0) {
-                    const ml = gsap.timeline();
-                    sl.add(ml, "<")
-                    left.sort((a, b) => b.column - a.column).forEach((c, index) => {
-                        c.status = 1;
-                        if (candyMap.get(c.id))
-                            ml.to(
-                                c,
-                                {
-                                    alpha: 0,
-                                    duration: 0.1,
-                                    ease: 'power2.out',
-                                    onStart: () => {
-                                        if ([28, 29, 30, 31].includes(c.asset)) {
-                                            buildSmeshAnimate(newCandies, candyMap, c, tl);
-                                        }
-                                    },
-                                }, "<");
-                    })
-                }
-                if (right.length > 0) {
-                    const ml = gsap.timeline();
-                    sl.add(ml, "<")
-                    right.sort((a, b) => a.column - b.column).forEach((c, index) => {
-                        c.status = 1;
-                        if (candyMap.get(c.id))
-                            ml.to(
-                                c,
-                                {
-                                    alpha: 0,
-                                    duration: 0.1,
-                                    ease: 'power2.out',
-                                    onStart: () => {
-                                        if ([28, 29, 30, 31].includes(c.asset)) {
-                                            buildSmeshAnimate(newCandies, candyMap, c, tl);
-                                        }
-                                    },
-                                }, "<");
-                    })
-
-                }
-
-            }
-            break;
-        case 29:
-            {
-                const cells: CandySprite[] = candies.filter((c) => !newCandies.includes(c.id) && c.column === candy.column && c.status === 0);
-                const top = cells.filter((c) => c.row < candy.row);
-                const bottom = cells.filter((c) => c.row > candy.row);
-
-                const sl = gsap.timeline();
-                tl.add(sl, ">");
-                if (top.length > 0) {
-                    const ml = gsap.timeline();
-                    sl.add(ml, "<")
-                    top.sort((a, b) => b.row - a.row).forEach((c, index) => {
-                        c.status = 1;
-                        // const delta = 0.2 * Math.abs(c.column - candy.column)
-                        if (candyMap.get(c.id))
-                            ml.to(
-                                c,
-                                {
-                                    alpha: 0,
-                                    duration: 0.1,
-                                    ease: 'power2.out',
-                                    onStart: () => {
-                                        if ([28, 29, 30, 31].includes(c.asset)) {
-                                            buildSmeshAnimate(newCandies, candyMap, c, tl);
-                                        }
-                                    },
-
-                                }, "<");
-                    })
-                }
-                if (bottom.length > 0) {
-                    const ml = gsap.timeline();
-                    sl.add(ml, "<")
-                    bottom.sort((a, b) => a.row - b.row).forEach((c, index) => {
-                        c.status = 1;
-                        if (candyMap.get(c.id))
-                            ml.to(
-                                c,
-                                {
-                                    alpha: 0,
-                                    duration: 0.1,
-                                    ease: 'power2.out',
-                                    onStart: () => {
-                                        if ([28, 29, 30, 31].includes(c.asset)) {
-                                            buildSmeshAnimate(newCandies, candyMap, c, tl);
-                                        }
-                                    },
-                                }, "<");
-                    })
-                }
-
-            }
-            break;
-
-        default:
-            break;
-    }
-}
-const buildSmesh = (newCandies: number[], candyMap: Map<number, CandySprite>, smesh: { target: number; candy: CellItem; smesh?: number[] }, tl: any) => {
+const buildSmesh = (candyMap: Map<number, CandySprite>, smesh: { target: number; candy: CellItem; smesh?: number[] }, tl: any) => {
     console.log(smesh)
     const candies: CandySprite[] = Array.from(candyMap.values());
     const candy = candyMap.get(smesh.candy.id);
@@ -245,63 +117,77 @@ const buildSmesh = (newCandies: number[], candyMap: Map<number, CandySprite>, sm
             duration: 0.2,
             ease: 'power2.out',
         }, "<");
-
-    switch (candy.asset) {
-        case 28:
+        
+    const cells: CandySprite[] = candies.filter((c) => smesh.smesh && smesh.smesh.includes(c.id));
+    const sl = gsap.timeline();
+    tl.add(sl, ">");
+    const ml = gsap.timeline();
+    sl.add(ml, "<")
+    cells.forEach((c, index) => {
+        c.status = 1;
+        ml.to(
+            c,
             {
-                const cells: CandySprite[] = candies.filter((c) => smesh.smesh && smesh.smesh.includes(c.id));
-                const sl = gsap.timeline();
-                tl.add(sl, ">");
-                const ml = gsap.timeline();
-                sl.add(ml, "<")
-                cells.forEach((c, index) => {
-                    c.status = 1;
-                    ml.to(
-                        c,
-                        {
-                            alpha: 0,
-                            duration: 0.1,
-                            ease: 'power2.out',
+                alpha: 0,
+                duration: 0.1,
+                ease: 'power2.out',
 
-                        }, "<");
+            }, "<");
 
-                })
-            }
+    })
 
+    // switch (candy.asset) {
+    //     case 28:
+    //         {
+    //             const cells: CandySprite[] = candies.filter((c) => smesh.smesh && smesh.smesh.includes(c.id));
+    //             const sl = gsap.timeline();
+    //             tl.add(sl, ">");
+    //             const ml = gsap.timeline();
+    //             sl.add(ml, "<")
+    //             cells.forEach((c, index) => {
+    //                 c.status = 1;
+    //                 ml.to(
+    //                     c,
+    //                     {
+    //                         alpha: 0,
+    //                         duration: 0.1,
+    //                         ease: 'power2.out',
 
+    //                     }, "<");
 
-            break;
-        case 29:
-            {
-                const cells: CandySprite[] = candies.filter((c) => smesh.smesh && smesh.smesh.includes(c.id));
-                const sl = gsap.timeline();
-                tl.add(sl, ">");
-                const ml = gsap.timeline();
-                sl.add(ml, "<")
-                cells.forEach((c, index) => {
-                    c.status = 1;
-                    ml.to(
-                        c,
-                        {
-                            alpha: 0,
-                            duration: 0.1,
-                            ease: 'power2.out',
+    //             })
+    //         }
 
-                        }, "<");
-                })
+    //         break;
+    //     case 29:
+    //         {
+    //             const cells: CandySprite[] = candies.filter((c) => smesh.smesh && smesh.smesh.includes(c.id));
+    //             const sl = gsap.timeline();
+    //             tl.add(sl, ">");
+    //             const ml = gsap.timeline();
+    //             sl.add(ml, "<")
+    //             cells.forEach((c, index) => {
+    //                 c.status = 1;
+    //                 ml.to(
+    //                     c,
+    //                     {
+    //                         alpha: 0,
+    //                         duration: 0.1,
+    //                         ease: 'power2.out',
 
-            }
-            break;
+    //                     }, "<");
+    //             })
+    //         }
+    //         break;
 
-        default:
-            break;
-    }
+    //     default:
+    //         break;
+    // }
 }
-export const playSmesh = (toSmesh: { target: number; candy: CellItem }[][], toCreate: CellItem[], gameScene: GameScene, tl: any) => {
+export const playSmesh = (toSmesh: { target: number; candy: CellItem }[][], gameScene: GameScene, tl: any) => {
 
     const candyMap = gameScene.candies;
     if (candyMap) {
-        const newCandies = toCreate.map((c) => c.id);
 
         for (let i = 0; i < toSmesh.length; i++) {
             for (let j = 0; j < toSmesh[i].length; j++) {
@@ -311,7 +197,7 @@ export const playSmesh = (toSmesh: { target: number; candy: CellItem }[][], toCr
                     if (candy) {
                         const sl = gsap.timeline();
                         tl.add(sl, "<");
-                        buildSmesh(newCandies, candyMap, mesh, sl);
+                        buildSmesh(candyMap, mesh, sl);
                     }
                 }
             }
@@ -334,9 +220,7 @@ const useCandyMatch = () => {
             })
             const { results } = data;
             console.log(results)
-
             if (results && gameScene) {
-
                 for (const res of results) {
                     const sl = gsap.timeline();
                     tl.add(sl, ">")
@@ -346,25 +230,23 @@ const useCandyMatch = () => {
                                 onComplete: () => {
                                     const candyMap = gameScene.candies;
                                     const smeshs: { target: number; candy: CellItem; smesh: number[] }[][] = res.toSmesh;
-                                    for (let i = 0; i < smeshs.length; i++) {
-                                        for (let j = 0; j < smeshs[i].length; j++) {
-                                            const smesh = smeshs[i][j].smesh;
-                                            console.log(smesh)
-                                            smesh.forEach((cid) => {
-                                                const candy = candyMap.get(cid);
-                                                if (candy) {
-                                                    candyMap.delete(cid)
-                                                    candy.parent.removeChild(candy as PIXI.DisplayObject)
-                                                    candy.destroy();
-                                                }
-                                            })
-                                        }
-                                    }
+                                    smeshs.flat().forEach((c) => {
+                                        console.log(c.smesh)
+                                        c.smesh.forEach((cid) => {
+                                            const candy = candyMap.get(cid);
+                                            if (candy) {
+                                                candyMap.delete(cid)
+                                                candy.parent.removeChild(candy as PIXI.DisplayObject)
+                                                candy.destroy();
+                                            }
+                                        })
+                                    })
+
                                 }
                             }
                         );
                         sl.add(cl);
-                        playSmesh(res.toSmesh, res.toCreate, gameScene, cl);
+                        playSmesh(res.toSmesh, gameScene, cl);
                     }
                     if (res.toRemove) {
                         const cl = gsap.timeline();

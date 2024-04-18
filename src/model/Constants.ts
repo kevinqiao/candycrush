@@ -64,8 +64,10 @@ export const BATTLE_EVENT = {
 
 export const GAME_EVENT = {
     SWIPE_CANDY: "cellSwapped",
-    SMESH_CANDY: "cellSmeshed",
-    USE_SKILL: "skillUsed",
+    SMASH_CANDY: "cellSmeshed",
+    SKILL_HAMMER: "skillHammer",
+    SKILL_EXCHANGE: "skillExchange",
+    SKILL_CLEAR: "skillClear",
     GAME_OVER: "gameOver"
 } as { [key: string]: string };
 
@@ -82,8 +84,10 @@ export const BATTLE_STATUS = {
 export const GAME_ACTION = {
     SWIPE_CANDY: "SWIPE_CANDY",
     SMASH_CANDY: "SMASH_CANDY",
-    USE_SKILL: "USE_SKILL"
-} as { [key: string]: string };
+    SKILL_HAMMER: "SKILL_HAMMER",
+    SKILL_SWAP: "SKILL_SWAP",
+    SKILL_SPRAY: "SKILL_SPRAY"
+};
 // export const GAME_PLAY_TIME = 600000
 export const CHANNEL_AUTH = {
     CLERK: 0,
@@ -99,10 +103,25 @@ export const BATTLE_SEARCH_MAX_TIME = 2500;
 export const BATTLE_COUNT_DOWN_TIME = 10000;
 export const getEventByAction = (action: string): string | null => {
     for (const k in GAME_ACTION) {
-        const v = GAME_ACTION[k];
-        if (v === action) {
+        if (k == action)
             return GAME_EVENT[k]
-        }
     }
     return null
+}
+export const getActBySkill = (skill: number): string | null => {
+    let skillName = null;
+    switch (skill) {
+        case 1:
+            skillName = GAME_ACTION.SKILL_HAMMER
+            break;
+        case 2:
+            skillName = GAME_ACTION.SKILL_SWAP
+            break;
+        case 3:
+            skillName = GAME_ACTION.SKILL_SPRAY
+            break;
+        default:
+            break;
+    }
+    return skillName
 }

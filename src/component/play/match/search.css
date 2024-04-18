@@ -1,5 +1,6 @@
 .match_container {
     position: absolute;
+    z-index: 350;
     top: 0px;
     left: 0px;
     width: 100%;
@@ -11,6 +12,7 @@
 }
 .search_container{
     position:absolute;
+    z-index: 300;
     top: 0px;
     left: 0px;
     width: 100%;
