@@ -8,6 +8,7 @@ import { BATTLE_EVENT, BATTLE_LOAD } from "../model/Constants";
 import { GameEvent } from "../model/GameEvent";
 import { useBattleManager } from "./BattleManager";
 import * as GameEngine from "./GameEngine";
+import { useUserManager } from "./UserManager";
 interface IGameContext {
   game: GameModel | null;
   gameEvent?: GameEvent | null;
@@ -31,6 +32,7 @@ export const GameProvider = ({ gameId, children }: { gameId: string; children: R
   const [gameEvents, setGameEvents] = useState<GameEvent[]>([]);
   const { load, battle, battleEvent, completeGame } = useBattleManager();
   const [laststep, setLaststep] = useState(-1);
+  const { user } = useUserManager();
 
   const events: GameEvent[] | undefined | null = useQuery(api.events.findByGame, {
     gameId,
@@ -148,16 +150,18 @@ export const GameProvider = ({ gameId, children }: { gameId: string; children: R
     gameEvent,
     doAct: useCallback(
       async (name: string, data: any): Promise<null> => {
-        if (load !== BATTLE_LOAD.REPLAY) {
+        if (user && load !== BATTLE_LOAD.REPLAY) {
           await convex.action(api.gameService.doAct, {
             act: name,
+            uid: user.uid,
+            token: user.token,
             gameId,
             data,
           });
         }
         return null;
       },
-      [load, battle, convex, gameId]
+      [load, battle, user, convex, gameId]
     ),
   };
 

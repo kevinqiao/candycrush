@@ -18,7 +18,7 @@ const useTournamentManager = () => {
       openPage({ name: "signin", data: null })
       return null;
     } else {
-      const rs = await convex.action(api.tournamentService.join, { uid: user.uid, tid: tournamentId })
+      const rs = await convex.action(api.tournamentService.join, { uid: user.uid, token: user.token, tid: tournamentId })
       if (!rs.ok) {
         console.log(rs);
         return rs

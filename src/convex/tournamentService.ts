@@ -2,11 +2,12 @@ import { v } from "convex/values";
 import { internal } from "./_generated/api";
 import { action } from "./_generated/server";
 export const join = action({
-    args: { tid: v.string(), uid: v.string() },
-    handler: async (ctx, { tid, uid }) => {
+    args: { tid: v.string(), uid: v.string(), token: v.string() },
+    handler: async (ctx, { tid, uid, token }) => {
+
+        console.log("uid:" + uid + " token:" + token)
         //check if user already in the battle
         const game = await ctx.runQuery(internal.games.findUserGame, { uid });
-        console.log("status:" + game?.status)
         if (game && !game.status) {
             if (!game.dueTime || Date.now() < game.dueTime)
                 return { ok: false, code: 1 }

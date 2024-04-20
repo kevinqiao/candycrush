@@ -110,9 +110,9 @@ import { sessionAction } from "./custom/session";
 export const doAct = sessionAction({
     args: { act: v.string(), gameId: v.string(), data: v.any() },
     handler: async (ctx, { act, gameId, data }) => {
-        // console.log(ctx.user)
-        console.log(data)
-        console.log("do action:" + act)
+        console.log(ctx.user)
+        // console.log(data)
+        // console.log("do action:" + act)
         const game: any = await ctx.runQuery(internal.games.getGame, { gameId: gameId as Id<"games"> });
         if (!game || !game?.battleId) return;
         // if (!game.data.matched) game.data.matched = [];

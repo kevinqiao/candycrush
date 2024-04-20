@@ -4,11 +4,10 @@ import { action, query } from "../_generated/server";
 
 export const sessionAction = customAction(action, {
     // Argument validation for sessionMutation: two named args here.
-    args: { sessionId: v.optional(v.string()) },
+    args: { uid: v.string(), token: v.string() },
     // The function handler, taking the validated arguments and context.
-    input: async (ctx, { sessionId }) => {
-        console.log("session:" + sessionId)
-        const user = { uid: "kqiao", token: sessionId };
+    input: async (ctx, { uid, token }) => {
+        const user = { uid, token };
         // Note: we're passing args through, so they'll be available below
         return { ctx: { user }, args: {} };
     }
