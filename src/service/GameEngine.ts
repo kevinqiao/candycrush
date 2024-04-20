@@ -112,9 +112,7 @@ export const countRewards = (tournament: Tournament, battle: BattleModel): Battl
     const rewards: BattleReward[] = [];
     if (battle.status === 0 && battle.games && battle.games.length > 0) {
         battle.games.sort((a: any, b: any) => b.score - a.score).forEach((r: any, index: number) => {
-
             const reward = tournament.rewards?.find((w) => w.rank === index);
-            console.log(reward)
             if (reward) {
                 rewards.push({ uid: r.uid, gameId: r._id, rank: index, score: r.score, points: reward.points, assets: reward.assets });
             } else
@@ -146,7 +144,7 @@ export const handleSwipe = (game: GameModel, battle: BattleModel, data: any): an
     const plus4Changes = solveMatch(grid, 5, 7);
     const crossChanges = solveCrossMatch(grid);
     const fourChanges = solveMatch(grid, 3, 4);
-    const toChange = [...plus4Changes, ...crossChanges, ...fourChanges];
+    const toChange = [candy, target, ...plus4Changes, ...crossChanges, ...fourChanges];
 
     const toSmesh: { target: number; candy: CellItem; smesh?: number[] }[][] = [];
     if (smeshIds.includes(candy.asset)) {
@@ -255,7 +253,6 @@ export const handleSkillSpray = (game: GameModel, battle: BattleModel, data: any
     actionResult['data'] = { candy };
     const matchResults = resolveMatch(game.seed, game.data, row, column);
     actionResult['result'] = [result, ...matchResults];
-    actionResult['result'] = matchResults;
     return actionResult;
 }
 export const executeAct = (game: GameModel, battle: BattleModel, action: { name: string; data: any }): any => {
@@ -481,42 +478,6 @@ const applyShiftResult = (
         const smeshs = toSmesh.flat().map((s) => s.smesh).flat();
         const scells: CellItem[] = data.cells.filter((c: CellItem) => !smeshs.includes(c.id));
         data.cells = scells;
-
-        // for (let i = 0; i < toSmesh.length; i++) {
-        //     for (let j = 0; j < toSmesh[i].length; j++) {
-        //         const mesh = toSmesh[i][j];
-        //         if (mesh.smesh) {
-        //             const scells: CellItem[] = data.cells.filter((c: CellItem) => !mesh.smesh?.includes(c.id));
-        //             data.cells = scells;
-        //         }
-        // if (mesh?.candy) {
-        //     const asset = mesh.candy.asset;
-        //     switch (asset) {
-        //         case 28:
-        //             {
-        //                 const scells: CellItem[] = data.cells.filter((c: CellItem) => c.row !== mesh.candy.row);
-        //                 data.cells = scells;
-        //             }
-        //             break;
-        //         case 29:
-        //             {
-        //                 const scells: CellItem[] = data.cells.filter((c: CellItem) => c.column !== mesh.candy.column);
-        //                 data.cells = scells;
-        //             }
-        //             break;
-        //         case 30:
-        //             {
-        //                 const scells: CellItem[] = data.cells.filter((c: CellItem) => c.column !== mesh.candy.column);
-        //                 data.cells = scells;
-        //             }
-        //             break;
-
-        //         default:
-        //             break;
-        //     }
-        // }
-        //     }
-        // }
     }
 
     if (toCreate?.length > 0) {
@@ -526,8 +487,11 @@ const applyShiftResult = (
     if (toChange) {
         toChange.forEach((c) => {
             const cell = data.cells.find((s: CellItem) => s.id === c.id);
-            if (cell)
+            if (cell) {
                 cell.asset = c.asset;
+                cell.column = c.column;
+                cell.row = c.row;
+            }
         });
     }
 

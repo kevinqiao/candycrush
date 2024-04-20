@@ -6,7 +6,7 @@ import { GameScene } from "../../../model/SceneModel";
 import { useSceneManager } from "../../../service/SceneManager";
 
 
-const useSwipeCandy = () => {
+const useSwipe = () => {
     const { scenes } = useSceneManager();
     const swipeSuccess = useCallback(
         // (animate: Animate, timeline: any) => {
@@ -70,7 +70,6 @@ const useSwipeCandy = () => {
             const candySprite = gameScene.candies?.get(candyId);
             const targetSprite = gameScene.candies?.get(targetId);
             if (gameScene.cwidth && candySprite && targetSprite) {
-                const cwidth = gameScene.cwidth;
                 const cx = candySprite.x;
                 const cy = candySprite.y;
                 const tx = targetSprite.x;
@@ -116,4 +115,4 @@ const useSwipeCandy = () => {
 
     return { swipeSuccess, swipeFail };
 };
-export default useSwipeCandy
+export default useSwipe

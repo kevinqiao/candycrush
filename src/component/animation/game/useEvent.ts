@@ -3,10 +3,12 @@ import { gsap } from "gsap";
 import { CellItem } from "model/CellItem";
 import * as PIXI from "pixi.js";
 import { useCallback } from "react";
+import { useGameManager } from "service/GameManager";
+import { useUserManager } from "service/UserManager";
 import { GameScene } from "../../../model/SceneModel";
 import { useSceneManager } from "../../../service/SceneManager";
 import useCollectCandies from "../battle/useCollectCandies";
-import useSwipeCandy from "./useSwipeCandy";
+import useSwipe from "./useSwipe";
 
 
 type Texture = {
@@ -35,7 +37,7 @@ export const playChange = (toChange: CellItem[], gameScene: GameScene, textures:
                         },
                         x: cx,
                         y: cy,
-                        duration: 0.5,
+                        duration: 0,
                         ease: 'power2.out',
                     }, "<")
             }
@@ -117,7 +119,7 @@ const buildSmesh = (candyMap: Map<number, CandySprite>, smesh: { target: number;
             duration: 0.2,
             ease: 'power2.out',
         }, "<");
-        
+
     const cells: CandySprite[] = candies.filter((c) => smesh.smesh && smesh.smesh.includes(c.id));
     const sl = gsap.timeline();
     tl.add(sl, ">");
@@ -136,53 +138,7 @@ const buildSmesh = (candyMap: Map<number, CandySprite>, smesh: { target: number;
 
     })
 
-    // switch (candy.asset) {
-    //     case 28:
-    //         {
-    //             const cells: CandySprite[] = candies.filter((c) => smesh.smesh && smesh.smesh.includes(c.id));
-    //             const sl = gsap.timeline();
-    //             tl.add(sl, ">");
-    //             const ml = gsap.timeline();
-    //             sl.add(ml, "<")
-    //             cells.forEach((c, index) => {
-    //                 c.status = 1;
-    //                 ml.to(
-    //                     c,
-    //                     {
-    //                         alpha: 0,
-    //                         duration: 0.1,
-    //                         ease: 'power2.out',
 
-    //                     }, "<");
-
-    //             })
-    //         }
-
-    //         break;
-    //     case 29:
-    //         {
-    //             const cells: CandySprite[] = candies.filter((c) => smesh.smesh && smesh.smesh.includes(c.id));
-    //             const sl = gsap.timeline();
-    //             tl.add(sl, ">");
-    //             const ml = gsap.timeline();
-    //             sl.add(ml, "<")
-    //             cells.forEach((c, index) => {
-    //                 c.status = 1;
-    //                 ml.to(
-    //                     c,
-    //                     {
-    //                         alpha: 0,
-    //                         duration: 0.1,
-    //                         ease: 'power2.out',
-
-    //                     }, "<");
-    //             })
-    //         }
-    //         break;
-
-    //     default:
-    //         break;
-    // }
 }
 export const playSmesh = (toSmesh: { target: number; candy: CellItem }[][], gameScene: GameScene, tl: any) => {
 
@@ -204,22 +160,33 @@ export const playSmesh = (toSmesh: { target: number; candy: CellItem }[][], game
         }
     }
 }
-const useCandyMatch = () => {
-
+const useEvent = () => {
+    const { game } = useGameManager();
+    const { user } = useUserManager();
     const { scenes, textures } = useSceneManager();
-    const { swipeSuccess } = useSwipeCandy();
+    const { swipeSuccess } = useSwipe();
     const { playCollect } = useCollectCandies();
 
 
-    const play = useCallback(
-        (gameId: string, data: any, timeline: any) => {
+    const playApply = useCallback(
+        (event: any) => {
+            if (!game) return;
+            const gameScene: GameScene = scenes.get(game.gameId) as GameScene;
+            const tl = gsap.timeline({
+                onComplete: () => {
+                    tl.kill();
+                }
+            });
 
-            const gameScene: GameScene = scenes.get(gameId) as GameScene;
-            const tl = timeline ?? gsap.timeline({
-                onComplete: () => { tl.kill() }
-            })
-            const { results } = data;
-            console.log(results)
+            if (event.name === "cellSwapped" && game.uid !== user.uid) {
+                const sl = gsap.timeline();
+                tl.add(sl, "<")
+                swipeSuccess(game.gameId, event.data.candy, event.data.target, sl);
+            }
+            const ml = gsap.timeline();
+            tl.add(ml, ">")
+            const { results } = event.data;
+
             if (results && gameScene) {
                 for (const res of results) {
                     const sl = gsap.timeline();
@@ -253,7 +220,7 @@ const useCandyMatch = () => {
                         res.toSmesh ? sl.add(cl, ">-=0.3") : sl.add(cl);
                         playRemove(res.toRemove, gameScene, textures, cl)
                         cl.call(
-                            () => playCollect(gameId, res, null),
+                            () => playCollect(game.gameId, res, null),
                             [],
                             "<"
                         );
@@ -271,17 +238,16 @@ const useCandyMatch = () => {
                     }
                 }
             }
-            if (!timeline)
-                tl.play();
-            else
-                timeline.add(tl)
+
+            tl.play();
+
         },
-        [playCollect, scenes, swipeSuccess, textures]
+        [playCollect, scenes, swipeSuccess, game, textures]
     );
 
 
-    return { play };
+    return { playApply };
 };
-export default useCandyMatch
+export default useEvent
 
 

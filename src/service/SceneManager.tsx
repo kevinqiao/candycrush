@@ -2,6 +2,7 @@ import { SCENE_NAME } from "model/Constants";
 import candy_textures from "model/candy_textures";
 import * as PIXI from "pixi.js";
 import React, { createContext, useCallback, useContext, useEffect, useRef, useState } from "react";
+import { loadSvgAsTexture } from "util/Utils";
 import PageProps, { PagePosition } from "../model/PageProps";
 import { SceneModel } from "../model/SceneModel";
 interface ISceneContext {
@@ -9,6 +10,7 @@ interface ISceneContext {
   containerBound: PagePosition | null | undefined;
   textures: { id: number; texture: PIXI.Texture }[];
   avatarTextures: { name: string; texture: PIXI.Texture }[];
+  iconTextures: { name: string; texture: PIXI.Texture }[];
   scenes: Map<string, any>;
   sceneEvent: SceneEvent | null;
   stageScene: (id: string, scene: SceneModel | null) => void;
@@ -20,6 +22,7 @@ const SceneContext = createContext<ISceneContext>({
   containerBound: null,
   textures: [],
   avatarTextures: [],
+  iconTextures: [],
   scenes: new Map(),
   sceneEvent: null,
 
@@ -52,34 +55,28 @@ export const SceneProvider = ({
   const scenesRef = useRef<Map<string, any>>(new Map());
   const texturesRef = useRef<{ id: number; texture: PIXI.Texture }[]>([]);
   const avatarTexturesRef = useRef<{ name: string; texture: PIXI.Texture }[]>([]);
+  const iconTexturesRef = useRef<{ name: string; texture: PIXI.Texture }[]>([]);
   const [sceneEvent, setSceneEvent] = useState<SceneEvent | null>(null);
   // const [containerBound, setContainerBound] = useState<PagePosition | undefined>();
   const [complete, setComplete] = useState(false);
 
-  const loadCandyTextures = () => {
-    PIXI.Assets.load("/assets/assets_candy.png").then((tture: any) => {
-      // loader.add("candyTextures", "../assets/assets_candy.png");
-      // loader.load((loader, resources) => {
-      const frameSize = 100;
-      // const candyTextures = resources.candyTextures;
-      if (tture) {
-        const all = candy_textures.map((c) => {
-          const rect = new PIXI.Rectangle(c.x, c.y, frameSize, frameSize);
-          const texture = new PIXI.Texture(tture.baseTexture, rect);
-          return { id: c.id, texture };
-        });
-        texturesRef.current.push(...all);
-        setComplete(true);
-      }
-
-      // 资源加载完成后的操作
-    });
-  };
-
   useEffect(() => {
     scenesRef.current.set(SCENE_NAME.BATTLE_CONSOLE, {});
-    loadCandyTextures();
-    // loadAvatarTextures();
+    const loadTextures = async () => {
+      const frameSize = 100;
+      const tture = await PIXI.Assets.load("/assets/assets_candy.png");
+      const all = candy_textures.map((c) => {
+        const rect = new PIXI.Rectangle(c.x, c.y, frameSize, frameSize);
+        const texture = new PIXI.Texture(tture.baseTexture, rect);
+        return { id: c.id, texture };
+      });
+      texturesRef.current.push(...all);
+      setComplete(true);
+    };
+    loadTextures();
+    loadSvgAsTexture("/icons/focus-select-svgrepo-com.svg", (texture: PIXI.Texture) => {
+      iconTexturesRef.current.push({ name: "focus", texture });
+    });
     return () => {
       for (const scene of scenesRef.current.values()) {
         if (scene?.app && !scene.type) {
@@ -94,6 +91,7 @@ export const SceneProvider = ({
     containerBound: pagePosition,
     textures: texturesRef.current,
     avatarTextures: avatarTexturesRef.current,
+    iconTextures: iconTexturesRef.current,
     scenes: scenesRef.current,
     sceneEvent,
     exit: useCallback(() => {

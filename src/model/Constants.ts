@@ -66,8 +66,8 @@ export const GAME_EVENT = {
     SWIPE_CANDY: "cellSwapped",
     SMASH_CANDY: "cellSmeshed",
     SKILL_HAMMER: "skillHammer",
-    SKILL_EXCHANGE: "skillExchange",
-    SKILL_CLEAR: "skillClear",
+    SKILL_SWAP: "skillSwap",
+    SKILL_SPRAY: "skillSpray",
     GAME_OVER: "gameOver"
 } as { [key: string]: string };
 

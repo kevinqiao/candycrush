@@ -3,9 +3,8 @@ import { BattleModel } from "model/Battle";
 import { useCallback } from "react";
 import { useUserManager } from "service/UserManager";
 import * as GameUtils from "../../../util/MatchGameUtils";
-import useCandyMatch from "../game/useCandyMatch";
 import useInitGame from "../game/useInitGame";
-import useSwipeCandy from "../game/useSwipeCandy";
+import useSwipe from "../game/useSwipe";
 import useInitConsole from "./useInitConsole";
 
 
@@ -13,8 +12,8 @@ export const useAnimation = () => {
     const { user } = useUserManager();
     const initGame = useInitGame();
     const initConsole = useInitConsole();
-    const { swipeSuccess: playSwipeSuccess, swipeFail: playSwipeFail } = useSwipeCandy();
-    const { play: playCandyMatch } = useCandyMatch();
+    const { swipeSuccess: playSwipeSuccess, swipeFail: playSwipeFail } = useSwipe();
+
 
     const playInitBattle = useCallback((battle: BattleModel, timeline: any) => {
         console.log("play init battle")
@@ -25,8 +24,6 @@ export const useAnimation = () => {
             }
         });
 
-        // const bl = gsap.timeline();
-        // tl.add(bl, ">+=1.0")
 
         battle.games.forEach((g) => {
             const gl = gsap.timeline();
@@ -43,5 +40,5 @@ export const useAnimation = () => {
             bl.play();
     }, [])
 
-    return { playInitBattle, playSwipeFail, playSwipeSuccess, playCandyMatch }
+    return { playInitBattle, playSwipeFail, playSwipeSuccess }
 }
