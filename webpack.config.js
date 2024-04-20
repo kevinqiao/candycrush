@@ -4,8 +4,8 @@ const CopyPlugin = require("copy-webpack-plugin");
 
 module.exports = {
   entry: {
-    w3: "./src/www_index.tsx", // 第一个入口点
-    match3: "./src/index.tsx", // 第一个入口点
+    w3: "./src/index_sso.tsx", // 第一个入口点
+    match3: "./src/index_play.tsx", // 第一个入口点
     tg: "./src/telegram_index.tsx", // 第二个入口点
   },
   output: {

@@ -4,7 +4,6 @@ import { gsap } from "gsap";
 import MotionPathPlugin from "gsap/MotionPathPlugin";
 import React from "react";
 
-import { ClerkProvider } from "@clerk/clerk-react";
 import StackController from "component/StackController";
 import NavHeader from "component/lobby/NavHeader";
 import { CoordProvider } from "./service/CoordManager";
@@ -55,14 +54,12 @@ function M3App() {
     [ConvexProvider, { client: convex }],
     [UserProvider],
     // [Match3AuthProvider],
-    [ClerkProvider, { publishableKey: "pk_test_bm9ybWFsLXNoZXBoZXJkLTQ5LmNsZXJrLmFjY291bnRzLmRldiQ" }],
+    // [ClerkProvider, { publishableKey: "pk_test_bm9ybWFsLXNoZXBoZXJkLTQ5LmNsZXJrLmFjY291bnRzLmRldiQ" }],
+    // [ClerkProvider, { publishableKey: "pk_test_bGVuaWVudC1sb3VzZS04Ni5jbGVyay5hY2NvdW50cy5kZXYk" }],
     // [EventProvider],
   ]);
   return (
     <Providers>
-      {/* <NavHeader />
-      <NavPage />
-      <StackController /> */}
       <AuthCheck />
     </Providers>
   );

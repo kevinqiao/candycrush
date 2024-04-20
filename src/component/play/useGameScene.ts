@@ -28,7 +28,6 @@ const useGameScene = () => {
         const texture = textures?.find((d) => d.id === cell.asset);
 
         if (texture && gameScene?.app && gameScene.cwidth) {
-            // console.log("exactly create candy sprite")
             const stage = (gameScene.app as PIXI.Application).stage;
             const sprite = new CandySprite(texture.texture, cell.id, cell.asset, cell.column, cell.row)
             sprite.anchor.set(0.5);
@@ -87,13 +86,10 @@ const useGameScene = () => {
                 hitAct(selecteds[0])
             }
             selectedCandyRef.current.length = 0;
-
         } else {
             switch (skillRef.current) {
                 case 1:
                     if (selecteds.length === 1) {
-                        console.log("use skill hammer")
-                        // doAct(Constant.GAME_ACTION.SKILL_HAMMER, { candyId: selecteds[0].id })
                         executeSkill(1, { candyId: selecteds[0].id })
                         setSkill(0)
                     }
@@ -102,27 +98,20 @@ const useGameScene = () => {
                     if (selecteds.length === 1) {
                         swapSelect(selecteds[0])
                     } else if (selecteds.length === 2) {
-                        console.log("use skill swap")
-                        // doAct(Constant.GAME_ACTION.SKILL_SWAP, { candyId: selecteds[0].id, targetId: selecteds[1].id })
                         executeSkill(2, { candyId: selecteds[0].id, targetId: selecteds[1].id })
                         setSkill(0)
                     }
                     break;
                 case 3:
                     if (selecteds.length === 1) {
-                        console.log("use skill spray")
-                        // doAct(Constant.GAME_ACTION.SKILL_SPRAY, { candyId: selecteds[0].id})
                         executeSkill(3, { candyId: selecteds[0].id })
                         setSkill(0)
                     }
                     break;
-
                 default:
                     break;
             }
-
         }
-
     }, [game, battle, doAct])
     useEffect(() => {
 
@@ -134,10 +123,8 @@ const useGameScene = () => {
             Array.from(gameScene.candies.values()).forEach((c) => c.destroy())
             gameScene.candies.clear();
             const g = gameEvent.data;
-            // console.log("init candies for game:" + game.gameId)
             initCandies(g.data.cells);
             loadGame(game.gameId, { matched: game.data.matched ?? [] });
-            // loadGame(game.uid, game.gameId, { data: { matched: game.data.matched } });
         } else if (gameEvent?.name === "cellSwapped" || gameEvent?.name === "cellSmeshed" || gameEvent?.name === "skillHammer" || gameEvent?.name === "skillSwap" || gameEvent?.name === "skillSpray") {
             const data: { candy: CellItem; target: CellItem; results: { toChange: CellItem[]; toCreate: CellItem[]; toMove: CellItem[]; toRemove: CellItem[] }[] } = gameEvent.data;
             if (!data?.results) return
@@ -192,7 +179,6 @@ const useGameScene = () => {
                             direction = deltaY > 0 ? MOVE_DIRECTION.DOWN : MOVE_DIRECTION.UP;
                         handleDrag(direction)
                     });
-
                 }
             }
         }

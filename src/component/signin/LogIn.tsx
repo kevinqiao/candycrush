@@ -44,6 +44,7 @@ const LogIn: React.FC<PageProps> = (pageProp) => {
       : window.location.pathname;
     return url;
   }, [pageProp]);
+  
   return (
     <div
       style={{

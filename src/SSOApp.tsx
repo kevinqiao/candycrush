@@ -15,7 +15,7 @@ gsap.registerPlugin(MotionPathPlugin);
 
 const convex = new ConvexReactClient("https://dazzling-setter-839.convex.cloud");
 
-function W3App() {
+function SSOApp() {
   const FlattenedProviderTree = (providers: any): any => {
     if (providers?.length === 1) {
       return providers[0][0];
@@ -40,7 +40,6 @@ function W3App() {
     [ConvexProvider, { client: convex }],
     [ClerkProvider, { publishableKey: "pk_test_bGVuaWVudC1sb3VzZS04Ni5jbGVyay5hY2NvdW50cy5kZXYk" }],
     [SSOProvider],
-    // [EventProvider],
   ]);
   return (
     <Providers>
@@ -50,4 +49,4 @@ function W3App() {
   );
 }
 
-export default W3App;
+export default SSOApp;
