@@ -9,9 +9,7 @@ import { useSearchMatch } from "component/animation/battle/useSearchMatch";
 import Avatar from "../common/Avatar";
 import CountdownTimer from "../common/CountdownTimer";
 import "./search.css";
-const timeLeft = (time: number) => {
-  return time - Date.now();
-};
+
 const OpponentMatch = () => {
   const sceneContainerRef = useRef<HTMLDivElement | null>(null);
   const foundRef = useRef<HTMLDivElement | null>(null);
@@ -26,7 +24,7 @@ const OpponentMatch = () => {
   const { user } = useUserManager();
   const { playMatching, playCloseMatching, closeSearch } = useSearchMatch();
   const { playInitBattle } = useAnimation();
-  const countTime = battle && user ? timeLeft(battle.startTime - user.timelag) : 0;
+
   const eles = useCallback(() => {
     const es = new Map<string, HTMLDivElement>();
     if (sceneContainerRef.current) es.set("container", sceneContainerRef.current);
@@ -59,10 +57,9 @@ const OpponentMatch = () => {
     }
     return;
   }, [battle]);
-  const matchComplete = useCallback(() => {
-    // console.log("matching completed,timeleft:" + countTime + ":" + allGameLoaded);
 
-    if (!battle || !allGameLoaded || countTime < 0) return;
+  const matchComplete = useCallback(() => {
+    if (!battle || !allGameLoaded) return;
     const tl = gsap.timeline({
       onComplete: () => {
         tl.kill();
@@ -77,31 +74,19 @@ const OpponentMatch = () => {
 
   useEffect(() => {
     if (battle && battle.startTime && user && allGameLoaded) {
-      // const time = battle.startTime - Date.now() - user.timelag;
-      // const time = timeLeft(battle.startTime - user.timelag);
-      // console.log("timeLeft:" + time);
-      if (countTime > 0) {
-        const tl = gsap.timeline({
-          onComplete: () => {
-            // setCountTime(battle.startTime - Date.now() - user.timelag);
-            tl.kill();
-          },
-        });
-        const sl = gsap.timeline({
-          onComplete: () => {
-            // const time = timeLeft(battle.startTime - user.timelag);
-            // console.log("count time left:" + time);
-            // setCountTime(time);
-          },
-        });
-        tl.add(sl);
-
-        closeSearch(sl);
-        const ml = gsap.timeline();
-        tl.add(ml, "<");
-        playMatching(eles(), ml);
-        tl.play();
-      } else matchComplete();
+      const tl = gsap.timeline({
+        onComplete: () => {
+          // setCountTime(battle.startTime - Date.now() - user.timelag);
+          tl.kill();
+        },
+      });
+      const sl = gsap.timeline();
+      tl.add(sl);
+      closeSearch(sl);
+      const ml = gsap.timeline();
+      tl.add(ml, "<");
+      playMatching(eles(), ml);
+      tl.play();
     }
   }, [battle, user, allGameLoaded]);
 
@@ -189,7 +174,7 @@ const OpponentMatch = () => {
             justifyContent: "center",
           }}
         >
-          <CountdownTimer countTime={countTime} onTimeout={matchComplete} />
+          {battle ? <CountdownTimer battleStartTime={battle.startTime} onTimeout={matchComplete} /> : null}
         </div>
       </div>
     </>

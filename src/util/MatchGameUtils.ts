@@ -310,4 +310,21 @@ export const solveGoalChanges = (goalId: number, prematched: { asset: number, qu
     }
     return [];
 }
+export const countMatched = (result: { toChange: CellItem[]; toCreate: CellItem[]; toMove: CellItem[]; toRemove: CellItem[]; toSmesh?: { target: number; candy: CellItem; smesh?: number[] }[][] }[]): { asset: number; quantity: number }[] => {
+    const matched: { asset: number; quantity: number }[] = [];
+    for (const res of result) {
+        const { toChange, toRemove, toSmesh } = res;
+        toChange.forEach((c) => {
+            const m = matched.find((m) => m.asset === c.src);
+            m ? m.quantity++ : matched.push({ asset: c.asset, quantity: 1 });
+        })
+        toRemove.forEach((c) => {
+            const m = matched.find((m) => m.asset === c.asset);
+            m ? m.quantity++ : matched.push({ asset: c.asset, quantity: 1 });
+        })
+
+
+    }
+    return matched;
+}
 

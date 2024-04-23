@@ -13,6 +13,7 @@ const useInitGame = () => {
             const gameScene = scenes.get(gameId) as GameScene;
 
             const tl = timeline ?? gsap.timeline();
+            console.log("play init game:" + gameId + " candies size:" + gameScene.candies.size)
             if (gameScene && gameScene.candies && gameScene.column && gameScene.row) {
 
                 const candies: CandySprite[] = Array.from(gameScene.candies.values());

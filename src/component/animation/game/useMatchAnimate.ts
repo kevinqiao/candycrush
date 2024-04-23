@@ -8,7 +8,8 @@ import { useUserManager } from "service/UserManager";
 import { GameScene } from "../../../model/SceneModel";
 import { useSceneManager } from "../../../service/SceneManager";
 import useCollectCandies from "../battle/useCollectCandies";
-import useSwipe from "./useSwipe";
+import useActAnimate from "./useActAnimate";
+import useSkillAnimate from "./useSkillAnimate";
 
 
 type Texture = {
@@ -21,6 +22,7 @@ export const playChange = (toChange: CellItem[], gameScene: GameScene, textures:
     if (candyMap && cwidth) {
         toChange.forEach((c) => {
             const candy = candyMap.get(c.id);
+
             if (candy) {
                 const cx = c.column * cwidth + Math.floor(cwidth / 2);
                 const cy = c.row * cwidth + Math.floor(cwidth / 2);
@@ -33,11 +35,12 @@ export const playChange = (toChange: CellItem[], gameScene: GameScene, textures:
                             const texture = textures?.find((t) => t.id === c.asset);
                             if (texture && candy) {
                                 candy.texture = texture.texture;
+                                candy.asset = c.asset
                             }
                         },
                         x: cx,
                         y: cy,
-                        duration: 0,
+                        duration: 0.3,
                         ease: 'power2.out',
                     }, "<")
             }
@@ -105,7 +108,7 @@ export const playRemove = (toRemove: CellItem[], gameScene: GameScene, textures:
 }
 
 const buildSmesh = (candyMap: Map<number, CandySprite>, smesh: { target: number; candy: CellItem; smesh?: number[] }, tl: any) => {
-    console.log(smesh)
+
     const candies: CandySprite[] = Array.from(candyMap.values());
     const candy = candyMap.get(smesh.candy.id);
     if (!candy) return;
@@ -160,11 +163,12 @@ export const playSmesh = (toSmesh: { target: number; candy: CellItem }[][], game
         }
     }
 }
-const useEvent = () => {
+const useMatchAnimate = () => {
     const { game } = useGameManager();
     const { user } = useUserManager();
     const { scenes, textures } = useSceneManager();
-    const { swipeSuccess } = useSwipe();
+    const { swipeSuccess } = useActAnimate();
+    const { swapSuccess } = useSkillAnimate();
     const { playCollect } = useCollectCandies();
 
 
@@ -182,6 +186,11 @@ const useEvent = () => {
                 const sl = gsap.timeline();
                 tl.add(sl, "<")
                 swipeSuccess(game.gameId, event.data.candy, event.data.target, sl);
+            }
+            if (event.name === "skillSwap" && game.uid !== user.uid) {
+                const sl = gsap.timeline();
+                tl.add(sl, "<")
+                swapSuccess(game.gameId, event.data.candy, event.data.target, sl);
             }
             const ml = gsap.timeline();
             tl.add(ml, ">")
@@ -226,6 +235,7 @@ const useEvent = () => {
                         );
                     }
                     if (res.toChange) {
+                        console.log(res.toChange)
                         const cl = gsap.timeline();
                         sl.add(cl, "<");
                         playChange(res.toChange, gameScene, textures, cl);
@@ -248,6 +258,6 @@ const useEvent = () => {
 
     return { playApply };
 };
-export default useEvent
+export default useMatchAnimate
 
 

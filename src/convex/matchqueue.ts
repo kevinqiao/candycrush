@@ -48,7 +48,7 @@ export const settleMatch = internalMutation({
       if (tournament && diffcult) {
         const startTime = Date.now() + BATTLE_COUNT_DOWN_TIME;
         const battle: any = { tournamentId: tournament.id, participants: tournament.participants, diffcult: diffcult?.id, startTime, duration: tournament.battleTime };
-        battle['duration'] = 300000;
+        battle['duration'] = 60000;
         battle['dueTime'] = startTime + battle['duration'];
 
         const battleId = await ctx.db.insert("battle", { ...battle, status: 0 });

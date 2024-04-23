@@ -73,6 +73,7 @@ export const settleGame = (game: any, battle: any, goalId: number): { base: numb
             const quantity = m ? g.quantity - m.quantity : g.quantity;
             return { asset: g.asset, quantity };
         }).every((r) => r.quantity <= 0);
+
         if (goalSuccess) {
             goalScore = 1000;
         }
@@ -93,7 +94,7 @@ export const settleGame = (game: any, battle: any, goalId: number): { base: numb
 
 export const handleEvent = (name: string, eventData: any, game: any) => {
 
-    if (name === GAME_EVENT.SWIPE_CANDY) {
+    if (name === GAME_EVENT.SWIPE_CANDY || name === GAME_EVENT.SKILL_SWAP) {
         const candy: CellItem | undefined = game.data.cells.find((c: CellItem) => c.id === eventData.candy.id);
         const target: CellItem | undefined = game.data.cells.find((c: CellItem) => c.id === eventData.target.id);
         if (candy && target) {
@@ -101,7 +102,7 @@ export const handleEvent = (name: string, eventData: any, game: any) => {
             [candy.column, target.column] = [target.column, candy.column];
         }
     }
-    // applyEventResult(eventData.results, game)
+
     if (eventData?.results)
         for (const result of eventData.results) {
             applyShiftResult(result, game.data)
@@ -144,7 +145,7 @@ export const handleSwipe = (game: GameModel, battle: BattleModel, data: any): an
     const plus4Changes = solveMatch(grid, 5, 7);
     const crossChanges = solveCrossMatch(grid);
     const fourChanges = solveMatch(grid, 3, 4);
-    const toChange = [candy, target, ...plus4Changes, ...crossChanges, ...fourChanges];
+    const toChange = [...plus4Changes, ...crossChanges, ...fourChanges];
 
     const toSmesh: { target: number; candy: CellItem; smesh?: number[] }[][] = [];
     if (smeshIds.includes(candy.asset)) {
@@ -309,10 +310,10 @@ const solveMatch = (grid: CellItem[][], min: number, max: number): CellItem[] =>
         for (const m of matches) {
             if (m.units.filter((u) => u.status).length === 0) {
                 if (m.size === 4) {
-                    toChange.push({ ...m.units[0], asset: m.orientation === "horizontal" ? 28 : 29 });
+                    toChange.push({ ...m.units[0], src: m.units[0].asset, asset: m.orientation === "horizontal" ? 28 : 29 });
 
                 } else if (m.size >= 5) {
-                    toChange.push({ ...m.units[0], asset: 31 })
+                    toChange.push({ ...m.units[0], src: m.units[0].asset, asset: 31 })
                 }
                 m.units.forEach((u, index) => {
                     if (m.size === 3 || (m.size >= 4 && index > 0)) u.status = 1

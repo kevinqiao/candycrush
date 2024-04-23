@@ -26,7 +26,7 @@ const GamePlay = () => {
       } else return bounds.find((b) => b.name === "opponent");
     }
     return null;
-  }, [bounds, game, user]);
+  }, [bounds, game, load, user]);
 
   useGameScene();
 
@@ -77,7 +77,6 @@ const GamePlay = () => {
           height,
           backgroundAlpha: 0,
         });
-      
 
         const cwidth = Math.floor((0.8 * width) / battle.data.column);
         const cheight = Math.floor((0.8 * height) / battle.data.row);

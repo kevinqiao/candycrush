@@ -4,7 +4,6 @@ import { useCallback } from "react";
 import { useUserManager } from "service/UserManager";
 import * as GameUtils from "../../../util/MatchGameUtils";
 import useInitGame from "../game/useInitGame";
-import useSwipe from "../game/useSwipe";
 import useInitConsole from "./useInitConsole";
 
 
@@ -12,8 +11,6 @@ export const useAnimation = () => {
     const { user } = useUserManager();
     const initGame = useInitGame();
     const initConsole = useInitConsole();
-    const { swipeSuccess: playSwipeSuccess, swipeFail: playSwipeFail } = useSwipe();
-
 
     const playInitBattle = useCallback((battle: BattleModel, timeline: any) => {
         console.log("play init battle")
@@ -24,7 +21,7 @@ export const useAnimation = () => {
             }
         });
 
-
+        
         battle.games.forEach((g) => {
             const gl = gsap.timeline();
             bl.add(gl, "<");
@@ -33,12 +30,11 @@ export const useAnimation = () => {
             const sl = gsap.timeline();
             bl.add(sl, "<");
             const isPlayer = user.uid === g.uid ? true : false
-
             initConsole.play(isPlayer, g.gameId, score, sl);
         })
         if (!timeline)
             bl.play();
     }, [])
 
-    return { playInitBattle, playSwipeFail, playSwipeSuccess }
+    return { playInitBattle }
 }

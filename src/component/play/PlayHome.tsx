@@ -26,21 +26,21 @@ interface ControlProps {
 const PlayControl: React.FC<ControlProps> = ({ battleId }) => {
   const [battle, setBattle] = useState<BattleModel | null>(null);
   const { findBattle } = useTournamentManager();
+  const { user } = useUserManager();
 
   useEffect(() => {
     if (!battle && battleId) {
       findBattle(battleId as Id<"battle">).then((b) => {
-        // sbattleRef.current = b;
         setBattle(b);
       });
     }
   }, [battleId]);
-
+  const matchCompleted = battle && battle.startTime - Date.now() - user.timelag <= 0 ? true : false;
   return (
     <>
       {battle ? (
         <BattleProvider battle={battle}>
-          <BattleGround>
+          <BattleGround>  
             <TimeCount />
             <BattleConsole />
             {battle.games &&
@@ -53,7 +53,7 @@ const PlayControl: React.FC<ControlProps> = ({ battleId }) => {
           </BattleGround>
           <SkillControl />
           <BattleReport />
-          <OpponentMatch />
+          {!matchCompleted ? <OpponentMatch /> : null}
         </BattleProvider>
       ) : null}
     </>
@@ -64,6 +64,8 @@ const PlayHome: React.FC<PageProps> = (pageProp) => {
   const sceneRef = useRef<HTMLDivElement | null>(null);
   const pagePosition = useDimension(sceneRef);
   const { userEvent } = useUserManager();
+  const [load, setLoad] = useState(-1);
+  const [visible, setVisible] = useState(true);
   const [battleId, setBattleId] = useState<string | null>(pageProp.data.battleId);
   useEffect(() => {
     // console.log(userEvent);
@@ -71,16 +73,28 @@ const PlayHome: React.FC<PageProps> = (pageProp) => {
       setBattleId(userEvent.data.id);
     }
   }, [userEvent]);
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === "visible") {
+        console.log("tab visible");
+        setVisible(true);
+      } else {
+        console.log("tab invisible");
+        setVisible(false);
+      }
+    };
+    setLoad(pageProp.data.battleId ? BATTLE_LOAD.RELOAD : BATTLE_LOAD.PLAY);
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+    return () => {
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
+    };
+  }, []);
   return (
     <>
       <div ref={sceneRef} className="play_container">
-        <SceneProvider
-          load={pageProp.data.battleId ? BATTLE_LOAD.RELOAD : BATTLE_LOAD.PLAY}
-          pageProp={pageProp}
-          pagePosition={pagePosition}
-        >
-          {battleId ? <PlayControl battleId={battleId} /> : null}
-          <OpponentSearch battleId={battleId} />
+        <SceneProvider load={load} visible={visible} pageProp={pageProp} pagePosition={pagePosition}>
+          {load >= 0 && battleId ? <PlayControl battleId={battleId} /> : null}
+          <OpponentSearch />
         </SceneProvider>
       </div>
     </>

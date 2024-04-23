@@ -7,6 +7,7 @@ import PageProps, { PagePosition } from "../model/PageProps";
 import { SceneModel } from "../model/SceneModel";
 interface ISceneContext {
   load: number; //0-play 1-replay;
+  visible: boolean;
   containerBound: PagePosition | null | undefined;
   textures: { id: number; texture: PIXI.Texture }[];
   avatarTextures: { name: string; texture: PIXI.Texture }[];
@@ -19,6 +20,7 @@ interface ISceneContext {
 }
 const SceneContext = createContext<ISceneContext>({
   load: 0,
+  visible: true,
   containerBound: null,
   textures: [],
   avatarTextures: [],
@@ -43,11 +45,13 @@ const SCENE_EVENT_TYPE = {
 
 export const SceneProvider = ({
   load,
+  visible,
   pageProp,
   pagePosition,
   children,
 }: {
   load: number;
+  visible: boolean;
   pageProp: PageProps;
   pagePosition: PagePosition;
   children: React.ReactNode;
@@ -88,6 +92,7 @@ export const SceneProvider = ({
 
   const value = {
     load,
+    visible,
     containerBound: pagePosition,
     textures: texturesRef.current,
     avatarTextures: avatarTexturesRef.current,

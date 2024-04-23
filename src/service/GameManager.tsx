@@ -4,10 +4,11 @@ import React, { createContext, useCallback, useContext, useEffect, useRef, useSt
 import { api } from "../convex/_generated/api";
 import { Id } from "../convex/_generated/dataModel";
 import { CellItem } from "../model/CellItem";
-import { BATTLE_EVENT, BATTLE_LOAD } from "../model/Constants";
+import { BATTLE_LOAD } from "../model/Constants";
 import { GameEvent } from "../model/GameEvent";
 import { useBattleManager } from "./BattleManager";
 import * as GameEngine from "./GameEngine";
+import { useSceneManager } from "./SceneManager";
 import { useUserManager } from "./UserManager";
 interface IGameContext {
   game: GameModel | null;
@@ -30,7 +31,8 @@ export const GameProvider = ({ gameId, children }: { gameId: string; children: R
   const lastEventRef = useRef<any>({ steptime: 0 });
   const [gameEvent, setGameEvent] = useState<GameEvent | null>(null);
   const [gameEvents, setGameEvents] = useState<GameEvent[]>([]);
-  const { load, battle, battleEvent, completeGame } = useBattleManager();
+  const { load, battle, completeGame } = useBattleManager();
+  const { visible } = useSceneManager();
   const [laststep, setLaststep] = useState(-1);
   const { user } = useUserManager();
 
@@ -45,12 +47,13 @@ export const GameProvider = ({ gameId, children }: { gameId: string; children: R
 
   const sync = useCallback(async () => {
     if (!battle?.data) return;
+    console.log("sync game data with load:" + load);
     let g: any;
     if (load === BATTLE_LOAD.PLAY || load === BATTLE_LOAD.RELOAD)
       g = await convex.query(api.games.findGame, {
         gameId: gameId as Id<"games">,
       });
-    else if (load === BATTLE_LOAD.REPLAY) {
+    else if (load === BATTLE_LOAD.REPLAY && gameRef.current == null) {
       g = await convex.query(api.games.findInitGame, {
         gameId,
       });
@@ -68,9 +71,6 @@ export const GameProvider = ({ gameId, children }: { gameId: string; children: R
         if (a.row === b.row) return a.column - b.column;
         else return a.row - b.row;
       });
-      // const { column, row } = battle.data;
-      // const moves = findMove(g.data.cells, row, column);
-      // console.log(moves);
       if (gameRef.current) Object.assign(gameRef.current, g);
       else gameRef.current = g;
       if (load !== BATTLE_LOAD.REPLAY) setLaststep(g.laststep);
@@ -111,11 +111,8 @@ export const GameProvider = ({ gameId, children }: { gameId: string; children: R
   );
 
   useEffect(() => {
-    if (!battleEvent || battleEvent?.name === BATTLE_EVENT.BATTLE_RELOAD) sync();
-    else if (battleEvent?.name === BATTLE_EVENT.BATTLE_PAUSE) {
-      setLaststep(-1);
-    }
-  }, [battleEvent]);
+    if (visible) sync();
+  }, [visible, load, sync]);
 
   useEffect(() => {
     if (battle?.data.goal && events && events.length > 0) {

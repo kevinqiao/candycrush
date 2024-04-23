@@ -1,33 +1,33 @@
 import { BATTLE_LOAD } from "model/Constants";
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { useUserManager } from "service/UserManager";
 import { useBattleManager } from "../../../service/BattleManager";
 import { useSceneManager } from "../../../service/SceneManager";
 
 const TimeCount = () => {
   const { user } = useUserManager();
-  const { load, containerBound } = useSceneManager();
+  const { load, visible, containerBound } = useSceneManager();
   const { battle, timeout } = useBattleManager();
+  const pauseTimeRef = useRef(-1);
   const [timeLeft, setTimeLeft] = useState<number>(-1);
+  useEffect(() => {
+    if (!visible) pauseTimeRef.current = timeLeft;
+    else setTimeLeft(pauseTimeRef.current);
+  }, [visible]);
 
   useEffect(() => {
-    if (!battle || !user) return;
+    if (!battle || !user || !visible) return;
 
-    if (load === BATTLE_LOAD.REPLAY) setTimeLeft(Math.ceil(battle.duration / 1000));
-    else {
+    if (load === BATTLE_LOAD.REPLAY) {
+      if (!visible) pauseTimeRef.current = timeLeft;
+      else {
+        pauseTimeRef.current >= 0 ? setTimeLeft(pauseTimeRef.current) : setTimeLeft(Math.ceil(battle.duration / 1000));
+      }
+    } else {
       const time = Math.ceil((battle.duration + ((battle.startTime ?? 0) - Date.now() - user.timelag)) / 1000);
       if (time > 0) setTimeLeft(time);
-      else timeout();
     }
-    // const past = (battle.startTime ?? 0) - Date.now() - user.timelag;
-    // if (past > 0)
-    //   setTimeout(() => {
-    //     setTimeLeft(Math.ceil(battle.duration / 1000));
-    //   }, past);
-    // else if (battle.duration + past > 0) {
-    //   setTimeLeft(Math.ceil((battle.duration + past) / 1000));
-    // } else timeout();
-  }, [load, battle, user]);
+  }, [load, visible, battle, user]);
 
   useEffect(() => {
     if (timeLeft < 0) return;
@@ -39,6 +39,7 @@ const TimeCount = () => {
       clearInterval(timer);
       timeout();
     }
+
     // 清除计时器
     return () => clearInterval(timer);
   }, [timeLeft]); // 每次 timeLeft 更新时重新执行

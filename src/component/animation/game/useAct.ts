@@ -5,15 +5,13 @@ import { useBattleManager } from "service/BattleManager";
 import { useGameManager } from "service/GameManager";
 import { hasMatch3 } from "util/MatchGameUtils";
 import * as Constant from "../../../model/Constants";
-import { useSceneManager } from "../../../service/SceneManager";
-import useSwipe from "./useSwipe";
+import useActAnimate from "./useActAnimate";
 
 
 const useAct = () => {
     const { battle } = useBattleManager();
-    const { scenes } = useSceneManager();
     const { game, doAct } = useGameManager();
-    const { swipeSuccess, swipeFail } = useSwipe();
+    const { swipeSuccess, swipeFail } = useActAnimate();
 
     const swipeAct = useCallback(
 

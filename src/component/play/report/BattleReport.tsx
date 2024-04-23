@@ -1,10 +1,11 @@
 import { useConvex } from "convex/react";
 import { gsap } from "gsap";
+import { BATTLE_LOAD } from "model/Constants";
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import usePageProp from "service/PagePropProvider";
+import { useSceneManager } from "service/SceneManager";
 import { api } from "../../../convex/_generated/api";
 import { useBattleManager } from "../../../service/BattleManager";
-import { useUserManager } from "../../../service/UserManager";
 import ReportItem from "./ReportItem";
 import "./report.css";
 export interface ReportItemModel {
@@ -18,9 +19,8 @@ const BattleReport: React.FC = () => {
   const reportDivRef = useRef<HTMLDivElement | null>(null);
   const { battle, battleOver } = useBattleManager();
   const [battleReport, setBattleReport] = useState<ReportItemModel[] | null>(null);
-  // const { exit } = useSceneManager();
+  const { load } = useSceneManager();
   const { exit } = usePageProp();
-  const { user } = useUserManager();
   const convex = useConvex();
 
   const findReport = useCallback(async () => {
@@ -47,11 +47,11 @@ const BattleReport: React.FC = () => {
   }, [battle]);
 
   useEffect(() => {
-    if (battleOver > 0) {
+    if (load !== BATTLE_LOAD.REPLAY && battleOver > 0) {
       openReport();
       findReport();
     }
-  }, [battleOver]);
+  }, [load, battleOver]);
 
   useEffect(() => {
     if (battle) gsap.to(reportDivRef.current, { autoAlpha: 0, scale: 0, duration: 0 });

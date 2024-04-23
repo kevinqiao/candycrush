@@ -1,5 +1,5 @@
 import useAct from "component/animation/game/useAct";
-import useEvent from "component/animation/game/useEvent";
+import useMatchAnimate from "component/animation/game/useMatchAnimate";
 import useSkill from "component/animation/game/useSkill";
 import * as PIXI from "pixi.js";
 import { useCallback, useEffect, useRef } from "react";
@@ -17,7 +17,7 @@ const useGameScene = () => {
     const { battle, loadGame, skill, setSkill } = useBattleManager();
     const skillRef = useRef<number>(skill)
     const { load, textures, scenes } = useSceneManager();
-    const { playApply } = useEvent();
+    const { playApply } = useMatchAnimate();
     const { swipeAct, hitAct } = useAct();
     const { swapSelect, resetSkill, executeSkill } = useSkill();
     const selectedCandyRef = useRef<CandySprite[]>([]);
@@ -90,7 +90,7 @@ const useGameScene = () => {
             switch (skillRef.current) {
                 case 1:
                     if (selecteds.length === 1) {
-                        executeSkill(1, { candyId: selecteds[0].id })
+                        executeSkill(1, { candy: selecteds[0] })
                         setSkill(0)
                     }
                     break;
@@ -98,13 +98,13 @@ const useGameScene = () => {
                     if (selecteds.length === 1) {
                         swapSelect(selecteds[0])
                     } else if (selecteds.length === 2) {
-                        executeSkill(2, { candyId: selecteds[0].id, targetId: selecteds[1].id })
+                        executeSkill(2, { candy: selecteds[0], target: selecteds[1] })
                         setSkill(0)
                     }
                     break;
                 case 3:
                     if (selecteds.length === 1) {
-                        executeSkill(3, { candyId: selecteds[0].id })
+                        executeSkill(3, { candy: selecteds[0] })
                         setSkill(0)
                     }
                     break;

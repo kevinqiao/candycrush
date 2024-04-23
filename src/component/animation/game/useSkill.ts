@@ -5,11 +5,13 @@ import { useGameManager } from "service/GameManager";
 import * as Constant from "../../../model/Constants";
 import { GameScene } from "../../../model/SceneModel";
 import { useSceneManager } from "../../../service/SceneManager";
+import useSkillAnimate from "./useSkillAnimate";
 
 const useSkill = () => {
     const focusIconRef = useRef<PIXI.Sprite | null>(null)
     const { iconTextures, scenes } = useSceneManager();
     const { game, doAct } = useGameManager();
+    const { swapSuccess } = useSkillAnimate();
 
     const swapSelect = useCallback(
 
@@ -46,22 +48,26 @@ const useSkill = () => {
             console.log("execute skill:" + skill)
             switch (skill) {
                 case 1:
-                    console.log(data)
-                    doAct(Constant.GAME_ACTION.SKILL_HAMMER, data)
+                    doAct(Constant.GAME_ACTION.SKILL_HAMMER, { candyId: data.candy.id })
                     break;
                 case 2:
-                    doAct(Constant.GAME_ACTION.SKILL_SWAP, data)
+                    {
+                        const { candy, target } = data;
+                        if (candy && target && game) {
+                            swapSuccess(game.gameId, candy, target)
+                            doAct(Constant.GAME_ACTION.SKILL_SWAP, { candyId: data.candy.id, targetId: data.target.id })
+                        }
+                    }
                     break;
                 case 3:
-                    doAct(Constant.GAME_ACTION.SKILL_SPRAY, data)
+                    doAct(Constant.GAME_ACTION.SKILL_SPRAY, { candyId: data.candy.id })
                     break;
                 default:
                     break;
             }
         },
-        [doAct]
+        [doAct, game]
     );
-
     return { swapSelect, resetSkill, executeSkill };
 };
 export default useSkill

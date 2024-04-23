@@ -1,5 +1,6 @@
 import { v } from "convex/values";
-import { internalQuery, query } from "./_generated/server";
+import { internalQuery } from "./_generated/server";
+import { sessionQuery } from "./custom/session";
 export const findById = internalQuery({
   args: { id: v.string() },
   handler: async (ctx, { id }) => {
@@ -8,12 +9,20 @@ export const findById = internalQuery({
     return tournament
   },
 });
-export const findAll = query({
+// export const findAll = query({
+//   handler: async (ctx) => {
+//     const tournaments = await ctx.db.query("tournament").collect();
+//     return tournaments
+//   },
+// });
+
+export const findAll = sessionQuery({
+  args: {},
   handler: async (ctx) => {
+    console.log(ctx.user)
     const tournaments = await ctx.db.query("tournament").collect();
     return tournaments
   },
 });
-
 
 

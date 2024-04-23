@@ -6,7 +6,7 @@ import { GameScene } from "../../../model/SceneModel";
 import { useSceneManager } from "../../../service/SceneManager";
 
 
-const useSwipe = () => {
+const useActAnimate = () => {
     const { scenes } = useSceneManager();
     const swipeSuccess = useCallback(
         // (animate: Animate, timeline: any) => {
@@ -115,4 +115,4 @@ const useSwipe = () => {
 
     return { swipeSuccess, swipeFail };
 };
-export default useSwipe
+export default useActAnimate

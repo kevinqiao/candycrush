@@ -189,29 +189,33 @@ export const settleBattle = internalMutation({
 });
 
 export const findMyBattles = sessionQuery({
-  args: { uid: v.string(), to: v.optional(v.number()), from: v.optional(v.number()) },
-  handler: async (ctx, { uid, from, to }) => {
+  args: { to: v.optional(v.number()), from: v.optional(v.number()) },
+  handler: async (ctx, { from, to }) => {
+
     console.log(from + ":" + to)
     const mybattles: { id: any; time: number; rewards: any; participants: any; }[] | PromiseLike<{ id: any; time: number; rewards: any; participants: any; }[]> = [];
     let games;
-    if (!from && !to)
-      games = await ctx.db.query("games").filter((q) => q.eq(q.field("uid"), uid)).order("desc").take(10);
-    else if (from && !to)
-      games = await ctx.db.query("games").filter((q) => q.and(q.eq(q.field("uid"), uid), q.gt(q.field("_creationTime"), from))).order("desc").collect();
-    else if (to && !from)
-      games = await ctx.db.query("games").filter((q) => q.and(q.eq(q.field("uid"), uid), q.lt(q.field("_creationTime"), to))).order("desc").take(10);
-    else if (from && to) {
-      games = await ctx.db.query("games").filter((q) => q.and(q.eq(q.field("uid"), uid), q.gt(q.field("_creationTime"), from), q.lt(q.field("_creationTime"), to))).order("desc").take(10);
-    }
+    if (ctx.user) {
+      const { uid } = ctx.user;
+      if (!from && !to)
+        games = await ctx.db.query("games").filter((q) => q.eq(q.field("uid"), uid)).order("desc").take(10);
+      else if (from && !to)
+        games = await ctx.db.query("games").filter((q) => q.and(q.eq(q.field("uid"), uid), q.gt(q.field("_creationTime"), from))).order("desc").collect();
+      else if (to && !from)
+        games = await ctx.db.query("games").filter((q) => q.and(q.eq(q.field("uid"), uid), q.lt(q.field("_creationTime"), to))).order("desc").take(10);
+      else if (from && to) {
+        games = await ctx.db.query("games").filter((q) => q.and(q.eq(q.field("uid"), uid), q.gt(q.field("_creationTime"), from), q.lt(q.field("_creationTime"), to))).order("desc").take(10);
+      }
 
 
-    if (games) {
-      console.log("size:" + games?.length)
-      for (const game of games) {
-        const b: any = await ctx.db.get(game.battleId as Id<"battle">);
-        if (b?.rewards && b.status) {
-          mybattles.push({ id: b._id, time: Math.ceil(game._creationTime), rewards: b.rewards, participants: b.participants })
-          // mybattles.push({ ...b, id: b._id, _id: undefined, time: game._creationTime, _creationTime: undefined })
+      if (games) {
+        console.log("size:" + games?.length)
+        for (const game of games) {
+          const b: any = await ctx.db.get(game.battleId as Id<"battle">);
+          if (b?.rewards && b.status) {
+            mybattles.push({ id: b._id, time: Math.ceil(game._creationTime), rewards: b.rewards, participants: b.participants })
+            // mybattles.push({ ...b, id: b._id, _id: undefined, time: game._creationTime, _creationTime: undefined })
+          }
         }
       }
     }
@@ -282,7 +286,7 @@ export const findBattle = action({
         }
         const player = Object.assign({}, user, { token: undefined, tenant: undefined })
 
-        
+
         if (game.result) {
           report.push({ player, uid: game.uid, gameId: game._id, result: game.result, data: { matched: game.data.matched ?? [] } });
         } else if (timeout) {

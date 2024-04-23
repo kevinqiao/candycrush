@@ -1,5 +1,7 @@
-import { customAction, customCtx, customQuery } from "convex-helpers/server/customFunctions";
+import { customAction, customQuery } from "convex-helpers/server/customFunctions";
 import { v } from "convex/values";
+import { internal } from "../_generated/api";
+import { Id } from "../_generated/dataModel";
 import { action, query } from "../_generated/server";
 
 export const sessionAction = customAction(action, {
@@ -7,7 +9,9 @@ export const sessionAction = customAction(action, {
     args: { uid: v.string(), token: v.string() },
     // The function handler, taking the validated arguments and context.
     input: async (ctx, { uid, token }) => {
-        const user = { uid, token };
+        const u: any = await ctx.runQuery(internal.user.find, { id: uid as Id<"user"> });
+        const user = u && u.uid === uid ? u : null;
+        // const user = { uid, token };
         // Note: we're passing args through, so they'll be available below
         return { ctx: { user }, args: {} };
     }
@@ -17,10 +21,17 @@ export const sessionAction = customAction(action, {
 export const sessionQuery = customQuery(
     query, // The base function we're extending
 
-    customCtx(async (ctx) => {
-        // Look up the logged in user
-        return { user: { uid: "1", token: "kqiao" } };
-    })
+    {
+        // Argument validation for sessionMutation: two named args here.
+        args: { uid: v.string(), token: v.string() },
+        // The function handler, taking the validated arguments and context.
+        input: async (ctx, { uid, token }) => {
+            const u = await ctx.db.get(uid as Id<"user">);
+            const user = u && u._id === uid && u.token == token ? { ...u, uid: u._id, _id: undefined, _creationTime: undefined } : null;
+            return { ctx: { ...ctx, user }, args: {} };
+        }
+
+    }
 );
 
 

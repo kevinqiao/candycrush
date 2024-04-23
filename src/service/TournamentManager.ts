@@ -32,7 +32,7 @@ const useTournamentManager = () => {
   }, [user])
   const listActives = useCallback(
     async (): Promise<any[]> => {
-      const allOpens: any | null = await convex.query(api.tournaments.findAll);
+      const allOpens: any | null = await convex.query(api.tournaments.findAll, { uid: user.uid, token: user.token });
       return allOpens;
     },
     [convex]

@@ -13,7 +13,7 @@ export const MATCH_DIRECTION = {
 export const BATTLE_LOAD = {
     PLAY: 0,
     RELOAD: 1,
-    REPLAY: 2
+    REPLAY: 2,
 }
 
 export const GAME_MODE = {

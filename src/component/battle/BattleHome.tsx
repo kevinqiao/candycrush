@@ -33,7 +33,7 @@ const BattleHome: React.FC = () => {
     if (!user || !convex || menuIndex !== 2) return;
 
     const from = battles && battles.length > 0 ? battles[0].time : undefined;
-    convex.query(api.battle.findMyBattles, { uid: user.uid, from }).then((bs: any) => {
+    convex.query(api.battle.findMyBattles, { uid: user.uid, token: user.token, from }).then((bs: any) => {
       if (bs.length > 0) {
         bs.sort((a: any, b: any) => b.time - a.time);
         console.log(bs);

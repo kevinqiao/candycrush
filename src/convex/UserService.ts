@@ -36,8 +36,8 @@ export const findAllUser = action({
 export const logout = action({
     args: { uid: v.string() },
     handler: async (ctx, { uid }) => {
-
     }
+    
 })
 export const signin = action({
     args: { uid: v.id("user"), token: v.string() },
