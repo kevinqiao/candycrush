@@ -1,4 +1,5 @@
 import { CellItem } from '../model/CellItem';
+import { GameModel } from '../model/GameModel';
 import { GAME_GOAL } from '../model/Match3Constants';
 import candy_textures from '../model/candy_textures';
 import { MatchItem } from '../service/GameEngine';
@@ -310,7 +311,8 @@ export const solveGoalChanges = (goalId: number, prematched: { asset: number, qu
     }
     return [];
 }
-export const countMatched = (result: { toChange: CellItem[]; toCreate: CellItem[]; toMove: CellItem[]; toRemove: CellItem[]; toSmesh?: { target: number; candy: CellItem; smesh?: number[] }[][] }[]): { asset: number; quantity: number }[] => {
+export const countMatched = (game: GameModel, result: { toChange: CellItem[]; toCreate: CellItem[]; toMove: CellItem[]; toRemove: CellItem[]; toSmesh?: { target: number; candy: CellItem; smesh?: number[] }[][] }[]): { asset: number; quantity: number }[] => {
+    console.log("count game matched")
     const matched: { asset: number; quantity: number }[] = [];
     for (const res of result) {
         const { toChange, toRemove, toSmesh } = res;
@@ -322,9 +324,19 @@ export const countMatched = (result: { toChange: CellItem[]; toCreate: CellItem[
             const m = matched.find((m) => m.asset === c.asset);
             m ? m.quantity++ : matched.push({ asset: c.asset, quantity: 1 });
         })
-
-
     }
-    return matched;
+    console.log(matched)
+    if (!game.data.matched)
+        game.data.matched = [];
+    matched.forEach((m) => {
+        const ma = game.data.matched.find((mm: { asset: number; quantity: number }) => mm.asset === m.asset)
+        if (ma)
+            ma.quantity = ma.quantity + m.quantity;
+        else
+            game.data.matched.push(m)
+    })
+    console.log(game.data.matched)
+
+    return matched
 }
 

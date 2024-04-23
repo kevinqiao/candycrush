@@ -4,7 +4,7 @@ import { CellItem } from "../model/CellItem";
 import { GAME_ACTION, GAME_EVENT, GAME_STATUS } from '../model/Constants';
 import { GameModel } from '../model/GameModel';
 import { Tournament } from '../model/Tournament';
-import { findMatch, findMatch3, findMove, getFreeCandy, getRandomAsset, hasMatch3 } from '../util/MatchGameUtils';
+import { countMatched, findMatch, findMatch3, findMove, getFreeCandy, getRandomAsset, hasMatch3 } from '../util/MatchGameUtils';
 import { getRandom, getRandomSeed } from '../util/Utils';
 interface SwipeResult {
     candy: CellItem;
@@ -278,6 +278,8 @@ export const executeAct = (game: GameModel, battle: BattleModel, action: { name:
         default:
             break;
     }
+    if (actionResult.result)
+        countMatched(game, actionResult.result)
     return actionResult;
 }
 
