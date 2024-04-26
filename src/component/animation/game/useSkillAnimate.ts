@@ -10,11 +10,11 @@ const useActAnimate = () => {
     const { scenes } = useSceneManager();
     const swapSuccess = useCallback(
         // (animate: Animate, timeline: any) => {
-        (gameId: string, candySprite: CandySprite, targetSprite: CandySprite) => {
+        (gameId: string, candySprite: CandySprite, targetSprite: CandySprite, timeline: any) => {
             // const { gameId, candy, target } = animate.data
             const gameScene = scenes.get(gameId) as GameScene;
             if (!gameScene) return;
-            const tl = gsap.timeline();
+            const tl = timeline ?? gsap.timeline();
 
             if (gameScene.cwidth && candySprite && targetSprite) {
                 [candySprite.row, targetSprite.row] = [targetSprite.row, candySprite.row];
@@ -41,14 +41,16 @@ const useActAnimate = () => {
                         }, "<");
 
             }
-
-            tl.play();
-
+            if (!timeline)
+                tl.play();
         },
         []
     );
-
-
+    const changeBuff = useCallback(
+        (skillBuff: { skill: number; progress: number }[], timeline: any) => {
+        },
+        []
+    );
     return { swapSuccess };
 };
 export default useActAnimate

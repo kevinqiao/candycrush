@@ -1,5 +1,4 @@
 import React, { useCallback, useEffect, useRef, useState } from "react";
-import { useBattleManager } from "service/BattleManager";
 import { SCENE_NAME } from "../../../model/Constants";
 import { ConsoleScene } from "../../../model/SceneModel";
 import { useSceneManager } from "../../../service/SceneManager";
@@ -16,7 +15,6 @@ const AvatarBar: React.FC<Props> = ({ layout, game }) => {
   const sceneContainerRef = useRef<HTMLDivElement | null>(null);
   const { width, height } = useDimension(sceneContainerRef);
   const { scenes } = useSceneManager();
-  const { battleEvent } = useBattleManager();
   const [score, setScore] = useState<number>(0);
 
   const calculateBackgroundPosition = () => {
@@ -99,7 +97,7 @@ const AvatarBar: React.FC<Props> = ({ layout, game }) => {
       const s = GameUtils.countBaseScore(game.data.matched);
       setScore(s);
     }
-  }, [game, battleEvent]);
+  }, [game]);
 
   return (
     <div

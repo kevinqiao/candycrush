@@ -1,4 +1,3 @@
-import { useAnimation } from "component/animation/battle/useAnimation";
 import { BATTLE_LOAD } from "model/Constants";
 import React, { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
 import { getDualBounds, getMonoBounds } from "util/BattleBoundUtil";
@@ -7,26 +6,26 @@ import { useSceneManager } from "./SceneManager";
 import { useUserManager } from "./UserManager";
 
 interface IBattleContext {
-  skill: number;
+  currentSkill: number;
   load: number;
   battle: BattleModel | null;
   allGameLoaded: boolean;
   battleOver: number;
   bounds: { name: string; top: number; left: number; width: number; height: number; radius?: number }[] | null;
-  setSkill: (skill: number) => void;
+  setCurrentSkill: (skill: number) => void;
   reset: () => void;
   timeout: () => void;
   completeGame: (gameId: string, score: { base: number; time: number; goal: number }) => void;
   loadGame: (gameId: string, data: any) => void;
 }
 const BattleContext = createContext<IBattleContext>({
-  skill: 0,
+  currentSkill: 0,
   load: 0,
   allGameLoaded: false,
   battle: null,
   battleOver: 0,
   bounds: null,
-  setSkill: (skill: number) => null,
+  setCurrentSkill: (skill: number) => null,
   reset: () => null,
   timeout: () => null,
   completeGame: (gameId: string, score: { base: number; time: number; goal: number }) => null,
@@ -34,7 +33,7 @@ const BattleContext = createContext<IBattleContext>({
 });
 
 export const BattleProvider = ({ battle, children }: { battle: BattleModel | null; children: React.ReactNode }) => {
-  const [skill, setSkill] = useState(0);
+  const [currentSkill, setCurrentSkill] = useState(0);
   const [allGameLoaded, setAllGameLoaded] = useState(false);
   const [battleOver, setBattleOver] = useState(0);
   const { user } = useUserManager();
@@ -59,13 +58,13 @@ export const BattleProvider = ({ battle, children }: { battle: BattleModel | nul
   }, [load, battle, containerBound]);
 
   const value = {
-    skill,
+    currentSkill,
     load,
     allGameLoaded,
     battle,
     battleOver,
     bounds,
-    setSkill,
+    setCurrentSkill,
     timeout: useCallback(() => {
       // console.log(event);
       setBattleOver(2);

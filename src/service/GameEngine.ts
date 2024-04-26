@@ -107,6 +107,8 @@ export const handleEvent = (name: string, eventData: any, game: any) => {
         for (const result of eventData.results) {
             applyShiftResult(result, game.data)
         }
+    if (eventData.gameData)
+        Object.assign(game.data, eventData.gameData)
 }
 
 export const countRewards = (tournament: Tournament, battle: BattleModel): BattleReward[] => {
@@ -126,7 +128,7 @@ export const handleSwipe = (game: GameModel, battle: BattleModel, data: any): an
     if (!game.seed) return;
     const actionResult: any = {};
     const { row, column } = battle.data;
-    const results: { toChange: CellItem[]; toCreate: CellItem[]; toMove: CellItem[]; toRemove: CellItem[]; toSmesh?: { target: number; candy: CellItem; smesh?: number[] }[][] }[] = []
+    const results: { toChange: CellItem[]; toCreate: CellItem[]; toMove: CellItem[]; toRemove: CellItem[]; toSmesh?: { target: number; candy: CellItem; smesh?: CellItem[] }[][] }[] = []
     const smeshIds = [28, 29, 30, 31];
     const grid: CellItem[][] = Array.from({ length: row }, () => Array(column).fill(null));
 
@@ -147,27 +149,27 @@ export const handleSwipe = (game: GameModel, battle: BattleModel, data: any): an
     const fourChanges = solveMatch(grid, 3, 4);
     const toChange = [...plus4Changes, ...crossChanges, ...fourChanges];
 
-    const toSmesh: { target: number; candy: CellItem; smesh?: number[] }[][] = [];
+    const toSmesh: { target: number; candy: CellItem; smesh?: CellItem[] }[][] = [];
     if (smeshIds.includes(candy.asset)) {
-        const meshes: { target: number; candy: CellItem; smesh?: number[] }[] = [];
+        const meshes: { target: number; candy: CellItem; smesh?: CellItem[] }[] = [];
         const targetAsset = smeshIds.includes(target.asset) ? -1 : target.asset;
         solveSmesh(grid, candy, targetAsset, meshes);
         toSmesh.push(meshes);
 
     }
     if (smeshIds.includes(target.asset)) {
-        const meshes: { target: number; candy: CellItem; smesh?: number[] }[] = [];
+        const meshes: { target: number; candy: CellItem; smesh?: CellItem[] }[] = [];
         const targetAsset = smeshIds.includes(candy.asset) ? -1 : candy.asset;
         solveSmesh(grid, candy, targetAsset, meshes);
         toSmesh.push(meshes)
     }
-    console.log("cell length before shift match:" + game.data.cells.length)
+
     const res = shiftMatch(game.seed, game.data, grid);
     const result = { ...res, toChange, toSmesh }
 
     results.push(result);
-
     applyShiftResult(result, game.data);
+
     const matchResults = resolveMatch(game.seed, game.data, row, column);
     results.push(...matchResults);
     actionResult['result'] = results;
@@ -179,7 +181,7 @@ export const handleSmash = (game: GameModel, battle: BattleModel, data: any): an
     console.log("handle smash")
     const actionResult: any = {};
     const { row, column } = battle.data;
-    const results: { toChange: CellItem[]; toCreate: CellItem[]; toMove: CellItem[]; toRemove: CellItem[]; toSmesh?: { target: number; candy: CellItem; smesh?: number[] }[][] }[] = []
+    const results: { toChange: CellItem[]; toCreate: CellItem[]; toMove: CellItem[]; toRemove: CellItem[]; toSmesh?: { target: number; candy: CellItem; smesh?: CellItem[] }[][] }[] = []
     const smeshIds = [28, 29, 30, 31];
 
     const { candyId } = data;
@@ -197,8 +199,8 @@ export const handleSmash = (game: GameModel, battle: BattleModel, data: any): an
     const fourChanges = solveMatch(grid, 3, 4);
     const toChange = [...plus4Changes, ...crossChanges, ...fourChanges]
 
-    const toSmesh: { target: number; candy: CellItem; smesh?: number[] }[][] = [];
-    const meshes: { target: number; candy: CellItem; smesh?: number[] }[] = [];
+    const toSmesh: { target: number; candy: CellItem; smesh?: CellItem[] }[][] = [];
+    const meshes: { target: number; candy: CellItem; smesh?: CellItem[] }[] = [];
     solveSmesh(grid, candy, -1, meshes);
     toSmesh.push(meshes);
 
@@ -225,8 +227,9 @@ export const handleSkillHammer = (game: GameModel, battle: BattleModel, data: an
     for (const unit of game.data.cells) {
         grid[unit.row][unit.column] = { ...unit };
     }
-    const result = shiftMatch(game.seed, game.data, grid)
-    applyShiftResult({ ...result, toChange: [] }, game.data);
+    const res = shiftMatch(game.seed, game.data, grid)
+    const result = { ...res, toChange: [] };
+    applyShiftResult(result, game.data);
     const matchResults = resolveMatch(game.seed, game.data, row, column);
     actionResult['result'] = [result, ...matchResults];
     return actionResult;
@@ -256,30 +259,62 @@ export const handleSkillSpray = (game: GameModel, battle: BattleModel, data: any
     actionResult['result'] = [result, ...matchResults];
     return actionResult;
 }
+const resetSkill = (game: GameModel, skill: number) => {
+    if (game.data.skillBuff) {
+        const buff = game.data.skillBuff.find((s: { skill: number; progress: number }) => s.skill === skill);
+        if (buff)
+            buff.progress = 0;
+    }
+}
+const canUseSkill = (game: GameModel, skill: number): boolean => {
+    if (game.data.skillBuff) {
+        const buff = game.data.skillBuff.find((s: { skill: number; progress: number }) => s.skill === skill);
+        if (buff.progress >= 100)
+            return true;
+
+    }
+    return false
+}
 export const executeAct = (game: GameModel, battle: BattleModel, action: { name: string; data: any }): any => {
     if (!game.seed) return;
     let actionResult: any = null;
+
     switch (action.name) {
         case GAME_ACTION.SWIPE_CANDY:
             actionResult = handleSwipe(game, battle, action.data);
+            game.data.moves ? game.data.moves++ : game.data.moves = 1;
             break;
         case GAME_ACTION.SMASH_CANDY:
             actionResult = handleSmash(game, battle, action.data);
+            game.data.moves ? game.data.moves++ : game.data.moves = 1;
+
             break;
         case GAME_ACTION.SKILL_HAMMER:
-            actionResult = handleSkillHammer(game, battle, action.data)
+            if (canUseSkill(game, 1)) {
+                actionResult = handleSkillHammer(game, battle, action.data);
+                resetSkill(game, 1)
+            }
             break;
         case GAME_ACTION.SKILL_SPRAY:
-            actionResult = handleSkillSpray(game, battle, action.data);
+
+            if (canUseSkill(game, 3)) {
+                actionResult = handleSkillSpray(game, battle, action.data);
+                resetSkill(game, 3)
+            }
             break;
         case GAME_ACTION.SKILL_SWAP:
-            actionResult = handleSwipe(game, battle, action.data);
+            if (canUseSkill(game, 2)) {
+                actionResult = handleSwipe(game, battle, action.data);
+                resetSkill(game, 2)
+            }
             break;
         default:
             break;
     }
+    // console.log(actionResult)
     if (actionResult.result)
-        countMatched(game, actionResult.result)
+        countMatched(game, actionResult.result);
+
     return actionResult;
 }
 
@@ -358,19 +393,19 @@ const solveCrossMatch = (grid: CellItem[][]): CellItem[] => {
     return toChange;
 }
 
-const solveSmesh = (grid: CellItem[][], candy: CellItem, target: number, allMeshes: { target: number; candy: CellItem, smesh?: number[] }[]) => {
+const solveSmesh = (grid: CellItem[][], candy: CellItem, target: number, allMeshes: { target: number; candy: CellItem, smesh?: CellItem[] }[]) => {
 
     const row = grid.length;
     const column = grid[0].length;
     const smeshIds = [28, 29, 30, 31];
-    const smesh: number[] = [];
+    const smesh: CellItem[] = [];
     switch (candy.asset) {
         case 29:
             allMeshes.push({ target, candy, smesh });
             for (let i = 0; i < row; i++) {
                 const c = grid[i][candy.column];
                 c.status = 2;
-                smesh.push(c.id);
+                smesh.push(c);
                 if (i !== candy.row && smeshIds.includes(c.asset))
                     solveSmesh(grid, c, -1, allMeshes)
             }
@@ -380,7 +415,7 @@ const solveSmesh = (grid: CellItem[][], candy: CellItem, target: number, allMesh
             for (let i = 0; i < column; i++) {
                 const c = grid[candy.row][i];
                 c.status = 2;
-                smesh.push(c.id);
+                smesh.push(c);
                 if (i !== candy.column && smeshIds.includes(c.asset))
                     solveSmesh(grid, c, -1, allMeshes)
             }
@@ -397,7 +432,7 @@ const solveSmesh = (grid: CellItem[][], candy: CellItem, target: number, allMesh
                         if ((i !== 0 || j !== 0) && smeshIds.includes(grid[row][col].asset))
                             solveSmesh(grid, grid[row][col], -1, allMeshes)
                         grid[row][col].status = 2;
-                        smesh.push(grid[row][col].id)
+                        smesh.push(grid[row][col])
 
                     }
                 }
@@ -416,7 +451,7 @@ const solveSmesh = (grid: CellItem[][], candy: CellItem, target: number, allMesh
                 }
                 const targets: CellItem[] = grid.flatMap((r) => r).filter((c: CellItem) => c.asset === asset || c.id === candy.id);
                 targets.forEach((c) => c.status = 2)
-                smesh.push(...targets.map((t) => t.id));
+                smesh.push(...targets);
                 allMeshes.push({ target: asset, candy, smesh })
             }
             break;
@@ -459,7 +494,7 @@ const shiftMatch = (seed: string, data: { lastCellId: number }, grid: CellItem[]
 }
 
 const applyShiftResult = (
-    result: { toCreate: CellItem[]; toChange: CellItem[]; toRemove: CellItem[]; toMove: CellItem[]; toSmesh?: { target: number; candy: CellItem; smesh?: number[] }[][] },
+    result: { toCreate: CellItem[]; toChange: CellItem[]; toRemove: CellItem[]; toMove: CellItem[]; toSmesh?: { target: number; candy: CellItem; smesh?: CellItem[] }[][] },
     data: { cells: CellItem[] }
 ) => {
     data.cells.sort((a: CellItem, b: CellItem) => {
@@ -478,8 +513,14 @@ const applyShiftResult = (
         data.cells.push(...acells);
     }
     if (toSmesh) {
-        const smeshs = toSmesh.flat().map((s) => s.smesh).flat();
-        const scells: CellItem[] = data.cells.filter((c: CellItem) => !smeshs.includes(c.id));
+        const smeshs: { target: number; candy: CellItem; smesh?: CellItem[] }[] = toSmesh.flat();
+        const smeshIds: number[] = [];
+        smeshs.forEach((s) => {
+            if (s.smesh) {
+                smeshIds.push(...s.smesh.map((s) => s.id))
+            }
+        })
+        const scells: CellItem[] = data.cells.filter((c: CellItem) => !smeshIds.includes(c.id));
         data.cells = scells;
     }
 

@@ -48,7 +48,7 @@ export const settleMatch = internalMutation({
       if (tournament && diffcult) {
         const startTime = Date.now() + BATTLE_COUNT_DOWN_TIME;
         const battle: any = { tournamentId: tournament.id, participants: tournament.participants, diffcult: diffcult?.id, startTime, duration: tournament.battleTime };
-        battle['duration'] = 60000;
+        battle['duration'] = 300000;
         battle['dueTime'] = startTime + battle['duration'];
 
         const battleId = await ctx.db.insert("battle", { ...battle, status: 0 });
@@ -61,8 +61,8 @@ export const settleMatch = internalMutation({
         const gameData: { seed: string; data: { cells: CellItem[]; lastCellId: number } } | null = createGame(diffcult.data);
 
         if (!gameData) return;
-        const game = { diffcult: diffcult.id, battleId, tid: tournament.id, data: { cells: gameData?.data.cells, lastCellId: gameData.data.lastCellId }, seed, type: 0, laststep: 0, uid: m.uid, startTime, dueTime: battle['dueTime'], ref: "####" };
-
+        const game: any = { diffcult: diffcult.id, battleId, tid: tournament.id, data: { cells: gameData?.data.cells, lastCellId: gameData.data.lastCellId }, seed, type: 0, laststep: 0, uid: m.uid, startTime, dueTime: battle['dueTime'], ref: "####" };
+        game.data['skillBuff'] = [{ skill: 1, progress: 80 }, { skill: 2, progress: 90 }]
         if (allToMatch.length === 1) {
           // const gameData: { gameId: string; data: any; seed: string; diffcult: string } | null = await findGameInitData(ctx, m.uid, tournament);
           const opponent = await findOpponent(ctx);

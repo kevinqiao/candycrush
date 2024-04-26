@@ -14,8 +14,8 @@ import { CandySprite } from "../pixi/CandySprite";
 const useGameScene = () => {
 
     const { gameEvent, game, doAct } = useGameManager();
-    const { battle, loadGame, skill, setSkill } = useBattleManager();
-    const skillRef = useRef<number>(skill)
+    const { battle, loadGame, currentSkill, setCurrentSkill } = useBattleManager();
+    const skillRef = useRef<number>(currentSkill)
     const { load, textures, scenes } = useSceneManager();
     const { playApply } = useMatchAnimate();
     const { swipeAct, hitAct } = useAct();
@@ -87,11 +87,12 @@ const useGameScene = () => {
             }
             selectedCandyRef.current.length = 0;
         } else {
+
             switch (skillRef.current) {
                 case 1:
                     if (selecteds.length === 1) {
                         executeSkill(1, { candy: selecteds[0] })
-                        setSkill(0)
+                        setCurrentSkill(0)
                     }
                     break;
                 case 2:
@@ -99,20 +100,20 @@ const useGameScene = () => {
                         swapSelect(selecteds[0])
                     } else if (selecteds.length === 2) {
                         executeSkill(2, { candy: selecteds[0], target: selecteds[1] })
-                        setSkill(0)
+                        setCurrentSkill(0)
                     }
                     break;
                 case 3:
                     if (selecteds.length === 1) {
                         executeSkill(3, { candy: selecteds[0] })
-                        setSkill(0)
+                        setCurrentSkill(0)
                     }
                     break;
                 default:
                     break;
             }
         }
-    }, [game, battle, doAct])
+    }, [currentSkill, game, battle, doAct])
     useEffect(() => {
 
         if (!game || !game?.gameId || !scenes) return;
@@ -126,7 +127,7 @@ const useGameScene = () => {
             initCandies(g.data.cells);
             loadGame(game.gameId, { matched: game.data.matched ?? [] });
         } else if (gameEvent?.name === "cellSwapped" || gameEvent?.name === "cellSmeshed" || gameEvent?.name === "skillHammer" || gameEvent?.name === "skillSwap" || gameEvent?.name === "skillSpray") {
-            const data: { candy: CellItem; target: CellItem; results: { toChange: CellItem[]; toCreate: CellItem[]; toMove: CellItem[]; toRemove: CellItem[] }[] } = gameEvent.data;
+            const data: { results: { toChange: CellItem[]; toCreate: CellItem[]; toMove: CellItem[]; toRemove: CellItem[] }[] } = gameEvent.data;
             if (!data?.results) return
             for (const res of data.results) {
                 const cwidth = gameScene.cwidth;
@@ -146,13 +147,13 @@ const useGameScene = () => {
     }, [load, gameEvent, scenes, initCandies])
     useEffect(() => {
 
-        if (skill === 0 && selectedCandyRef.current.length > 0) {
+        if (currentSkill === 0 && selectedCandyRef.current.length > 0) {
             selectedCandyRef.current.forEach((c) => c.alpha = 1);
             selectedCandyRef.current.length = 0;
             resetSkill();
         }
-        skillRef.current = skill;
-    }, [skill])
+        skillRef.current = currentSkill;
+    }, [currentSkill])
 
     useEffect(() => {
         if (scenes && game?.gameId) {

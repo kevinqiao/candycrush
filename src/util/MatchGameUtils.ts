@@ -207,7 +207,7 @@ export const checkMove = (cells: CellItem[], rows: number, columns: number) => {
     }
     const candy = grid[0][0];
     const target = grid[0][1];
-    console.log(JSON.parse(JSON.stringify(grid)));
+    // console.log(JSON.parse(JSON.stringify(grid)));
     // [candy.row, target.row] = [target.row, candy.row];
     [candy.column, target.column] = [target.column, candy.column];
     grid[0][0] = target;
@@ -215,7 +215,7 @@ export const checkMove = (cells: CellItem[], rows: number, columns: number) => {
 
     // console.log(JSON.parse(JSON.stringify(candy)));
     // console.log(JSON.parse(JSON.stringify(target)));
-    console.log(JSON.parse(JSON.stringify(grid)));
+    // console.log(JSON.parse(JSON.stringify(grid)));
 
 
 }
@@ -311,10 +311,11 @@ export const solveGoalChanges = (goalId: number, prematched: { asset: number, qu
     }
     return [];
 }
-export const countMatched = (game: GameModel, result: { toChange: CellItem[]; toCreate: CellItem[]; toMove: CellItem[]; toRemove: CellItem[]; toSmesh?: { target: number; candy: CellItem; smesh?: number[] }[][] }[]): { asset: number; quantity: number }[] => {
-    console.log("count game matched")
+export const countMatched = (game: GameModel, result: { toChange: CellItem[]; toCreate: CellItem[]; toMove: CellItem[]; toRemove: CellItem[]; toSmesh?: { target: number; candy: CellItem; smesh: CellItem[] }[][] }[]): { skillBuff: { skill: number; progress: number }[]; matched: { asset: number; quantity: number }[] } => {
+    const skillBuff: { skill: number; progress: number }[] = [];
     const matched: { asset: number; quantity: number }[] = [];
     for (const res of result) {
+
         const { toChange, toRemove, toSmesh } = res;
         toChange.forEach((c) => {
             const m = matched.find((m) => m.asset === c.src);
@@ -324,8 +325,49 @@ export const countMatched = (game: GameModel, result: { toChange: CellItem[]; to
             const m = matched.find((m) => m.asset === c.asset);
             m ? m.quantity++ : matched.push({ asset: c.asset, quantity: 1 });
         })
+        const s1 = skillBuff.find((s) => s.skill === 1);
+        if (!s1) {
+            skillBuff.push({ skill: 1, progress: toRemove.length })
+        } else {
+            s1.progress = s1.progress + toRemove.length;
+        }
+
+        const s2 = skillBuff.find((s) => s.skill === 2);
+        if (!s2) {
+            skillBuff.push({ skill: 2, progress: Math.floor(toRemove.length / 2) })
+        } else {
+            s2.progress = s2.progress + Math.floor(toRemove.length / 2);
+        }
+
+        if (toSmesh) {
+            for (const s of toSmesh) {
+                s.forEach((c) => {
+                    const items: CellItem[] = c.smesh;
+                    items.forEach((c) => {
+                        const m = matched.find((m) => m.asset === c.asset);
+                        m ? m.quantity++ : matched.push({ asset: c.asset, quantity: 1 });
+                    })
+                })
+            }
+            const s3 = skillBuff.find((s) => s.skill === 3);
+            if (!s3)
+                skillBuff.push({ skill: 3, progress: toSmesh.length * 10 })
+            else
+                s3.progress = s3.progress + toSmesh.length * 10;
+        }
+
     }
-    console.log(matched)
+
+    if (!game.data.skillBuff)
+        game.data.skillBuff = [];
+    skillBuff.forEach((sk) => {
+        const sb = game.data.skillBuff.find((s: { skill: number; progress: number }) => s.skill === sk.skill)
+        if (sb)
+            sb.progress = Math.min(sb.progress + sk.progress, 100)
+        else
+            game.data.skillBuff.push(sk)
+    })
+
     if (!game.data.matched)
         game.data.matched = [];
     matched.forEach((m) => {
@@ -335,8 +377,7 @@ export const countMatched = (game: GameModel, result: { toChange: CellItem[]; to
         else
             game.data.matched.push(m)
     })
-    console.log(game.data.matched)
 
-    return matched
+    return { matched, skillBuff }
 }
 

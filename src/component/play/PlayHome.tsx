@@ -1,3 +1,4 @@
+import isPropValid from "@emotion/is-prop-valid";
 import { Id } from "convex/_generated/dataModel";
 import { BattleModel } from "model/Battle";
 import { BATTLE_LOAD } from "model/Constants";
@@ -6,6 +7,7 @@ import BattleProvider from "service/BattleManager";
 import GameProvider from "service/GameManager";
 import SceneProvider from "service/SceneManager";
 import { useUserManager } from "service/UserManager";
+import { StyleSheetManager } from "styled-components";
 import useDimension from "util/useDimension";
 import PageProps from "../../model/PageProps";
 import useTournamentManager from "../../service/TournamentManager";
@@ -18,7 +20,7 @@ import OpponentMatch from "./match/OpponentMatch";
 import OpponentSearch from "./match/OpponentSearch";
 import "./play.css";
 import BattleReport from "./report/BattleReport";
-import SkillControl from "./SkillControl";
+import SkillControl from "./skill/SkillControl";
 
 interface ControlProps {
   battleId: string;
@@ -40,18 +42,18 @@ const PlayControl: React.FC<ControlProps> = ({ battleId }) => {
     <>
       {battle ? (
         <BattleProvider battle={battle}>
-          <BattleGround>  
+          <BattleGround>
             <TimeCount />
             <BattleConsole />
             {battle.games &&
               battle.games.map((g) => (
                 <GameProvider key={g.gameId} gameId={g.gameId}>
                   <GamePlay />
+                  {g.uid === user.uid ? <SkillControl /> : null}
                 </GameProvider>
               ))}
             <BattleScene />
           </BattleGround>
-          <SkillControl />
           <BattleReport />
           {!matchCompleted ? <OpponentMatch /> : null}
         </BattleProvider>
@@ -91,12 +93,14 @@ const PlayHome: React.FC<PageProps> = (pageProp) => {
   }, []);
   return (
     <>
-      <div ref={sceneRef} className="play_container">
-        <SceneProvider load={load} visible={visible} pageProp={pageProp} pagePosition={pagePosition}>
-          {load >= 0 && battleId ? <PlayControl battleId={battleId} /> : null}
-          <OpponentSearch />
-        </SceneProvider>
-      </div>
+      <StyleSheetManager shouldForwardProp={(propName) => isPropValid(propName)}>
+        <div ref={sceneRef} className="play_container">
+          <SceneProvider load={load} visible={visible} pageProp={pageProp} pagePosition={pagePosition}>
+            {load >= 0 && battleId ? <PlayControl battleId={battleId} /> : null}
+            <OpponentSearch />
+          </SceneProvider>
+        </div>
+      </StyleSheetManager>
     </>
   );
 };

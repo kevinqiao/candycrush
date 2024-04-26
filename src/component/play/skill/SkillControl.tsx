@@ -1,8 +1,9 @@
 import React, { useCallback, useMemo } from "react";
 import { useBattleManager } from "service/BattleManager";
+import { CircularProgressButton } from "./CircularProgressButton";
 
 const SkillControl: React.FC = () => {
-  const { skill, setSkill, bounds } = useBattleManager();
+  const { currentSkill, setCurrentSkill, bounds } = useBattleManager();
   const bound = useMemo(() => {
     if (bounds) {
       const b = bounds.find((b) => b.name === "player");
@@ -21,16 +22,20 @@ const SkillControl: React.FC = () => {
     }
     return null;
   }, [bounds]);
+
   const toggleSkill = useCallback(
     (s: number) => {
-      if (s === skill) setSkill(0);
-      else setSkill(s);
+      if (s === 0 || s === currentSkill) setCurrentSkill(0);
+      else if (currentSkill === 0) {
+        setCurrentSkill(s);
+      }
     },
-    [skill]
+    [currentSkill]
   );
+
   return (
     <>
-      {skill && bound ? (
+      {currentSkill && bound ? (
         <div
           style={{
             position: "absolute",
@@ -45,7 +50,7 @@ const SkillControl: React.FC = () => {
           onClick={() => toggleSkill(0)}
         ></div>
       ) : null}
-      {skill && note ? (
+      {currentSkill && note ? (
         <div
           style={{
             display: "flex",
@@ -74,58 +79,13 @@ const SkillControl: React.FC = () => {
             top: bound.top,
             left: bound.left,
             width: bound.width,
-            height: bound.height,
-            backgroundColor: "white",
+            height: bound.height + 30,
+            backgroundColor: "transparent",
           }}
         >
-          <div
-            style={{
-              cursor: "pointer",
-              display: "flex",
-              justifyContent: "center",
-              alignItems: "center",
-              width: 80,
-              height: 40,
-              backgroundColor: "blue",
-              color: "white",
-              borderRadius: 4,
-            }}
-            onClick={() => toggleSkill(1)}
-          >
-            Crush
-          </div>
-          <div
-            style={{
-              cursor: "pointer",
-              display: "flex",
-              justifyContent: "center",
-              alignItems: "center",
-              width: 80,
-              height: 40,
-              backgroundColor: "blue",
-              color: "white",
-              borderRadius: 4,
-            }}
-            onClick={() => toggleSkill(2)}
-          >
-            Swap
-          </div>
-          <div
-            style={{
-              cursor: "pointer",
-              display: "flex",
-              justifyContent: "center",
-              alignItems: "center",
-              width: 80,
-              height: 40,
-              backgroundColor: "blue",
-              color: "white",
-              borderRadius: 4,
-            }}
-            onClick={() => toggleSkill(3)}
-          >
-            Spray
-          </div>
+          <CircularProgressButton skill={1} onClick={() => toggleSkill(1)} />
+          <CircularProgressButton skill={2} onClick={() => toggleSkill(2)} />
+          <CircularProgressButton skill={3} onClick={() => toggleSkill(3)} />
         </div>
       ) : null}
     </>

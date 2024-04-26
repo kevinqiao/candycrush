@@ -54,7 +54,7 @@ const useSkill = () => {
                     {
                         const { candy, target } = data;
                         if (candy && target && game) {
-                            swapSuccess(game.gameId, candy, target)
+                            swapSuccess(game.gameId, candy, target, null)
                             doAct(Constant.GAME_ACTION.SKILL_SWAP, { candyId: data.candy.id, targetId: data.target.id })
                         }
                     }

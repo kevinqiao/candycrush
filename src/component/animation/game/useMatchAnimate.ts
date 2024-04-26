@@ -107,7 +107,7 @@ export const playRemove = (toRemove: CellItem[], gameScene: GameScene, textures:
 
 }
 
-const buildSmesh = (candyMap: Map<number, CandySprite>, smesh: { target: number; candy: CellItem; smesh?: number[] }, tl: any) => {
+const buildSmesh = (candyMap: Map<number, CandySprite>, smesh: { target: number; candy: CellItem; smesh: CellItem[] }, tl: any) => {
 
     const candies: CandySprite[] = Array.from(candyMap.values());
     const candy = candyMap.get(smesh.candy.id);
@@ -122,8 +122,8 @@ const buildSmesh = (candyMap: Map<number, CandySprite>, smesh: { target: number;
             duration: 0.2,
             ease: 'power2.out',
         }, "<");
-
-    const cells: CandySprite[] = candies.filter((c) => smesh.smesh && smesh.smesh.includes(c.id));
+    const smeshIds = smesh.smesh.map((s) => s.id);
+    const cells: CandySprite[] = candies.filter((c) => smeshIds.includes(c.id));
     const sl = gsap.timeline();
     tl.add(sl, ">");
     const ml = gsap.timeline();
@@ -134,7 +134,7 @@ const buildSmesh = (candyMap: Map<number, CandySprite>, smesh: { target: number;
             c,
             {
                 alpha: 0,
-                duration: 0.1,
+                duration: 0.3,
                 ease: 'power2.out',
 
             }, "<");
@@ -143,7 +143,7 @@ const buildSmesh = (candyMap: Map<number, CandySprite>, smesh: { target: number;
 
 
 }
-export const playSmesh = (toSmesh: { target: number; candy: CellItem }[][], gameScene: GameScene, tl: any) => {
+export const playSmesh = (toSmesh: { target: number; candy: CellItem; smesh: CellItem[] }[][], gameScene: GameScene, tl: any) => {
 
     const candyMap = gameScene.candies;
     if (candyMap) {
@@ -205,19 +205,17 @@ const useMatchAnimate = () => {
                             {
                                 onComplete: () => {
                                     const candyMap = gameScene.candies;
-                                    const smeshs: { target: number; candy: CellItem; smesh: number[] }[][] = res.toSmesh;
+                                    const smeshs: { target: number; candy: CellItem; smesh: CellItem[] }[][] = res.toSmesh;
                                     smeshs.flat().forEach((c) => {
-                                        console.log(c.smesh)
-                                        c.smesh.forEach((cid) => {
-                                            const candy = candyMap.get(cid);
+                                        c.smesh.forEach((c) => {
+                                            const candy = candyMap.get(c.id);
                                             if (candy) {
-                                                candyMap.delete(cid)
+                                                candyMap.delete(c.id)
                                                 candy.parent.removeChild(candy as PIXI.DisplayObject)
                                                 candy.destroy();
                                             }
                                         })
                                     })
-
                                 }
                             }
                         );
