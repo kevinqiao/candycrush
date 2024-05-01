@@ -1,5 +1,5 @@
-import { useEffect, useRef } from "react";
-import { SCENE_NAME } from "../../model/Constants";
+import React, { useEffect, useRef } from "react";
+import { SCENE_NAME } from "../../model/Match3Constants";
 import { useSceneManager } from "../../service/SceneManager";
 import useDimension from "../../util/useDimension";
 
@@ -8,7 +8,7 @@ const Loading = () => {
   const { scenes, stageScene } = useSceneManager();
   const { width, height } = useDimension(sceneContainerRef);
   useEffect(() => {
-    if (sceneContainerRef.current) {
+    if (scenes && sceneContainerRef.current) {
       const scene = scenes.get(SCENE_NAME.BATTLE_MATCHING);
       if (!scene && width > 0 && height > 0) {
         const scene = {

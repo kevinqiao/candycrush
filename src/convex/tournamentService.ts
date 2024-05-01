@@ -23,4 +23,14 @@ export const join = action({
 
     }
 })
+export const exit = action({
+    args: { uid: v.string(), token: v.string() },
+    handler: async (ctx, { uid, token }) => {
+        const qs = await ctx.runQuery(internal.matchqueue.finByUid, { uid });
+        if (qs) {
+            await ctx.runMutation(internal.matchqueue.remove, { id: qs._id });
+            return { ok: true }
+        }
+    }
+})
 

@@ -1,20 +1,27 @@
 import { useSearchMatch } from "component/animation/battle/useSearchMatch";
-import { BATTLE_LOAD, SCENE_NAME } from "model/Constants";
+import { BATTLE_LOAD } from "model/Constants";
+import { SCENE_NAME } from "model/Match3Constants";
 import React, { useEffect, useMemo, useRef } from "react";
 import { useSceneManager } from "service/SceneManager";
+import useTournamentManager from "service/TournamentManager";
 import "./search.css";
-interface Props {
-  battleId: string | null;
+interface props {
+  onExit: () => void;
 }
-const OpponentSearch: React.FC = () => {
+const OpponentSearch: React.FC<props> = ({ onExit }) => {
   const sceneContainerRef = useRef<HTMLDivElement | null>(null);
   const searchRef = useRef<HTMLDivElement | null>(null);
   const { load, scenes } = useSceneManager();
   const { playSearch, closeSearch } = useSearchMatch();
+  const { exit } = useTournamentManager();
+  const cancelSearch = () => {
+    exit();
+    onExit();
+  };
 
   useEffect(() => {
     if (sceneContainerRef.current && searchRef.current) {
-      if (!scenes.has(SCENE_NAME.BATTLE_SEARCH)) {
+      if (scenes && !scenes.has(SCENE_NAME.BATTLE_SEARCH)) {
         const es = new Map<string, HTMLDivElement>();
         es.set("containerEle", sceneContainerRef.current);
         es.set("searchEle", searchRef.current);
@@ -33,7 +40,13 @@ const OpponentSearch: React.FC = () => {
       <>
         <div ref={sceneContainerRef} className="search_container">
           <div ref={searchRef} className="search_sprite">
-            <span style={{ fontSize: 20 }}>Searching...</span>
+            <div className="search_tip">
+              <span style={{ fontSize: 20 }}>Searching...</span>
+            </div>
+            <div style={{ height: 20 }}></div>
+            <div className="cancel_btn" style={{ cursor: "pointer" }} onClick={cancelSearch}>
+              <span>Cancel</span>
+            </div>
           </div>
         </div>
       </>

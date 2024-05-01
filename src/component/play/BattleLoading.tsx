@@ -1,6 +1,6 @@
 import { gsap } from "gsap";
 import React, { useEffect, useRef, useState } from "react";
-import { SCENE_NAME } from "../../model/Constants";
+import { SCENE_NAME } from "../../model/Match3Constants";
 import { useSceneManager } from "../../service/SceneManager";
 import useDimension from "../../util/useDimension";
 
@@ -64,7 +64,7 @@ const BattleLoading = ({ battle }: { battle: any }) => {
   }, [searchComplete, battle]);
 
   useEffect(() => {
-    if (sceneContainerRef.current) {
+    if (scenes && sceneContainerRef.current) {
       const scene = scenes.get(SCENE_NAME.BATTLE_MATCHING);
       if (!scene && width > 0 && height > 0) {
         const scene = {
@@ -84,7 +84,7 @@ const BattleLoading = ({ battle }: { battle: any }) => {
       }
     }
     return () => {
-      scenes.delete(SCENE_NAME.BATTLE_MATCHING);
+      if (scenes) scenes.delete(SCENE_NAME.BATTLE_MATCHING);
     };
   }, [sceneContainerRef, searchRef, vsRef, foundRef, scenes, width, height, stageScene]);
 

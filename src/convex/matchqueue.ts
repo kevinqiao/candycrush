@@ -3,7 +3,6 @@ import { CellItem } from "../model/CellItem";
 import { BATTLE_COUNT_DOWN_TIME } from "../model/Constants";
 import { createGame } from "../service/GameEngine";
 import * as Utils from "../util/Utils";
-import { Id } from "./_generated/dataModel";
 import { internalMutation, internalQuery } from "./_generated/server";
 export const finByUid = internalQuery({
   args: {
@@ -48,7 +47,7 @@ export const settleMatch = internalMutation({
       if (tournament && diffcult) {
         const startTime = Date.now() + BATTLE_COUNT_DOWN_TIME;
         const battle: any = { tournamentId: tournament.id, participants: tournament.participants, diffcult: diffcult?.id, startTime, duration: tournament.battleTime };
-        battle['duration'] = 300000;
+        battle['duration'] = 60000;
         battle['dueTime'] = startTime + battle['duration'];
 
         const battleId = await ctx.db.insert("battle", { ...battle, status: 0 });
@@ -62,7 +61,7 @@ export const settleMatch = internalMutation({
 
         if (!gameData) return;
         const game: any = { diffcult: diffcult.id, battleId, tid: tournament.id, data: { cells: gameData?.data.cells, lastCellId: gameData.data.lastCellId }, seed, type: 0, laststep: 0, uid: m.uid, startTime, dueTime: battle['dueTime'], ref: "####" };
-        game.data['skillBuff'] = [{ skill: 1, progress: 80 }, { skill: 2, progress: 90 }]
+        game.data['skillBuff'] = [{ skill: 1, progress: 85 }, { skill: 2, progress: 98 }, { skill: 3, progress: 95 }]
         if (allToMatch.length === 1) {
           // const gameData: { gameId: string; data: any; seed: string; diffcult: string } | null = await findGameInitData(ctx, m.uid, tournament);
           const opponent = await findOpponent(ctx);
@@ -74,27 +73,15 @@ export const settleMatch = internalMutation({
 
         let gameId = await ctx.db.insert("games", game);
         await ctx.db.insert("events", { name: "gameInited", gameId, data: { gameId, ...game } });
-        await ctx.db.insert("events", { name: "battleCreated", uid: m.uid, data: { id: battleId } });
+
+        await ctx.db.insert("events", { name: "battleCreated", uid: m.uid, time: Date.now(), data: { id: battleId } });
         gameId = await ctx.db.insert("games", opponentGame);
         await ctx.db.insert("events", { name: "gameInited", gameId, data: { gameId, ...opponentGame } });
-        await ctx.db.insert("events", { name: "battleCreated", uid: opponentGame['uid'], data: { id: battleId } });
+        await ctx.db.insert("events", { name: "battleCreated", uid: opponentGame['uid'], time: Date.now(), data: { id: battleId } });
       }
     }
   },
 });
-
-const findGameInitData = async (ctx: any, uid: string, tournament: any) => {
-  const game = await ctx.db.get("32b04scsrn3ny7qm2sj70tsm9njpcxr" as Id<"games">)
-  const event = await ctx.db
-    .query("events").withIndex("by_game", (q: any) => q.eq("gameId", "32b04scsrn3ny7qm2sj70tsm9njpcxr"))
-    .filter((q: any) => q.eq(q.field("name"), "gameInited"))
-    .first();
-  if (game && event) {
-    return { gameId: "32b04scsrn3ny7qm2sj70tsm9njpcxr", seed: game['seed'] as string, diffcult: game['diffcult'] as string, data: event['data']['data'] }
-  }
-  return null;
-
-}
 
 const findOpponent = async (ctx: any) => {
   const users = await ctx.db.query("user").filter((q: any) => q.eq(q.field("tenant"), "####")).collect();

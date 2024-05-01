@@ -1,7 +1,7 @@
 import { SceneModel } from "model/SceneModel";
 import * as PIXI from "pixi.js";
 import React, { useCallback, useEffect } from "react";
-import { SCENE_NAME } from "../../model/Constants";
+import { SCENE_NAME } from "../../model/Match3Constants";
 import { useSceneManager } from "../../service/SceneManager";
 
 const BattleScene = () => {
@@ -53,6 +53,7 @@ const BattleScene = () => {
       ref={load}
       style={{
         position: "absolute",
+        zIndex: 260,
         top: 0,
         left: 0,
         width: "100%",

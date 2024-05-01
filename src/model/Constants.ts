@@ -1,15 +1,14 @@
-// export const COLUMN = 7;
-// export const ROW = 8;
-export const MOVE_DIRECTION = {
-    RIGHT: 1,
-    LEFT: 3,
-    UP: 4,
-    DOWN: 2
-};
-export const MATCH_DIRECTION = {
-    HORIZATION: 1,
-    VERTICAL: 2
-};
+
+// export const MOVE_DIRECTION = {
+//     RIGHT: 1,
+//     LEFT: 3,
+//     UP: 4,
+//     DOWN: 2
+// };
+// export const MATCH_DIRECTION = {
+//     HORIZATION: 1,
+//     VERTICAL: 2
+// };
 export const BATTLE_LOAD = {
     PLAY: 0,
     RELOAD: 1,
@@ -29,29 +28,31 @@ export const STACK_PAGE_DIRECTION = {
     CENTER: 0
 }
 
-export const CANDY_SMASH_TYPE = {
-    LINE: 1,
-    EXPLODE: 2,
-    FLY: 3,
-    SQUASH: 4,
-    DIG: 5,
-    OTHER: 6
-}
-export const CANDY_MATCH_TYPE = {
-    LINE: 0,
-    TMODEL: 1,
-    LMODEL: 2,
-}
+// export const CANDY_SMASH_TYPE = {
+//     LINE: 1,
+//     EXPLODE: 2,
+//     FLY: 3,
+//     SQUASH: 4,
+//     DIG: 5,
+//     OTHER: 6
+// }
+// export const CANDY_MATCH_TYPE = {
+//     LINE: 0,
+//     TMODEL: 1,
+//     LMODEL: 2,
+// }
 export const BATTLE_DURATION = 180000
-export const SCENE_NAME = {
-    BATTLE_LOADING: "loading_battle",
-    BATTLE_MATCHING: "matching_battle",
-    BATTLE_CONSOLE: "battle_console",
-    BATTLE_GROUND: "battle_ground",
-    BATTLE_FRONT: "battle_front",
-    BATTLE_SCENE: "battle_scene",
-    BATTLE_SEARCH: "battle_search"
-}
+// export const SCENE_NAME = {
+//     BATTLE_LOADING: "loading_battle",
+//     BATTLE_MATCHING: "matching_battle",
+//     BATTLE_CONSOLE: "battle_console",
+//     BATTLE_GROUND: "battle_ground",
+//     BATTLE_FRONT: "battle_front",
+//     BATTLE_SCENE: "battle_scene",
+//     BATTLE_SEARCH: "battle_search",
+//     GAME_SCENES: "game_scenes",
+//     GAME_CONSOLES: "game_consoles"
+// }
 export const SCENE_TYPE = {
     PIXI_APPLICATION: 0,
     HTML_DIVELEMENT: 1
@@ -62,14 +63,14 @@ export const BATTLE_EVENT = {
     BATTLE_PAUSE: "battlePause"
 };
 
-export const GAME_EVENT = {
-    SWIPE_CANDY: "cellSwapped",
-    SMASH_CANDY: "cellSmeshed",
-    SKILL_HAMMER: "skillHammer",
-    SKILL_SWAP: "skillSwap",
-    SKILL_SPRAY: "skillSpray",
-    GAME_OVER: "gameOver"
-} as { [key: string]: string };
+// export const GAME_EVENT = {
+//     SWIPE_CANDY: "cellSwapped",
+//     SMASH_CANDY: "cellSmeshed",
+//     SKILL_HAMMER: "skillHammer",
+//     SKILL_SWAP: "skillSwap",
+//     SKILL_SPRAY: "skillSpray",
+//     GAME_OVER: "gameOver"
+// } as { [key: string]: string };
 
 export const GAME_STATUS = {
     OPEN: 0,
@@ -81,13 +82,13 @@ export const BATTLE_STATUS = {
     END: 1,
     SETTLED: 2
 }
-export const GAME_ACTION = {
-    SWIPE_CANDY: "SWIPE_CANDY",
-    SMASH_CANDY: "SMASH_CANDY",
-    SKILL_HAMMER: "SKILL_HAMMER",
-    SKILL_SWAP: "SKILL_SWAP",
-    SKILL_SPRAY: "SKILL_SPRAY"
-};
+// export const GAME_ACTION = {
+//     SWIPE_CANDY: "SWIPE_CANDY",
+//     SMASH_CANDY: "SMASH_CANDY",
+//     SKILL_HAMMER: "SKILL_HAMMER",
+//     SKILL_SWAP: "SKILL_SWAP",
+//     SKILL_SPRAY: "SKILL_SPRAY"
+// };
 // export const GAME_PLAY_TIME = 600000
 export const CHANNEL_AUTH = {
     CLERK: 0,
@@ -101,27 +102,3 @@ export const GAME_TYPE = {
 }
 export const BATTLE_SEARCH_MAX_TIME = 2500;
 export const BATTLE_COUNT_DOWN_TIME = 10000;
-export const getEventByAction = (action: string): string | null => {
-    for (const k in GAME_ACTION) {
-        if (k == action)
-            return GAME_EVENT[k]
-    }
-    return null
-}
-export const getActBySkill = (skill: number): string | null => {
-    let skillName = null;
-    switch (skill) {
-        case 1:
-            skillName = GAME_ACTION.SKILL_HAMMER
-            break;
-        case 2:
-            skillName = GAME_ACTION.SKILL_SWAP
-            break;
-        case 3:
-            skillName = GAME_ACTION.SKILL_SPRAY
-            break;
-        default:
-            break;
-    }
-    return skillName
-}

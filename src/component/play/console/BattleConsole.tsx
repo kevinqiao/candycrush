@@ -1,5 +1,6 @@
+import { SCENE_TYPE } from "model/Match3Constants";
 import React, { useCallback, useMemo, useRef } from "react";
-import { BATTLE_LOAD, SCENE_NAME, SCENE_TYPE } from "../../../model/Constants";
+import { BATTLE_LOAD } from "../../../model/Constants";
 import { useBattleManager } from "../../../service/BattleManager";
 import { useSceneManager } from "../../../service/SceneManager";
 import { useUserManager } from "../../../service/UserManager";
@@ -54,7 +55,7 @@ const BattleConsole = () => {
           width,
           height: 0,
         };
-        stageScene(SCENE_NAME.BATTLE_CONSOLE, scene);
+        // stageScene(SCENE_NAME.BATTLE_CONSOLE, scene);
       }
     },
     [containerBound, stageScene]

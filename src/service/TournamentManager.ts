@@ -12,8 +12,11 @@ const useTournamentManager = () => {
   const { user } = useUserManager();
   const convex = useConvex();
 
+  const exit = useCallback(async (): Promise<void> => {
+    await convex.action(api.tournamentService.exit, { uid: user.uid, token: user.token });
+  }, [user])
   const join = useCallback(async (tournamentId: string): Promise<{ ok: boolean, code?: number } | null> => {
-
+    await convex.action(api.tournamentService.join, { uid: user.uid, token: user.token, tid: tournamentId })
     if (!user || !user.uid) {
       openPage({ name: "signin", data: null })
       return null;
@@ -44,6 +47,6 @@ const useTournamentManager = () => {
     },
     [convex]
   );
-  return { join, listActives, findBattle };
+  return { join, exit, listActives, findBattle };
 };
 export default useTournamentManager;

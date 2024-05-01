@@ -24,6 +24,7 @@ const SearchOpponent = () => {
   const { battle, allGameLoaded } = useBattleManager();
   const { user } = useUserManager();
   const animation = useAnimation();
+
   const playSearch = useCallback(() => {
     const tl = gsap.timeline({
       repeat: 4,

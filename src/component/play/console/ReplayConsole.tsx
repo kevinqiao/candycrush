@@ -1,6 +1,7 @@
+import { SCENE_NAME } from "model/Match3Constants";
 import { ConsoleScene } from "model/SceneModel";
 import React, { useCallback, useMemo, useRef } from "react";
-import { SCENE_NAME, SCENE_TYPE } from "../../../model/Constants";
+import { SCENE_TYPE } from "../../../model/Constants";
 import { useBattleManager } from "../../../service/BattleManager";
 import { useSceneManager } from "../../../service/SceneManager";
 import { countBaseScore } from "../../../util/MatchGameUtils";

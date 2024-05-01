@@ -1,8 +1,9 @@
 import { CandySprite } from "component/pixi/CandySprite";
 import { gsap } from "gsap";
 import { CellItem } from "model/CellItem";
+import { SCENE_NAME } from "model/Match3Constants";
 import * as PIXI from "pixi.js";
-import { useCallback } from "react";
+import { MutableRefObject, useCallback, useRef } from "react";
 import { useGameManager } from "service/GameManager";
 import { useUserManager } from "service/UserManager";
 import { GameScene } from "../../../model/SceneModel";
@@ -22,7 +23,6 @@ export const playChange = (toChange: CellItem[], gameScene: GameScene, textures:
     if (candyMap && cwidth) {
         toChange.forEach((c) => {
             const candy = candyMap.get(c.id);
-
             if (candy) {
                 const cx = c.column * cwidth + Math.floor(cwidth / 2);
                 const cy = c.row * cwidth + Math.floor(cwidth / 2);
@@ -48,16 +48,18 @@ export const playChange = (toChange: CellItem[], gameScene: GameScene, textures:
     }
 }
 export const playMove = (toMove: CellItem[], gameScene: GameScene, textures: Texture[], tl: any) => {
-    // console.log(toMove);
 
     const candyMap = gameScene.candies;
-    const cwidth = gameScene.cwidth;
-    if (candyMap && cwidth)
+
+    if (candyMap)
         toMove.forEach((c) => {
-            const candy = candyMap.get(c.id);
+            const candy: CandySprite | undefined = candyMap.get(c.id);
             if (candy) {
-                const cx = c.column * cwidth + Math.floor(cwidth / 2);
-                const cy = c.row * cwidth + Math.floor(cwidth / 2);
+                const cw = (candy as PIXI.Sprite).width;
+                const ch = (candy as PIXI.Sprite).height;
+                console.log(cw + ":" + ch + ":" + gameScene.gameId)
+                const cx = c.column * cw + Math.floor(cw / 2);
+                const cy = c.row * ch + Math.floor(ch / 2);
                 candy.column = c.column;
                 candy.row = c.row;
                 tl.to(
@@ -163,7 +165,8 @@ export const playSmesh = (toSmesh: { target: number; candy: CellItem; smesh: Cel
         }
     }
 }
-const useMatchAnimate = () => {
+const useMatchAnimate = (animateStatusRef: MutableRefObject<number>) => {
+    const timelineRef = useRef<any>(null);
     const { game } = useGameManager();
     const { user } = useUserManager();
     const { scenes, textures } = useSceneManager();
@@ -171,16 +174,25 @@ const useMatchAnimate = () => {
     const { swapSuccess } = useSkillAnimate();
     const { playCollect } = useCollectCandies();
 
-
+    const stopPlay = useCallback(() => {
+        if (timelineRef.current)
+            timelineRef.current.kill();
+        timelineRef.current = null;
+    }, [])
     const playApply = useCallback(
         (event: any) => {
-            if (!game) return;
-            const gameScene: GameScene = scenes.get(game.gameId) as GameScene;
+            if (!game || !scenes?.get(SCENE_NAME.GAME_SCENES) || timelineRef.current) return;
+            const gameScene: GameScene = scenes.get(SCENE_NAME.GAME_SCENES).find((g: GameScene) => g.gameId === game.gameId)
+            console.log(gameScene.gameId + ":" + gameScene.cwidth)
+            animateStatusRef.current = 3;
             const tl = gsap.timeline({
                 onComplete: () => {
                     tl.kill();
+                    timelineRef.current = null;
+                    animateStatusRef.current = 0;
                 }
-            });
+            })
+            timelineRef.current = tl;
 
             if (event.name === "cellSwapped" && game.uid !== user.uid) {
                 const sl = gsap.timeline();
@@ -254,7 +266,7 @@ const useMatchAnimate = () => {
     );
 
 
-    return { playApply };
+    return { playApply, stopPlay };
 };
 export default useMatchAnimate
 

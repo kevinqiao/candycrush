@@ -1,5 +1,5 @@
 import React, { useCallback, useRef } from "react";
-import { SCENE_NAME, SCENE_TYPE } from "../../model/Constants";
+import { SCENE_NAME, SCENE_TYPE } from "../../model/Match3Constants";
 import { useSceneManager } from "../../service/SceneManager";
 
 const BattleFront = () => {

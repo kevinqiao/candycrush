@@ -2,7 +2,7 @@ import { gsap } from "gsap";
 import { useCallback } from "react";
 
 import { CandySprite } from "component/pixi/CandySprite";
-import { GameScene } from "../../../model/SceneModel";
+import { SCENE_NAME } from "model/Match3Constants";
 import { useSceneManager } from "../../../service/SceneManager";
 
 
@@ -11,8 +11,8 @@ const useActAnimate = () => {
     const swapSuccess = useCallback(
         // (animate: Animate, timeline: any) => {
         (gameId: string, candySprite: CandySprite, targetSprite: CandySprite, timeline: any) => {
-            // const { gameId, candy, target } = animate.data
-            const gameScene = scenes.get(gameId) as GameScene;
+            const gameScenes = scenes?.get(SCENE_NAME.GAME_SCENES);
+            const gameScene = gameScenes.find((s: any) => s.gameId === gameId);
             if (!gameScene) return;
             const tl = timeline ?? gsap.timeline();
 

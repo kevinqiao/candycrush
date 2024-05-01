@@ -5,8 +5,8 @@ import { useCallback, useEffect, useRef } from "react";
 import { useBattleManager } from "service/BattleManager";
 import { useGameManager } from "service/GameManager";
 import { CellItem } from "../../../model/CellItem";
-import { SCENE_NAME } from "../../../model/Constants";
-import { ConsoleScene, GameScene, SceneModel } from "../../../model/SceneModel";
+import { SCENE_NAME } from "../../../model/Match3Constants";
+import { GameConsoleScene, GameScene } from "../../../model/SceneModel";
 import { useSceneManager } from "../../../service/SceneManager";
 import * as GameUtils from "../../../util/MatchGameUtils";
 const useCollectCandies = () => {
@@ -22,16 +22,15 @@ const useCollectCandies = () => {
 
     }, [game])
     const getGoalTarget = (gameId: string, asset: number) => {
-
+        if (!scenes) return;
         const ground = scenes.get(SCENE_NAME.BATTLE_GROUND);
+        const gameConsoleScenes = scenes?.get(SCENE_NAME.GAME_CONSOLES);
+        const gameConsoleScene = gameConsoleScenes.find((s: GameConsoleScene) => s.gameId === gameId);
 
-        const consoleScene = scenes.get(SCENE_NAME.BATTLE_CONSOLE) as ConsoleScene;
-
-        if (ground && consoleScene) {
-            const panel = consoleScene.goalPanels.find((p) => p.gameId === gameId);
+        if (ground && gameConsoleScene?.goalPanel) {
+            const panel = gameConsoleScene.goalPanel;
 
             if (panel) {
-
                 const goal = panel.goals.find((g) => g.asset === asset);
                 if (goal?.iconEle) {
                     const goalBound = (goal.iconEle as HTMLElement).getBoundingClientRect();
@@ -72,10 +71,11 @@ const useCollectCandies = () => {
             tl.play();
     }, [])
     const playChangeScore = useCallback((gameId: string, score: { from: number; to: number }, timeline: any) => {
-        const scene: ConsoleScene | undefined = scenes.get(SCENE_NAME.BATTLE_CONSOLE) as ConsoleScene;
-        const avatarbar = scene.avatarBars.find((a) => a.gameId === gameId);
-
-        if (!avatarbar || !scene) return
+        if (!scenes) return;
+        const gameConsoleScenes = scenes?.get(SCENE_NAME.GAME_CONSOLES);
+        const gameConsoleScene = gameConsoleScenes.find((s: GameConsoleScene) => s.gameId === gameId);
+        if (!gameConsoleScene || !gameConsoleScene.avatarBar) return;
+        const avatarbar = gameConsoleScene.avatarBar;
 
         const tl = timeline ?? gsap.timeline();
         const sl = gsap.timeline();
@@ -111,10 +111,14 @@ const useCollectCandies = () => {
     }, [game, battle])
 
     const playGoalCollect = useCallback((gameId: string, removes: CellItem[], timeline: any) => {
-        const gameScene: GameScene | undefined = scenes.get(gameId) as GameScene;
-        const battleScene: SceneModel | undefined = scenes.get(SCENE_NAME.BATTLE_SCENE);
+        if (!scenes) return;
+        // const gameScene: GameScene | undefined = scenes.get(gameId) as GameScene;
+        // const battleScene: SceneModel | undefined = scenes.get(SCENE_NAME.BATTLE_SCENE);
+        const gameScenes = scenes?.get(SCENE_NAME.GAME_SCENES);
+        const gameScene = gameScenes.find((s: GameScene) => s.gameId === gameId)
+
         const cwidth = gameScene?.cwidth;
-        if (battle && gameScene && battleScene && textures && cwidth) {
+        if (battle && gameScene && textures && cwidth) {
             const { goal: goalId } = battle.data;
             const goalObj = GAME_GOAL.find((g) => g.id === goalId);
             if (goalObj) {
@@ -143,9 +147,12 @@ const useCollectCandies = () => {
 
     }, [battle])
     const playGoalMove = useCallback((gameId: string, candy: CellItem, tl: any) => {
-        const gameScene: GameScene | undefined = scenes.get(gameId) as GameScene;
-        const battleScene: SceneModel | undefined = scenes.get(SCENE_NAME.BATTLE_SCENE);
+        if (!scenes) return;
+        const gameScenes = scenes?.get(SCENE_NAME.GAME_SCENES);
+        const gameScene = gameScenes.find((s: GameScene) => s.gameId === gameId);
+        const battleScene = scenes.get(SCENE_NAME.BATTLE_SCENE)
         const target = getGoalTarget(gameId, candy.asset);
+
         const cwidth = gameScene?.cwidth;
         const texture = textures?.find((d) => d.id === candy.asset);
         if (battleScene && gameScene && texture && target) {
@@ -185,15 +192,18 @@ const useCollectCandies = () => {
 
     const playChangeGoal = useCallback(
         (gameId: string, goalChanges: { asset: number; from: number; to: number }[], timeline: any) => {
-            const consoleScene = scenes.get(SCENE_NAME.BATTLE_CONSOLE) as ConsoleScene;
-            if (consoleScene) {
+            if (!scenes) return;
+            const gameConsoleScenes = scenes?.get(SCENE_NAME.GAME_CONSOLES);
+            const gameConsoleScene = gameConsoleScenes.find((s: GameConsoleScene) => s.gameId === gameId);
+
+            if (gameConsoleScene) {
                 const tl = timeline ?? gsap.timeline();
-                const panel = consoleScene.goalPanels.find((p) => p.gameId === gameId);
+                const panel = gameConsoleScene.goalPanel;
                 for (const item of goalChanges) {
                     // if (item.from <= 0) continue;
                     const et = gsap.timeline();
                     tl.add(et, "<")
-                    const m = panel?.goals.find((g) => g.asset === item.asset);
+                    const m = panel?.goals.find((g: any) => g.asset === item.asset);
                     if (m?.qtyEle) {
                         et.to(m.qtyEle, {
                             duration: 0.7, onUpdate: () => {

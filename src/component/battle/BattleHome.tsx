@@ -33,14 +33,21 @@ const BattleHome: React.FC = () => {
     if (!user || !convex || menuIndex !== 2) return;
 
     const from = battles && battles.length > 0 ? battles[0].time : undefined;
-    convex.query(api.battle.findMyBattles, { uid: user.uid, token: user.token, from }).then((bs: any) => {
-      if (bs.length > 0) {
-        bs.sort((a: any, b: any) => b.time - a.time);
-        console.log(bs);
-        lastTimeRef.current = bs[0].time;
-        setBattles((pre: any) => (pre ? [...bs, ...pre] : bs));
-      }
-    });
+    try {
+      convex
+        .query(api.battle.findMyBattles, { uid: user.uid, token: user.token, from })
+        .then((bs: any) => {
+          if (bs.length > 0) {
+            bs.sort((a: any, b: any) => b.time - a.time);
+            console.log(bs);
+            lastTimeRef.current = bs[0].time;
+            setBattles((pre: any) => (pre ? [...bs, ...pre] : bs));
+          }
+        })
+        .catch((e) => console.log(e));
+    } catch (e) {
+      console.log(e);
+    }
   }, [user, convex, menuIndex]);
   const bgColor = useCallback(
     (type: number) => {

@@ -1,6 +1,7 @@
 import { gsap } from "gsap";
 import { useCallback } from "react";
 
+import { SCENE_NAME } from "model/Match3Constants";
 import { CellItem } from "../../../model/CellItem";
 import { GameScene } from "../../../model/SceneModel";
 import { useSceneManager } from "../../../service/SceneManager";
@@ -11,8 +12,8 @@ const useActAnimate = () => {
     const swipeSuccess = useCallback(
         // (animate: Animate, timeline: any) => {
         (gameId: string, candy: CellItem, target: CellItem, timeline: any) => {
-            // const { gameId, candy, target } = animate.data
-            const gameScene = scenes.get(gameId) as GameScene;
+            const gameScenes = scenes?.get(SCENE_NAME.GAME_SCENES);
+            const gameScene = gameScenes.find((s: GameScene) => s.gameId === gameId)
             if (!gameScene) return;
             const tl = gsap.timeline({
                 // onComplete: () => {
@@ -29,11 +30,11 @@ const useActAnimate = () => {
                 candySprite.row = candy.row;
                 targetSprite.column = target.column;
                 targetSprite.row = target.row;
-                const cwidth = gameScene.cwidth;
-                const cx = candy.column * cwidth + Math.floor(cwidth / 2);
-                const cy = candy.row * cwidth + Math.floor(cwidth / 2);
-                const tx = target.column * cwidth + Math.floor(cwidth / 2);
-                const ty = target.row * cwidth + Math.floor(cwidth / 2);
+                const radius = gameScene.cwidth;
+                const cx = candy.column * radius + Math.floor(radius / 2);
+                const cy = candy.row * radius + Math.floor(radius / 2);
+                const tx = target.column * radius + Math.floor(radius / 2);
+                const ty = target.row * radius + Math.floor(radius / 2);
                 tl.to(
                     candySprite,
                     {
@@ -61,7 +62,8 @@ const useActAnimate = () => {
     const swipeFail = useCallback(
         (gameId: string, candyId: number, targetId: number, timeline: any) => {
 
-            const gameScene = scenes.get(gameId) as GameScene;
+            const gameScenes = scenes?.get(SCENE_NAME.GAME_SCENES);
+            const gameScene = gameScenes.find((s: GameScene) => s.gameId === gameId)
             if (!gameScene) return;
             const tl = gsap.timeline({
 

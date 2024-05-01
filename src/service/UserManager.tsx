@@ -13,16 +13,16 @@ interface UserEvent {
 
 interface IUserContext {
   user: any | null;
-  sessionCheck: number;
   userEvent: UserEvent | null;
+  sessionCheck: number;
   authComplete: (user: User) => void;
   signout: () => void;
 }
 
 const UserContext = createContext<IUserContext>({
   user: null,
-  sessionCheck: 0,
   userEvent: null,
+  sessionCheck: 0,
   authComplete: () => null,
   signout: () => null,
 });
@@ -30,38 +30,48 @@ const UserContext = createContext<IUserContext>({
 export const UserProvider = ({ children }: { children: React.ReactNode }) => {
   const { stacks, currentPage, openPage } = usePageManager();
   const [user, setUser] = useState<any>(null);
+
   const [sessionCheck, setSessionCheck] = useState(0); //0-to check 1-checked
-  const [lastTime, setLastTime] = useState<number>(Date.now());
+  const [lastTime, setLastTime] = useState<number>(0);
   const authByToken = useAction(api.UserService.authByToken);
-  const userEvent: any = useQuery(api.events.getByUser, { uid: user?.uid ?? "###", lastTime });
+  console.log("lasttime:" + lastTime);
+  const userEvent: any = useQuery(api.events.getByUser, {
+    uid: user?.uid ?? "###",
+    lastTime,
+  });
 
-  const openBattle = useCallback((u: User, battle: any) => {
-    const app: any = getCurrentAppConfig();
-    const pageItem: PageItem = {
-      name: "battlePlay",
-      ctx: app.context,
-      data: { battleId: battle.id },
-      params: { battleId: battle.id },
-    };
+  const openPlay = useCallback(
+    (u: User, battle: any) => {
+      const app: any = getCurrentAppConfig();
+      const pageItem: PageItem = {
+        name: "battlePlay",
+        ctx: app.context,
+        data: battle ? { battleId: battle.id } : null,
+        params: battle ? { battleId: battle.id } : null,
+      };
 
-    if (u?.authEmbed) {
-      pageItem.params.uid = u.uid;
-      pageItem.params.token = u.token;
-      const url = buildStackURL(pageItem);
-      window.Telegram.WebApp.openLink(url);
-    } else openPage(pageItem);
-  }, []);
+      if (u?.authEmbed) {
+        pageItem.params.uid = u.uid;
+        pageItem.params.token = u.token;
+        const url = buildStackURL(pageItem);
+        window.Telegram.WebApp.openLink(url);
+      } else openPage(pageItem);
+    },
+    [openPage]
+  );
 
   const authComplete = useCallback(
     (u: User) => {
       u.timelag = u.timestamp ? u.timestamp - Date.now() : 0;
       localStorage.setItem("user", JSON.stringify({ uid: u.uid, token: u.token, authEmbed: u.authEmbed ?? 0 }));
-
-      if (u.battle) {
+      if (u["insearch"]) {
+        console.log("you are in searching opponent");
+        openPlay(u, null);
+      } else if (u.battle) {
         const stack = stacks.find((s) => s.name === "battlePlay");
-        if (!stack) openBattle(u, u.battle);
+        if (!stack) openPlay(u, u.battle);
       }
-      setLastTime(u.timelag + Date.now());
+      if (u.timestamp) setLastTime(u.timestamp);
       setUser(u);
     },
 
@@ -69,11 +79,13 @@ export const UserProvider = ({ children }: { children: React.ReactNode }) => {
   );
   useEffect(() => {
     if (userEvent && user) {
+      console.log(userEvent);
       if (userEvent?.name === "battleCreated") {
         const stack = stacks.find((s) => s.name === "battlePlay");
-        if (!stack) openBattle(user, userEvent.data);
+        if (!stack) openPlay(user, userEvent.data);
       }
-      setLastTime(userEvent.time);
+      console.log("time:" + userEvent.time + ":" + lastTime);
+      if (userEvent.time > lastTime) setLastTime(userEvent.time);
     }
   }, [user, userEvent]);
 
@@ -117,8 +129,8 @@ export const UserProvider = ({ children }: { children: React.ReactNode }) => {
 
   const value = {
     user,
-    sessionCheck,
     userEvent,
+    sessionCheck,
     authComplete,
     signout: useCallback(() => {
       localStorage.removeItem("user");

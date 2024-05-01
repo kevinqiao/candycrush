@@ -6,7 +6,7 @@ import { action } from "./_generated/server";
 export const authByToken = action({
     args: { uid: v.string(), token: v.string() },
     handler: async (ctx, { uid, token }) => {
-        console.log("uid:" + uid)
+        // console.log("uid:" + uid)
         try {
             const user: any = await ctx.runQuery(internal.user.find, { id: uid as Id<"user"> })
             if (user) {
@@ -16,6 +16,9 @@ export const authByToken = action({
                     if (battle && ((battle.duration + battle.startTime) > Date.now()))
                         user['battle'] = battle
                 }
+                const matching = await ctx.runQuery(internal.matchqueue.finByUid, { uid: user.uid });
+                if (matching)
+                    user['insearch'] = 1;
                 // await ctx.runMutation(internal.user.update, { id: user["_id"], data: {} })
             }
             return { token: "123456", ...user, timestamp: Date.now() }
@@ -37,7 +40,7 @@ export const logout = action({
     args: { uid: v.string() },
     handler: async (ctx, { uid }) => {
     }
-    
+
 })
 export const signin = action({
     args: { uid: v.id("user"), token: v.string() },
@@ -54,6 +57,9 @@ export const signin = action({
                 } else
                     b["games"] = [{ uid: uid, gameId: game._id }]
                 user['battle'] = b;
+                const matching = await ctx.runQuery(internal.matchqueue.finByUid, { uid: user.uid });
+                if (matching)
+                    user['insearch'] = 1;
             }
             await ctx.runMutation(internal.user.update, { id: user["_id"], data: {} })
         }

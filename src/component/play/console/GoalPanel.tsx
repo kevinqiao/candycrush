@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useState } from "react";
-import { SCENE_NAME } from "../../../model/Constants";
-import { ConsoleScene } from "../../../model/SceneModel";
+import { SCENE_NAME } from "../../../model/Match3Constants";
+import { GameConsoleScene } from "../../../model/SceneModel";
 import { useBattleManager } from "../../../service/BattleManager";
 import { useSceneManager } from "../../../service/SceneManager";
 import game_goals from "../goals";
@@ -46,19 +46,17 @@ const GoalPanel: React.FC<Props> = ({ layout, game }) => {
   const loadGoal = useCallback(
     (type: number, el: HTMLElement | HTMLDivElement, goal: { asset: number; quantity: number }) => {
       if (scenes && game) {
-        const consoleScene = scenes.get(SCENE_NAME.BATTLE_CONSOLE) as ConsoleScene;
+        const gameConsoleScenes = scenes?.get(SCENE_NAME.GAME_CONSOLES);
+        const gameConsoleScene = gameConsoleScenes.find((s: GameConsoleScene) => s.gameId === game.gameId);
 
-        if (consoleScene) {
-          if (!consoleScene.goalPanels) consoleScene.goalPanels = [];
-          let panel = consoleScene.goalPanels.find((p) => p.gameId === game.gameId);
-          if (!panel) {
-            panel = { gameId: game.gameId, goals: [] };
-            consoleScene.goalPanels.push(panel);
+        if (gameConsoleScene) {
+          if (!gameConsoleScene.goalPanel) {
+            gameConsoleScene.goalPanel = { gameId: game.gameId, goals: [] };
           }
-          let item = panel.goals.find((g) => g.asset === goal.asset);
+          let item = gameConsoleScene.goalPanel.goals.find((g: any) => g.asset === goal.asset);
           if (!item) {
             item = { asset: goal.asset, iconEle: null, qtyEle: null };
-            panel.goals.push(item);
+            gameConsoleScene.goalPanel.goals.push(item);
           }
           if (type === 0) item.qtyEle = el;
           else if (type === 1) item.iconEle = el;
@@ -75,18 +73,18 @@ const GoalPanel: React.FC<Props> = ({ layout, game }) => {
           key={index}
           style={{
             display: "flex",
-            justifyContent: layout === 0 ? "flex-start" : "flex-end",
+            justifyContent: layout === 1 ? "flex-start" : "flex-end",
             width: "100%",
             backgroundColor: "blue",
             marginTop: 5,
           }}
         >
-          {r.map((a) => (
+          {r.reverse().map((a) => (
             <div
               key={a.asset}
               style={{
                 display: "flex",
-                justifyContent: layout === 0 ? "flex-start" : "flex-end",
+                justifyContent: layout === 1 ? "flex-start" : "flex-end",
                 width: "50%",
                 backgroundColor: "transparent",
               }}
@@ -95,7 +93,7 @@ const GoalPanel: React.FC<Props> = ({ layout, game }) => {
                 <div ref={(el: HTMLDivElement) => loadGoal(1, el, a)} style={{ width: 25, height: 25 }}>
                   <GoalCandy asset={a.asset} />
                 </div>
-                <div style={{ position: "absolute", top: -8, left: layout === 0 ? -6 : 20, color: "white" }}>
+                <div style={{ position: "absolute", top: -8, left: layout === 1 ? -6 : 20, color: "white" }}>
                   <span ref={(el: HTMLElement) => loadGoal(0, el, a)} style={{ fontSize: 15 }}>
                     {a.quantity > 0 ? a.quantity : "✔️"}
                   </span>

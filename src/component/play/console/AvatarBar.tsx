@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useRef, useState } from "react";
-import { SCENE_NAME } from "../../../model/Constants";
-import { ConsoleScene } from "../../../model/SceneModel";
+import { SCENE_NAME } from "../../../model/Match3Constants";
+import { GameConsoleScene } from "../../../model/SceneModel";
 import { useSceneManager } from "../../../service/SceneManager";
 import * as GameUtils from "../../../util/MatchGameUtils";
 import useDimension from "../../../util/useDimension";
@@ -34,23 +34,14 @@ const AvatarBar: React.FC<Props> = ({ layout, game }) => {
     transform: `scale(${height / frameSize},${height / frameSize})`,
     transformOrigin: "top left",
   };
+
   const getAvatarBar = useCallback(() => {
     if (!game || !scenes) return;
-
-    const consoleScene = scenes.get(SCENE_NAME.BATTLE_CONSOLE) as ConsoleScene;
-    let avatarBar;
-
-    if (consoleScene && game?.gameId) {
-      // setBattleGame(game);
-      const gameId = game.gameId;
-      if (!consoleScene.avatarBars) consoleScene.avatarBars = [];
-      avatarBar = consoleScene.avatarBars.find((a) => a.gameId === gameId);
-      if (!avatarBar) {
-        avatarBar = { gameId: game.gameId, avatar: null, bar: null, score: null, plus: null };
-        consoleScene.avatarBars.push(avatarBar);
-      }
-    }
-    return avatarBar;
+    const gameConsoleScenes = scenes?.get(SCENE_NAME.GAME_CONSOLES);
+    const gameConsoleScene = gameConsoleScenes.find((s: GameConsoleScene) => s.gameId === game.gameId);
+    if (gameConsoleScene && !gameConsoleScene.avatarBar)
+      gameConsoleScene.avatarBar = { avatar: null, bar: null, score: null, plus: null };
+    return gameConsoleScene.avatarBar;
   }, [game, scenes]);
 
   const loadAvatar = useCallback(
@@ -108,10 +99,10 @@ const AvatarBar: React.FC<Props> = ({ layout, game }) => {
         ref={loadBar}
         style={{
           display: "flex",
-          justifyContent: layout === 0 ? "flex-end" : "flex-start",
+          justifyContent: layout === 1 ? "flex-end" : "flex-start",
           position: "absolute",
-          top: height * 0.2,
-          left: layout === 0 ? height * 0.5 : 0,
+          top: 0,
+          left: 0,
           width: width - height * 0.5,
           height: height * 0.6,
           backgroundColor: "red",
@@ -137,7 +128,7 @@ const AvatarBar: React.FC<Props> = ({ layout, game }) => {
           }}
         ></div>
       </div>
-      <div ref={loadAvatar} style={{ position: "absolute", top: 0, left: layout === 0 ? 0 : width - height }}>
+      <div ref={loadAvatar} style={{ position: "absolute", top: -10, left: layout === 1 ? -25 : width - height }}>
         <div style={avatarSheetStyle}></div>
       </div>
     </div>

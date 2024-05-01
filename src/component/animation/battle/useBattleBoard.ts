@@ -1,6 +1,6 @@
 import { gsap } from "gsap";
 import { useCallback } from "react";
-import { SCENE_NAME } from "../../../model/Constants";
+import { SCENE_NAME } from "../../../model/Match3Constants";
 import { ConsoleScene } from "../../../model/SceneModel";
 import { useSceneManager } from "../../../service/SceneManager";
 import { useUserManager } from "../../../service/UserManager";
@@ -13,7 +13,7 @@ const useBattleBoard = () => {
 
     const initConsole = useCallback(
         (uid: string, gameId: string, score: number, timeline: any) => {
-
+            if (!scenes) return;
             const scene: ConsoleScene | undefined = scenes.get(SCENE_NAME.BATTLE_CONSOLE) as ConsoleScene
             if (!scene?.goalPanels || !user) return;
             const tl = timeline ?? gsap.timeline();
@@ -92,7 +92,7 @@ const useBattleBoard = () => {
 
     const changeScore = useCallback(
         (gameId: string, score: { from: number, to: number }, timeline: any) => {
-
+            if (!scenes) return;
             const scene: ConsoleScene | undefined = scenes.get(SCENE_NAME.BATTLE_CONSOLE) as ConsoleScene;
 
             if (!scene || !score) return;

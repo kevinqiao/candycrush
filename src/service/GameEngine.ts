@@ -1,16 +1,12 @@
 import goals from "../component/play/goals";
 import { BattleModel, BattleReward } from '../model/Battle';
 import { CellItem } from "../model/CellItem";
-import { GAME_ACTION, GAME_EVENT, GAME_STATUS } from '../model/Constants';
+import { GAME_STATUS } from "../model/Constants";
 import { GameModel } from '../model/GameModel';
+import { GAME_ACTION, GAME_EVENT } from '../model/Match3Constants';
 import { Tournament } from '../model/Tournament';
 import { countMatched, findMatch, findMatch3, findMove, getFreeCandy, getRandomAsset, hasMatch3 } from '../util/MatchGameUtils';
 import { getRandom, getRandomSeed } from '../util/Utils';
-interface SwipeResult {
-    candy: CellItem;
-    target: CellItem;
-    results: { toChange: CellItem[]; toCreate?: CellItem[]; toMove: CellItem[]; toRemove: CellItem[] }[];
-}
 
 export type Match = {
     type: number;//0-LINE  1-T 2-L 
@@ -275,11 +271,11 @@ const canUseSkill = (game: GameModel, skill: number): boolean => {
     }
     return false
 }
-export const executeAct = (game: GameModel, battle: BattleModel, action: { name: string; data: any }): any => {
+export const executeAct = (game: GameModel, battle: BattleModel, action: { act: number; data: any }): any => {
     if (!game.seed) return;
     let actionResult: any = null;
 
-    switch (action.name) {
+    switch (action.act) {
         case GAME_ACTION.SWIPE_CANDY:
             actionResult = handleSwipe(game, battle, action.data);
             game.data.moves ? game.data.moves++ : game.data.moves = 1;

@@ -44,6 +44,7 @@ export default defineSchema({
         gameId: v.optional(v.string()),
         uid: v.optional(v.string()),
         steptime: v.optional(v.number()),
+        time: v.optional(v.number()),
         data: v.any(),
     }).index("by_game", ["gameId"]).index("by_uid", ["uid"]).index("by_battle", ["battleId"]),
     rounds: defineTable({
@@ -107,6 +108,7 @@ export default defineSchema({
         token: v.optional(v.string()),
         tenant: v.optional(v.string()),
         lastUpdate: v.optional(v.number()),
+        lastEventTime: v.optional(v.number()),
         email: v.optional(v.string()),
         status: v.optional(v.number())//0-active 1-removed
     }),

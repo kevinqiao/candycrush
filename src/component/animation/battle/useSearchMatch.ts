@@ -1,5 +1,5 @@
 import { gsap } from "gsap";
-import { SCENE_NAME } from "model/Constants";
+import { SCENE_NAME } from "model/Match3Constants";
 import { SearchScene } from "model/SceneModel";
 import { useCallback } from "react";
 import { useSceneManager } from "service/SceneManager";
@@ -75,6 +75,7 @@ export const useSearchMatch = () => {
 
 
     const playSearch = useCallback((timeline: any) => {
+        if (!scenes) return;
         const searchScene = scenes.get(SCENE_NAME.BATTLE_SEARCH) as SearchScene;
 
         if (!searchScene.containerEle || !searchScene.searchEle) return;
@@ -103,7 +104,7 @@ export const useSearchMatch = () => {
     }, [scenes]);
 
     const closeSearch = useCallback((timeline: any) => {
-
+        if (!scenes) return;
         const searchScene = scenes.get(SCENE_NAME.BATTLE_SEARCH) as SearchScene;
 
         if (!searchScene.containerEle || !searchScene.searchEle) return;

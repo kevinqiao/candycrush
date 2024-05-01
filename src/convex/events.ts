@@ -31,26 +31,21 @@ export const findGameInitEvent = query({
     return event
   },
 });
+
 export const getByUser = query({
   args: { uid: v.string(), lastTime: v.number() },
   handler: async (ctx, { uid, lastTime }) => {
-    if (uid === "###") return;
-    console.log("uid:" + uid + " lastime:" + lastTime)
-    let time = lastTime;
-    if (time === 0) {
-      const id = uid as Id<"user">
-      const user = await ctx.db.get(id)
-      // const user = await ctx.db.query(("user")).filter((q) => q.eq(q.field("uid"), uid)).first();
-      if (user?.lastUpdate)
-        time = user.lastUpdate
+    console.log(uid + ":" + lastTime)
+    if (lastTime > 0) {
+      const event = await ctx.db
+        .query("events").withIndex("by_uid", (q) => q.eq("uid", uid))
+        .filter((q) => q.gt(q.field("time"), lastTime)).order("desc")
+        .first();
+      if (event) {
+        return { ...event, _id: undefined, _creationTime: undefined, id: event._id }
+      }
     }
-    const event = await ctx.db
-      .query("events").withIndex("by_uid", (q) => q.eq("uid", uid))
-      .filter((q) => q.gt(q.field("_creationTime"), time)).order("desc")
-      .first();
-    if (event)
-      return { ...event, _id: undefined, _creationTime: undefined, time: event._creationTime, id: event._id }
-  },
+  }
 });
 export const getByGame = query({
   args: { gameId: v.optional(v.string()), laststep: v.number() },

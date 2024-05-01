@@ -15,14 +15,14 @@ interface IGameContext {
   gameEvent?: GameEvent | null;
   // swapCell: (candyId: number, targetId: number) => Promise<any>;
   // smash: (candyId: number) => void;
-  doAct: (gameId: string, data: any) => void;
+  doAct: (act: number, data: any) => void;
 }
 const GameContext = createContext<IGameContext>({
   game: null,
   gameEvent: null,
   // swapCell: async (candyId: number, targetId: number) => null,
   // smash: (candyId: number) => null,
-  doAct: async (gameId: string, data: any) => null,
+  doAct: async (act: number, data: any) => null,
 });
 
 export const GameProvider = ({ gameId, children }: { gameId: string; children: React.ReactNode }) => {
@@ -47,7 +47,7 @@ export const GameProvider = ({ gameId, children }: { gameId: string; children: R
 
   const sync = useCallback(async () => {
     if (!battle?.data) return;
-    console.log("sync game data with load:" + load);
+
     let g: any;
     if (load === BATTLE_LOAD.PLAY || load === BATTLE_LOAD.RELOAD)
       g = await convex.query(api.games.findGame, {
@@ -146,10 +146,11 @@ export const GameProvider = ({ gameId, children }: { gameId: string; children: R
     game: gameRef.current,
     gameEvent,
     doAct: useCallback(
-      async (name: string, data: any): Promise<null> => {
+      async (act: number, data: any): Promise<null> => {
         if (user && load !== BATTLE_LOAD.REPLAY) {
+          console.log("do act:" + name);
           await convex.action(api.gameService.doAct, {
-            act: name,
+            act,
             uid: user.uid,
             token: user.token,
             gameId,

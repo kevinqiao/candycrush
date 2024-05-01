@@ -1,4 +1,5 @@
 import { gsap } from "gsap";
+import { SCENE_NAME } from "model/Match3Constants";
 import { useCallback } from "react";
 import { GameScene } from "../../../model/SceneModel";
 import { useSceneManager } from "../../../service/SceneManager";
@@ -9,11 +10,13 @@ const useInitGame = () => {
     const { scenes } = useSceneManager();
     const play = useCallback(
         (gameId: string, timeline: any) => {
+            if (!scenes) return;
+            const gameScenes: GameScene[] = Array.from(scenes.get(SCENE_NAME.GAME_SCENES).values());
+            const gameScene: GameScene | undefined = gameScenes.find((g: GameScene) => g.gameId === gameId)
 
-            const gameScene = scenes.get(gameId) as GameScene;
 
             const tl = timeline ?? gsap.timeline();
-            console.log("play init game:" + gameId + " candies size:" + gameScene.candies.size)
+
             if (gameScene && gameScene.candies && gameScene.column && gameScene.row) {
 
                 const candies: CandySprite[] = Array.from(gameScene.candies.values());
