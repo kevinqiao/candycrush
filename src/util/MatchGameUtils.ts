@@ -294,7 +294,7 @@ export const solveGoalChanges = (goalId: number, prematched: { asset: number, qu
         const goalObj = GAME_GOAL.find((g) => g.id === goalId);
         if (goalObj) {
             const changes: { asset: number; from: number; to: number }[] = []
-            for (const item of goalObj.assets) {
+            for (const item of goalObj.goal) {
                 const pre = prematched.find((a) => a.asset === item.asset);
                 const cur = curmatched.find((a) => a.asset === item.asset);
                 if (cur) {
@@ -327,16 +327,16 @@ export const countMatched = (game: GameModel, result: { toChange: CellItem[]; to
         })
         const s1 = skillBuff.find((s) => s.skill === 1);
         if (!s1) {
-            skillBuff.push({ skill: 1, progress: toRemove.length })
+            skillBuff.push({ skill: 1, progress: toRemove.length * 3 })
         } else {
-            s1.progress = s1.progress + toRemove.length;
+            s1.progress = s1.progress + toRemove.length * 3;
         }
 
         const s2 = skillBuff.find((s) => s.skill === 2);
         if (!s2) {
-            skillBuff.push({ skill: 2, progress: Math.floor(toRemove.length / 2) })
+            skillBuff.push({ skill: 2, progress: Math.floor(toRemove.length) })
         } else {
-            s2.progress = s2.progress + Math.floor(toRemove.length / 2);
+            s2.progress = s2.progress + Math.floor(toRemove.length);
         }
 
         if (toSmesh) {

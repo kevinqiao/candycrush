@@ -10,7 +10,7 @@ import { useSceneManager } from "../../../service/SceneManager";
 const useActAnimate = () => {
     const { scenes } = useSceneManager();
     const swipeSuccess = useCallback(
-        // (animate: Animate, timeline: any) => {
+
         (gameId: string, candy: CellItem, target: CellItem, timeline: any) => {
             const gameScenes = scenes?.get(SCENE_NAME.GAME_SCENES);
             const gameScene = gameScenes.find((s: GameScene) => s.gameId === gameId)

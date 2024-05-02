@@ -242,8 +242,6 @@ export const findReport = action({
           // report.push({ uid: game.uid, gameId: game._id, result: game.result });
         } else {
           const status = game.startTime && game.dueTime ? (Date.now() > game.dueTime ? 2 : 1) : 0;
-          // const timeLeft = battle.startTime + battle.duration - Date.now();
-          // console.log("game:" + game._id + " time left:" + timeLeft)
           if (status === 2) {
             const diff = await ctx.runQuery(internal.diffcult.find, { id: game.diffcult })
             if (diff?.data) {

@@ -45,6 +45,7 @@ export default defineSchema({
         uid: v.optional(v.string()),
         steptime: v.optional(v.number()),
         time: v.optional(v.number()),
+        actionId: v.optional(v.number()),
         data: v.any(),
     }).index("by_game", ["gameId"]).index("by_uid", ["uid"]).index("by_battle", ["battleId"]),
     rounds: defineTable({

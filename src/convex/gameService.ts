@@ -9,11 +9,10 @@ import { sessionAction } from "./custom/session";
 
 
 export const doAct = sessionAction({
-    args: { act: v.number(), gameId: v.string(), data: v.any() },
-    handler: async (ctx, { act, gameId, data }) => {
-        // console.log(ctx.user)
-        // console.log(data)
-        console.log("do action:" + act)
+    args: { act: v.number(), gameId: v.string(), actionId: v.optional(v.number()), data: v.any() },
+    handler: async (ctx, { act, gameId, actionId, data }) => {
+
+        console.log("do action:" + act + " actionId:" + actionId)
         const game: any = await ctx.runQuery(internal.games.getGame, { gameId: gameId as Id<"games"> });
         if (!game || !game?.battleId) return;
 
@@ -27,7 +26,7 @@ export const doAct = sessionAction({
             const steptime = Math.round(Date.now() - battle['startTime']);
             if (eventName)
                 await ctx.runMutation(internal.events.create, {
-                    name: eventName, gameId, data: { ...actionResult.data, results: actionResult.result, gameData: { ...game.data, cells: undefined } }, steptime
+                    name: eventName, gameId, actionId, data: { ...actionResult.data, results: actionResult.result, gameData: { ...game.data, cells: undefined } }, steptime
                 })
             const diff = await ctx.runQuery(internal.diffcult.find, { id: game.diffcult })
             if (diff?.data) {
@@ -47,6 +46,7 @@ export const doAct = sessionAction({
                 await ctx.runMutation(internal.games.update, {
                     gameId: gameId as Id<"games">, data: { ...game, gameId: undefined, defender: undefined, laststep: steptime }
                 });
+                return { ok: true }
             }
         }
     }

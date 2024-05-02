@@ -47,9 +47,9 @@ const useCollectCandies = () => {
 
     }
 
-    const playCollect = useCallback((gameId: string, result: any, timeline: any) => {
+    const playCollect = useCallback((gameId: string, cells: CellItem[], timeline: any) => {
         const matched: { asset: number; quantity: number }[] = JSON.parse(JSON.stringify(prematchedRef.current));
-        result.toRemove.forEach((r: CellItem) => {
+        cells.forEach((r: CellItem) => {
             const ma = matched.find((m) => m.asset === r.asset);
             if (ma)
                 ma.quantity++;
@@ -64,7 +64,7 @@ const useCollectCandies = () => {
 
         playChangeScore(gameId, { from, to }, sl);
         const gl = gsap.timeline();
-        playGoalCollect(gameId, result.toRemove, gl);
+        playGoalCollect(gameId, cells, gl);
         prematchedRef.current = matched;
         tl.add(gl, "<");
         if (!timeline)
@@ -95,7 +95,6 @@ const useCollectCandies = () => {
             const pl = gsap.timeline({
                 onComplete: () => {
                     if (avatarbar.plus) {
-                        console.log("remove span")
                         avatarbar.plus?.removeChild(span)
                     }
                 }
@@ -112,8 +111,7 @@ const useCollectCandies = () => {
 
     const playGoalCollect = useCallback((gameId: string, removes: CellItem[], timeline: any) => {
         if (!scenes) return;
-        // const gameScene: GameScene | undefined = scenes.get(gameId) as GameScene;
-        // const battleScene: SceneModel | undefined = scenes.get(SCENE_NAME.BATTLE_SCENE);
+        // console.log(removes)
         const gameScenes = scenes?.get(SCENE_NAME.GAME_SCENES);
         const gameScene = gameScenes.find((s: GameScene) => s.gameId === gameId)
 
@@ -125,7 +123,7 @@ const useCollectCandies = () => {
                 const goalChanges: { asset: number; from: number; to: number }[] = [];
                 const mt = gsap.timeline();
                 removes.forEach((r, index) => {
-                    const goal = goalObj.assets.find((a) => a.asset === r.asset);
+                    const goal = goalObj.goal.find((a) => a.asset === r.asset);
                     let matched = prematchedRef.current.find((c) => c.asset === r.asset);
                     if (!matched)
                         matched = { asset: r.asset, quantity: 0 }

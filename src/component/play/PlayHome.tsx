@@ -19,6 +19,7 @@ import GamePlay from "./GamePlay";
 import OpponentMatch from "./match/OpponentMatch";
 import OpponentSearch from "./match/OpponentSearch";
 import "./play.css";
+import BattleReport from "./report/BattleReport";
 import SkillControl from "./skill/SkillControl";
 
 interface ControlProps {
@@ -29,7 +30,6 @@ const PlayControl: React.FC<ControlProps> = ({ battleId }) => {
   const { findBattle } = useTournamentManager();
   const { user } = useUserManager();
   const { initialize } = useSceneManager();
-  // const [sceneComplete, setSceneComplete] = useState(false);
 
   useEffect(() => {
     if (!battle && battleId) {
@@ -40,11 +40,6 @@ const PlayControl: React.FC<ControlProps> = ({ battleId }) => {
       });
     }
   }, [battleId]);
-  // useEffect(() => {
-  //   if (sceneEvent?.name === "sceneComplete") {
-  //     setSceneComplete(true);
-  //   }
-  // }, [sceneEvent]);
 
   const matchCompleted = useMemo(() => {
     return battle && battle.startTime - Date.now() - user.timelag <= 0 ? true : false;
@@ -55,7 +50,6 @@ const PlayControl: React.FC<ControlProps> = ({ battleId }) => {
         <BattleProvider battle={battle}>
           <BattleGround>
             <TimeCount />
-            {/* <BattleConsole /> */}
             {battle.games &&
               battle.games.map((g) => (
                 <GameProvider key={g.gameId} gameId={g.gameId}>
@@ -66,7 +60,7 @@ const PlayControl: React.FC<ControlProps> = ({ battleId }) => {
               ))}
             <BattleScene />
           </BattleGround>
-          {/* <BattleReport /> */}
+          <BattleReport />
           {!matchCompleted ? <OpponentMatch /> : null}
         </BattleProvider>
       ) : null}
@@ -106,7 +100,7 @@ const PlayHome: React.FC<PageProps> = (pageProp) => {
       document.removeEventListener("visibilitychange", handleVisibilityChange);
     };
   }, []);
-  console.log("load:" + load);
+
   return (
     <>
       <StyleSheetManager shouldForwardProp={(propName) => isPropValid(propName)}>

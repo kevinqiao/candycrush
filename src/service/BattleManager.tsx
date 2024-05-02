@@ -1,6 +1,4 @@
-import { BATTLE_LOAD } from "model/Constants";
-import React, { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
-import { getDualBounds, getMonoBounds } from "util/BattleBoundUtil";
+import React, { createContext, useCallback, useContext, useEffect, useState } from "react";
 import { BattleModel } from "../model/Battle";
 import { useSceneManager } from "./SceneManager";
 import { useUserManager } from "./UserManager";
@@ -11,7 +9,7 @@ interface IBattleContext {
   battle: BattleModel | null;
   allGameLoaded: boolean;
   battleOver: number;
-  bounds: { name: string; top: number; left: number; width: number; height: number; radius?: number }[] | null;
+  // bounds: { name: string; top: number; left: number; width: number; height: number; radius?: number }[] | null;
   setCurrentSkill: (skill: number) => void;
   reset: () => void;
   timeout: () => void;
@@ -24,7 +22,7 @@ const BattleContext = createContext<IBattleContext>({
   allGameLoaded: false,
   battle: null,
   battleOver: 0,
-  bounds: null,
+  // bounds: null,
   setCurrentSkill: (skill: number) => null,
   reset: () => null,
   timeout: () => null,
@@ -46,16 +44,16 @@ export const BattleProvider = ({ battle, children }: { battle: BattleModel | nul
     if (battle.status || mygame?.result || timeLeft < 0) setBattleOver(1);
   }, [battle, user]);
 
-  const bounds = useMemo(() => {
-    if (!battle || !containerBound || load < 0) return null;
-    const { column, row } = battle.data;
-    const { width, height } = containerBound;
-    const bs =
-      load !== BATTLE_LOAD.REPLAY
-        ? getDualBounds(width, height, column, row)
-        : getMonoBounds(width, height, column, row);
-    return bs;
-  }, [load, battle, containerBound]);
+  // const bounds = useMemo(() => {
+  //   if (!battle || !containerBound || load < 0) return null;
+  //   const { column, row } = battle.data;
+  //   const { width, height } = containerBound;
+  //   const bs =
+  //     load !== BATTLE_LOAD.REPLAY
+  //       ? getDualBounds(width, height, column, row)
+  //       : getMonoBounds(width, height, column, row);
+  //   return bs;
+  // }, [load, battle, containerBound]);
 
   const value = {
     currentSkill,
@@ -63,7 +61,7 @@ export const BattleProvider = ({ battle, children }: { battle: BattleModel | nul
     allGameLoaded,
     battle,
     battleOver,
-    bounds,
+    // bounds,
     setCurrentSkill,
     timeout: useCallback(() => {
       // console.log(event);

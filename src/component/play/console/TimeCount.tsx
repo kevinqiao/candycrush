@@ -10,10 +10,10 @@ const TimeCount = () => {
   const { battle, timeout } = useBattleManager();
   const pauseTimeRef = useRef(-1);
   const [timeLeft, setTimeLeft] = useState<number>(-1);
-  useEffect(() => {
-    if (!visible) pauseTimeRef.current = timeLeft;
-    else setTimeLeft(pauseTimeRef.current);
-  }, [visible]);
+  // useEffect(() => {
+  //   if (!visible) pauseTimeRef.current = timeLeft;
+  //   else setTimeLeft(pauseTimeRef.current);
+  // }, [visible]);
 
   useEffect(() => {
     if (!battle || !user || !visible) return;

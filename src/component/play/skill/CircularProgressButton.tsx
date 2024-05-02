@@ -63,7 +63,7 @@ export const CircularProgressButton: FunctionComponent<CircularProgressButtonPro
         const sbuff = skillBuff.find((s: { skill: number; progress: number }) => s.skill === skill);
         if (sbuff) {
           const strokeDashoffset = circumference - (sbuff.progress / 100) * circumference;
-          console.log(skill + ":" + strokeDashoffset + ":" + circumference);
+          // console.log(skill + ":" + strokeDashoffset + ":" + circumference);
 
           gsap.to(pid, {
             strokeDasharray: circumference,

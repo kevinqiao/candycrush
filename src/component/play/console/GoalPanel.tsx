@@ -1,9 +1,8 @@
 import React, { useCallback, useEffect, useState } from "react";
-import { SCENE_NAME } from "../../../model/Match3Constants";
+import { GAME_GOAL, SCENE_NAME } from "../../../model/Match3Constants";
 import { GameConsoleScene } from "../../../model/SceneModel";
 import { useBattleManager } from "../../../service/BattleManager";
 import { useSceneManager } from "../../../service/SceneManager";
-import game_goals from "../goals";
 import GoalCandy from "./GoalCandy";
 interface Props {
   layout: number;
@@ -17,7 +16,7 @@ const GoalPanel: React.FC<Props> = ({ layout, game }) => {
   const { scenes } = useSceneManager();
   useEffect(() => {
     if (battle?.data.goal) {
-      const battleGoal = game_goals.find((g) => g.id === battle.data.goal);
+      const battleGoal = GAME_GOAL.find((g) => g.id === battle.data.goal);
       if (battleGoal) {
         let goalList = battleGoal.goal;
         if (game.data?.matched) {
@@ -35,7 +34,7 @@ const GoalPanel: React.FC<Props> = ({ layout, game }) => {
         for (const goal of goalList) {
           const r = Math.floor(i / 2);
           if (!rows[r]) rows[r] = [];
-          rows[r].push(goal);
+          layout === 1 ? rows[r].push(goal) : rows[r].unshift(goal);
           i++;
         }
         setGoals(rows);
@@ -79,7 +78,7 @@ const GoalPanel: React.FC<Props> = ({ layout, game }) => {
             marginTop: 5,
           }}
         >
-          {r.reverse().map((a) => (
+          {r.map((a) => (
             <div
               key={a.asset}
               style={{

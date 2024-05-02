@@ -1,27 +1,34 @@
+import { SCENE_NAME } from "model/Match3Constants";
 import React, { useCallback, useMemo } from "react";
 import { useBattleManager } from "service/BattleManager";
+import { useGameManager } from "service/GameManager";
+import { useSceneManager } from "service/SceneManager";
 import { CircularProgressButton } from "./CircularProgressButton";
 
 const SkillControl: React.FC = () => {
-  const { currentSkill, setCurrentSkill, bounds } = useBattleManager();
-  const bound = useMemo(() => {
-    if (bounds) {
-      const b = bounds.find((b) => b.name === "player");
-      if (b) {
-        return { top: b.top + b.height + 20, left: b.left, width: b.width, height: 60 };
+  const { containerBound, scenes } = useSceneManager();
+  const { game } = useGameManager();
+  const { currentSkill, setCurrentSkill } = useBattleManager();
+  const skillBound = useMemo(() => {
+    if (game && scenes) {
+      const gameScenes = scenes.get(SCENE_NAME.GAME_SCENES);
+      const gameScene = gameScenes.find((s) => s.gameId === game.gameId);
+      if (gameScene) {
+        return { top: gameScene.y + gameScene.height + 20, left: gameScene.x, width: gameScene.width, height: 60 };
       }
     }
     return null;
-  }, [bounds]);
-  const note = useMemo(() => {
-    if (bounds) {
-      const b = bounds.find((b) => b.name === "player");
-      if (b) {
-        return { top: b.top - 80, left: b.left, width: b.width, height: 80 };
+  }, [game, scenes, containerBound]);
+  const noteBound = useMemo(() => {
+    if (game && scenes) {
+      const gameScenes = scenes.get(SCENE_NAME.GAME_SCENES);
+      const gameScene = gameScenes.find((s) => s.gameId === game.gameId);
+      if (gameScene) {
+        return { top: gameScene.y - 80, left: gameScene.x, width: gameScene.width, height: 80 };
       }
     }
     return null;
-  }, [bounds]);
+  }, [game, scenes, containerBound]);
 
   const toggleSkill = useCallback(
     (s: number) => {
@@ -35,7 +42,7 @@ const SkillControl: React.FC = () => {
 
   return (
     <>
-      {currentSkill && bound ? (
+      {currentSkill && skillBound ? (
         <div
           style={{
             position: "absolute",
@@ -50,7 +57,7 @@ const SkillControl: React.FC = () => {
           onClick={() => toggleSkill(0)}
         ></div>
       ) : null}
-      {currentSkill && note ? (
+      {currentSkill && noteBound ? (
         <div
           style={{
             display: "flex",
@@ -58,17 +65,17 @@ const SkillControl: React.FC = () => {
             alignItems: "center",
             position: "absolute",
             zIndex: 150,
-            top: note.top,
-            left: note.left,
-            width: note.width,
-            height: note.height,
+            top: noteBound.top,
+            left: noteBound.left,
+            width: noteBound.width,
+            height: noteBound.height,
             color: "white",
           }}
         >
           choose a candy to remove
         </div>
       ) : null}
-      {bound ? (
+      {skillBound ? (
         <div
           style={{
             display: "flex",
@@ -76,10 +83,10 @@ const SkillControl: React.FC = () => {
             alignItems: "center",
             position: "absolute",
             zIndex: 150,
-            top: bound.top,
-            left: bound.left,
-            width: bound.width,
-            height: bound.height + 30,
+            top: skillBound.top,
+            left: skillBound.left,
+            width: skillBound.width,
+            height: skillBound.height + 30,
             backgroundColor: "transparent",
           }}
         >

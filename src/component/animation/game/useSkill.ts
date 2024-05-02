@@ -2,12 +2,12 @@ import { CandySprite } from "component/pixi/CandySprite";
 import { gsap } from "gsap";
 import { GAME_ACTION, SCENE_NAME } from "model/Match3Constants";
 import * as PIXI from "pixi.js";
-import { MutableRefObject, useCallback, useRef } from "react";
+import { useCallback, useRef } from "react";
 import { useGameManager } from "service/GameManager";
 import { useSceneManager } from "../../../service/SceneManager";
 import useSkillAnimate from "./useSkillAnimate";
 
-const useSkill = (animateStatusRef: MutableRefObject<number>) => {
+const useSkill = () => {
     const timelineRef = useRef<any>();
     const focusIconRef = useRef<PIXI.Sprite | null>(null)
     const { iconTextures, scenes } = useSceneManager();
@@ -61,12 +61,12 @@ const useSkill = (animateStatusRef: MutableRefObject<number>) => {
                     {
                         const { candy, target } = data;
                         if (candy && target && game) {
-                            animateStatusRef.current = 2;
+                            // animateStatusRef.current = 2;
                             const timeline = gsap.timeline({
                                 onComplete: () => {
                                     timeline.kill();
                                     timelineRef.current = null;
-                                    animateStatusRef.current = 0;
+                                    // animateStatusRef.current = 0;
                                 }
                             })
                             timelineRef.current = timeline;

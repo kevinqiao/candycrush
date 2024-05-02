@@ -14,14 +14,13 @@ import { useSceneManager } from "../../service/SceneManager";
 import { CandySprite } from "../pixi/CandySprite";
 const useGameScene = () => {
 
-    const { gameEvent, game, doAct } = useGameManager();
+    const { gameEvent, game } = useGameManager();
     const { battle, loadGame, currentSkill, setCurrentSkill } = useBattleManager();
     const skillRef = useRef<number>(currentSkill);
-    const animationStatusRef = useRef<number>(0);//0-free 1-in act 2-in stkill 3-in play match result
     const { load, textures, scenes, containerBound } = useSceneManager();
-    const { playApply, stopPlay } = useMatchAnimate(animationStatusRef);
-    const { swipeAct, hitAct, stopAct } = useAct(animationStatusRef);
-    const { swapSelect, resetSkill, executeSkill, stopSkill } = useSkill(animationStatusRef);
+    const { playApply, stopPlay } = useMatchAnimate();
+    const { swipeAct, hitAct, stopAct } = useAct();
+    const { swapSelect, resetSkill, executeSkill, stopSkill } = useSkill();
     const selectedCandyRef = useRef<CandySprite[]>([]);
     const [bound, setBound] = useState<{
         top: number;
@@ -56,7 +55,7 @@ const useGameScene = () => {
             sprite.eventMode = 'static';
             if (load !== Constant.BATTLE_LOAD.REPLAY) {
                 sprite.on("pointerdown", (event: any) => {
-                    console.log("pointer down:" + cell.id)
+                    // console.log("pointer down:" + cell.id)
                     selectedCandyRef.current.push(sprite);
                 });
             }
@@ -64,7 +63,7 @@ const useGameScene = () => {
             return sprite;
         }
         return null;
-    }, [game, scenes, textures, battle?.type, doAct])
+    }, [game, scenes, textures, battle?.type])
 
     const initCandies = useCallback((candies: CellItem[]) => {
 
@@ -87,13 +86,13 @@ const useGameScene = () => {
     }, [createCandySprite, game, scenes])
 
     const handleDrag = useCallback((direction: number) => {
-        console.log("handle drag:" + direction);
+        // console.log("handle drag:" + direction);
         // const candySprite = selectedCandyRef.current;
         if (!game || !battle) return;
         const { column, row } = battle.data;
         const selecteds: CandySprite[] = selectedCandyRef.current;
-        console.log(selecteds.length)
-        if (!skillRef.current) {
+
+        if (!skillRef.current && selecteds.length > 0) {
             if (direction > 0) {
                 const c = direction === 2 || direction === 4 ? selecteds[0]['column'] : (direction === 1 ? selecteds[0]['column'] + 1 : selecteds[0]['column'] - 1);
                 const r = direction === 1 || direction === 3 ? selecteds[0]['row'] : (direction === 2 ? selecteds[0]['row'] + 1 : selecteds[0]['row'] - 1);
@@ -134,7 +133,7 @@ const useGameScene = () => {
                     break;
             }
         }
-    }, [currentSkill, game, battle, doAct])
+    }, [currentSkill, game, battle])
 
     useEffect(() => {
 
@@ -143,7 +142,7 @@ const useGameScene = () => {
         const gameScene = gameScenes.find((s: GameScene) => s.gameId === game.gameId);
 
         if (gameEvent?.name === "initGame") {
-            console.log("init game")
+            // console.log("init game")
             const candies: CandySprite[] = Array.from(gameScene.candies.values());
             candies.forEach((candy: CandySprite) => {
                 gameScene.candies.delete(candy.id);
@@ -227,13 +226,14 @@ const useGameScene = () => {
                 const nbound = getGameBound(width, height, gameScene.column, gameScene.row, gameScene.mode);
 
                 if (nbound) {
-                    stopAnimate();
+                    // stopAnimate();
                     gameScene.x = nbound.left;
                     gameScene.y = nbound.top;
                     gameScene.width = nbound.width;
                     gameScene.height = nbound.height;
                     gameScene.cwidth = nbound.radius;
                     gameScene.cheight = nbound.radius;
+
                     const scene = gameScene.app as PIXI.Application;
                     scene.renderer.resize(nbound.width, nbound.height);
                     if (game.data.cells && gameScene.candies.size > 0) {

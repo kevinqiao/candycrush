@@ -34,7 +34,7 @@ export const UserProvider = ({ children }: { children: React.ReactNode }) => {
   const [sessionCheck, setSessionCheck] = useState(0); //0-to check 1-checked
   const [lastTime, setLastTime] = useState<number>(0);
   const authByToken = useAction(api.UserService.authByToken);
-  console.log("lasttime:" + lastTime);
+
   const userEvent: any = useQuery(api.events.getByUser, {
     uid: user?.uid ?? "###",
     lastTime,
@@ -65,7 +65,7 @@ export const UserProvider = ({ children }: { children: React.ReactNode }) => {
       u.timelag = u.timestamp ? u.timestamp - Date.now() : 0;
       localStorage.setItem("user", JSON.stringify({ uid: u.uid, token: u.token, authEmbed: u.authEmbed ?? 0 }));
       if (u["insearch"]) {
-        console.log("you are in searching opponent");
+        // console.log("you are in searching opponent");
         openPlay(u, null);
       } else if (u.battle) {
         const stack = stacks.find((s) => s.name === "battlePlay");
@@ -79,12 +79,11 @@ export const UserProvider = ({ children }: { children: React.ReactNode }) => {
   );
   useEffect(() => {
     if (userEvent && user) {
-      console.log(userEvent);
       if (userEvent?.name === "battleCreated") {
         const stack = stacks.find((s) => s.name === "battlePlay");
         if (!stack) openPlay(user, userEvent.data);
       }
-      console.log("time:" + userEvent.time + ":" + lastTime);
+      // console.log("time:" + userEvent.time + ":" + lastTime);
       if (userEvent.time > lastTime) setLastTime(userEvent.time);
     }
   }, [user, userEvent]);

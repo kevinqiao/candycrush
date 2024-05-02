@@ -13,15 +13,13 @@ import { useUserManager } from "./UserManager";
 interface IGameContext {
   game: GameModel | null;
   gameEvent?: GameEvent | null;
-  // swapCell: (candyId: number, targetId: number) => Promise<any>;
-  // smash: (candyId: number) => void;
-  doAct: (act: number, data: any) => void;
+  action: { act: number; id: number; status: number };
+  doAct: (act: number, data: any) => Promise<any>;
 }
 const GameContext = createContext<IGameContext>({
   game: null,
   gameEvent: null,
-  // swapCell: async (candyId: number, targetId: number) => null,
-  // smash: (candyId: number) => null,
+  action: { act: 0, id: 0, status: -1 },
   doAct: async (act: number, data: any) => null,
 });
 
@@ -29,6 +27,7 @@ export const GameProvider = ({ gameId, children }: { gameId: string; children: R
   const gameRef = useRef<GameModel | null>(null);
   const startTimeRef = useRef<number>(Date.now());
   const lastEventRef = useRef<any>({ steptime: 0 });
+  const actionRef = useRef<{ act: number; id: number; status: number }>({ act: 0, id: 0, status: -1 });
   const [gameEvent, setGameEvent] = useState<GameEvent | null>(null);
   const [gameEvents, setGameEvents] = useState<GameEvent[]>([]);
   const { load, battle, completeGame } = useBattleManager();
@@ -86,8 +85,9 @@ export const GameProvider = ({ gameId, children }: { gameId: string; children: R
   const processEvents = useCallback(
     (eventList: any[]) => {
       let count = 0;
+      if (!gameRef.current) return;
       for (const event of eventList) {
-        if (event.name === "gameOver" && gameRef.current) {
+        if (event.name === "gameOver") {
           const result = event.data.result;
           gameRef.current.result = result;
           setGameEvent(event);
@@ -98,7 +98,11 @@ export const GameProvider = ({ gameId, children }: { gameId: string; children: R
           setTimeout(() => {
             // console.log(event.steptime + ":" + laststep);
             if (event.steptime > laststep) {
-              console.log(event);
+              // console.log("actionId:" + event.actionId);
+              if (event.actionId === actionRef.current.id) {
+                actionRef.current.status = 2;
+                // console.log("confirm action completed with id:" + event.actionId);
+              }
               GameEngine.handleEvent(event.name, event.data, gameRef.current);
               setGameEvent(event);
               if (load !== BATTLE_LOAD.REPLAY) setLaststep(event.steptime);
@@ -143,19 +147,31 @@ export const GameProvider = ({ gameId, children }: { gameId: string; children: R
 
   const value = {
     load,
+    action: actionRef.current,
     game: gameRef.current,
     gameEvent,
     doAct: useCallback(
-      async (act: number, data: any): Promise<null> => {
-        if (user && load !== BATTLE_LOAD.REPLAY) {
-          console.log("do act:" + name);
-          await convex.action(api.gameService.doAct, {
+      async (act: number, data: any): Promise<{ ok: boolean } | null> => {
+        const action = actionRef.current;
+        if (user && load !== BATTLE_LOAD.REPLAY && action.status !== 0) {
+          action.act = act;
+          action.id = Date.now();
+          action.status = 0;
+          console.log(action);
+          // setTimeout(async () => {
+          const res = await convex.action(api.gameService.doAct, {
             act,
+            actionId: action.id,
             uid: user.uid,
             token: user.token,
             gameId,
             data,
           });
+          // const timeCost = Date.now() - action.id;
+          // console.log("time cost:" + timeCost);
+          if (res?.ok) action.status = 1;
+          return res;
+          // }, 1000);
         }
         return null;
       },

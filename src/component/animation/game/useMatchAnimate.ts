@@ -3,7 +3,7 @@ import { gsap } from "gsap";
 import { CellItem } from "model/CellItem";
 import { SCENE_NAME } from "model/Match3Constants";
 import * as PIXI from "pixi.js";
-import { MutableRefObject, useCallback, useRef } from "react";
+import { useCallback, useRef } from "react";
 import { useGameManager } from "service/GameManager";
 import { useUserManager } from "service/UserManager";
 import { GameScene } from "../../../model/SceneModel";
@@ -57,7 +57,7 @@ export const playMove = (toMove: CellItem[], gameScene: GameScene, textures: Tex
             if (candy) {
                 const cw = (candy as PIXI.Sprite).width;
                 const ch = (candy as PIXI.Sprite).height;
-                console.log(cw + ":" + ch + ":" + gameScene.gameId)
+                // console.log(cw + ":" + ch + ":" + gameScene.gameId)
                 const cx = c.column * cw + Math.floor(cw / 2);
                 const cy = c.row * ch + Math.floor(ch / 2);
                 candy.column = c.column;
@@ -165,7 +165,7 @@ export const playSmesh = (toSmesh: { target: number; candy: CellItem; smesh: Cel
         }
     }
 }
-const useMatchAnimate = (animateStatusRef: MutableRefObject<number>) => {
+const useMatchAnimate = () => {
     const timelineRef = useRef<any>(null);
     const { game } = useGameManager();
     const { user } = useUserManager();
@@ -179,90 +179,104 @@ const useMatchAnimate = (animateStatusRef: MutableRefObject<number>) => {
             timelineRef.current.kill();
         timelineRef.current = null;
     }, [])
+
+    const apply = useCallback((event: any) => {
+        if (!game || !scenes?.get(SCENE_NAME.GAME_SCENES)) return;
+        const gameScene: GameScene = scenes.get(SCENE_NAME.GAME_SCENES).find((g: GameScene) => g.gameId === game.gameId)
+        // console.log(gameScene.gameId + ":" + gameScene.cwidth)
+        // animateStatusRef.current = 3;
+        const tl = gsap.timeline({
+            onComplete: () => {
+                tl.kill();
+                timelineRef.current = null;
+                // animateStatusRef.current = 0;
+            }
+        })
+        timelineRef.current = tl;
+
+        if (event.name === "cellSwapped" && game.uid !== user.uid) {
+            const sl = gsap.timeline();
+            tl.add(sl, "<")
+            swipeSuccess(game.gameId, event.data.candy, event.data.target, sl);
+        }
+        if (event.name === "skillSwap" && game.uid !== user.uid) {
+            const sl = gsap.timeline();
+            tl.add(sl, "<")
+            swapSuccess(game.gameId, event.data.candy, event.data.target, sl);
+        }
+        const ml = gsap.timeline();
+        tl.add(ml, ">")
+        const { results } = event.data;
+
+        if (results && gameScene) {
+            for (const res of results) {
+                const sl = gsap.timeline();
+                tl.add(sl, ">")
+                if (res.toSmesh) {
+                    const cl = gsap.timeline(
+                        {
+                            onComplete: () => {
+                                const candyMap = gameScene.candies;
+                                const smeshs: { target: number; candy: CellItem; smesh: CellItem[] }[][] = res.toSmesh;
+                                smeshs.flat().forEach((c) => {
+                                    c.smesh.forEach((c) => {
+                                        const candy = candyMap.get(c.id);
+                                        if (candy) {
+                                            candyMap.delete(c.id)
+                                            candy.parent.removeChild(candy as PIXI.DisplayObject)
+                                            candy.destroy();
+                                        }
+                                    })
+                                })
+                            }
+                        }
+                    );
+                    sl.add(cl);
+                    playSmesh(res.toSmesh, gameScene, cl);
+                    const cellItems = res.toSmesh.flatMap((subArray: { target: number; candy: CellItem; smesh: CellItem[] }[]) =>
+                        subArray.flatMap(item => item.smesh)
+                    );
+                    cl.call(
+                        () => playCollect(game.gameId, cellItems, null),
+                        [],
+                        "<"
+                    );
+                }
+                if (res.toRemove) {
+                    const cl = gsap.timeline();
+                    res.toSmesh ? sl.add(cl, ">-=0.3") : sl.add(cl);
+                    playRemove(res.toRemove, gameScene, textures, cl)
+                    cl.call(
+                        () => playCollect(game.gameId, res.toRemove, null),
+                        [],
+                        "<"
+                    );
+                }
+                if (res.toChange) {
+                    // console.log(res.toChange)
+                    const cl = gsap.timeline();
+                    sl.add(cl, "<");
+                    playChange(res.toChange, gameScene, textures, cl);
+                }
+
+                if (res.toMove) {
+                    const cl = gsap.timeline();
+                    sl.add(cl, ">");
+                    playMove([...res.toMove, ...res.toCreate], gameScene, textures, cl)
+                }
+            }
+        }
+
+        tl.play();
+
+    }, [playCollect, scenes, swipeSuccess, game, textures])
+
     const playApply = useCallback(
         (event: any) => {
-            if (!game || !scenes?.get(SCENE_NAME.GAME_SCENES) || timelineRef.current) return;
-            const gameScene: GameScene = scenes.get(SCENE_NAME.GAME_SCENES).find((g: GameScene) => g.gameId === game.gameId)
-            console.log(gameScene.gameId + ":" + gameScene.cwidth)
-            animateStatusRef.current = 3;
-            const tl = gsap.timeline({
-                onComplete: () => {
-                    tl.kill();
-                    timelineRef.current = null;
-                    animateStatusRef.current = 0;
-                }
-            })
-            timelineRef.current = tl;
-
-            if (event.name === "cellSwapped" && game.uid !== user.uid) {
-                const sl = gsap.timeline();
-                tl.add(sl, "<")
-                swipeSuccess(game.gameId, event.data.candy, event.data.target, sl);
-            }
-            if (event.name === "skillSwap" && game.uid !== user.uid) {
-                const sl = gsap.timeline();
-                tl.add(sl, "<")
-                swapSuccess(game.gameId, event.data.candy, event.data.target, sl);
-            }
-            const ml = gsap.timeline();
-            tl.add(ml, ">")
-            const { results } = event.data;
-
-            if (results && gameScene) {
-                for (const res of results) {
-                    const sl = gsap.timeline();
-                    tl.add(sl, ">")
-                    if (res.toSmesh) {
-                        const cl = gsap.timeline(
-                            {
-                                onComplete: () => {
-                                    const candyMap = gameScene.candies;
-                                    const smeshs: { target: number; candy: CellItem; smesh: CellItem[] }[][] = res.toSmesh;
-                                    smeshs.flat().forEach((c) => {
-                                        c.smesh.forEach((c) => {
-                                            const candy = candyMap.get(c.id);
-                                            if (candy) {
-                                                candyMap.delete(c.id)
-                                                candy.parent.removeChild(candy as PIXI.DisplayObject)
-                                                candy.destroy();
-                                            }
-                                        })
-                                    })
-                                }
-                            }
-                        );
-                        sl.add(cl);
-                        playSmesh(res.toSmesh, gameScene, cl);
-                    }
-                    if (res.toRemove) {
-                        const cl = gsap.timeline();
-                        res.toSmesh ? sl.add(cl, ">-=0.3") : sl.add(cl);
-                        playRemove(res.toRemove, gameScene, textures, cl)
-                        cl.call(
-                            () => playCollect(game.gameId, res, null),
-                            [],
-                            "<"
-                        );
-                    }
-                    if (res.toChange) {
-                        console.log(res.toChange)
-                        const cl = gsap.timeline();
-                        sl.add(cl, "<");
-                        playChange(res.toChange, gameScene, textures, cl);
-                    }
-
-                    if (res.toMove) {
-                        const cl = gsap.timeline();
-                        sl.add(cl, ">");
-                        playMove([...res.toMove, ...res.toCreate], gameScene, textures, cl)
-                    }
-                }
-            }
-
-            tl.play();
-
+            const timeout = timelineRef.current ? timelineRef.current.totalDuration() - timelineRef.current.time() : 0;
+            setTimeout(() => apply(event), timeout)
         },
-        [playCollect, scenes, swipeSuccess, game, textures]
+        [apply]
     );
 
 

@@ -29,7 +29,7 @@ const GamePlay = () => {
       const gameScenes = scenes?.get(SCENE_NAME.GAME_SCENES);
       const gameScene = gameScenes.find((s: GameScene) => s.gameId === game.gameId);
       if (gameScene) {
-        console.log("load game play scene:" + game.gameId);
+        // console.log("load game play scene:" + game.gameId);
         const app: PIXI.Application = gameScene.app as PIXI.Application<PIXI.ICanvas>;
         sceneEle.appendChild(app.view as unknown as Node);
       }

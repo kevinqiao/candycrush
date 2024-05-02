@@ -1,9 +1,8 @@
-import goals from "../component/play/goals";
 import { BattleModel, BattleReward } from '../model/Battle';
 import { CellItem } from "../model/CellItem";
 import { GAME_STATUS } from "../model/Constants";
 import { GameModel } from '../model/GameModel';
-import { GAME_ACTION, GAME_EVENT } from '../model/Match3Constants';
+import { GAME_ACTION, GAME_EVENT, GAME_GOAL } from '../model/Match3Constants';
 import { Tournament } from '../model/Tournament';
 import { countMatched, findMatch, findMatch3, findMove, getFreeCandy, getRandomAsset, hasMatch3 } from '../util/MatchGameUtils';
 import { getRandom, getRandomSeed } from '../util/Utils';
@@ -61,7 +60,7 @@ export const settleGame = (game: any, battle: any, goalId: number): { base: numb
     let result = null;
     let goalScore = 0;
     // const goalId = battle.data.goal;
-    const goalModel = goals.find((g: { id: number, goal: { asset: number, quantity: number }[] }) => g.id === goalId);
+    const goalModel = GAME_GOAL.find((g: { id: number, goal: { asset: number, quantity: number }[] }) => g.id === goalId);
 
     if (goalModel && game.data.matched) {
         const goalSuccess = goalModel.goal.map((g) => {
@@ -140,11 +139,6 @@ export const handleSwipe = (game: GameModel, battle: BattleModel, data: any): an
         grid[unit.row][unit.column] = { ...unit };
     }
 
-    const plus4Changes = solveMatch(grid, 5, 7);
-    const crossChanges = solveCrossMatch(grid);
-    const fourChanges = solveMatch(grid, 3, 4);
-    const toChange = [...plus4Changes, ...crossChanges, ...fourChanges];
-
     const toSmesh: { target: number; candy: CellItem; smesh?: CellItem[] }[][] = [];
     if (smeshIds.includes(candy.asset)) {
         const meshes: { target: number; candy: CellItem; smesh?: CellItem[] }[] = [];
@@ -156,9 +150,15 @@ export const handleSwipe = (game: GameModel, battle: BattleModel, data: any): an
     if (smeshIds.includes(target.asset)) {
         const meshes: { target: number; candy: CellItem; smesh?: CellItem[] }[] = [];
         const targetAsset = smeshIds.includes(candy.asset) ? -1 : candy.asset;
-        solveSmesh(grid, candy, targetAsset, meshes);
+        solveSmesh(grid, target, targetAsset, meshes);
         toSmesh.push(meshes)
     }
+
+    const plus4Changes = solveMatch(grid, 5, 7);
+    const crossChanges = solveCrossMatch(grid);
+    const fourChanges = solveMatch(grid, 3, 4);
+    const toChange = [...plus4Changes, ...crossChanges, ...fourChanges];
+
 
     const res = shiftMatch(game.seed, game.data, grid);
     const result = { ...res, toChange, toSmesh }
@@ -424,12 +424,12 @@ const solveSmesh = (grid: CellItem[][], candy: CellItem, target: number, allMesh
                     for (let j = -1; j <= 1; j++) {
                         const row = i + candy['row'];
                         const col = j + candy['column'];
-
-                        if ((i !== 0 || j !== 0) && smeshIds.includes(grid[row][col].asset))
-                            solveSmesh(grid, grid[row][col], -1, allMeshes)
-                        grid[row][col].status = 2;
-                        smesh.push(grid[row][col])
-
+                        if (row >= 0 && col >= 0) {
+                            if ((i !== 0 || j !== 0) && smeshIds.includes(grid[row][col].asset))
+                                solveSmesh(grid, grid[row][col], -1, allMeshes)
+                            grid[row][col].status = 2;
+                            smesh.push(grid[row][col]);
+                        }
                     }
                 }
 
