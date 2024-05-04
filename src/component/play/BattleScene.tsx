@@ -5,7 +5,7 @@ import { SCENE_NAME } from "../../model/Match3Constants";
 import { useSceneManager } from "../../service/SceneManager";
 
 const BattleScene = () => {
-  const { scenes, containerBound, stageScene } = useSceneManager();
+  const { scenes, containerBound } = useSceneManager();
 
   useEffect(() => {
     if (containerBound && scenes) {
@@ -43,10 +43,11 @@ const BattleScene = () => {
           };
         } else app = battleScene.app as PIXI.Application<PIXI.ICanvas>;
         sceneEle.appendChild(app.view as unknown as Node);
-        stageScene(SCENE_NAME.BATTLE_SCENE, battleScene);
+        scenes.set(SCENE_NAME.BATTLE_SCENE, battleScene);
+        // stageScene(SCENE_NAME.BATTLE_SCENE, battleScene);
       }
     },
-    [containerBound, scenes, stageScene]
+    [containerBound, scenes]
   );
   return (
     <div

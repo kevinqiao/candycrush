@@ -87,80 +87,80 @@ export const hasMatch3 = (grid: CellItem[][]): boolean => {
     }
     return false;
 }
-export const findMatch3 = (grid: CellItem[][]): MatchItem[] => {
-    let id = 0;
-    const rows = grid.length;
-    const columns = grid[0].length;
-    const matches: MatchItem[] = [];
-    for (let row = 0; row < rows; row++) {
-        const units: CellItem[] = [];
-        for (let col = 0; col < columns; col++) {
-            if (grid[row][col].status) continue;
-            units.push(grid[row][col])
-            if (col === columns - 1 || grid[row][col].asset !== grid[row][col + 1].asset || grid[row][col + 1].status) {
-                if (units.length >= 3) {
-                    id++;
-                    matches.push({ id, units: [...units], start: { row, column: units[0]['column'] }, end: { row, column: units[units.length - 1]['column'] }, orientation: "horizontal", size: units.length })
-                }
-                units.length = 0;
-            }
-        }
-    }
+// export const findMatch3 = (grid: CellItem[][]): MatchItem[] => {
+//     let id = 0;
+//     const rows = grid.length;
+//     const columns = grid[0].length;
+//     const matches: MatchItem[] = [];
+//     for (let row = 0; row < rows; row++) {
+//         const units: CellItem[] = [];
+//         for (let col = 0; col < columns; col++) {
+//             if (grid[row][col].status) continue;
+//             units.push(grid[row][col])
+//             if (col === columns - 1 || grid[row][col].asset !== grid[row][col + 1].asset || grid[row][col + 1].status) {
+//                 if (units.length >= 3) {
+//                     id++;
+//                     matches.push({ id, units: [...units], start: { row, column: units[0]['column'] }, end: { row, column: units[units.length - 1]['column'] }, orientation: "horizontal", size: units.length })
+//                 }
+//                 units.length = 0;
+//             }
+//         }
+//     }
 
 
-    for (let col = 0; col < columns; col++) {
-        const units: CellItem[] = [];
-        for (let row = 0; row < rows; row++) {
-            if (grid[row][col].status) continue;
-            units.push(grid[row][col])
-            if (row === rows - 1 || grid[row][col].asset !== grid[row + 1][col].asset || grid[row + 1][col].status) {
-                if (units.length >= 3) {
-                    id++;
-                    matches.push({ id, units: [...units], start: { row: units[0]['row'], column: col }, end: { row: units[units.length - 1]['row'], column: col }, orientation: "vertical", size: units.length })
-                }
-                units.length = 0;
-            }
-        }
-    }
-    return matches;
-}
-export const findMatch3Plus = (grid: CellItem[][]): MatchItem[] => {
-    let id = 0;
-    const rows = grid.length;
-    const columns = grid[0].length;
-    const matches: MatchItem[] = [];
-    for (let row = 0; row < rows; row++) {
-        const units: CellItem[] = [];
-        for (let col = 0; col < columns; col++) {
-            if (grid[row][col].status) continue;
-            units.push(grid[row][col])
-            if (col === columns - 1 || grid[row][col].asset !== grid[row][col + 1].asset || grid[row][col + 1].status) {
-                if (units.length > 3) {
-                    id++;
-                    matches.push({ id, units: [...units], start: { row, column: units[0]['column'] }, end: { row, column: units[units.length - 1]['column'] }, orientation: "horizontal", size: units.length })
-                }
-                units.length = 0;
-            }
-        }
-    }
+//     for (let col = 0; col < columns; col++) {
+//         const units: CellItem[] = [];
+//         for (let row = 0; row < rows; row++) {
+//             if (grid[row][col].status) continue;
+//             units.push(grid[row][col])
+//             if (row === rows - 1 || grid[row][col].asset !== grid[row + 1][col].asset || grid[row + 1][col].status) {
+//                 if (units.length >= 3) {
+//                     id++;
+//                     matches.push({ id, units: [...units], start: { row: units[0]['row'], column: col }, end: { row: units[units.length - 1]['row'], column: col }, orientation: "vertical", size: units.length })
+//                 }
+//                 units.length = 0;
+//             }
+//         }
+//     }
+//     return matches;
+// }
+// export const findMatch3Plus = (grid: CellItem[][]): MatchItem[] => {
+//     let id = 0;
+//     const rows = grid.length;
+//     const columns = grid[0].length;
+//     const matches: MatchItem[] = [];
+//     for (let row = 0; row < rows; row++) {
+//         const units: CellItem[] = [];
+//         for (let col = 0; col < columns; col++) {
+//             if (grid[row][col].status) continue;
+//             units.push(grid[row][col])
+//             if (col === columns - 1 || grid[row][col].asset !== grid[row][col + 1].asset || grid[row][col + 1].status) {
+//                 if (units.length > 3) {
+//                     id++;
+//                     matches.push({ id, units: [...units], start: { row, column: units[0]['column'] }, end: { row, column: units[units.length - 1]['column'] }, orientation: "horizontal", size: units.length })
+//                 }
+//                 units.length = 0;
+//             }
+//         }
+//     }
 
 
-    for (let col = 0; col < columns; col++) {
-        const units: CellItem[] = [];
-        for (let row = 0; row < rows; row++) {
-            if (grid[row][col].status) continue;
-            units.push(grid[row][col])
-            if (row === rows - 1 || grid[row][col].asset !== grid[row + 1][col].asset || grid[row + 1][col].status) {
-                if (units.length > 3) {
-                    id++;
-                    matches.push({ id, units: [...units], start: { row: units[0]['row'], column: col }, end: { row: units[units.length - 1]['row'], column: col }, orientation: "vertical", size: units.length })
-                }
-                units.length = 0;
-            }
-        }
-    }
-    return matches;
-}
+//     for (let col = 0; col < columns; col++) {
+//         const units: CellItem[] = [];
+//         for (let row = 0; row < rows; row++) {
+//             if (grid[row][col].status) continue;
+//             units.push(grid[row][col])
+//             if (row === rows - 1 || grid[row][col].asset !== grid[row + 1][col].asset || grid[row + 1][col].status) {
+//                 if (units.length > 3) {
+//                     id++;
+//                     matches.push({ id, units: [...units], start: { row: units[0]['row'], column: col }, end: { row: units[units.length - 1]['row'], column: col }, orientation: "vertical", size: units.length })
+//                 }
+//                 units.length = 0;
+//             }
+//         }
+//     }
+//     return matches;
+// }
 export const findMatch = (grid: CellItem[][], size: number): MatchItem[] => {
     let id = 0;
     const rows = grid.length;

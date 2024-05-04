@@ -4,7 +4,7 @@ import { GAME_STATUS } from "../model/Constants";
 import { GameModel } from '../model/GameModel';
 import { GAME_ACTION, GAME_EVENT, GAME_GOAL } from '../model/Match3Constants';
 import { Tournament } from '../model/Tournament';
-import { countMatched, findMatch, findMatch3, findMove, getFreeCandy, getRandomAsset, hasMatch3 } from '../util/MatchGameUtils';
+import { countMatched, findMatch, findMove, getFreeCandy, getRandomAsset, hasMatch3 } from '../util/MatchGameUtils';
 import { getRandom, getRandomSeed } from '../util/Utils';
 
 export type Match = {
@@ -174,7 +174,7 @@ export const handleSwipe = (game: GameModel, battle: BattleModel, data: any): an
 
 export const handleSmash = (game: GameModel, battle: BattleModel, data: any): any => {
     if (!game.seed) return;
-    console.log("handle smash")
+    // console.log("handle smash")
     const actionResult: any = {};
     const { row, column } = battle.data;
     const results: { toChange: CellItem[]; toCreate: CellItem[]; toMove: CellItem[]; toRemove: CellItem[]; toSmesh?: { target: number; candy: CellItem; smesh?: CellItem[] }[][] }[] = []
@@ -233,7 +233,7 @@ export const handleSkillHammer = (game: GameModel, battle: BattleModel, data: an
 
 export const handleSkillSpray = (game: GameModel, battle: BattleModel, data: any): any => {
     if (!game.seed) return;
-    console.log("handle skill spray")
+    // console.log("handle skill spray")
     const actionResult: any = {};
     const { row, column } = battle.data;
     // const results: { toChange: CellItem[]; toCreate: CellItem[]; toMove: CellItem[]; toRemove: CellItem[]; toSmesh?: { target: number; candy: CellItem; smesh?: number[] }[][] }[] = []
@@ -362,7 +362,9 @@ const solveMatch = (grid: CellItem[][], min: number, max: number): CellItem[] =>
 
 const solveCrossMatch = (grid: CellItem[][]): CellItem[] => {
     const toChange: CellItem[] = [];
-    const matches: MatchItem[] = findMatch3(grid);
+    const match4: MatchItem[] = findMatch(grid, 4)
+    const match3: MatchItem[] = findMatch(grid, 3);
+    const matches = [...match4, ...match3]
 
     for (const match of matches) {
         if (!match.status) {

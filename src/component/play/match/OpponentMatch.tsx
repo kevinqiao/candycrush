@@ -104,7 +104,7 @@ const OpponentMatch = () => {
             height: 80,
           }}
         >
-          {player ? <Avatar player={player} /> : null}
+          {player ? <Avatar player={player} mode={0} /> : null}
         </div>
         <div
           ref={opponentAvatarRef}
@@ -117,7 +117,7 @@ const OpponentMatch = () => {
             height: 80,
           }}
         >
-          {opponent ? <Avatar player={opponent} /> : null}
+          {opponent ? <Avatar player={opponent} mode={0} /> : null}
         </div>
         <div
           ref={vsRef}

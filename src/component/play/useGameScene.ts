@@ -12,16 +12,25 @@ import { useBattleManager } from "../../service/BattleManager";
 import { useGameManager } from "../../service/GameManager";
 import { useSceneManager } from "../../service/SceneManager";
 import { CandySprite } from "../pixi/CandySprite";
+import useSceneUtil from "./common/useSceneUtil";
 const useGameScene = () => {
 
     const { gameEvent, game } = useGameManager();
     const { battle, loadGame, currentSkill, setCurrentSkill } = useBattleManager();
     const skillRef = useRef<number>(currentSkill);
     const { load, textures, scenes, containerBound } = useSceneManager();
+    const { initGameScene, updateGameScene } = useSceneUtil();
     const { playApply, stopPlay } = useMatchAnimate();
     const { swipeAct, hitAct, stopAct } = useAct();
     const { swapSelect, resetSkill, executeSkill, stopSkill } = useSkill();
     const selectedCandyRef = useRef<CandySprite[]>([]);
+    const boundRef = useRef<{
+        top: number;
+        left: number;
+        width: number;
+        height: number;
+        radius: number;
+    } | null>(null)
     const [bound, setBound] = useState<{
         top: number;
         left: number;
@@ -65,15 +74,23 @@ const useGameScene = () => {
         return null;
     }, [game, scenes, textures, battle?.type])
 
-    const initCandies = useCallback((candies: CellItem[]) => {
-
+    const init = useCallback((cells: CellItem[]) => {
         if (!game || !game?.gameId || !scenes) return;
+        initGameScene();
         const gameScenes = scenes.get(SCENE_NAME.GAME_SCENES);
         const gameScene = gameScenes.find((s: GameScene) => s.gameId === game.gameId);
         if (gameScene && game.gameId && gameScene?.candies && gameScene?.cwidth) {
 
+            const candies: CandySprite[] = Array.from(gameScene.candies.values());
+            candies.forEach((candy: CandySprite) => {
+                gameScene.candies.delete(candy.id);
+                candy.parent.removeChild(candy as PIXI.DisplayObject)
+                candy.destroy()
+            })
+            gameScene.candies.clear();
+
             const cwidth = gameScene.cwidth;
-            candies.forEach((c) => {
+            cells.forEach((c) => {
                 const x = c.column * cwidth + Math.floor(cwidth / 2);
                 const y = c.row * cwidth + Math.floor(cwidth / 2);
                 const sprite = createCandySprite(c, x, y);
@@ -82,6 +99,10 @@ const useGameScene = () => {
                     gameScene.candies?.set(c.id, sprite as CandySprite)
                 }
             })
+            const { top, left, width, height, radius } = gameScene;
+            const b = { top, left, width, height, radius };
+            boundRef.current = b;
+            setBound(b)
         }
     }, [createCandySprite, game, scenes])
 
@@ -135,23 +156,26 @@ const useGameScene = () => {
         }
     }, [currentSkill, game, battle])
 
+
     useEffect(() => {
 
         if (!game || !game?.gameId || !scenes) return;
         const gameScenes = scenes.get(SCENE_NAME.GAME_SCENES);
-        const gameScene = gameScenes.find((s: GameScene) => s.gameId === game.gameId);
+        const gameScene = gameScenes?.find((s: GameScene) => s.gameId === game.gameId);
 
         if (gameEvent?.name === "initGame") {
             // console.log("init game")
-            const candies: CandySprite[] = Array.from(gameScene.candies.values());
-            candies.forEach((candy: CandySprite) => {
-                gameScene.candies.delete(candy.id);
-                candy.parent.removeChild(candy as PIXI.DisplayObject)
-                candy.destroy()
-            })
-            gameScene.candies.clear();
-            const g = gameEvent.data;
-            initCandies(g.data.cells);
+            // const candies: CandySprite[] = Array.from(gameScene.candies.values());
+            // candies.forEach((candy: CandySprite) => {
+            //     gameScene.candies.delete(candy.id);
+            //     candy.parent.removeChild(candy as PIXI.DisplayObject)
+            //     candy.destroy()
+            // })
+            // gameScene.candies.clear();
+            // const g = gameEvent.data;
+            // initCandies(g.data.cells);
+            stopAnimate();
+            init(gameEvent.data.data.cells)
             loadGame(game.gameId, { matched: game.data.matched ?? [] });
         } else if (gameEvent && isGameActEvent(gameEvent.name)) {
             const data: { results: { toChange: CellItem[]; toCreate: CellItem[]; toMove: CellItem[]; toRemove: CellItem[] }[] } = gameEvent.data;
@@ -171,7 +195,7 @@ const useGameScene = () => {
             playApply(gameEvent)
         }
 
-    }, [gameEvent, scenes, initCandies])
+    }, [gameEvent, scenes, init])
 
     //handle cancel to use skill
     useEffect(() => {
@@ -216,48 +240,25 @@ const useGameScene = () => {
         }
     }, [scenes, game])
 
+
+
     //handle window size change to update candy sprite
     useEffect(() => {
         const gameScenes = scenes?.get(SCENE_NAME.GAME_SCENES);
         if (game && gameScenes && containerBound) {
             const gameScene = gameScenes.find((s: GameScene) => s.gameId === game.gameId);
-            if (gameScene) {
+            if (boundRef.current && gameScene) {
                 const { width, height } = containerBound;
-                const nbound = getGameBound(width, height, gameScene.column, gameScene.row, gameScene.mode);
-
-                if (nbound) {
-                    // stopAnimate();
-                    gameScene.x = nbound.left;
-                    gameScene.y = nbound.top;
-                    gameScene.width = nbound.width;
-                    gameScene.height = nbound.height;
-                    gameScene.cwidth = nbound.radius;
-                    gameScene.cheight = nbound.radius;
-
-                    const scene = gameScene.app as PIXI.Application;
-                    scene.renderer.resize(nbound.width, nbound.height);
-                    if (game.data.cells && gameScene.candies.size > 0) {
-                        const { radius } = nbound;
-                        const candies: CandySprite[] = Array.from(gameScene.candies.values());
-                        candies.forEach((candy: CandySprite, index: number) => {
-                            const cell = game.data.cells.find((cell: CellItem) => cell.id === candy.id);
-                            if (!cell) {
-                                gameScene.candies.delete(candy.id);
-                                candy.parent.removeChild(candy as PIXI.DisplayObject)
-                                candy.destroy()
-                            } else {
-                                candy.width = radius;
-                                candy.height = radius;
-                                candy.x = cell.column * radius + Math.floor(radius / 2);
-                                candy.y = cell.row * radius + Math.floor(radius / 2);
-                            }
-                        })
-                    }
-                    setBound(nbound);
+                const cbound = getGameBound(width, height, gameScene.column, gameScene.row, gameScene.mode);
+                if (cbound) {
+                    boundRef.current = cbound;
+                    updateGameScene(cbound);
+                    setBound(cbound)
                 }
             }
+
         }
-    }, [battle, containerBound, game]);
+    }, [scenes, containerBound, game]);
     return { bound }
 }
 export default useGameScene

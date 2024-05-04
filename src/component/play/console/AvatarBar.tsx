@@ -1,9 +1,11 @@
-import React, { useCallback, useEffect, useRef, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useBattleManager } from "service/BattleManager";
 import { SCENE_NAME } from "../../../model/Match3Constants";
 import { GameConsoleScene } from "../../../model/SceneModel";
 import { useSceneManager } from "../../../service/SceneManager";
 import * as GameUtils from "../../../util/MatchGameUtils";
 import useDimension from "../../../util/useDimension";
+import Avatar from "../common/Avatar";
 
 const frameSize = 185;
 interface Props {
@@ -13,6 +15,7 @@ interface Props {
 
 const AvatarBar: React.FC<Props> = ({ layout, game }) => {
   const sceneContainerRef = useRef<HTMLDivElement | null>(null);
+  const { battle } = useBattleManager();
   const { width, height } = useDimension(sceneContainerRef);
   const { scenes } = useSceneManager();
   const [score, setScore] = useState<number>(0);
@@ -24,12 +27,21 @@ const AvatarBar: React.FC<Props> = ({ layout, game }) => {
     return pos;
   };
 
+  const player = useMemo(() => {
+    if (battle?.games && game) {
+      const p = battle.games.find((g) => g.gameId === game.gameId);
+      if (p) return p.player;
+    }
+    return null;
+  }, [battle, game]);
+
   const avatarSheetStyle = {
     width: frameSize,
     height: frameSize,
-    backgroundImage: `url("../../../assets/avatar.png")`,
-    backgroundSize: "auto",
-    backgroundPosition: calculateBackgroundPosition(),
+    backgroundImage: player ? `url("avatars/${player.avatar}.svg")` : null,
+    // backgroundImage: `url("../../../assets/avatar.png")`,
+    // backgroundSize: "auto",
+    // backgroundPosition: calculateBackgroundPosition(),
     backgroundColor: "transparent",
     transform: `scale(${height / frameSize},${height / frameSize})`,
     transformOrigin: "top left",
@@ -38,10 +50,13 @@ const AvatarBar: React.FC<Props> = ({ layout, game }) => {
   const getAvatarBar = useCallback(() => {
     if (!game || !scenes) return;
     const gameConsoleScenes = scenes?.get(SCENE_NAME.GAME_CONSOLES);
-    const gameConsoleScene = gameConsoleScenes.find((s: GameConsoleScene) => s.gameId === game.gameId);
-    if (gameConsoleScene && !gameConsoleScene.avatarBar)
-      gameConsoleScene.avatarBar = { avatar: null, bar: null, score: null, plus: null };
-    return gameConsoleScene.avatarBar;
+    const gameConsoleScene = gameConsoleScenes?.find((s: GameConsoleScene) => s.gameId === game.gameId);
+    if (gameConsoleScene) {
+      if (!gameConsoleScene.avatarBar)
+        gameConsoleScene.avatarBar = { avatar: null, bar: null, score: null, plus: null };
+      return gameConsoleScene.avatarBar;
+    }
+    return null;
   }, [game, scenes]);
 
   const loadAvatar = useCallback(
@@ -128,8 +143,16 @@ const AvatarBar: React.FC<Props> = ({ layout, game }) => {
           }}
         ></div>
       </div>
-      <div ref={loadAvatar} style={{ position: "absolute", top: -10, left: layout === 1 ? -25 : width - height }}>
-        <div style={avatarSheetStyle}></div>
+      <div
+        ref={loadAvatar}
+        style={{ position: "absolute", top: -10, left: layout === 1 ? -height * 0.3 : width - height * 0.8 }}
+      >
+        {/* <div style={avatarSheetStyle}></div> */}
+        {player ? (
+          <div style={{ width: 40, height: 40 }}>
+            <Avatar player={player} mode={layout} />
+          </div>
+        ) : null}
       </div>
     </div>
   );

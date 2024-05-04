@@ -35,7 +35,7 @@ export const BattleProvider = ({ battle, children }: { battle: BattleModel | nul
   const [allGameLoaded, setAllGameLoaded] = useState(false);
   const [battleOver, setBattleOver] = useState(0);
   const { user } = useUserManager();
-  const { load, containerBound } = useSceneManager();
+  const { load } = useSceneManager();
   // console.log("load:" + load);
   useEffect(() => {
     if (!user || !battle) return;
@@ -43,17 +43,6 @@ export const BattleProvider = ({ battle, children }: { battle: BattleModel | nul
     const timeLeft = battle.duration + battle.startTime - Date.now() + user.timelag;
     if (battle.status || mygame?.result || timeLeft < 0) setBattleOver(1);
   }, [battle, user]);
-
-  // const bounds = useMemo(() => {
-  //   if (!battle || !containerBound || load < 0) return null;
-  //   const { column, row } = battle.data;
-  //   const { width, height } = containerBound;
-  //   const bs =
-  //     load !== BATTLE_LOAD.REPLAY
-  //       ? getDualBounds(width, height, column, row)
-  //       : getMonoBounds(width, height, column, row);
-  //   return bs;
-  // }, [load, battle, containerBound]);
 
   const value = {
     currentSkill,

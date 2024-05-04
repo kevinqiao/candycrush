@@ -30,6 +30,10 @@ export const CANDY_MATCH_TYPE = {
     TMODEL: 1,
     LMODEL: 2,
 }
+export const SCENE_EVENT_TYPE = {
+    INIT: 1,
+    UPDATE: 2
+}
 
 export const SCENE_NAME = {
     BATTLE_LOADING: "loading_battle",
@@ -41,6 +45,12 @@ export const SCENE_NAME = {
     BATTLE_SEARCH: "battle_search",
     GAME_SCENES: "game_scenes",
     GAME_CONSOLES: "game_consoles"
+}
+export const SCENE_ID = {
+    GAME_SCENE: 1,
+    GAME_CONSOLE_SCENE: 2,
+    BATTLE_SCENE: 3,
+    BATTLE_GROUND_SCENE: 4
 }
 export const SCENE_TYPE = {
     PIXI_APPLICATION: 0,

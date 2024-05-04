@@ -34,8 +34,8 @@ const PlayControl: React.FC<ControlProps> = ({ battleId }) => {
   useEffect(() => {
     if (!battle && battleId) {
       findBattle(battleId as Id<"battle">).then((b: any) => {
-        console.log(b);
-        initialize(b);
+        // console.log(b);
+        // initialize(b);
         setBattle(b);
       });
     }

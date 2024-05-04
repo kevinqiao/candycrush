@@ -16,7 +16,7 @@ export interface GameScene extends SceneModel {
     column: number;
     row: number;
     candies: Map<number, CandySprite>;
-    mode?: number;//
+    mode: number;//
 }
 
 export interface SearchScene {
@@ -31,5 +31,5 @@ export interface GameConsoleScene extends SceneModel {
     gameId: string;
     avatarBar?: { avatar: HTMLElement | null; bar: HTMLElement | null; score: HTMLElement | null; plus: HTMLElement | null };
     goalPanel?: { goals: { asset: number; iconEle: HTMLElement | null; qtyEle: HTMLElement | null }[] };
-    mode?: number;
+    mode: number;
 }

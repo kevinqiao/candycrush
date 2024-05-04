@@ -1,11 +1,7 @@
-import { CandySprite } from "component/pixi/CandySprite";
-import { BattleModel } from "model/Battle";
 import candy_textures from "model/candy_textures";
-import { BATTLE_LOAD } from "model/Constants";
-import { SCENE_NAME } from "model/Match3Constants";
+import { SCENE_EVENT_TYPE, SCENE_ID, SCENE_NAME } from "model/Match3Constants";
 import * as PIXI from "pixi.js";
 import React, { createContext, useCallback, useContext, useEffect, useRef, useState } from "react";
-import { getGameBound, getGameConsoleBound } from "util/BattleBoundUtil";
 import { loadSvgAsTexture } from "util/Utils";
 import PageProps, { PagePosition } from "../model/PageProps";
 import { GameConsoleScene, GameScene, SceneModel } from "../model/SceneModel";
@@ -19,8 +15,12 @@ interface ISceneContext {
   iconTextures: { name: string; texture: PIXI.Texture }[];
   scenes: Map<string, any> | null;
   sceneEvent: SceneEvent | null;
-  stageScene: (id: string, scene: SceneModel | null) => void;
-  initialize: (battle: BattleModel) => void;
+  gameScenesReady: number;
+  gameConsoleScenesReady: number;
+  createdScenes: { type: number; id: number; gameId: string; scene: SceneModel }[];
+  // stageScene: (id: string, scene: SceneModel | null) => void;
+  createScene: (sceneId: number, scene: SceneModel) => void;
+  updateScene: (sceneId: number, data: any) => void;
   disableCloseBtn: () => void;
   exit: () => void;
 }
@@ -32,16 +32,17 @@ const SceneContext = createContext<ISceneContext>({
   avatarTextures: [],
   iconTextures: [],
   scenes: null,
+  createdScenes: [],
   sceneEvent: null,
-
-  stageScene: (id: string, scene: any) => null,
-  initialize: (battle: BattleModel) => null,
+  createScene: (sceneId: number, scene: SceneModel) => null,
+  updateScene: (sceneId: number, data: any) => null,
   disableCloseBtn: () => null,
   exit: () => null,
 });
 interface SceneEvent {
-  name: string;
   type: number;
+  id: number;
+  scene: SceneModel;
 }
 
 export const SceneProvider = ({
@@ -63,6 +64,9 @@ export const SceneProvider = ({
   const avatarTexturesRef = useRef<{ name: string; texture: PIXI.Texture }[]>([]);
   const iconTexturesRef = useRef<{ name: string; texture: PIXI.Texture }[]>([]);
   const [sceneEvent, setSceneEvent] = useState<SceneEvent | null>(null);
+  const [createdScenes, setCreatedScenes] = useState<{ type: number; id: number; gameId: string; scene: SceneModel }[]>(
+    []
+  );
   const [complete, setComplete] = useState(false);
 
   useEffect(() => {
@@ -100,6 +104,7 @@ export const SceneProvider = ({
     iconTextures: iconTexturesRef.current,
     scenes: scenesRef.current,
     sceneEvent,
+    createdScenes,
     exit: useCallback(() => {
       if (pageProp.close) pageProp.close(0);
     }, [pageProp]),
@@ -109,78 +114,161 @@ export const SceneProvider = ({
       }
     }, [pageProp]),
 
-    stageScene: useCallback((id: string, scene: SceneModel | null) => {
-      if (scene && scenesRef.current) {
-        const pscene = scenesRef.current.get(id);
-        if (pscene) {
-          Object.assign(pscene, scene);
-        } else scenesRef.current.set(id, scene);
-        // setSceneEvent({ name: id, type: SCENE_EVENT_TYPE.CREATE });
-      }
-    }, []),
-
-    initialize: useCallback(
-      (battle: BattleModel) => {
-        if (!pagePosition || !battle.games) return;
-        const { column, row } = battle.data;
-        const { width, height } = pagePosition;
-
-        const gameScenes: GameScene[] = [];
-        const gameConsoleScenes: GameConsoleScene[] = [];
-        battle.games.forEach((game, index) => {
-          const mode =
-            battle.games?.length === 1 || load === BATTLE_LOAD.REPLAY
-              ? 0
-              : game.uid === user.uid || index === 0
-              ? 1
-              : 2;
-
-          const gameBound = getGameBound(width, height, column, row, mode);
-          if (gameBound) {
-            const app = new PIXI.Application({
-              width: gameBound.width,
-              height: gameBound.height,
-              backgroundAlpha: 0,
-            });
-            const candies = new Map<number, CandySprite>();
-            const gameScene = {
-              gameId: game.gameId,
-              x: gameBound.left,
-              y: gameBound.top,
-              app,
-              width: gameBound.width,
-              height: gameBound.height,
-              cwidth: gameBound.radius,
-              cheight: gameBound.radius,
-              candies,
-              column: battle.data.column,
-              row: battle.data.row,
-              mode,
-            };
-            gameScenes.push(gameScene);
-            const gameConsoleBound = getGameConsoleBound(width, height, mode);
-            if (gameConsoleBound) {
-              const gameConsoleScene = {
-                gameId: game.gameId,
-                app: null,
-                x: gameConsoleBound.left,
-                y: gameConsoleBound.top,
-                width: gameConsoleBound.width,
-                height: gameConsoleBound.height,
-                mode,
-              };
-              gameConsoleScenes.push(gameConsoleScene);
+    createScene: useCallback(
+      (sceneId: number, scene: SceneModel) => {
+        if (!scenesRef.current) return;
+        switch (sceneId) {
+          case SCENE_ID.GAME_SCENE:
+            {
+              const gscene = scene as GameScene;
+              let gameScenes: GameScene[] = scenesRef.current.get(SCENE_NAME.GAME_SCENES);
+              if (!gameScenes) {
+                gameScenes = [];
+                scenesRef.current.set(SCENE_NAME.GAME_SCENES, gameScenes);
+              }
+              const gameScene = gameScenes.find((s) => s.gameId === gscene.gameId);
+              if (!gameScene) {
+                gameScenes.push(gscene);
+                setCreatedScenes((pre) => [
+                  ...pre,
+                  { type: SCENE_EVENT_TYPE.INIT, id: SCENE_ID.GAME_SCENE, gameId: gscene.gameId, scene },
+                ]);
+                // setTimeout(
+                //   () => setSceneEvent({ type: SCENE_EVENT_TYPE.INIT, id: SCENE_ID.GAME_SCENE, scene }),
+                //   Math.floor(Math.random() * 30)
+                // );
+              }
             }
-          }
-        });
-        scenesRef.current.set(SCENE_NAME.GAME_SCENES, gameScenes);
-        scenesRef.current.set(SCENE_NAME.GAME_CONSOLES, gameConsoleScenes);
+            break;
+          case SCENE_ID.GAME_CONSOLE_SCENE:
+            {
+              const cscene = scene as GameConsoleScene;
+              let gameConsoleScenes: GameConsoleScene[] = scenesRef.current.get(SCENE_NAME.GAME_CONSOLES);
+              if (!gameConsoleScenes) {
+                gameConsoleScenes = [];
+                scenesRef.current.set(SCENE_NAME.GAME_CONSOLES, gameConsoleScenes);
+              }
+              const gameConsoleScene = gameConsoleScenes.find((s) => s.gameId === cscene.gameId);
+              if (!gameConsoleScene) {
+                gameConsoleScenes.push(cscene);
+                setCreatedScenes((pre) => [
+                  ...pre,
+                  { type: SCENE_EVENT_TYPE.INIT, id: SCENE_ID.GAME_CONSOLE_SCENE, gameId: cscene.gameId, scene },
+                ]);
+                // setTimeout(
+                //   () => setSceneEvent({ type: SCENE_EVENT_TYPE.INIT, id: SCENE_ID.GAME_CONSOLE_SCENE, scene }),
+                //   Math.floor(Math.random() * 100)
+                // );
+              }
+            }
+            break;
+          case SCENE_ID.BATTLE_SCENE:
+            break;
 
-        setSceneEvent({ name: "sceneComplete", type: 1 });
-        return;
+          default:
+            break;
+        }
       },
-      [pagePosition]
+      [scenesRef.current]
     ),
+    updateScene: useCallback(
+      (sceneId: number, data: any) => {
+        if (!scenesRef.current) return;
+        switch (sceneId) {
+          case SCENE_ID.GAME_SCENE:
+            {
+              const gameScenes: GameScene[] | undefined = scenesRef.current.get(SCENE_NAME.GAME_SCENES);
+              const gameScene = gameScenes?.find((s) => s.gameId === data.gameId);
+              if (gameScene) {
+                Object.assign(gameScene, data);
+                setSceneEvent({ type: SCENE_EVENT_TYPE.INIT, id: SCENE_ID.GAME_SCENE, scene: gameScene });
+              }
+            }
+            break;
+          case SCENE_ID.GAME_CONSOLE_SCENE:
+            {
+              const gameConsoleScenes: GameConsoleScene[] | undefined = scenesRef.current.get(SCENE_NAME.GAME_CONSOLES);
+              const gameConsoleScene = gameConsoleScenes?.find((s) => s.gameId === data.gameId);
+              if (gameConsoleScene) {
+                Object.assign(gameConsoleScene, data);
+                setSceneEvent({
+                  type: SCENE_EVENT_TYPE.INIT,
+                  id: SCENE_ID.GAME_CONSOLE_SCENE,
+                  scene: gameConsoleScene,
+                });
+              }
+            }
+            break;
+          case SCENE_ID.BATTLE_SCENE:
+            break;
+
+          default:
+            break;
+        }
+      },
+      [scenesRef.current]
+    ),
+
+    // initialize: useCallback(
+    //   (battle: BattleModel) => {
+    //     if (!pagePosition || !battle.games) return;
+    //     const { column, row } = battle.data;
+    //     const { width, height } = pagePosition;
+
+    //     const gameScenes: GameScene[] = [];
+    //     const gameConsoleScenes: GameConsoleScene[] = [];
+    //     battle.games.forEach((game, index) => {
+    //       const mode =
+    //         battle.games?.length === 1 || load === BATTLE_LOAD.REPLAY
+    //           ? 0
+    //           : game.uid === user.uid || index === 0
+    //           ? 1
+    //           : 2;
+
+    //       const gameBound = getGameBound(width, height, column, row, mode);
+    //       if (gameBound) {
+    //         const app = new PIXI.Application({
+    //           width: gameBound.width,
+    //           height: gameBound.height,
+    //           backgroundAlpha: 0,
+    //         });
+    //         const candies = new Map<number, CandySprite>();
+    //         const gameScene = {
+    //           gameId: game.gameId,
+    //           x: gameBound.left,
+    //           y: gameBound.top,
+    //           app,
+    //           width: gameBound.width,
+    //           height: gameBound.height,
+    //           cwidth: gameBound.radius,
+    //           cheight: gameBound.radius,
+    //           candies,
+    //           column: battle.data.column,
+    //           row: battle.data.row,
+    //           mode,
+    //         };
+    //         gameScenes.push(gameScene);
+    //         const gameConsoleBound = getGameConsoleBound(width, height, mode);
+    //         if (gameConsoleBound) {
+    //           const gameConsoleScene = {
+    //             gameId: game.gameId,
+    //             app: null,
+    //             x: gameConsoleBound.left,
+    //             y: gameConsoleBound.top,
+    //             width: gameConsoleBound.width,
+    //             height: gameConsoleBound.height,
+    //             mode,
+    //           };
+    //           gameConsoleScenes.push(gameConsoleScene);
+    //         }
+    //       }
+    //     });
+    //     scenesRef.current.set(SCENE_NAME.GAME_SCENES, gameScenes);
+    //     scenesRef.current.set(SCENE_NAME.GAME_CONSOLES, gameConsoleScenes);
+    //     return;
+    //   },
+    //   [pagePosition]
+    // ),
   };
 
   return <>{complete ? <SceneContext.Provider value={value}> {children} </SceneContext.Provider> : null}</>;

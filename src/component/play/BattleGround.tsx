@@ -4,22 +4,25 @@ import { useSceneManager } from "../../service/SceneManager";
 
 const BattleGround: React.FC<{ children: ReactNode }> = ({ children }) => {
   const containerRef = useRef<HTMLDivElement | null>(null);
-  const { stageScene } = useSceneManager();
+  const { scenes } = useSceneManager();
 
-  const load = useCallback((sceneEle: HTMLDivElement | null) => {
-    if (sceneEle) {
-      containerRef.current = sceneEle;
-      const scene = {
-        app: sceneEle,
-        type: SCENE_TYPE.HTML_DIVELEMENT,
-        x: 0,
-        y: 0,
-        width: 0,
-        height: 0,
-      };
-      stageScene(SCENE_NAME.BATTLE_GROUND, scene);
-    }
-  }, []);
+  const load = useCallback(
+    (sceneEle: HTMLDivElement | null) => {
+      if (sceneEle && scenes) {
+        containerRef.current = sceneEle;
+        const scene = {
+          app: sceneEle,
+          type: SCENE_TYPE.HTML_DIVELEMENT,
+          x: 0,
+          y: 0,
+          width: 0,
+          height: 0,
+        };
+        scenes.set(SCENE_NAME.BATTLE_GROUND, scene);
+      }
+    },
+    [scenes]
+  );
 
   return (
     <>

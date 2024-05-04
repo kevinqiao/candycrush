@@ -1,34 +1,46 @@
-import { SCENE_NAME } from "model/Match3Constants";
+import { BATTLE_LOAD } from "model/Constants";
 import React, { useCallback, useMemo } from "react";
 import { useBattleManager } from "service/BattleManager";
 import { useGameManager } from "service/GameManager";
 import { useSceneManager } from "service/SceneManager";
+import { useUserManager } from "service/UserManager";
+import { getGameBound } from "util/BattleBoundUtil";
 import { CircularProgressButton } from "./CircularProgressButton";
 
 const SkillControl: React.FC = () => {
-  const { containerBound, scenes } = useSceneManager();
+  const { load, containerBound } = useSceneManager();
   const { game } = useGameManager();
-  const { currentSkill, setCurrentSkill } = useBattleManager();
+  const { battle, currentSkill, setCurrentSkill } = useBattleManager();
+  const { user } = useUserManager();
+  const gameBound = useMemo(() => {
+    if (game && battle?.games && battle.games.length > 0 && containerBound) {
+      const mode =
+        battle.games?.length === 1 || load === BATTLE_LOAD.REPLAY
+          ? 0
+          : game.uid === user.uid || battle.games[0].gameId === game.gameId
+          ? 1
+          : 2;
+      const { width, height } = containerBound;
+      const { column, row } = battle.data;
+      const sbound = getGameBound(width, height, column, row, mode);
+      return sbound;
+    }
+    return null;
+  }, [battle, game, containerBound]);
   const skillBound = useMemo(() => {
-    if (game && scenes) {
-      const gameScenes = scenes.get(SCENE_NAME.GAME_SCENES);
-      const gameScene = gameScenes.find((s) => s.gameId === game.gameId);
-      if (gameScene) {
-        return { top: gameScene.y + gameScene.height + 20, left: gameScene.x, width: gameScene.width, height: 60 };
-      }
+    if (gameBound) {
+      const { top, left, width, height } = gameBound;
+      return { top: top + height + 20, left: left, width: width, height: 60 };
     }
-    return null;
-  }, [game, scenes, containerBound]);
+  }, [gameBound]);
+
   const noteBound = useMemo(() => {
-    if (game && scenes) {
-      const gameScenes = scenes.get(SCENE_NAME.GAME_SCENES);
-      const gameScene = gameScenes.find((s) => s.gameId === game.gameId);
-      if (gameScene) {
-        return { top: gameScene.y - 80, left: gameScene.x, width: gameScene.width, height: 80 };
-      }
+    if (gameBound) {
+      const { top, left, width } = gameBound;
+      return { top: top - 80, left: left, width: width, height: 80 };
     }
     return null;
-  }, [game, scenes, containerBound]);
+  }, [gameBound]);
 
   const toggleSkill = useCallback(
     (s: number) => {
