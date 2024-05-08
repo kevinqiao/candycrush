@@ -53,10 +53,6 @@ function M3App() {
     [PageProvider],
     [ConvexProvider, { client: convex }],
     [UserProvider],
-    // [Match3AuthProvider],
-    // [ClerkProvider, { publishableKey: "pk_test_bm9ybWFsLXNoZXBoZXJkLTQ5LmNsZXJrLmFjY291bnRzLmRldiQ" }],
-    // [ClerkProvider, { publishableKey: "pk_test_bGVuaWVudC1sb3VzZS04Ni5jbGVyay5hY2NvdW50cy5kZXYk" }],
-    // [EventProvider],
   ]);
   return (
     <Providers>

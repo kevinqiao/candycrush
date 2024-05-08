@@ -27,6 +27,7 @@ const GamePlay = () => {
 
   useEffect(() => {
     if (!bound) return;
+
     let result;
     if (gameEvent?.name === "gameOver") result = gameEvent.data.result;
     else if (load !== BATTLE_LOAD.REPLAY && game) result = game.result;
@@ -42,14 +43,16 @@ const GamePlay = () => {
     }
   }, [gameEvent, bound, game, load]);
   useEffect(() => {
-    if (!game || !battle || !scenes || !sceneRef.current) return;
+    if (!bound || !game || !battle || !scenes || !sceneRef.current || !user) return;
+    console.log("uid:" + game.uid + " gameId:" + game.gameId + " uid:" + user.uid);
+    console.log(bound);
     const gameScenes = scenes?.get(SCENE_NAME.GAME_SCENES);
     const gameScene = gameScenes.find((s: GameScene) => s.gameId === game.gameId);
     if (gameScene) {
       const app: PIXI.Application = gameScene.app as PIXI.Application<PIXI.ICanvas>;
       sceneRef.current.appendChild(app.view as unknown as Node);
     }
-  }, [bound]);
+  }, [bound, user]);
 
   const render = useMemo(() => {
     return (

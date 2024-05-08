@@ -28,9 +28,10 @@ const useSceneUtil = () => {
             const mode =
                 battle.games?.length === 1 || load === BATTLE_LOAD.REPLAY
                     ? 0
-                    : game.uid === user.uid || battle.games[0].gameId === game.gameId
+                    : game.uid === user.uid
                         ? 1
                         : 2;
+            console.log(game.uid + ":" + game.gameId + ":" + mode)
             const gameScene: GameScene | undefined = gameScenes?.find((s) => s.gameId === game.gameId);
             if (!gameScene) {
                 const gameBound = getGameBound(width, height, column, row, mode);

@@ -60,10 +60,12 @@ export const settleGame = (game: any, battle: any, goalId: number): { base: numb
 
     let result = null;
     let goalScore = 0;
-    // const goalId = battle.data.goal;
-    const goalModel = GAME_GOAL.find((g: { id: number, goal: { asset: number, quantity: number }[] }) => g.id === goalId);
+    const timeLeft = battle.duration - Date.now() + battle.startTime;
 
-    if (goalModel && game.data.matched) {
+    const goalModel = GAME_GOAL.find((g: { id: number, steps: number; goal: { asset: number, quantity: number }[] }) => g.id === goalId);
+    if (goalModel && game.data.matched && (timeLeft < 0 || goalModel.steps <= game.data.move)) {
+
+
         const goalSuccess = goalModel.goal.map((g) => {
             const m = game.data.matched.find((m: { asset: number; quantity: number }) => m.asset === g.asset);
             const quantity = m ? g.quantity - m.quantity : g.quantity;
@@ -73,17 +75,16 @@ export const settleGame = (game: any, battle: any, goalId: number): { base: numb
         if (goalSuccess) {
             goalScore = 1000;
         }
-        const timeLeft = battle.duration - Date.now() + battle.startTime;
 
-        if (timeLeft < 0 || goalScore > 0) {
-            const baseScore = game.data.matched.reduce((s: number, a: { asset: number; quantity: number }) => s + a.quantity, 0);
-            const timeScore = timeLeft > 0 ? Math.floor(timeLeft * 2 / 1000) : 0;
-            const score = baseScore + timeScore + goalScore;
-            result = { base: baseScore, time: timeScore, goal: goalScore }
-            game['result'] = result;
-            game['score'] = score;
-            game['status'] = GAME_STATUS.SETTLED;
-        }
+
+        const baseScore = game.data.matched.reduce((s: number, a: { asset: number; quantity: number }) => s + a.quantity, 0);
+        const timeScore = timeLeft > 0 ? Math.floor(timeLeft * 2 / 1000) : 0;
+        const score = baseScore + timeScore + goalScore;
+        result = { base: baseScore, time: timeScore, goal: goalScore }
+        game['result'] = result;
+        game['score'] = score;
+        game['status'] = GAME_STATUS.SETTLED;
+
     }
     return result
 }

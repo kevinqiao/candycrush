@@ -5,6 +5,7 @@ import { GameModel } from "model/GameModel";
 import { SCENE_NAME } from "model/Match3Constants";
 import * as PIXI from "pixi.js";
 import { useCallback, useEffect, useRef } from "react";
+import { useBattleManager } from "service/BattleManager";
 import { useGameManager } from "service/GameManager";
 import { useUserManager } from "service/UserManager";
 import { GameConsoleScene, GameScene } from "../../../model/SceneModel";
@@ -167,23 +168,24 @@ export const playSmesh = (toSmesh: { target: number; candy: CellItem; smesh: Cel
         }
     }
 }
-const playMoveChange = (gameConsoleScene: GameConsoleScene, from: number, to: number, tl: any) => {
+const playStepChange = (gameConsoleScene: GameConsoleScene, from: number, to: number, tl: any) => {
     const ml = gsap.timeline();
     tl.add(ml, "<");
     if (gameConsoleScene.moveDiv)
         ml.from(gameConsoleScene.moveDiv, {
             duration: 0.7, onUpdate: () => {
                 const progress = ml.progress();
-                const animatedValue = progress * (to - from) + from;
+                const animatedValue = from - progress * (from - to);
                 if (gameConsoleScene.moveDiv)
                     gameConsoleScene.moveDiv.innerHTML = Math.floor(animatedValue) + "";
             }
-        }, "<");   
-    
+        }, "<");
+
 }
 const useMatchAnimate = () => {
     const timelineRef = useRef<any>(null);
     const { game } = useGameManager();
+    const { battle } = useBattleManager();
     const { user } = useUserManager();
     const moveRef = useRef<number>(0)
     const { scenes, textures } = useSceneManager();
@@ -203,7 +205,8 @@ const useMatchAnimate = () => {
     }, [])
 
     const apply = useCallback((event: any) => {
-        if (!game || !scenes?.get(SCENE_NAME.GAME_SCENES)) return;
+        if (!battle || !game || !scenes?.get(SCENE_NAME.GAME_SCENES)) return;
+
         const gameScene: GameScene = scenes.get(SCENE_NAME.GAME_SCENES).find((g: GameScene) => g.gameId === game.gameId)
 
         const tl = gsap.timeline({
@@ -218,7 +221,10 @@ const useMatchAnimate = () => {
         if (game.data.move > moveRef.current) {
             const gameConsoleScene: GameConsoleScene = scenes.get(SCENE_NAME.GAME_CONSOLES).find((g: GameConsoleScene) => g.gameId === game.gameId)
             if (gameConsoleScene) {
-                playMoveChange(gameConsoleScene, moveRef.current, game.data.move, tl);
+                const moves = battle.data.steps;
+                const from = moves - moveRef.current;
+                const to = moves - game.data.move;
+                playStepChange(gameConsoleScene, from, to, tl);
                 moveRef.current = game.data.move;
             }
         }
@@ -308,7 +314,7 @@ const useMatchAnimate = () => {
 
         tl.play();
 
-    }, [playCollect, scenes, swipeSuccess, game, textures])
+    }, [playCollect, scenes, swipeSuccess, game, battle, textures])
 
     const playApply = useCallback(
         (event: any) => {

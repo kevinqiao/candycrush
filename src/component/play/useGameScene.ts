@@ -103,7 +103,7 @@ const useGameScene = () => {
             if (!boundRef.current) {
                 const b = { top: gameScene.y, left: gameScene.x, width: gameScene.width, height: gameScene.height, radius: gameScene.radius };
                 boundRef.current = b;
-                setBound(b)
+                setBound(b);
             }
         }
     }, [createCandySprite, game, scenes])

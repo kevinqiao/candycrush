@@ -15,6 +15,7 @@ const GameConsole: React.FC = () => {
   const { user } = useUserManager();
   const { load, battle } = useBattleManager();
   const { createScene, scenes, containerBound } = useSceneManager();
+
   const { game } = useGameManager();
   // const { initGameConsoleScene } = useSceneUtil();
   const [bound, setBound] = useState<{ x: number; y: number; width: number; height: number; mode: number } | null>(
@@ -71,6 +72,12 @@ const GameConsole: React.FC = () => {
     [game, scenes, bound]
   );
 
+  const moves = useMemo(() => {
+    if (battle && game) {
+      return battle.data.steps - game.data.move;
+    }
+    return null;
+  }, [battle, game]);
   const render = useMemo(() => {
     return (
       <>
@@ -104,7 +111,7 @@ const GameConsole: React.FC = () => {
             <div style={{ width: "80%", height: 45 }}>
               {bound && game ? (
                 <div style={{ fontSize: 15, color: "white" }}>
-                  Move:<span ref={loadMove}>{game?.data.move}</span>
+                  Move:<span ref={loadMove}>{moves}</span>
                 </div>
               ) : null}
             </div>
@@ -112,7 +119,7 @@ const GameConsole: React.FC = () => {
         </div>
       </>
     );
-  }, [bound, game]);
+  }, [bound, game, battle]);
   return <>{render}</>;
 };
 

@@ -8,7 +8,7 @@ export interface BattleModel {
     status?: number;//0-active 1-over 2-settled
     rewards?: BattleReward[];
     startTime: number;
-    data: any;
+    data: { chunk: number; column: number; row: number; goal: number; steps: number };
 }
 
 export type BattleReward = {

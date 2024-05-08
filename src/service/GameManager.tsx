@@ -33,7 +33,7 @@ export const GameProvider = ({ gameId, children }: { gameId: string; children: R
   // const actionRef = useRef<{ act: number; id: number; status: number }>({ act: 0, id: 0, status: -1 });
   const [gameEvent, setGameEvent] = useState<GameEvent | null>(null);
   const [gameEvents, setGameEvents] = useState<GameEvent[]>([]);
-  const { load, battle, completeGame } = useBattleManager();
+  const { load, battle, completeGame, setBattleOver } = useBattleManager();
   const { visible } = useSceneManager();
   const [laststep, setLaststep] = useState(-1);
   const { user } = useUserManager();
@@ -114,6 +114,7 @@ export const GameProvider = ({ gameId, children }: { gameId: string; children: R
   const localAct = useCallback(
     (act: number, data: any) => {
       if (!gameRef.current || !battle) return;
+      console.log("local act...");
       const actionResult: {
         data: any;
         result: any;
@@ -125,6 +126,7 @@ export const GameProvider = ({ gameId, children }: { gameId: string; children: R
         };
       } = GameEngine.executeAct(gameRef.current, battle, { act, data });
       if (actionResult) {
+        console.log(actionResult);
         const eventName = getEventByAct(act);
         const steptime = Math.round(Date.now() + user.timelag - battle["startTime"]);
         // console.log("locat act at steptime:" + steptime);
@@ -185,6 +187,8 @@ export const GameProvider = ({ gameId, children }: { gameId: string; children: R
       async (act: number, data: any) => {
         if (user && load !== BATTLE_LOAD.REPLAY && gameRef.current && battle) {
           localAct(act, data);
+          const move = battle?.data.steps - gameRef.current.data.move;
+          if (move <= 0) setBattleOver(1);
           await convex.action(api.gameService.doAct, {
             act,
             uid: user.uid,

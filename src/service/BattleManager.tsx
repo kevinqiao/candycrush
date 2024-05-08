@@ -11,6 +11,7 @@ interface IBattleContext {
   battleOver: number;
   // bounds: { name: string; top: number; left: number; width: number; height: number; radius?: number }[] | null;
   setCurrentSkill: (skill: number) => void;
+  setBattleOver: (status: number) => void;
   reset: () => void;
   timeout: () => void;
   completeGame: (gameId: string, score: { base: number; time: number; goal: number }) => void;
@@ -23,7 +24,12 @@ const BattleContext = createContext<IBattleContext>({
   battle: null,
   battleOver: 0,
   // bounds: null,
-  setCurrentSkill: (skill: number) => null,
+  setCurrentSkill: (skill: number) => {
+    return;
+  },
+  setBattleOver: (status: number) => {
+    return;
+  },
   reset: () => null,
   timeout: () => null,
   completeGame: (gameId: string, score: { base: number; time: number; goal: number }) => null,
@@ -52,6 +58,7 @@ export const BattleProvider = ({ battle, children }: { battle: BattleModel | nul
     battleOver,
     // bounds,
     setCurrentSkill,
+    setBattleOver,
     timeout: useCallback(() => {
       // console.log(event);
       setBattleOver(2);
