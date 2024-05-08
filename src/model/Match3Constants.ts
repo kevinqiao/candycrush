@@ -68,18 +68,18 @@ export const GAME_EVENT = {
 
 
 export const GAME_ACTION = {
-    SWIPE_CANDY: 4,
-    SMASH_CANDY: 5,
     SKILL_HAMMER: 1,
     SKILL_SWAP: 2,
     SKILL_SPRAY: 3,
+    SWIPE_CANDY: 4,
+    SMASH_CANDY: 5,
 } as { [key: string]: number };
 
 export const GAME_GOAL =
     [
-        { id: 1, goal: [{ asset: 0, quantity: 3 }, { asset: 1, quantity: 3 }, { asset: 3, quantity: 10 }] },
-        { id: 2, goal: [{ asset: 0, quantity: 10 }, { asset: 1, quantity: 10 }, { asset: 2, quantity: 10 }, { asset: 3, quantity: 10 }] },
-        { id: 3, goal: [{ asset: 0, quantity: 10 }, { asset: 1, quantity: 10 }, { asset: 2, quantity: 10 }, { asset: 3, quantity: 10 }] },
+        { id: 1, move: 20, goal: [{ asset: 0, quantity: 3 }, { asset: 1, quantity: 3 }, { asset: 3, quantity: 10 }] },
+        { id: 2, move: 20, goal: [{ asset: 0, quantity: 10 }, { asset: 1, quantity: 10 }, { asset: 2, quantity: 10 }, { asset: 3, quantity: 10 }] },
+        { id: 3, move: 20, goal: [{ asset: 0, quantity: 10 }, { asset: 1, quantity: 10 }, { asset: 2, quantity: 10 }, { asset: 3, quantity: 10 }] },
     ]
 
 export const getEventByAct = (act: number): string | null => {

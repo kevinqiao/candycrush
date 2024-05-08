@@ -7,25 +7,17 @@ import * as GameUtils from "../../../util/MatchGameUtils";
 import useDimension from "../../../util/useDimension";
 import Avatar from "../common/Avatar";
 
-const frameSize = 185;
 interface Props {
   layout: number;
   game: { uid: string; avatar?: number; gameId: string; data?: any };
 }
-
+//layout--0:left 1--right
 const AvatarBar: React.FC<Props> = ({ layout, game }) => {
   const sceneContainerRef = useRef<HTMLDivElement | null>(null);
   const { battle } = useBattleManager();
   const { width, height } = useDimension(sceneContainerRef);
   const { scenes } = useSceneManager();
   const [score, setScore] = useState<number>(0);
-
-  const calculateBackgroundPosition = () => {
-    const x = 45;
-    const y = frameSize + 125;
-    const pos = `-${x}px -${y}px`;
-    return pos;
-  };
 
   const player = useMemo(() => {
     if (battle?.games && game) {
@@ -34,18 +26,6 @@ const AvatarBar: React.FC<Props> = ({ layout, game }) => {
     }
     return null;
   }, [battle, game]);
-
-  const avatarSheetStyle = {
-    width: frameSize,
-    height: frameSize,
-    backgroundImage: player ? `url("avatars/${player.avatar}.svg")` : null,
-    // backgroundImage: `url("../../../assets/avatar.png")`,
-    // backgroundSize: "auto",
-    // backgroundPosition: calculateBackgroundPosition(),
-    backgroundColor: "transparent",
-    transform: `scale(${height / frameSize},${height / frameSize})`,
-    transformOrigin: "top left",
-  };
 
   const getAvatarBar = useCallback(() => {
     if (!game || !scenes) return;

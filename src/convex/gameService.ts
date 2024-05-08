@@ -12,17 +12,17 @@ export const doAct = sessionAction({
     args: { act: v.number(), gameId: v.string(), actionId: v.optional(v.number()), data: v.any() },
     handler: async (ctx, { act, gameId, actionId, data }) => {
 
-        console.log("do action:" + act + " actionId:" + actionId)
+        // console.log("do action:" + act + " actionId:" + actionId)
         const game: any = await ctx.runQuery(internal.games.getGame, { gameId: gameId as Id<"games"> });
         if (!game || !game?.battleId) return;
 
         const battle: BattleModel | undefined | null = await ctx.runQuery(internal.battle.find, { battleId: game.battleId as Id<"battle"> });
         if (!battle?.data || !battle.startTime) return;
 
-        const actionResult: { data: any; result: any; gameData: { lastCellId: number; matched: CellItem[], moves?: number, skillBuff?: { skill: number; quantity: number }[] } } = GameEngine.executeAct(game, battle, { act, data });
+        const actionResult: { data: any; result: any; gameData: { lastCellId: number; matched: CellItem[], move?: number, skillBuff?: { skill: number; quantity: number }[] } } = GameEngine.executeAct(game, battle, { act, data });
         if (actionResult) {
             const eventName = getEventByAct(act);
-            console.log("event name:" + eventName)
+            // console.log("event name:" + eventName)
             const steptime = Math.round(Date.now() - battle['startTime']);
             if (eventName)
                 await ctx.runMutation(internal.events.create, {

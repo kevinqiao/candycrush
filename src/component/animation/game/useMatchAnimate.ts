@@ -1,12 +1,13 @@
 import { CandySprite } from "component/pixi/CandySprite";
 import { gsap } from "gsap";
 import { CellItem } from "model/CellItem";
+import { GameModel } from "model/GameModel";
 import { SCENE_NAME } from "model/Match3Constants";
 import * as PIXI from "pixi.js";
-import { useCallback, useRef } from "react";
+import { useCallback, useEffect, useRef } from "react";
 import { useGameManager } from "service/GameManager";
 import { useUserManager } from "service/UserManager";
-import { GameScene } from "../../../model/SceneModel";
+import { GameConsoleScene, GameScene } from "../../../model/SceneModel";
 import { useSceneManager } from "../../../service/SceneManager";
 import useCollectCandies from "../battle/useCollectCandies";
 import useActAnimate from "./useActAnimate";
@@ -17,6 +18,7 @@ type Texture = {
     id: number;
     texture: PIXI.Texture;
 }
+
 export const playChange = (toChange: CellItem[], gameScene: GameScene, textures: Texture[], tl: any) => {
     const candyMap = gameScene.candies;
     const cwidth = gameScene.cwidth;
@@ -165,14 +167,34 @@ export const playSmesh = (toSmesh: { target: number; candy: CellItem; smesh: Cel
         }
     }
 }
+const playMoveChange = (gameConsoleScene: GameConsoleScene, from: number, to: number, tl: any) => {
+    const ml = gsap.timeline();
+    tl.add(ml, "<");
+    if (gameConsoleScene.moveDiv)
+        ml.from(gameConsoleScene.moveDiv, {
+            duration: 0.7, onUpdate: () => {
+                const progress = ml.progress();
+                const animatedValue = progress * (to - from) + from;
+                if (gameConsoleScene.moveDiv)
+                    gameConsoleScene.moveDiv.innerHTML = Math.floor(animatedValue) + "";
+            }
+        }, "<");   
+    
+}
 const useMatchAnimate = () => {
     const timelineRef = useRef<any>(null);
     const { game } = useGameManager();
     const { user } = useUserManager();
+    const moveRef = useRef<number>(0)
     const { scenes, textures } = useSceneManager();
     const { swipeSuccess } = useActAnimate();
     const { swapSuccess } = useSkillAnimate();
     const { playCollect } = useCollectCandies();
+
+    useEffect(() => {
+        if (game?.data.move)
+            moveRef.current = game.data.move;
+    }, [game])
 
     const stopPlay = useCallback(() => {
         if (timelineRef.current)
@@ -183,8 +205,7 @@ const useMatchAnimate = () => {
     const apply = useCallback((event: any) => {
         if (!game || !scenes?.get(SCENE_NAME.GAME_SCENES)) return;
         const gameScene: GameScene = scenes.get(SCENE_NAME.GAME_SCENES).find((g: GameScene) => g.gameId === game.gameId)
-        // console.log(gameScene.gameId + ":" + gameScene.cwidth)
-        // animateStatusRef.current = 3;
+
         const tl = gsap.timeline({
             onComplete: () => {
                 tl.kill();
@@ -193,6 +214,14 @@ const useMatchAnimate = () => {
             }
         })
         timelineRef.current = tl;
+
+        if (game.data.move > moveRef.current) {
+            const gameConsoleScene: GameConsoleScene = scenes.get(SCENE_NAME.GAME_CONSOLES).find((g: GameConsoleScene) => g.gameId === game.gameId)
+            if (gameConsoleScene) {
+                playMoveChange(gameConsoleScene, moveRef.current, game.data.move, tl);
+                moveRef.current = game.data.move;
+            }
+        }
 
         if (event.name === "cellSwapped" && game.uid !== user.uid) {
             const sl = gsap.timeline();
@@ -257,6 +286,16 @@ const useMatchAnimate = () => {
                     const cl = gsap.timeline();
                     sl.add(cl, "<");
                     playChange(res.toChange, gameScene, textures, cl);
+                    const tochange = JSON.parse(JSON.stringify(res.toChange)).filter((c: CellItem) => c.src)
+                    tochange.forEach((c: CellItem) => {
+                        if (c.src)
+                            c.asset = c.src
+                    })
+                    cl.call(
+                        () => playCollect(game.gameId, tochange, null),
+                        [],
+                        "<"
+                    );
                 }
 
                 if (res.toMove) {
@@ -280,7 +319,95 @@ const useMatchAnimate = () => {
     );
 
 
-    return { playApply, stopPlay };
+    const preapply = useCallback((act: number, actData: any, game: GameModel) => {
+        if (!game || !scenes?.get(SCENE_NAME.GAME_SCENES)) return;
+        const gameScene: GameScene = scenes.get(SCENE_NAME.GAME_SCENES).find((g: GameScene) => g.gameId === game.gameId)
+        const tl = gsap.timeline({
+            onComplete: () => {
+                tl.kill();
+                timelineRef.current = null;
+                // animateStatusRef.current = 0;
+            }
+        })
+
+        const ml = gsap.timeline();
+        tl.add(ml, ">")
+        const { results } = actData;
+
+        if (results && gameScene) {
+            for (const res of results) {
+                const sl = gsap.timeline();
+                tl.add(sl, ">")
+                if (res.toSmesh) {
+                    const cl = gsap.timeline(
+                        {
+                            onComplete: () => {
+                                const candyMap = gameScene.candies;
+                                const smeshs: { target: number; candy: CellItem; smesh: CellItem[] }[][] = res.toSmesh;
+                                smeshs.flat().forEach((c) => {
+                                    c.smesh.forEach((c) => {
+                                        const candy = candyMap.get(c.id);
+                                        if (candy) {
+                                            candyMap.delete(c.id)
+                                            candy.parent.removeChild(candy as PIXI.DisplayObject)
+                                            candy.destroy();
+                                        }
+                                    })
+                                })
+                            }
+                        }
+                    );
+                    sl.add(cl);
+                    playSmesh(res.toSmesh, gameScene, cl);
+                    const cellItems = res.toSmesh.flatMap((subArray: { target: number; candy: CellItem; smesh: CellItem[] }[]) =>
+                        subArray.flatMap(item => item.smesh)
+                    );
+                    cl.call(
+                        () => playCollect(game.gameId, cellItems, null),
+                        [],
+                        "<"
+                    );
+                }
+                if (res.toRemove) {
+                    const cl = gsap.timeline();
+                    res.toSmesh ? sl.add(cl, ">-=0.3") : sl.add(cl);
+                    playRemove(res.toRemove, gameScene, textures, cl)
+                    cl.call(
+                        () => playCollect(game.gameId, res.toRemove, null),
+                        [],
+                        "<"
+                    );
+                }
+                if (res.toChange) {
+                    // console.log(res.toChange)
+                    const cl = gsap.timeline();
+                    sl.add(cl, "<");
+                    playChange(res.toChange, gameScene, textures, cl);
+                    const tochange = JSON.parse(JSON.stringify(res.toChange)).filter((c: CellItem) => c.src)
+                    tochange.forEach((c: CellItem) => {
+                        if (c.src)
+                            c.asset = c.src
+                    })
+                    cl.call(
+                        () => playCollect(game.gameId, tochange, null),
+                        [],
+                        "<"
+                    );
+                }
+
+                if (res.toMove) {
+                    const cl = gsap.timeline();
+                    sl.add(cl, ">");
+                    playMove([...res.toMove, ...res.toCreate], gameScene, textures, cl)
+                }
+            }
+        }
+
+        tl.play();
+
+    }, [playCollect, scenes, swipeSuccess, game, textures])
+
+    return { playApply, stopPlay, preapply };
 };
 export default useMatchAnimate
 

@@ -1,77 +1,81 @@
+import { BATTLE_LOAD } from "model/Constants";
 import { SCENE_ID, SCENE_NAME } from "model/Match3Constants";
 import { GameConsoleScene } from "model/SceneModel";
-import React, { useEffect, useMemo, useRef, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
+import { useBattleManager } from "service/BattleManager";
 import { useGameManager } from "service/GameManager";
 import { useSceneManager } from "service/SceneManager";
+import { useUserManager } from "service/UserManager";
 import { getGameConsoleBound } from "util/BattleBoundUtil";
-import useSceneUtil from "../common/useSceneUtil";
 import AvatarBar from "./AvatarBar";
 import GoalPanel from "./GoalPanel";
 
 const GameConsole: React.FC = () => {
-  const sceneRef = useRef<HTMLDivElement | null>(null);
-  const { scenes, containerBound, updateScene } = useSceneManager();
+  // const sceneRef = useRef<HTMLDivElement | null>(null);
+  const { user } = useUserManager();
+  const { load, battle } = useBattleManager();
+  const { createScene, scenes, containerBound } = useSceneManager();
   const { game } = useGameManager();
-  const { initGameConsoleScene } = useSceneUtil();
+  // const { initGameConsoleScene } = useSceneUtil();
   const [bound, setBound] = useState<{ x: number; y: number; width: number; height: number; mode: number } | null>(
     null
   );
-  const boundRef = useRef<{ x: number; y: number; width: number; height: number; mode: number } | null>(null);
-  // console.log("game console:" + game?.gameId);
 
   useEffect(() => {
-    if (game && scenes && containerBound && boundRef.current) {
+    if (!battle || !game || !scenes || !containerBound) return;
+
+    if (game && scenes && containerBound) {
+      const { width, height } = containerBound;
+      const mode =
+        battle.games?.length === 1 || load === BATTLE_LOAD.REPLAY
+          ? 0
+          : game.uid === user.uid || (battle.games && battle.games[0].gameId === game.gameId)
+          ? 1
+          : 2;
       const gameConsoleScenes = scenes.get(SCENE_NAME.GAME_CONSOLES);
       const gameConsoleScene = gameConsoleScenes?.find((s: GameConsoleScene) => s.gameId === game.gameId);
-      if (gameConsoleScene) {
-        const { width, height } = containerBound;
-        const nbound = getGameConsoleBound(width, height, gameConsoleScene.mode);
-        if (
-          nbound &&
-          (nbound?.top !== boundRef.current?.y ||
-            nbound?.left !== boundRef.current.x ||
-            nbound?.width !== boundRef.current.width ||
-            nbound.height !== boundRef.current.height)
-        ) {
-          boundRef.current = {
+      const nbound = getGameConsoleBound(width, height, mode);
+      if (nbound) {
+        if (!gameConsoleScene) {
+          const consoleScene = {
+            gameId: game.gameId,
+            app: null,
             x: nbound.left,
             y: nbound.top,
-            width: nbound?.width,
+            width: nbound.width,
             height: nbound.height,
-            mode: gameConsoleScene.mode,
+            mode,
           };
-          updateScene(SCENE_ID.GAME_CONSOLE_SCENE, { ...boundRef.current, gameId: game.gameId });
-          setBound(boundRef.current);
+          createScene(SCENE_ID.GAME_CONSOLE_SCENE, consoleScene);
         }
+        setBound({
+          x: nbound.left,
+          y: nbound.top,
+          width: nbound.width,
+          height: nbound.height,
+          mode: mode,
+        });
       }
     }
-  }, [containerBound, scenes, game]);
-  useEffect(() => {
-    const consoleScene = initGameConsoleScene();
-    if (consoleScene) {
-      const { x, y, width, height, mode } = consoleScene;
-      const b = { x, y, width, height, mode };
-      boundRef.current = b;
-      setBound(b);
-    }
-  }, [initGameConsoleScene]);
-
-  // const loadScene = useCallback(
-  //   (sceneEle: HTMLDivElement | null) => {
-  //     if (sceneEle && game) {
-  //       const gameConsoleScenes = scenes?.get(SCENE_NAME.GAME_CONSOLES);
-  //       const gameConsoleScene = gameConsoleScenes.find((s: GameConsoleScene) => s.gameId === game.gameId);
-  //       if (gameConsoleScene) gameConsoleScene.app = sceneEle;
-  //     }
-  //   },
-  //   [game, scenes]
-  // );
+  }, [containerBound, scenes, game, battle]);
+  const loadMove = useCallback(
+    (el: HTMLElement | null) => {
+      if (el && scenes && game && bound) {
+        const gameConsoleScenes = scenes.get(SCENE_NAME.GAME_CONSOLES);
+        const gameConsoleScene = gameConsoleScenes?.find((s: GameConsoleScene) => s.gameId === game.gameId);
+        if (gameConsoleScene) {
+          gameConsoleScene.moveDiv = el;
+        }
+      }
+    },
+    [game, scenes, bound]
+  );
 
   const render = useMemo(() => {
     return (
       <>
         <div
-          ref={sceneRef}
+          // ref={sceneRef}
           style={{
             position: "absolute",
             top: bound?.y,
@@ -96,6 +100,13 @@ const GameConsole: React.FC = () => {
             </div>
             <div style={{ position: "relative", left: -10, width: "80%" }}>
               {bound && game ? <GoalPanel layout={bound.mode} game={game} /> : null}
+            </div>
+            <div style={{ width: "80%", height: 45 }}>
+              {bound && game ? (
+                <div style={{ fontSize: 15, color: "white" }}>
+                  Move:<span ref={loadMove}>{game?.data.move}</span>
+                </div>
+              ) : null}
             </div>
           </div>
         </div>

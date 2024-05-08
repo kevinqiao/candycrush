@@ -5,7 +5,7 @@ import useDimension from "../../util/useDimension";
 
 const Loading = () => {
   const sceneContainerRef = useRef<HTMLDivElement | null>(null);
-  const { scenes, stageScene } = useSceneManager();
+  const { scenes } = useSceneManager();
   const { width, height } = useDimension(sceneContainerRef);
   useEffect(() => {
     if (scenes && sceneContainerRef.current) {
@@ -20,10 +20,9 @@ const Loading = () => {
           type: 1,
         };
         scenes.set(SCENE_NAME.BATTLE_LOADING, scene);
-        stageScene(SCENE_NAME.BATTLE_LOADING, scene);
       }
     }
-  }, [sceneContainerRef, scenes, width, height, stageScene]);
+  }, [sceneContainerRef, scenes, width, height]);
 
   return (
     <div

@@ -1,32 +1,26 @@
-import { BATTLE_LOAD } from "model/Constants";
 import React, { useCallback, useMemo } from "react";
 import { useBattleManager } from "service/BattleManager";
-import { useGameManager } from "service/GameManager";
-import { useSceneManager } from "service/SceneManager";
-import { useUserManager } from "service/UserManager";
-import { getGameBound } from "util/BattleBoundUtil";
 import { CircularProgressButton } from "./CircularProgressButton";
-
-const SkillControl: React.FC = () => {
-  const { load, containerBound } = useSceneManager();
-  const { game } = useGameManager();
-  const { battle, currentSkill, setCurrentSkill } = useBattleManager();
-  const { user } = useUserManager();
-  const gameBound = useMemo(() => {
-    if (game && battle?.games && battle.games.length > 0 && containerBound) {
-      const mode =
-        battle.games?.length === 1 || load === BATTLE_LOAD.REPLAY
-          ? 0
-          : game.uid === user.uid || battle.games[0].gameId === game.gameId
-          ? 1
-          : 2;
-      const { width, height } = containerBound;
-      const { column, row } = battle.data;
-      const sbound = getGameBound(width, height, column, row, mode);
-      return sbound;
-    }
-    return null;
-  }, [battle, game, containerBound]);
+interface Props {
+  gameBound: { top: number; left: number; width: number; height: number } | null;
+}
+const SkillControl: React.FC<Props> = ({ gameBound }) => {
+  const { currentSkill, setCurrentSkill } = useBattleManager();
+  // const gameBound = useMemo(() => {
+  //   if (game && battle?.games && battle.games.length > 0 && containerBound) {
+  //     const mode =
+  //       battle.games?.length === 1 || load === BATTLE_LOAD.REPLAY
+  //         ? 0
+  //         : game.uid === user.uid || battle.games[0].gameId === game.gameId
+  //         ? 1
+  //         : 2;
+  //     const { width, height } = containerBound;
+  //     const { column, row } = battle.data;
+  //     const sbound = getGameBound(width, height, column, row, mode);
+  //     return sbound;
+  //   }
+  //   return null;
+  // }, [battle, game, containerBound]);
   const skillBound = useMemo(() => {
     if (gameBound) {
       const { top, left, width, height } = gameBound;

@@ -28,7 +28,6 @@ const BattleReport: React.FC = () => {
       const report = await convex.action(api.battle.findReport, {
         battleId: battle.id,
       });
-      console.log(report);
       setBattleReport(report);
     }
   }, [battle]);

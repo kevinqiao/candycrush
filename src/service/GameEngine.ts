@@ -1,8 +1,9 @@
 import { BattleModel, BattleReward } from '../model/Battle';
 import { CellItem } from "../model/CellItem";
 import { GAME_STATUS } from "../model/Constants";
+import { GameEvent } from '../model/GameEvent';
 import { GameModel } from '../model/GameModel';
-import { GAME_ACTION, GAME_EVENT, GAME_GOAL } from '../model/Match3Constants';
+import { GAME_ACTION, GAME_EVENT, GAME_GOAL, getEventByAct } from '../model/Match3Constants';
 import { Tournament } from '../model/Tournament';
 import { countMatched, findMatch, findMove, getFreeCandy, getRandomAsset, hasMatch3 } from '../util/MatchGameUtils';
 import { getRandom, getRandomSeed } from '../util/Utils';
@@ -159,7 +160,13 @@ export const handleSwipe = (game: GameModel, battle: BattleModel, data: any): an
     const fourChanges = solveMatch(grid, 3, 4);
     const toChange = [...plus4Changes, ...crossChanges, ...fourChanges];
 
-
+    // if (isPre) {
+    //     const res = firstMatch(grid);
+    //     const result = { ...res, toChange, toSmesh }
+    //     results.push(result);
+    //     actionResult['result'] = results;
+    //     return actionResult;
+    // } else {
     const res = shiftMatch(game.seed, game.data, grid);
     const result = { ...res, toChange, toSmesh }
 
@@ -170,6 +177,7 @@ export const handleSwipe = (game: GameModel, battle: BattleModel, data: any): an
     results.push(...matchResults);
     actionResult['result'] = results;
     return actionResult;
+    // }
 }
 
 export const handleSmash = (game: GameModel, battle: BattleModel, data: any): any => {
@@ -278,11 +286,11 @@ export const executeAct = (game: GameModel, battle: BattleModel, action: { act: 
     switch (action.act) {
         case GAME_ACTION.SWIPE_CANDY:
             actionResult = handleSwipe(game, battle, action.data);
-            game.data.moves ? game.data.moves++ : game.data.moves = 1;
+            game.data.move ? game.data.move++ : game.data.move = 1;
             break;
         case GAME_ACTION.SMASH_CANDY:
             actionResult = handleSmash(game, battle, action.data);
-            game.data.moves ? game.data.moves++ : game.data.moves = 1;
+            game.data.move ? game.data.move++ : game.data.move = 1;
 
             break;
         case GAME_ACTION.SKILL_HAMMER:
@@ -469,10 +477,12 @@ const shiftMatch = (seed: string, data: { lastCellId: number }, grid: CellItem[]
         const toColCreate: CellItem[] = [];
         const colRemoved = cells.filter((c: any) => c.column === column && c.status > 0);
         for (const r of colRemoved) {
+
             const candy = getFreeCandy(seed, data.lastCellId++);
             toColCreate.push(candy);
             candy.column = column;
             candy.row = colRemoved.length - toColCreate.length;
+
             const toMoves: CellItem[] = cells.filter((c: CellItem) => !c.status && c.column === column && c.row < r.row);
             toMoves.forEach((ms) => {
                 const tm = toMove.find((m) => m.id === ms.id);
@@ -489,8 +499,24 @@ const shiftMatch = (seed: string, data: { lastCellId: number }, grid: CellItem[]
     const toRemove: CellItem[] = cells.filter((c: CellItem) => c.status === 1);
     return { toRemove, toCreate, toMove }
 
-}
 
+}
+export const localAct = (act: number, data: any, game: GameModel, battle: BattleModel): GameEvent | null => {
+
+    const actionResult: { data: any; result: any; gameData: { lastCellId: number; matched: CellItem[], move?: number, skillBuff?: { skill: number; quantity: number }[] } } = executeAct(game, battle, { act, data });
+    if (actionResult) {
+        const eventName = getEventByAct(act);
+        // console.log("event name:" + eventName)
+        const steptime = Math.round(Date.now() - battle['startTime']);
+        if (eventName) {
+            const event: GameEvent = {
+                name: eventName, data: { ...actionResult.data, results: actionResult.result, gameData: { ...game.data, cells: undefined } }, steptime
+            }
+            return event;
+        }
+    }
+    return null;
+}
 const applyShiftResult = (
     result: { toCreate: CellItem[]; toChange: CellItem[]; toRemove: CellItem[]; toMove: CellItem[]; toSmesh?: { target: number; candy: CellItem; smesh?: CellItem[] }[][] },
     data: { cells: CellItem[] }

@@ -79,6 +79,7 @@ const useGameScene = () => {
         initGameScene();
         const gameScenes = scenes.get(SCENE_NAME.GAME_SCENES);
         const gameScene = gameScenes.find((s: GameScene) => s.gameId === game.gameId);
+
         if (gameScene && game.gameId && gameScene?.candies && gameScene?.cwidth) {
 
             const candies: CandySprite[] = Array.from(gameScene.candies.values());
@@ -99,10 +100,11 @@ const useGameScene = () => {
                     gameScene.candies?.set(c.id, sprite as CandySprite)
                 }
             })
-            const { top, left, width, height, radius } = gameScene;
-            const b = { top, left, width, height, radius };
-            boundRef.current = b;
-            setBound(b)
+            if (!boundRef.current) {
+                const b = { top: gameScene.y, left: gameScene.x, width: gameScene.width, height: gameScene.height, radius: gameScene.radius };
+                boundRef.current = b;
+                setBound(b)
+            }
         }
     }, [createCandySprite, game, scenes])
 
@@ -164,16 +166,7 @@ const useGameScene = () => {
         const gameScene = gameScenes?.find((s: GameScene) => s.gameId === game.gameId);
 
         if (gameEvent?.name === "initGame") {
-            // console.log("init game")
-            // const candies: CandySprite[] = Array.from(gameScene.candies.values());
-            // candies.forEach((candy: CandySprite) => {
-            //     gameScene.candies.delete(candy.id);
-            //     candy.parent.removeChild(candy as PIXI.DisplayObject)
-            //     candy.destroy()
-            // })
-            // gameScene.candies.clear();
-            // const g = gameEvent.data;
-            // initCandies(g.data.cells);
+
             stopAnimate();
             init(gameEvent.data.data.cells)
             loadGame(game.gameId, { matched: game.data.matched ?? [] });
@@ -244,6 +237,7 @@ const useGameScene = () => {
 
     //handle window size change to update candy sprite
     useEffect(() => {
+        console.log("update gamescene")
         const gameScenes = scenes?.get(SCENE_NAME.GAME_SCENES);
         if (game && gameScenes && containerBound) {
             const gameScene = gameScenes.find((s: GameScene) => s.gameId === game.gameId);

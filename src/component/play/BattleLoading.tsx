@@ -11,7 +11,7 @@ const BattleLoading = ({ battle }: { battle: any }) => {
   const vsRef = useRef<HTMLDivElement | null>(null);
   const playerAvatarRef = useRef<HTMLDivElement | null>(null);
   const opponentAvatarRef = useRef<HTMLDivElement | null>(null);
-  const { scenes, stageScene } = useSceneManager();
+  const { scenes } = useSceneManager();
   const { width, height } = useDimension(sceneContainerRef);
 
   const [searchComplete, setSearchComplete] = useState(false);
@@ -80,13 +80,13 @@ const BattleLoading = ({ battle }: { battle: any }) => {
           playerAvatarEle: playerAvatarRef.current,
           opponentAvatarEle: opponentAvatarRef.current,
         };
-        stageScene(SCENE_NAME.BATTLE_MATCHING, scene);
+        // stageScene(SCENE_NAME.BATTLE_MATCHING, scene);
       }
     }
     return () => {
       if (scenes) scenes.delete(SCENE_NAME.BATTLE_MATCHING);
     };
-  }, [sceneContainerRef, searchRef, vsRef, foundRef, scenes, width, height, stageScene]);
+  }, [sceneContainerRef, searchRef, vsRef, foundRef, scenes, width, height]);
 
   return (
     <div

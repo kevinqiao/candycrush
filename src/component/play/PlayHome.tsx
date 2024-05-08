@@ -4,7 +4,7 @@ import { BATTLE_LOAD } from "model/Constants";
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import BattleProvider from "service/BattleManager";
 import GameProvider from "service/GameManager";
-import SceneProvider, { useSceneManager } from "service/SceneManager";
+import SceneProvider from "service/SceneManager";
 import { useUserManager } from "service/UserManager";
 import { StyleSheetManager } from "styled-components";
 import useDimension from "util/useDimension";
@@ -20,7 +20,6 @@ import OpponentMatch from "./match/OpponentMatch";
 import OpponentSearch from "./match/OpponentSearch";
 import "./play.css";
 import BattleReport from "./report/BattleReport";
-import SkillControl from "./skill/SkillControl";
 
 interface ControlProps {
   battleId: string;
@@ -29,7 +28,6 @@ const PlayControl: React.FC<ControlProps> = ({ battleId }) => {
   const [battle, setBattle] = useState<BattleModel | null>(null);
   const { findBattle } = useTournamentManager();
   const { user } = useUserManager();
-  const { initialize } = useSceneManager();
 
   useEffect(() => {
     if (!battle && battleId) {
@@ -55,7 +53,7 @@ const PlayControl: React.FC<ControlProps> = ({ battleId }) => {
                 <GameProvider key={g.gameId} gameId={g.gameId}>
                   <GamePlay />
                   <GameConsole />
-                  {g.uid === user.uid ? <SkillControl /> : null}
+                  {/* {g.uid === user.uid ? <SkillControl /> : null} */}
                 </GameProvider>
               ))}
             <BattleScene />

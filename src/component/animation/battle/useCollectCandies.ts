@@ -50,7 +50,8 @@ const useCollectCandies = () => {
     const playCollect = useCallback((gameId: string, cells: CellItem[], timeline: any) => {
         const matched: { asset: number; quantity: number }[] = JSON.parse(JSON.stringify(prematchedRef.current));
         cells.forEach((r: CellItem) => {
-            const ma = matched.find((m) => m.asset === r.asset);
+            const ma = matched.find((m) => m.asset === r.asset || m.asset === r.src);
+
             if (ma)
                 ma.quantity++;
             else
@@ -61,8 +62,8 @@ const useCollectCandies = () => {
         const tl = timeline ?? gsap.timeline();
         const sl = gsap.timeline();
         tl.add(sl);
-
-        playChangeScore(gameId, { from, to }, sl);
+        if (from !== to)
+            playChangeScore(gameId, { from, to }, sl);
         const gl = gsap.timeline();
         playGoalCollect(gameId, cells, gl);
         prematchedRef.current = matched;
@@ -70,6 +71,7 @@ const useCollectCandies = () => {
         if (!timeline)
             tl.play();
     }, [])
+
     const playChangeScore = useCallback((gameId: string, score: { from: number; to: number }, timeline: any) => {
         if (!scenes) return;
         const gameConsoleScenes = scenes?.get(SCENE_NAME.GAME_CONSOLES);
@@ -100,9 +102,10 @@ const useCollectCandies = () => {
                 }
             });
             tl.add(pl, "<");
+
             span.innerHTML = "+" + (score.to - score.from)
             pl.to(span, { autoAlpha: 1, duration: 0 }, "<");
-            pl.to(span, { y: -20, duration: 0.3 }, ">");
+            pl.to(span, { y: -30, duration: 0.8 }, ">");
             pl.to(span, { autoAlpha: 0, y: -60, duration: 0.8 }, ">");
             pl.to(span, { y: 0, duration: 0 }, ">");
         }
@@ -124,14 +127,16 @@ const useCollectCandies = () => {
                 const mt = gsap.timeline();
                 removes.forEach((r, index) => {
                     const goal = goalObj.goal.find((a) => a.asset === r.asset);
-                    let matched = prematchedRef.current.find((c) => c.asset === r.asset);
-                    if (!matched)
-                        matched = { asset: r.asset, quantity: 0 }
-                    if (goal && matched.quantity < goal.quantity) {
-                        const change = goalChanges.find((a) => a.asset === r.asset);
-                        change ? change.to-- :
-                            goalChanges.push({ asset: goal.asset, from: goal.quantity - matched.quantity, to: goal.quantity - matched.quantity - 1 });
-                        playGoalMove(gameId, r, mt)
+                    if (goal) {
+                        let matched = prematchedRef.current.find((c) => c.asset === r.asset);
+                        if (!matched)
+                            matched = { asset: r.asset ?? r.src, quantity: 0 }
+                        if (matched.quantity < goal.quantity) {
+                            const change = goalChanges.find((a) => a.asset === r.asset);
+                            change ? change.to-- :
+                                goalChanges.push({ asset: goal.asset, from: goal.quantity - matched.quantity, to: goal.quantity - matched.quantity - 1 });
+                            playGoalMove(gameId, r, mt)
+                        }
                     }
                 })
                 if (goalChanges.length > 0) {
@@ -152,7 +157,7 @@ const useCollectCandies = () => {
         const target = getGoalTarget(gameId, candy.asset);
 
         const cwidth = gameScene?.cwidth;
-        const texture = textures?.find((d) => d.id === candy.asset);
+        const texture = textures?.find((d) => d.id === candy.asset || d.id === candy.src);
         if (battleScene && gameScene && texture && target) {
             const cl = gsap.timeline();
             tl.add(cl, "<");

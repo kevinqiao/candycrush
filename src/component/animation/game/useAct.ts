@@ -13,7 +13,7 @@ import useActAnimate from "./useActAnimate";
 const useAct = () => {
     const timelineRef = useRef<any>(null);
     const { battle } = useBattleManager();
-    const { game, action, doAct } = useGameManager();
+    const { game, doAct } = useGameManager();
     const { swipeSuccess, swipeFail } = useActAnimate();
     const stopAct = useCallback(() => {
         if (timelineRef.current) {
@@ -25,7 +25,7 @@ const useAct = () => {
 
         async (candy: CellItem, target: CellItem) => {
 
-            if (!battle || !game || action.status === 0) return;
+            if (!battle || !game) return;
             // animateStatusRef.current = 1;
             const timeline = gsap.timeline({
                 onComplete: () => {
@@ -55,9 +55,9 @@ const useAct = () => {
 
             if (hasMatch3(grid) || smeshIds.includes(candy['asset']) || smeshIds.includes(target['asset'])) {
 
-                swipeSuccess(game.gameId, scandy, starget, timeline)
-                const res = await doAct(GAME_ACTION.SWIPE_CANDY, { candyId: candy.id, targetId: target.id });
-                // console.log(res)
+                swipeSuccess(game.gameId, scandy, starget, timeline);
+
+                await doAct(GAME_ACTION.SWIPE_CANDY, { candyId: candy.id, targetId: target.id });
 
             } else {
                 swipeFail(game.gameId, candy.id, target.id, timeline);
@@ -68,10 +68,10 @@ const useAct = () => {
     const hitAct = useCallback(
 
         async (candy: CandySprite) => {
-            if (!battle || !game || action.status === 0) return;
+            if (!battle || !game) return;
             const smeshIds = [28, 29, 30, 31];
             if (smeshIds.includes(candy.asset)) {
-                const res = await doAct(GAME_ACTION.SMASH_CANDY, { candyId: candy.id });
+                await doAct(GAME_ACTION.SMASH_CANDY, { candyId: candy.id });
             }
         },
         [battle, game, doAct]

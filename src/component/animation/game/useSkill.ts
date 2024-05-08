@@ -53,11 +53,10 @@ const useSkill = () => {
         (skill: number, data: any) => {
             console.log("execute skill:" + skill)
             switch (skill) {
-                case 1:
-
+                case GAME_ACTION.SKILL_HAMMER:
                     doAct(GAME_ACTION.SKILL_HAMMER, { candyId: data.candy.id })
                     break;
-                case 2:
+                case GAME_ACTION.SKILL_SWAP:
                     {
                         const { candy, target } = data;
                         if (candy && target && game) {
@@ -70,12 +69,13 @@ const useSkill = () => {
                                 }
                             })
                             timelineRef.current = timeline;
-                            swapSuccess(game.gameId, candy, target, timeline)
+                            swapSuccess(game.gameId, candy, target, timeline);
                             doAct(GAME_ACTION.SKILL_SWAP, { candyId: data.candy.id, targetId: data.target.id })
                         }
                     }
                     break;
-                case 3:
+                case GAME_ACTION.SKILL_SPRAY:
+
                     doAct(GAME_ACTION.SKILL_SPRAY, { candyId: data.candy.id })
                     break;
                 default:

@@ -1,5 +1,5 @@
 export interface GameEvent {
-    id: string;
+    id?: string;
     name: string;
     data: any;
     steptime: number;

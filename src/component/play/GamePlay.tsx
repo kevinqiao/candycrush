@@ -3,11 +3,12 @@ import { BATTLE_LOAD } from "model/Constants";
 import { SCENE_NAME } from "model/Match3Constants";
 import { GameScene } from "model/SceneModel";
 import * as PIXI from "pixi.js";
-import React, { useCallback, useEffect, useMemo, useRef } from "react";
+import React, { useEffect, useMemo, useRef } from "react";
 import { useGameManager } from "service/GameManager";
 import { useBattleManager } from "../../service/BattleManager";
 import { useSceneManager } from "../../service/SceneManager";
 import { useUserManager } from "../../service/UserManager";
+import SkillControl from "./skill/SkillControl";
 import useGameScene from "./useGameScene";
 
 const GamePlay = () => {
@@ -24,19 +25,6 @@ const GamePlay = () => {
 
   const { bound } = useGameScene();
 
-  const loadScene = useCallback(
-    (sceneEle: HTMLDivElement | null) => {
-      if (!game || !battle || !sceneEle || !scenes) return;
-      const gameScenes = scenes?.get(SCENE_NAME.GAME_SCENES);
-      const gameScene = gameScenes.find((s: GameScene) => s.gameId === game.gameId);
-      if (gameScene) {
-        // console.log("load game play scene:" + game.gameId);
-        const app: PIXI.Application = gameScene.app as PIXI.Application<PIXI.ICanvas>;
-        sceneEle.appendChild(app.view as unknown as Node);
-      }
-    },
-    [game, scenes, battle]
-  );
   useEffect(() => {
     if (!bound) return;
     let result;
@@ -58,7 +46,6 @@ const GamePlay = () => {
     const gameScenes = scenes?.get(SCENE_NAME.GAME_SCENES);
     const gameScene = gameScenes.find((s: GameScene) => s.gameId === game.gameId);
     if (gameScene) {
-      // console.log("load game play scene:" + game.gameId);
       const app: PIXI.Application = gameScene.app as PIXI.Application<PIXI.ICanvas>;
       sceneRef.current.appendChild(app.view as unknown as Node);
     }
@@ -139,6 +126,8 @@ const GamePlay = () => {
             </div>
           </div>
         </div>
+
+        {game?.uid === user.uid ? <SkillControl gameBound={bound} /> : null}
       </>
     );
   }, [game, bound, load]);

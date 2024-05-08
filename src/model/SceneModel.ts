@@ -31,5 +31,6 @@ export interface GameConsoleScene extends SceneModel {
     gameId: string;
     avatarBar?: { avatar: HTMLElement | null; bar: HTMLElement | null; score: HTMLElement | null; plus: HTMLElement | null };
     goalPanel?: { goals: { asset: number; iconEle: HTMLElement | null; qtyEle: HTMLElement | null }[] };
+    moveDiv: HTMLDivElement | null;
     mode: number;
 }
