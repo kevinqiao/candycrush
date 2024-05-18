@@ -47,7 +47,7 @@ export const BattleProvider = ({ battle, children }: { battle: BattleModel | nul
     if (!user || !battle) return;
     const mygame = battle.games?.find((g) => g.uid === user.uid);
     const timeLeft = battle.duration + battle.startTime - Date.now() + user.timelag;
-    if (battle.status || mygame?.result || timeLeft < 0) setBattleOver(1);
+    if (battle.rewards || battle.status || mygame?.result || timeLeft < 0) setBattleOver(1);
   }, [battle, user]);
 
   const value = {

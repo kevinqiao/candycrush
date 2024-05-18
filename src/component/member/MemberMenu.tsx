@@ -1,7 +1,7 @@
 import { gsap } from "gsap";
 import React, { useEffect } from "react";
-import useCoord from "../../service/CoordManager";
 import { usePageManager } from "../../service/PageManager";
+import useCoord from "../../service/TerminalManager";
 import "./menu.css";
 const colors = ["red", "green", "blue", "orange", "white"];
 const iconCoords = [

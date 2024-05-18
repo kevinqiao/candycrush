@@ -32,8 +32,7 @@ const PlayControl: React.FC<ControlProps> = ({ battleId }) => {
   useEffect(() => {
     if (!battle && battleId) {
       findBattle(battleId as Id<"battle">).then((b: any) => {
-        // console.log(b);
-        // initialize(b);
+        console.log(b);
         setBattle(b);
       });
     }
@@ -104,7 +103,7 @@ const PlayHome: React.FC<PageProps> = (pageProp) => {
       <StyleSheetManager shouldForwardProp={(propName) => isPropValid(propName)}>
         <div ref={sceneRef} className="play_container">
           <SceneProvider load={load} visible={visible} pageProp={pageProp} pagePosition={pagePosition}>
-            {load >= 0 && battleId ? <PlayControl battleId={battleId} /> : null}
+            {load >= 0 && visible && battleId ? <PlayControl battleId={battleId} /> : null}
             <OpponentSearch
               onExit={() => {
                 pageProp.close ? pageProp.close(0) : null;

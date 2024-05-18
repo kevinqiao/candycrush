@@ -42,6 +42,7 @@ export const getGame = internalQuery({
 export const findGame = query({
   args: { gameId: v.id("games") },
   handler: async (ctx, { gameId }): Promise<any> => {
+    console.log("gameId:" + gameId)
     const game = await ctx.db.get(gameId);
     if (game) {
       const diffcult = await ctx.db.query("diffcult")
@@ -111,12 +112,12 @@ export const update = internalMutation({
     await ctx.db.patch(gameId, { ...data });
   },
 });
-export const log = internalMutation({
-  args: { gameId: v.string(), cells: v.any() },
-  handler: async (ctx, args) => {
-    await ctx.db.insert("rounds", { cells: args.cells, gameId: args.gameId });
-  },
-});
+// export const log = internalMutation({
+//   args: { gameId: v.string(), cells: v.any() },
+//   handler: async (ctx, args) => {
+//     await ctx.db.insert("rounds", { cells: args.cells, gameId: args.gameId });
+//   },
+// });
 export const settle = internalMutation({
   args: { gameId: v.id("games") },
   handler: async (ctx, { gameId }) => {

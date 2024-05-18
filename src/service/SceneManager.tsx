@@ -140,11 +140,6 @@ export const SceneProvider = ({
               const gameConsoleScene = gameConsoleScenes.find((s) => s.gameId === cscene.gameId);
               if (!gameConsoleScene) {
                 gameConsoleScenes.push(cscene);
-
-                // setTimeout(
-                //   () => setSceneEvent({ type: SCENE_EVENT_TYPE.INIT, id: SCENE_ID.GAME_CONSOLE_SCENE, scene }),
-                //   Math.floor(Math.random() * 100)
-                // );
               }
             }
             break;

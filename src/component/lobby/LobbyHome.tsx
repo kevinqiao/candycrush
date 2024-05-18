@@ -1,7 +1,7 @@
 import { SlideNavProvider } from "component/SlideNavManager";
 import PageProps from "model/PageProps";
 import React, { useMemo } from "react";
-import useCoord from "service/CoordManager";
+import useCoord from "service/TerminalManager";
 import LobbyContent from "./LobbyContent";
 import LobbyMenu from "./LobbyMenu";
 const LobbyHome: React.FC<PageProps> = (prop) => {

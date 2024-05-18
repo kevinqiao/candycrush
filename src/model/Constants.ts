@@ -74,8 +74,9 @@ export const BATTLE_EVENT = {
 
 export const GAME_STATUS = {
     OPEN: 0,
-    END: 1,
-    SETTLED: 2
+    SETTLED: 1,
+    REWARD: 2,
+    REWARD_DISPATCHED: 3
 }
 export const BATTLE_STATUS = {
     OPEN: 0,

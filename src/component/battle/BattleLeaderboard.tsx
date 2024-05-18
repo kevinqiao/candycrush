@@ -1,46 +1,70 @@
+import ReportItem from "component/play/report/ReportItem";
 import { useConvex } from "convex/react";
 import PageProps from "model/PageProps";
-import React, { useEffect, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
+import { useUserManager } from "service/UserManager";
 import { api } from "../../convex/_generated/api";
-import LeaderboardItem from "./LeaderboardItem";
 import "./battle.css";
-
+export interface GameResult {
+  player?: { uid: string; name: string; avatar: number };
+  uid: string;
+  gameId: string;
+  result?: any;
+}
+export interface BattleReward {
+  player?: { uid: string; name: string; avatar: number };
+  uid: string;
+  gameId: string;
+  reward: {
+    player: { name?: string; avatar?: number };
+    uid: string;
+    gameId: string;
+    result?: { base: number; time: number; goal: number };
+    assets: { asset: number; amount: number };
+  };
+}
 const BattleLeaderboard: React.FC<PageProps> = (pageProp) => {
-  const { rewards, id: battleId } = pageProp.data;
-  const [battleReport, setBattleReport] = useState<[] | null>(null);
+  const { battleId, claim } = pageProp.data;
+  const { user } = useUserManager();
+  const [gameResults, setGameResults] = useState<GameResult[] | null>(null);
+  const [battleRewards, setBattleRewards] = useState<BattleReward[] | null>(null);
+
   const convex = useConvex();
-  useEffect(() => {
-    const findPlayers = async (uids: string[]) => {
-      const players = await convex.query(api.user.findPlayers, { uids });
-      const report = rewards.map((r: any) => {
-        const player = players.find((p) => p.uid);
-        if (player) return { ...r, ...player };
-        else return r;
+
+  const findReport = useCallback(async () => {
+    if (battleId && user) {
+      const { uid, token } = user;
+      const report = await convex.action(api.battle.findReport, {
+        battleId,
+        uid,
+        token,
       });
-      setBattleReport(report);
-    };
-    if (battleId && rewards) {
-      const uids = rewards.map((r: any) => r.uid);
-      findPlayers(uids);
+
+      setGameResults(report.games);
+      if (report.rewards) setBattleRewards(report.rewards);
     }
-  }, [battleId, rewards]);
-  console.log(battleReport);
+  }, [battleId, user]);
+  useEffect(() => {
+    if (battleId) {
+      findReport();
+    }
+  }, [battleId]);
+
   return (
     <div className="board_container">
       <div className="board_content">
         <div className="board_title">Tournament</div>
         <div style={{ height: 40 }}></div>
-        {battleReport ? (
-          <div className="boarditems_container">
-            {battleReport.map((r: any, index: number) => (
-              <LeaderboardItem key={index} reward={r} battleId={battleId} />
-            ))}
-          </div>
-        ) : null}
+
+        <div className="boarditems_container">
+          {gameResults && gameResults.map((r) => <ReportItem key={r.gameId} gameResult={r} rewards={battleRewards} />)}
+        </div>
       </div>
-      <div className="ok_btn">
-        <span>Cancel</span>
-      </div>
+      {!claim ? (
+        <div className="collect_btn">
+          <span>Collect</span>
+        </div>
+      ) : null}
     </div>
   );
 };

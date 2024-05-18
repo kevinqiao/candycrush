@@ -6,7 +6,7 @@ import React from "react";
 
 import StackController from "component/StackController";
 import NavHeader from "component/lobby/NavHeader";
-import { CoordProvider } from "./service/CoordManager";
+import { TerminalProvider } from "service/TerminalManager";
 import { PageProvider } from "./service/PageManager";
 import { UserProvider, useUserManager } from "./service/UserManager";
 // Register the plugin once globally
@@ -49,7 +49,7 @@ function M3App() {
     ]);
   };
   const Providers = FlattenedProviderTree([
-    [CoordProvider],
+    [TerminalProvider],
     [PageProvider],
     [ConvexProvider, { client: convex }],
     [UserProvider],

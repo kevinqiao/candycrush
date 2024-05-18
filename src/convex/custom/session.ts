@@ -9,6 +9,7 @@ export const sessionAction = customAction(action, {
     args: { uid: v.string(), token: v.string() },
     // The function handler, taking the validated arguments and context.
     input: async (ctx, { uid, token }) => {
+        console.log("user uid:" + uid + ":" + token)
         const u: any = await ctx.runQuery(internal.user.find, { id: uid as Id<"user"> });
         const user = u && u.uid === uid ? u : null;
         // const user = { uid, token };

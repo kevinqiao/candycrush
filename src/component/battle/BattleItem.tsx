@@ -1,12 +1,12 @@
+import RewardItem from "component/battle/RewardItem";
 import DateIcon from "component/icons/DateIcon";
 import LeaderboardIcon from "component/icons/LeaderboardIcon";
 import PlayersIcon from "component/icons/PlayersIcon";
 import PrizeIcon from "component/icons/PrizeIcon";
-import RewardIcon from "component/icons/RewardIcon";
-import { BattleModel } from "model/Battle";
+import moment from "moment";
 import React, { useCallback, useEffect, useRef, useState } from "react";
-import useCoord from "service/CoordManager";
 import { usePageManager } from "service/PageManager";
+import useCoord from "service/TerminalManager";
 import "./battle.css";
 const TounamentTitle: React.FC = () => {
   const divRef = useRef<HTMLDivElement | null>(null);
@@ -36,34 +36,37 @@ const TounamentTitle: React.FC = () => {
   );
 };
 interface Props {
-  battle: BattleModel;
+  battleId: string;
+  time: number;
+  reward: any;
+  participants: number;
+  claim?: number; //0-to claim 1-claimed
 }
 
-const BattleItem: React.FC<Props> = ({ battle }) => {
+const BattleItem: React.FC<Props> = ({ battleId, time, claim, reward, participants }) => {
   const { width, height } = useCoord();
   const { openPage } = usePageManager();
+
   const collect = useCallback(() => {
     console.log("do collection");
-  }, [battle]);
+  }, [battleId]);
   const openLeaderboard = () => {
-    openPage({ name: "leaderboard", ctx: "match3", data: battle });
+    openPage({ name: "leaderboard", ctx: "match3", data: { battleId, claim } });
   };
 
   return (
     <div className="battle-item roboto-regular" style={{ width: width > height ? "90%" : "100%" }}>
-      <div className="trophy">
-        <PrizeIcon rank={2}></PrizeIcon>
-      </div>
+      <div className="trophy">{reward ? <PrizeIcon rank={reward.rank + 1}></PrizeIcon> : null}</div>
       <div style={{ width: "65%" }}>
         <div style={{ height: "30%", width: "100%" }}>
           <TounamentTitle />
         </div>
         <div className="summary roboto-regular">
           <div style={{ width: "45%", maxWidth: 150, marginLeft: 5 }}>
-            <PlayersIcon players={5} />
+            <PlayersIcon players={participants} />
           </div>
           <div style={{ width: "45%", maxWidth: 150 }}>
-            <DateIcon date={"24/02/2024"} />
+            <DateIcon date={moment(time).format("MM-DD HH:mm")} />
           </div>
           <div style={{ width: "55%", maxWidth: 200, marginLeft: 30 }} onClick={openLeaderboard}>
             <LeaderboardIcon />
@@ -73,7 +76,7 @@ const BattleItem: React.FC<Props> = ({ battle }) => {
       </div>
       <div className="reward">
         <div style={{ height: "100%" }}>
-          <RewardIcon amount={"12"} />
+          <RewardItem claim={claim ?? 0} reward={reward} />
         </div>
       </div>
     </div>

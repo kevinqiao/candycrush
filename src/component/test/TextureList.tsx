@@ -2,7 +2,7 @@ import * as PIXI from "pixi.js";
 import { DisplayObject } from "pixi.js";
 import { useEffect, useRef, useState } from "react";
 import candy_texture_defs from "../../model/candy_textures";
-import useCoord from "../../service/CoordManager";
+import useCoord from "../../service/TerminalManager";
 
 interface Props {
   width: number;
@@ -87,7 +87,7 @@ const TextureList: React.FC = () => {
       //   sprite.y = (Math.floor(count / 7) + 5) * 50 + 225;
       //   scene.stage.addChild(sprite as PIXI.DisplayObject);
       // }
-      for (let texture of candyTextures) {
+      for (const texture of candyTextures) {
         const sprite = new PIXI.Sprite(texture.texture);
         sprite.anchor.set(0.5);
         sprite.width = 50;

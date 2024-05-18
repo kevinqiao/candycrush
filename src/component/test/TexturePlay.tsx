@@ -3,7 +3,7 @@ import { MotionPathPlugin } from "gsap/MotionPathPlugin";
 
 import * as PIXI from "pixi.js";
 import { useEffect, useMemo, useRef, useState } from "react";
-import useCoord from "../../service/CoordManager";
+import useCoord from "../../service/TerminalManager";
 import useCollectCandies from "./CollectCandies";
 
 interface Props {

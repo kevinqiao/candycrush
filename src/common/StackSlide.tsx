@@ -1,6 +1,6 @@
 import gsap from "gsap";
 import React, { useEffect, useRef } from "react";
-import useCoord from "../service/CoordManager";
+import useCoord from "../service/TerminalManager";
 import "./popup.css";
 interface PopupProps {
   zIndex: number;

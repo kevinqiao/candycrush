@@ -23,7 +23,7 @@ export const create = internalMutation({
   args: { uid: v.string(), tournamentId: v.string(), term: v.optional(v.number()) },
   handler: async (ctx, { uid, tournamentId, term }) => {
     const t = term ? term : 0;
-    const qid = await ctx.db.insert("matchqueue", { uid, tournamentId, term: t });
+    const qid = await ctx.db.insert("matchqueue", { uid, tournamentId });
     return qid;
   },
 });
@@ -33,6 +33,14 @@ export const remove = internalMutation({
     await ctx.db.delete(id);
   },
 });
+
+const findOpponents = (ctx: any, uid: string, waitlist: string[]) => {
+
+  return;
+}
+const findGame = (ctx: any, uid: string): { seed: string; data: { cells: CellItem[]; lastCellId: number }; ref?: string } | null => {
+  return null;
+}
 export const settleMatch = internalMutation({
   handler: async (ctx) => {
     const allToMatch = await ctx.db.query("matchqueue").collect();
@@ -46,7 +54,7 @@ export const settleMatch = internalMutation({
       const tournament = await ctx.db.query("tournament").filter((q) => q.eq(q.field("id"), "2")).order("asc").first();
       if (tournament && diffcult) {
         const startTime = Date.now() + BATTLE_COUNT_DOWN_TIME;
-        const battle: any = { tournamentId: tournament.id, participants: tournament.participants, diffcult: diffcult?.id, startTime, duration: tournament.battleTime };
+        const battle: any = { tournamentId: tournament.id, participants: tournament.participants, diffcult: diffcult?.id, startTime, duration: tournament.battle.duration };
         battle['duration'] = 120000;
         battle['dueTime'] = startTime + battle['duration'];
 

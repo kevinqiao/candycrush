@@ -5,8 +5,8 @@ import { ConvexProvider, ConvexReactClient } from "convex/react";
 import { gsap } from "gsap";
 import MotionPathPlugin from "gsap/MotionPathPlugin";
 import React from "react";
-import { CoordProvider } from "./service/CoordManager";
 import { PageProvider } from "./service/PageManager";
+import { TerminalProvider } from "./service/TerminalManager";
 import { UserProvider } from "./service/UserManager";
 // Register the plugin once globally
 gsap.registerPlugin(MotionPathPlugin);
@@ -34,7 +34,7 @@ function TgApp() {
   };
 
   const Providers = FlattenedProviderTree([
-    [CoordProvider],
+    [TerminalProvider],
     [PageProvider],
     [ConvexProvider, { client: convex }],
     [UserProvider],

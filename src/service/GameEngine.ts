@@ -55,36 +55,36 @@ export const createGame = (diffcult: { column: number; row: number; chunk: numbe
     }
     return gameData
 }
-
-export const settleGame = (game: any, battle: any, goalId: number): { base: number; time: number; goal: number } | null => {
-
-    let result = null;
-    let goalScore = 0;
-    const timeLeft = battle.duration - Date.now() + battle.startTime;
-
+export const checkGoalComplete = (game: any, goalId: number): boolean => {
     const goalModel = GAME_GOAL.find((g: { id: number, steps: number; goal: { asset: number, quantity: number }[] }) => g.id === goalId);
-    if (goalModel && game.data.matched && (timeLeft < 0 || goalModel.steps <= game.data.move)) {
-
-
+    if (goalModel && game.data.matched) {
         const goalSuccess = goalModel.goal.map((g) => {
             const m = game.data.matched.find((m: { asset: number; quantity: number }) => m.asset === g.asset);
             const quantity = m ? g.quantity - m.quantity : g.quantity;
             return { asset: g.asset, quantity };
         }).every((r) => r.quantity <= 0);
+        return goalSuccess;
+    }
+    return false;
+}
+export const settleGame = (game: any): { base: number; time: number; goal: number } | null => {
+    if (game.result) return game.result
+    let result = null;
 
-        if (goalSuccess) {
-            goalScore = 1000;
-        }
-
-
+    if (game.data.matched) {
         const baseScore = game.data.matched.reduce((s: number, a: { asset: number; quantity: number }) => s + a.quantity, 0);
-        const timeScore = timeLeft > 0 ? Math.floor(timeLeft * 2 / 1000) : 0;
+        const timeScore = game.data.goalCompleteTime ? Math.floor(game.data.goalCompleteTime / 1000) : 0;
+        const goalScore = game.data.goalCompleteTime ? 100 : 0;
         const score = baseScore + timeScore + goalScore;
         result = { base: baseScore, time: timeScore, goal: goalScore }
         game['result'] = result;
         game['score'] = score;
         game['status'] = GAME_STATUS.SETTLED;
 
+    } else {
+        game['result'] = { base: 0, time: 0, goal: 0 };
+        game['score'] = 0;
+        game['status'] = GAME_STATUS.SETTLED;
     }
     return result
 }
@@ -114,9 +114,9 @@ export const countRewards = (tournament: Tournament, battle: BattleModel): Battl
         battle.games.sort((a: any, b: any) => b.score - a.score).forEach((r: any, index: number) => {
             const reward = tournament.rewards?.find((w) => w.rank === index);
             if (reward) {
-                rewards.push({ uid: r.uid, gameId: r._id, rank: index, score: r.score, points: reward.points, assets: reward.assets });
+                rewards.push({ uid: r.uid, gameId: r._id, rank: index, score: r.score, assets: reward.assets });
             } else
-                rewards.push({ uid: r.uid, gameId: r._id, rank: index, score: r.score, points: 0, assets: [] });
+                rewards.push({ uid: r.uid, gameId: r._id, rank: index, score: r.score, assets: [] });
         })
     }
     return rewards;

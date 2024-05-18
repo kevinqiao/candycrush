@@ -2,9 +2,9 @@ import { useAuth } from "@clerk/clerk-react";
 import SSOSignout from "component/signin/SSOSignout";
 import gsap from "gsap";
 import React, { useCallback, useEffect, useMemo, useRef } from "react";
-import useCoord from "service/CoordManager";
 import { usePageManager } from "service/PageManager";
 import { useSSOManager } from "service/SSOManager";
+import useCoord from "service/TerminalManager";
 import PageProps from "../../model/PageProps";
 import "./www.css";
 const W3Home: React.FC<PageProps | null> = (prop) => {

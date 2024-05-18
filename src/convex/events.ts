@@ -79,7 +79,7 @@ export const findByBattle = query({
 export const findByGame = query({
   args: { gameId: v.optional(v.string()), laststep: v.number() },
   handler: async (ctx, { gameId, laststep }) => {
-    // console.log("laststep:" + laststep)
+    console.log("laststep:" + laststep)
     if (laststep >= 0 && gameId) {
       const game = await ctx.db.get(gameId as Id<"games">);
       if (game?.startTime) {
@@ -87,12 +87,12 @@ export const findByGame = query({
         // const from = Date.now() - game.startTime;
         const to = game.laststep ?? 0;
         const gid = game['ref'] !== "####" ? game['ref'] : gameId
-        // console.log("from:" + from + "; to:" + to + " gameId:" + gid)
+        console.log("from:" + from + "; to:" + to + " gameId:" + gid)
         const events = await ctx.db
           .query("events").withIndex("by_game", (q) => q.eq("gameId", gid))
           .filter((q) => q.and(q.gt(q.field("steptime"), from), q.lte(q.field("steptime"), to))).order("asc")
           .collect();
-        // console.log("event size:" + events?.length)
+        console.log("event size:" + events?.length)
         return events.map((event) => Object.assign({}, event, { id: event?._id, _creationTime: undefined, _id: undefined }))
       }
     }

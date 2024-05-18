@@ -1,9 +1,10 @@
-import { User } from "./User";
 
 export interface Leaderboard {
     id: number;
-    user: User;
-    points: number;
-    lastUpdate: number;
+    uid: string;
+    score: number;
+    scoreLasttime: number;
+    scoreStarttime: number;
     tournamentId: string;
+    reward?: any;
 }

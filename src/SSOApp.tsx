@@ -7,8 +7,8 @@ import React from "react";
 
 import { ClerkProvider } from "@clerk/clerk-react";
 import SSOProvider from "service/SSOManager";
-import { CoordProvider } from "./service/CoordManager";
 import { PageProvider } from "./service/PageManager";
+import { TerminalProvider } from "./service/TerminalManager";
 // Register the plugin once globally
 gsap.registerPlugin(MotionPathPlugin);
 // gsap.registerPlugin(TransformPlugin);
@@ -35,7 +35,7 @@ function SSOApp() {
     ]);
   };
   const Providers = FlattenedProviderTree([
-    [CoordProvider],
+    [TerminalProvider],
     [PageProvider],
     [ConvexProvider, { client: convex }],
     [ClerkProvider, { publishableKey: "pk_test_bGVuaWVudC1sb3VzZS04Ni5jbGVyay5hY2NvdW50cy5kZXYk" }],

@@ -1,4 +1,8 @@
-
+export const TOURNAMENT_BATTLE_TYPE = {
+    GROUP: 0,
+    PvP: 1,
+    SINGLE: 2,
+};
 export const MOVE_DIRECTION = {
     RIGHT: 1,
     LEFT: 3,
@@ -62,7 +66,8 @@ export const GAME_EVENT = {
     SKILL_HAMMER: "skillHammer",
     SKILL_SWAP: "skillSwap",
     SKILL_SPRAY: "skillSpray",
-    GAME_OVER: "gameOver"
+    GAME_OVER: "gameOver",
+    GOAL_COMPLETE: "goalComplete",
 } as { [key: string]: string };
 
 

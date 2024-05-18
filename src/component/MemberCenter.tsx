@@ -1,9 +1,9 @@
 import gsap from "gsap";
 import React, { FunctionComponent, Suspense, lazy, useEffect, useMemo, useRef, useState } from "react";
 import { NavPages } from "../model/PageCfg";
-import useCoord from "../service/CoordManager";
 import useEventSubscriber from "../service/EventManager";
 import { usePageManager } from "../service/PageManager";
+import useCoord from "../service/TerminalManager";
 import "./layout.css";
 import MemberMenu from "./member/MemberMenu";
 
@@ -26,7 +26,7 @@ const MemberCenter: React.FC = () => {
   const { width, height } = useCoord();
   useEffect(() => {
     const ps: { name: string; index: number; component: any }[] = [];
-    for (let p of pageIndexs) {
+    for (const p of pageIndexs) {
       const page = NavPages.find((n) => n.name === p.name);
       if (page) {
         const c = lazy(() => import(`${page.uri}`));

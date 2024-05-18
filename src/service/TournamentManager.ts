@@ -42,10 +42,11 @@ const useTournamentManager = () => {
   );
   const findBattle = useCallback(
     async (battleId: Id<"battle">): Promise<any> => {
-      const battle: any = await convex.action(api.battle.findBattle, { battleId });
+      console.log(user.uid + ":" + user.token)
+      const battle: any = await convex.action(api.battle.findBattle, { battleId, uid: user.uid, token: user.token });
       return battle;
     },
-    [convex]
+    [convex, user]
   );
   return { join, exit, listActives, findBattle };
 };

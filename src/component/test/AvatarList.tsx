@@ -1,7 +1,7 @@
 import * as PIXI from "pixi.js";
 import { useEffect, useMemo, useRef, useState } from "react";
 import candy_texture_defs from "../../model/candy_textures";
-import useCoord from "../../service/CoordManager";
+import useCoord from "../../service/TerminalManager";
 import { Avatar } from "../pixi/Avatar";
 import { ARRAY_TYPE, AvatarBar } from "../pixi/AvatarBar";
 import { CandySprite } from "../pixi/CandySprite";
@@ -69,7 +69,7 @@ const AvatarList: React.FC = () => {
       const frameWidth = 185;
       const frameHeight = 185;
       const textureList = [];
-      let count = 1;
+      const count = 1;
       for (let r = 0; r < 1; r++) {
         const y = r * frameHeight + 100;
         for (let c = 0; c < 2; c++) {
@@ -107,7 +107,7 @@ const AvatarList: React.FC = () => {
   useEffect(() => {
     let count = 0;
     if (scene) {
-      for (let texture of textures) {
+      for (const texture of textures) {
         const sprite = new PIXI.Sprite(texture);
         sprite.anchor.set(0.5);
         sprite.width = 50;

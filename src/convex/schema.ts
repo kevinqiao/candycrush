@@ -27,16 +27,11 @@ export default defineSchema({
         laststep: v.optional(v.number()),
         startTime: v.optional(v.number()),
         dueTime: v.optional(v.number()),
-        result: v.optional(v.any()),//{base:number;time:number;goal:number}
+        result: v.optional(v.object({ base: v.number(), time: v.number(), goal: v.number() })),//{base:number;time:number;goal:number}
         score: v.optional(v.number()),//final score used by index
-        status: v.optional(v.number()),//0-open 1-end
+        status: v.optional(v.number()),//0-open 1-settled 2-rewarded
         type: v.number(),//
-        data: v.any()
-        // cells: v.any(),
-
-        // matched: v.optional(v.any()),
-        // goal: v.number(),
-        // chunk: v.optional(v.number())
+        data: v.object({ cells: v.array(v.any()), matched: v.optional(v.array(v.any())), skillBuff: v.array(v.object({ skill: v.number(), progress: v.number() })), move: v.optional(v.number()), lastCellId: v.number(), goalCompleteTime: v.optional(v.number()) })
     }).index("by_type", ["type"]).index("by_status", ["status"]),
     events: defineTable({
         name: v.string(),
@@ -48,44 +43,43 @@ export default defineSchema({
         actionId: v.optional(v.number()),
         data: v.any(),
     }).index("by_game", ["gameId"]).index("by_uid", ["uid"]).index("by_battle", ["battleId"]),
-    rounds: defineTable({
-        gameId: v.string(),
-        cells: v.any(),
-    }),
+    // rounds: defineTable({
+    //     gameId: v.string(),
+    //     cells: v.any(),
+    // }),
     diffcult: defineTable({
         id: v.string(),
         level: v.number(),
         hard: v.number(),
         data: v.any(),
     }).index("by_level", ["level"]).index("by_hard", ["hard"]).index("by_did", ["id"]),
+
     battle: defineTable({
         type: v.optional(v.number()),
         participants: v.number(),
         tournamentId: v.string(),
         term: v.optional(v.number()),//schedule tournament term
-        rewards: v.optional(v.any()),
+        // uid: r.uid, gameId: r._id, rank: index, score: r.score, assets: [] 
+        rewards: v.optional(v.array(v.object({ uid: v.string(), gameId: v.string(), rank: v.number(), score: v.number(), assets: v.array(v.object({ asset: v.number(), amount: v.number() })) }))),
         startTime: v.number(),
         dueTime: v.optional(v.number()),
         duration: v.number(),
         status: v.number(),//0-going 1-settled 2-cancelled
         diffcult: v.string(),
-        // data: v.any()
-        // row: v.number(),
-        // column: v.number(),
-        // goal: v.optional(v.number()),
-        // chunk: v.optional(v.number())
     }),
 
     tournament: defineTable({
         id: v.string(),
+        context: v.optional(v.string()),
+        creator: v.optional(v.string()),
+        type: v.optional(v.number()),//0-one battle for all  1-scoring rank by pvp point 2-scoring rank by  best score
         participants: v.number(),
-        battleTime: v.number(),
-        gameType: v.number(),
-        currentTerm: v.optional(v.number()),
-        schedule: v.optional(v.any()),
-        cost: v.optional(v.any()),
-        rewards: v.any(),
-        status: v.number(),//0-on going 1-over 2-settled
+        battle: v.object({ type: v.number(), duration: v.number(), sessions: v.number(), players: v.number() }),
+        openTime: v.optional(v.number()),
+        closeTime: v.optional(v.number()),
+        scheduler: v.optional(v.object({ day: v.number(), weekday: v.number(), hour: v.number(), minute: v.number() })),
+        entry: v.optional(v.object({ level: v.number(), cost: v.array(v.object({ asset: v.number(), amount: v.number() })) })),
+        rewards: v.array(v.object({ rank: v.number(), assets: v.array(v.object({ asset: v.number(), amount: v.number() })) })),
     }),
     asset: defineTable({
         type: v.number(),
@@ -129,15 +123,14 @@ export default defineSchema({
     matchqueue: defineTable({
         uid: v.string(),
         tournamentId: v.string(),
-        term: v.number(),
     }),
     leaderboard: defineTable({
         tournamentId: v.string(),
-        term: v.number(),
         uid: v.string(),
-        points: v.number(),
-        lastUpdate: v.number(),
-        reward: v.optional(v.any())
-    }).index("by_points", ["points"]),
+        score: v.number(),
+        scoreLasttime: v.number(),
+        scoreStarttime: v.number(),
+        reward: v.optional(v.array(v.object({ asset: v.number(), quantity: v.number() })))
+    }).index("by_tournament", ["tournamentId"]).index("by_score", ["score"]).index("by_starttime", ["scoreStarttime"]),
 
 });

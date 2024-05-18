@@ -23,42 +23,35 @@ const GameConsole: React.FC = () => {
   );
 
   useEffect(() => {
-    if (!battle || !game || !scenes || !containerBound) return;
+    if (!battle || !game || !scenes || !containerBound || !user) return;
 
-    if (game && scenes && containerBound) {
-      const { width, height } = containerBound;
-      const mode =
-        battle.games?.length === 1 || load === BATTLE_LOAD.REPLAY
-          ? 0
-          : game.uid === user.uid || (battle.games && battle.games[0].gameId === game.gameId)
-          ? 1
-          : 2;
-      const gameConsoleScenes = scenes.get(SCENE_NAME.GAME_CONSOLES);
-      const gameConsoleScene = gameConsoleScenes?.find((s: GameConsoleScene) => s.gameId === game.gameId);
-      const nbound = getGameConsoleBound(width, height, mode);
-      if (nbound) {
-        if (!gameConsoleScene) {
-          const consoleScene = {
-            gameId: game.gameId,
-            app: null,
-            x: nbound.left,
-            y: nbound.top,
-            width: nbound.width,
-            height: nbound.height,
-            mode,
-          };
-          createScene(SCENE_ID.GAME_CONSOLE_SCENE, consoleScene);
-        }
-        setBound({
+    const { width, height } = containerBound;
+    const mode = battle.games?.length === 1 || load === BATTLE_LOAD.REPLAY ? 0 : game.uid === user.uid ? 1 : 2;
+    const gameConsoleScenes = scenes.get(SCENE_NAME.GAME_CONSOLES);
+    const gameConsoleScene = gameConsoleScenes?.find((s: GameConsoleScene) => s.gameId === game.gameId);
+    const nbound = getGameConsoleBound(width, height, mode);
+    if (nbound) {
+      if (!gameConsoleScene) {
+        const consoleScene = {
+          gameId: game.gameId,
+          app: null,
           x: nbound.left,
           y: nbound.top,
           width: nbound.width,
           height: nbound.height,
-          mode: mode,
-        });
+          mode,
+        };
+        createScene(SCENE_ID.GAME_CONSOLE_SCENE, consoleScene);
       }
+      setBound({
+        x: nbound.left,
+        y: nbound.top,
+        width: nbound.width,
+        height: nbound.height,
+        mode: mode,
+      });
     }
-  }, [containerBound, scenes, game, battle]);
+  }, [containerBound, scenes, game, user, battle]);
   const loadMove = useCallback(
     (el: HTMLElement | null) => {
       if (el && scenes && game && bound) {

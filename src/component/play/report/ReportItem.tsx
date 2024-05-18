@@ -1,25 +1,28 @@
 import PrizeIcon from "component/icons/PrizeIcon";
 import React, { useMemo } from "react";
-import { ReportItemModel } from "./BattleReport";
+import { BattleReward, GameResult } from "./BattleReport";
 import "./report.css";
-
-const ReportItem: React.FC<ReportItemModel> = ({ player, result }) => {
+interface Props {
+  gameResult: GameResult;
+  rewards: BattleReward[] | null;
+}
+const ReportItem: React.FC<Props> = ({ gameResult, rewards }) => {
   const score = useMemo(() => {
-    if (result) {
-      const { base, time, goal } = result;
+    if (gameResult?.result) {
+      const { base, time, goal } = gameResult.result;
       return base + time + goal;
     } else return null;
-  }, [result]);
+  }, [gameResult]);
   return (
-    <div className="report-item">
+    <div key={gameResult.uid} className="report-item">
       <div className="report-trophy">
         <PrizeIcon rank={2}></PrizeIcon>
       </div>
       <div className="score-summary">
-        <div>{player?.name}</div>
+        <div>{gameResult.player?.name}</div>
         <div>{score}</div>
       </div>
-      {!result ? <div className="battle-prize">Now Playing</div> : null}
+      {!gameResult.result ? <div className="battle-prize">Now Playing</div> : null}
     </div>
   );
 };

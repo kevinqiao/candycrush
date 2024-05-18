@@ -1,7 +1,7 @@
 import { useSlideNavManager } from "component/SlideNavManager";
 import React from "react";
 import styled from "styled-components";
-import useCoord from "../../service/CoordManager";
+import useCoord from "../../service/TerminalManager";
 import "./menu.css";
 const MenuItem = styled.div`
   cursor: pointer;

@@ -1,6 +1,6 @@
 import { useConvex, useQuery } from "convex/react";
 import { GameModel } from "model/GameModel";
-import { getEventByAct } from "model/Match3Constants";
+import { GAME_EVENT, getEventByAct } from "model/Match3Constants";
 import React, { createContext, useCallback, useContext, useEffect, useRef, useState } from "react";
 import { api } from "../convex/_generated/api";
 import { Id } from "../convex/_generated/dataModel";
@@ -45,8 +45,6 @@ export const GameProvider = ({ gameId, children }: { gameId: string; children: R
   });
 
   const convex = useConvex();
-  // const doAct = useAction(api.gameService.doAct);
-
   const sync = useCallback(async () => {
     if (!battle?.data) return;
     // console.log("sync game");
@@ -90,7 +88,9 @@ export const GameProvider = ({ gameId, children }: { gameId: string; children: R
       let count = 0;
       if (!gameRef.current) return;
       for (const event of eventList) {
-        if (event.name === "gameOver") {
+        if (event.name === GAME_EVENT.GOAL_COMPLETE) {
+          console.log(event);
+        } else if (event.name === GAME_EVENT.GAME_OVER) {
           const result = event.data.result;
           gameRef.current.result = result;
           setGameEvent(event);
@@ -103,10 +103,10 @@ export const GameProvider = ({ gameId, children }: { gameId: string; children: R
             if (event.steptime > laststep) {
               GameEngine.handleEvent(event.name, event.data, gameRef.current);
               setGameEvent(event);
-              if (load !== BATTLE_LOAD.REPLAY) setLaststep(event.steptime);
             }
           }, 10 * count++);
         }
+        if (load !== BATTLE_LOAD.REPLAY) setLaststep(event.steptime);
       }
     },
     [gameId, gameRef.current]
@@ -114,7 +114,7 @@ export const GameProvider = ({ gameId, children }: { gameId: string; children: R
   const localAct = useCallback(
     (act: number, data: any) => {
       if (!gameRef.current || !battle) return;
-      console.log("local act...");
+
       const actionResult: {
         data: any;
         result: any;
@@ -126,7 +126,6 @@ export const GameProvider = ({ gameId, children }: { gameId: string; children: R
         };
       } = GameEngine.executeAct(gameRef.current, battle, { act, data });
       if (actionResult) {
-        console.log(actionResult);
         const eventName = getEventByAct(act);
         const steptime = Math.round(Date.now() + user.timelag - battle["startTime"]);
         // console.log("locat act at steptime:" + steptime);
@@ -152,7 +151,8 @@ export const GameProvider = ({ gameId, children }: { gameId: string; children: R
   }, [visible, load, sync]);
 
   useEffect(() => {
-    if (battle?.data.goal && events && events.length > 0) {
+    if (events && events.length > 0) {
+      console.log(events);
       processEvents(events);
     }
   }, [events, battle, gameRef.current]);
@@ -187,8 +187,8 @@ export const GameProvider = ({ gameId, children }: { gameId: string; children: R
       async (act: number, data: any) => {
         if (user && load !== BATTLE_LOAD.REPLAY && gameRef.current && battle) {
           localAct(act, data);
-          const move = battle?.data.steps - gameRef.current.data.move;
-          if (move <= 0) setBattleOver(1);
+          // const move = battle?.data.steps - gameRef.current.data.move;
+          // if (move <= 0) setBattleOver(1);
           await convex.action(api.gameService.doAct, {
             act,
             uid: user.uid,

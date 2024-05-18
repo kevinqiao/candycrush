@@ -17,5 +17,5 @@ export type BattleReward = {
     rank: number;
     score: number;
     points?: number;
-    assets?: { asset: number, amount: number }[]
+    assets: { asset: number, amount: number }[]
 }

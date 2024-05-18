@@ -1,6 +1,6 @@
 import { useSlideNavManager } from "component/SlideNavManager";
 import React, { FunctionComponent, Suspense, useMemo } from "react";
-import useCoord from "service/CoordManager";
+import useCoord from "service/TerminalManager";
 import styled from "styled-components";
 const colors = ["red", "green", "blue", "orange", "grey"];
 

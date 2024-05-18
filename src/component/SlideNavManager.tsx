@@ -2,7 +2,7 @@ import { gsap } from "gsap";
 
 import PageProps from "model/PageProps";
 import React, { createContext, lazy, useCallback, useContext, useEffect, useRef, useState } from "react";
-import useCoord from "service/CoordManager";
+import useCoord from "service/TerminalManager";
 
 export interface INavContext {
   index: number;

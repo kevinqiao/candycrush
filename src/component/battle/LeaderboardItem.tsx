@@ -10,7 +10,6 @@ interface Props {
 }
 const LeaderboardItem: React.FC<Props> = ({ battleId, reward }) => {
   const { openPage } = usePageManager();
-  console.log(reward);
   const openReplay = useCallback(() => {
     if (battleId && reward?.gameId)
       openPage({ name: "battleReplay", ctx: "match3", data: { battleId, gameId: reward.gameId } });

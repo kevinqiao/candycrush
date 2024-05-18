@@ -39,30 +39,36 @@ export const findAllUser = action({
 export const logout = action({
     args: { uid: v.string() },
     handler: async (ctx, { uid }) => {
+        console.log("logout")
     }
+})
 
+export const heartbeat = action({
+    handler: async (ctx) => {
+        return { ok: true }
+    }
 })
 export const signin = action({
     args: { uid: v.id("user"), token: v.string() },
     handler: async (ctx, { uid, token }) => {
         const user: any = await ctx.runQuery(internal.user.find, { id: uid });
-        if (user) {
-            const game = await ctx.runQuery(internal.games.findUserGame, { uid });
-            if (game) {
-                const b: any = await ctx.runQuery(internal.battle.find, { battleId: game.battleId as Id<"battle"> })
-                if (b) {
-                    const games = await ctx.runQuery(internal.games.findBattleGames, { battleId: b.id })
-                    if (games)
-                        b['games'] = games.map((g) => ({ uid: g.uid, gameId: g._id }))
-                } else
-                    b["games"] = [{ uid: uid, gameId: game._id }]
-                user['battle'] = b;
-                const matching = await ctx.runQuery(internal.matchqueue.finByUid, { uid: user.uid });
-                if (matching)
-                    user['insearch'] = 1;
-            }
-            await ctx.runMutation(internal.user.update, { id: user["_id"], data: {} })
-        }
+        // if (user) {
+        //     const game = await ctx.runQuery(internal.games.findUserGame, { uid });
+        //     if (game) {
+        //         const b: any = await ctx.runQuery(internal.battle.find, { battleId: game.battleId as Id<"battle"> })
+        //         if (b) {
+        //             const games = await ctx.runQuery(internal.games.findBattleGames, { battleId: b.id })
+        //             if (games)
+        //                 b['games'] = games.map((g) => ({ uid: g.uid, gameId: g._id }))
+        //         } else
+        //             b["games"] = [{ uid: uid, gameId: game._id }]
+        //         user['battle'] = b;
+        //         const matching = await ctx.runQuery(internal.matchqueue.finByUid, { uid: user.uid });
+        //         if (matching)
+        //             user['insearch'] = 1;
+        //     }
+        //     await ctx.runMutation(internal.user.update, { id: user["_id"], data: {} })
+        // }
         return { token: "12345", ...user, timestamp: Date.now() }
     }
 })

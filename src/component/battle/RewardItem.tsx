@@ -1,12 +1,18 @@
-import React, { useEffect, useRef, useState } from "react";
-interface IconProps {
-  //   color: string; // Define the type of the color prop
-  amount: string;
+import { useConvex } from "convex/react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
+import { useUserManager } from "service/UserManager";
+import { api } from "../../convex/_generated/api";
+interface Props {
+  claim: number;
+  reward: { gameId: string; assets: { asset: number; amount: number } };
 }
-const RewardIcon: React.FC<IconProps> = ({ amount }) => {
+const RewardItem: React.FC<Props> = ({ claim, reward }) => {
   const divRef = useRef<HTMLDivElement | null>(null);
   const [fontSize, setFontSize] = useState(20);
+  const [collected, setCollected] = useState(claim);
   const [dimensions, setDimensions] = useState<{ width: number; height: number } | null>(null);
+  const convex = useConvex();
+  const { user } = useUserManager();
   const calculateFontSize = () => {
     if (divRef.current) {
       const divWidth = divRef.current.offsetWidth;
@@ -21,11 +27,18 @@ const RewardIcon: React.FC<IconProps> = ({ amount }) => {
   useEffect(() => {
     calculateFontSize();
     window.addEventListener("resize", calculateFontSize);
-
     return () => {
       window.removeEventListener("resize", calculateFontSize);
     };
   }, [divRef.current]);
+  const collectReward = useCallback(async () => {
+    const res = await convex.action(api.battle.claim, {
+      uid: user.uid,
+      token: user.token,
+      gameId: reward.gameId,
+    });
+    if (res.ok) setCollected(1);
+  }, [convex]);
   return (
     <div
       ref={divRef}
@@ -187,23 +200,27 @@ const RewardIcon: React.FC<IconProps> = ({ amount }) => {
           </svg>
 
           <div style={{ height: 10 }}></div>
-          <div
-            style={{
-              display: "flex",
-              justifyContent: "center",
-              alignItems: "center",
-              width: dimensions.width,
-              height: "20%",
-              backgroundColor: "blue",
-              borderRadius: 4,
-            }}
-          >
-            <span style={{ fontSize, color: "white" }}>Collect</span>
-          </div>
+          {!collected ? (
+            <div
+              style={{
+                cursor: "pointer",
+                display: "flex",
+                justifyContent: "center",
+                alignItems: "center",
+                width: dimensions.width,
+                height: "20%",
+                backgroundColor: "blue",
+                borderRadius: 4,
+              }}
+              onClick={collectReward}
+            >
+              <span style={{ fontSize, color: "white" }}>Collect</span>
+            </div>
+          ) : null}
         </>
       )}
     </div>
   );
 };
 
-export default RewardIcon;
+export default RewardItem;
