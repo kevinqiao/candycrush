@@ -1,5 +1,7 @@
 import { useConvex } from "convex/react";
+import { APP_EVENT } from "model/Constants";
 import React, { useCallback, useEffect, useRef, useState } from "react";
+import useEventSubscriber from "service/EventManager";
 import { useUserManager } from "service/UserManager";
 import { api } from "../../convex/_generated/api";
 interface Props {
@@ -13,6 +15,7 @@ const RewardItem: React.FC<Props> = ({ claim, reward }) => {
   const [dimensions, setDimensions] = useState<{ width: number; height: number } | null>(null);
   const convex = useConvex();
   const { user } = useUserManager();
+  const { event } = useEventSubscriber([APP_EVENT.REWARD_CLAIM], [reward.gameId]);
   const calculateFontSize = () => {
     if (divRef.current) {
       const divWidth = divRef.current.offsetWidth;
@@ -23,6 +26,9 @@ const RewardItem: React.FC<Props> = ({ claim, reward }) => {
       setDimensions({ width: divHeight * 0.6, height: divHeight * 0.6 });
     }
   };
+  useEffect(() => {
+    if (event?.topic === reward.gameId) setCollected(1);
+  }, [event]);
 
   useEffect(() => {
     calculateFontSize();

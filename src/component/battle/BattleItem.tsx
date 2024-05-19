@@ -50,6 +50,7 @@ const BattleItem: React.FC<Props> = ({ battleId, time, claim, reward, participan
   const collect = useCallback(() => {
     console.log("do collection");
   }, [battleId]);
+  
   const openLeaderboard = () => {
     openPage({ name: "leaderboard", ctx: "match3", data: { battleId, claim } });
   };

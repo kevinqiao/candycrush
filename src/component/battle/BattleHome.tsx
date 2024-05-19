@@ -1,6 +1,6 @@
 import { useSlideNavManager } from "component/SlideNavManager";
 import { useConvex } from "convex/react";
-import React, { useCallback, useEffect, useRef, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import styled from "styled-components";
 import { api } from "../../convex/_generated/api";
 import useCoord from "../../service/TerminalManager";
@@ -18,50 +18,40 @@ const Container = styled.div`
   overflow-y: auto;
   overflow-x: hidden;
 `;
+
 const BattleHome: React.FC = () => {
   const battleRef = useRef<HTMLDivElement | null>(null);
   const { width, height, headH, LobbyMenuH } = useCoord();
   const { user } = useUserManager();
   const { menuIndex } = useSlideNavManager();
   const [battles, setBattles] = useState<any>(null);
-  const [completed, setCompleted] = useState<number>(1); //0-uncomplete 1-completed
   const convex = useConvex();
 
   useEffect(() => {
     const getList = async () => {
       const history = await convex.query(api.battle.findMyBattles, { uid: user.uid, token: user.token });
       history.sort((a: any, b: any) => b.time - a.time);
-      console.log(history);
       setBattles(history);
     };
     if (!user || !convex || menuIndex !== 2) return;
     getList();
   }, [user, convex, menuIndex]);
-  const bgColor = useCallback(
-    (type: number) => {
-      return type === completed ? "blue" : "grey";
-    },
-    [completed]
-  );
-  const changeTab = useCallback(
-    (type: number) => {
-      setCompleted(type);
-    },
-    [user]
-  );
+
   return (
-    <Container height={`${height - headH}px`}>
-      <div
-        ref={battleRef}
-        style={{
-          width: "100%",
-          height: "100%",
-        }}
-      >
-        {battles && battles.map((t: any, index: number) => <BattleItem key={t.battleId} {...t} />)}
-        <div style={{ height: width < height ? LobbyMenuH : 0 }}></div>
-      </div>
-    </Container>
+    <>
+      <Container height={`${height - headH}px`}>
+        <div
+          ref={battleRef}
+          style={{
+            width: "100%",
+            height: "100%",
+          }}
+        >
+          {battles && battles.map((t: any, index: number) => <BattleItem key={t.battleId} {...t} />)}
+          <div style={{ height: width < height ? LobbyMenuH : 0 }}></div>
+        </div>
+      </Container>
+    </>
   );
 };
 

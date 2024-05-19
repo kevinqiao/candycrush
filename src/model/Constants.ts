@@ -1,14 +1,5 @@
 
-// export const MOVE_DIRECTION = {
-//     RIGHT: 1,
-//     LEFT: 3,
-//     UP: 4,
-//     DOWN: 2
-// };
-// export const MATCH_DIRECTION = {
-//     HORIZATION: 1,
-//     VERTICAL: 2
-// };
+
 export const BATTLE_LOAD = {
     PLAY: 0,
     RELOAD: 1,
@@ -42,17 +33,7 @@ export const STACK_PAGE_DIRECTION = {
 //     LMODEL: 2,
 // }
 export const BATTLE_DURATION = 180000
-// export const SCENE_NAME = {
-//     BATTLE_LOADING: "loading_battle",
-//     BATTLE_MATCHING: "matching_battle",
-//     BATTLE_CONSOLE: "battle_console",
-//     BATTLE_GROUND: "battle_ground",
-//     BATTLE_FRONT: "battle_front",
-//     BATTLE_SCENE: "battle_scene",
-//     BATTLE_SEARCH: "battle_search",
-//     GAME_SCENES: "game_scenes",
-//     GAME_CONSOLES: "game_consoles"
-// }
+
 export const SCENE_TYPE = {
     PIXI_APPLICATION: 0,
     HTML_DIVELEMENT: 1
@@ -63,14 +44,9 @@ export const BATTLE_EVENT = {
     BATTLE_PAUSE: "battlePause"
 };
 
-// export const GAME_EVENT = {
-//     SWIPE_CANDY: "cellSwapped",
-//     SMASH_CANDY: "cellSmeshed",
-//     SKILL_HAMMER: "skillHammer",
-//     SKILL_SWAP: "skillSwap",
-//     SKILL_SPRAY: "skillSpray",
-//     GAME_OVER: "gameOver"
-// } as { [key: string]: string };
+export const APP_EVENT = {
+    REWARD_CLAIM: "claimReward",
+};
 
 export const GAME_STATUS = {
     OPEN: 0,
@@ -80,17 +56,9 @@ export const GAME_STATUS = {
 }
 export const BATTLE_STATUS = {
     OPEN: 0,
-    END: 1,
-    SETTLED: 2
+    SETTLED: 1
 }
-// export const GAME_ACTION = {
-//     SWIPE_CANDY: "SWIPE_CANDY",
-//     SMASH_CANDY: "SMASH_CANDY",
-//     SKILL_HAMMER: "SKILL_HAMMER",
-//     SKILL_SWAP: "SKILL_SWAP",
-//     SKILL_SPRAY: "SKILL_SPRAY"
-// };
-// export const GAME_PLAY_TIME = 600000
+
 export const CHANNEL_AUTH = {
     CLERK: 0,
     TELEGRAM_BOT: 1,

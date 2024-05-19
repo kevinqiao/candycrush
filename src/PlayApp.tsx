@@ -4,8 +4,9 @@ import { gsap } from "gsap";
 import MotionPathPlugin from "gsap/MotionPathPlugin";
 import React from "react";
 
-import StackController from "component/StackController";
 import NavHeader from "component/lobby/NavHeader";
+import StackController from "component/StackController";
+import { EventProvider } from "service/EventManager";
 import { TerminalProvider } from "service/TerminalManager";
 import { PageProvider } from "./service/PageManager";
 import { UserProvider, useUserManager } from "./service/UserManager";
@@ -49,6 +50,7 @@ function M3App() {
     ]);
   };
   const Providers = FlattenedProviderTree([
+    [EventProvider],
     [TerminalProvider],
     [PageProvider],
     [ConvexProvider, { client: convex }],

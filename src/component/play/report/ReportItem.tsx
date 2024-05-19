@@ -1,28 +1,25 @@
-import PrizeIcon from "component/icons/PrizeIcon";
-import React, { useMemo } from "react";
-import { BattleReward, GameResult } from "./BattleReport";
+import React from "react";
+import { GameReport } from "./BattleReport";
 import "./report.css";
 interface Props {
-  gameResult: GameResult;
-  rewards: BattleReward[] | null;
+  rank: number;
+  gameReport: GameReport;
 }
-const ReportItem: React.FC<Props> = ({ gameResult, rewards }) => {
-  const score = useMemo(() => {
-    if (gameResult?.result) {
-      const { base, time, goal } = gameResult.result;
-      return base + time + goal;
-    } else return null;
-  }, [gameResult]);
+const ReportItem: React.FC<Props> = ({ rank, gameReport }) => {
   return (
-    <div key={gameResult.uid} className="report-item">
+    <div key={gameReport.uid} className="report-item">
       <div className="report-trophy">
-        <PrizeIcon rank={2}></PrizeIcon>
+        <span>{rank}</span>
+        {/* {typeof gameReport.rank != "undefined" ? <PrizeIcon rank={gameReport.rank + 1}></PrizeIcon> : null} */}
       </div>
       <div className="score-summary">
-        <div>{gameResult.player?.name}</div>
-        <div>{score}</div>
+        <div>{gameReport.player?.name}</div>
+        {typeof gameReport.score === "undefined" && gameReport.uid ? (
+          <div className="battle-prize">Now Playing</div>
+        ) : (
+          <div>{gameReport.score}</div>
+        )}
       </div>
-      {!gameResult.result ? <div className="battle-prize">Now Playing</div> : null}
     </div>
   );
 };

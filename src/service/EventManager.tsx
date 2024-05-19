@@ -1,8 +1,5 @@
-import { useQuery } from "convex/react";
 import React, { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
 import { Subject } from "rxjs";
-import { api } from "../convex/_generated/api";
-import { useUserManager } from "./UserManager";
 export declare type EventModel = {
   name: string;
   topic?: string;
@@ -19,23 +16,15 @@ export const EventContext = createContext<IContextProps>({
 } as IContextProps);
 
 export const EventProvider = ({ children }: { children: React.ReactNode }) => {
-  const { user } = useUserManager();
-  const userEvent: any = useQuery(api.events.getByUser, { uid: user?.uid ?? "###", lastTime: 0 });
   const subject = useMemo(() => {
     return new Subject<EventModel>();
   }, []);
-  useEffect(() => {
-    if (userEvent) {
-      subject.next(userEvent);
-    }
-  }, [userEvent, subject]);
   return <EventContext.Provider value={{ subject: subject }}>{children}</EventContext.Provider>;
 };
 
-const useEventSubscriber = (selectors: string[], topics: string[]) => {
+const useEventSubscriber = (selectors: string[], topics?: string[]) => {
   const [event, setEvent] = useState<EventModel | null>(null);
   const { subject } = useContext(EventContext);
-
   useEffect(() => {
     if (selectors && selectors.length > 0 && subject) {
       const observable = subject.asObservable();
@@ -43,8 +32,10 @@ const useEventSubscriber = (selectors: string[], topics: string[]) => {
         if (
           (!topics || topics.length === 0 || !event.topic || topics?.includes(event.topic)) &&
           selectors?.includes(event.name)
-        )
+        ) {
+          console.log(event);
           setEvent(event);
+        }
       });
       return () => subscription.unsubscribe();
     }
