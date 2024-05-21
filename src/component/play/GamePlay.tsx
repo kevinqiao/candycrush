@@ -44,8 +44,8 @@ const GamePlay = () => {
   }, [gameEvent, bound, game, load]);
   useEffect(() => {
     if (!bound || !game || !battle || !scenes || !sceneRef.current || !user) return;
-    console.log("uid:" + game.uid + " gameId:" + game.gameId + " uid:" + user.uid);
-    console.log(bound);
+    // console.log("uid:" + game.uid + " gameId:" + game.gameId + " uid:" + user.uid);
+    // console.log(bound);
     const gameScenes = scenes?.get(SCENE_NAME.GAME_SCENES);
     const gameScene = gameScenes.find((s: GameScene) => s.gameId === game.gameId);
     if (gameScene) {

@@ -34,13 +34,7 @@ export const remove = internalMutation({
   },
 });
 
-const findOpponents = (ctx: any, uid: string, waitlist: string[]) => {
 
-  return;
-}
-const findGame = (ctx: any, uid: string): { seed: string; data: { cells: CellItem[]; lastCellId: number }; ref?: string } | null => {
-  return null;
-}
 export const settleMatch = internalMutation({
   handler: async (ctx) => {
     const allToMatch = await ctx.db.query("matchqueue").collect();
@@ -49,9 +43,10 @@ export const settleMatch = internalMutation({
       if (waitTime < 8000) return
     }
     if (allToMatch.length > 0) {
+      const tournamentId = allToMatch[0]['tournamentId']
       const diffcult = await ctx.db.query("diffcult")
         .filter((q) => q.and(q.eq(q.field("level"), 1), q.eq(q.field("hard"), 1))).unique();
-      const tournament = await ctx.db.query("tournament").filter((q) => q.eq(q.field("id"), "2")).order("asc").first();
+      const tournament = await ctx.db.query("tournament").filter((q) => q.eq(q.field("id"), tournamentId)).order("asc").first();
       if (tournament && diffcult) {
         const startTime = Date.now() + BATTLE_COUNT_DOWN_TIME;
         const battle: any = { tournamentId: tournament.id, participants: tournament.participants, diffcult: diffcult?.id, startTime, duration: tournament.battle.duration };
@@ -71,22 +66,23 @@ export const settleMatch = internalMutation({
         const game: any = { diffcult: diffcult.id, battleId, tid: tournament.id, data: { cells: gameData?.data.cells, lastCellId: gameData.data.lastCellId }, seed, type: 0, laststep: 0, uid: m.uid, startTime, dueTime: battle['dueTime'], ref: "####" };
         game.data['skillBuff'] = [{ skill: 1, progress: 85 }, { skill: 2, progress: 98 }, { skill: 3, progress: 100 }]
         game.data['move'] = 0
-        if (allToMatch.length === 1) {
-          // const gameData: { gameId: string; data: any; seed: string; diffcult: string } | null = await findGameInitData(ctx, m.uid, tournament);
-          const opponent = await findOpponent(ctx);
-          opponentGame = { ...game, uid: opponent, ref: "####" }
-        } else {
-          await ctx.db.delete(allToMatch[1]._id);
-          opponentGame = { ...game, uid: allToMatch[1].uid, ref: "####" }
-        }
 
         let gameId = await ctx.db.insert("games", game);
         await ctx.db.insert("events", { name: "gameInited", gameId, data: { gameId, ...game } });
-
         await ctx.db.insert("events", { name: "battleCreated", uid: m.uid, time: Date.now(), data: { id: battleId } });
-        gameId = await ctx.db.insert("games", opponentGame);
-        await ctx.db.insert("events", { name: "gameInited", gameId, data: { gameId, ...opponentGame } });
-        await ctx.db.insert("events", { name: "battleCreated", uid: opponentGame['uid'], time: Date.now(), data: { id: battleId } });
+        if (tournament.battle.players > 1) {
+          if (allToMatch.length === 1) {
+            // const gameData: { gameId: string; data: any; seed: string; diffcult: string } | null = await findGameInitData(ctx, m.uid, tournament);
+            const opponent = await findOpponent(ctx);
+            opponentGame = { ...game, uid: opponent, ref: "####" }
+          } else {
+            await ctx.db.delete(allToMatch[1]._id);
+            opponentGame = { ...game, uid: allToMatch[1].uid, ref: "####" }
+          }
+          gameId = await ctx.db.insert("games", opponentGame);
+          await ctx.db.insert("events", { name: "gameInited", gameId, data: { gameId, ...opponentGame } });
+          await ctx.db.insert("events", { name: "battleCreated", uid: opponentGame['uid'], time: Date.now(), data: { id: battleId } });
+        }
       }
     }
   },

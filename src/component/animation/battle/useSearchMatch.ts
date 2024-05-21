@@ -3,18 +3,15 @@ import { SCENE_NAME } from "model/Match3Constants";
 import { SearchScene } from "model/SceneModel";
 import { useCallback } from "react";
 import { useSceneManager } from "service/SceneManager";
+import { useUserManager } from "service/UserManager";
 
 
 export const useSearchMatch = () => {
     const { scenes } = useSceneManager();
-    const playCloseMatching = useCallback((eles: Map<string, HTMLDivElement>, timeline: any) => {
+    const { user } = useUserManager();
+    const playCloseMatching = useCallback((eles: Map<string, HTMLDivElement>, playerAvatars: Map<string, HTMLDivElement>, timeline: any) => {
         const containerEle = eles.get("container");
-        const foundEle = eles.get("found");
-        const vsEle = eles.get("vs");
-        const playerAvatarEle = eles.get("playerAvatar");
-        const opponentAvatarEle = eles.get("opponentAvatar");
-        const startEle = eles.get("start");
-        if (!containerEle || !foundEle || !vsEle || !playerAvatarEle || !opponentAvatarEle || !startEle) return;
+        if (!containerEle) return;
         const tl = timeline ?? gsap.timeline({
             onComplete: () => {
                 tl.kill();
@@ -26,15 +23,11 @@ export const useSearchMatch = () => {
 
     }, []);
 
-    const playMatching = useCallback((eles: Map<string, HTMLDivElement>, timeline: any) => {
+    const playMatching = useCallback((eles: Map<string, HTMLDivElement>, playerAvatars: Map<string, HTMLDivElement>, timeline: any) => {
         const containerEle = eles.get("container");
-        const foundEle = eles.get("found");
         const vsEle = eles.get("vs");
-        const playerAvatarEle = eles.get("playerAvatar");
-        const opponentAvatarEle = eles.get("opponentAvatar");
-        const startEle = eles.get("start");
 
-        if (!containerEle || !foundEle || !vsEle || !playerAvatarEle || !opponentAvatarEle || !startEle) {
+        if (!containerEle || !vsEle) {
             console.log("match scene element is null")
             return;
         }
@@ -53,11 +46,28 @@ export const useSearchMatch = () => {
         //close search, open success match
         ml.add(tl);
         tl.to(containerEle, { autoAlpha: 1, duration: 0 })
-        tl.to(foundEle, { autoAlpha: 1, duration: 0.1 }, "<");
         tl.fromTo(vsEle, { scaleX: 0, scaleY: 0 }, { scaleX: 1.4, scaleY: 1.4, duration: 0.6 }, ">");
-        tl.to(vsEle, { autoAlpha: 1, duration: 0.8 }, "<");
-        tl.to(playerAvatarEle, { duration: 1.2, autoAlpha: 1, x: width * 0.35 }, "<");
-        tl.to(opponentAvatarEle, { duration: 1.2, autoAlpha: 1, x: -width * 0.35 }, "<");
+        if (playerAvatars.size === 2) {
+            // tl.to(foundEle, { autoAlpha: 1, duration: 0.1 }, "<");
+            tl.to(vsEle, { autoAlpha: 1, duration: 0.8 }, "<");
+            const ol = gsap.timeline();
+            tl.add(ol, "<")
+            const opponent = Array.from(playerAvatars.keys()).find((p) => p !== user.uid);
+            if (opponent) {
+                const opponentAvatarEle = playerAvatars.get(opponent);
+                if (opponentAvatarEle) {
+                    ol.to(opponentAvatarEle, { duration: 0, x: width * 0.45 }, ">");
+                    ol.to(opponentAvatarEle, { duration: 1.2, autoAlpha: 1, x: width * 0.25 }, "<");
+                }
+            }
+            const pl = gsap.timeline();
+            tl.add(pl, "<")
+            const playerAvatarEle = playerAvatars.get(user.uid);
+            if (playerAvatarEle) {
+                pl.to(playerAvatarEle, { duration: 0, x: -width * 0.45 }, ">");
+                pl.to(playerAvatarEle, { duration: 1.2, autoAlpha: 1, x: -width * 0.25 }, "<");
+            }
+        }
         // const sl = gsap.timeline();
         // ml.add(sl, ">");
         // sl.to(

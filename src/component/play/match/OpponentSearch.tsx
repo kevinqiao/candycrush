@@ -6,9 +6,10 @@ import { useSceneManager } from "service/SceneManager";
 import useTournamentManager from "service/TournamentManager";
 import "./search.css";
 interface props {
+  tournament: any;
   onExit: () => void;
 }
-const OpponentSearch: React.FC<props> = ({ onExit }) => {
+const OpponentSearch: React.FC<props> = ({ tournament, onExit }) => {
   const sceneContainerRef = useRef<HTMLDivElement | null>(null);
   const searchRef = useRef<HTMLDivElement | null>(null);
   const { load, scenes } = useSceneManager();
@@ -41,9 +42,12 @@ const OpponentSearch: React.FC<props> = ({ onExit }) => {
         <div ref={sceneContainerRef} className="search_container">
           <div ref={searchRef} className="search_sprite">
             <div className="search_tip">
-              <span style={{ fontSize: 20 }}>Searching...</span>
+              {tournament ? (
+                <span style={{ fontSize: 20 }}>{tournament.battle.players > 1 ? "Searching..." : "Preparing"}</span>
+              ) : null}
             </div>
             <div style={{ height: 20 }}></div>
+
             <div className="cancel_btn" style={{ cursor: "pointer" }} onClick={cancelSearch}>
               <span>Cancel</span>
             </div>
@@ -51,7 +55,7 @@ const OpponentSearch: React.FC<props> = ({ onExit }) => {
         </div>
       </>
     );
-  }, [scenes]);
+  }, [scenes, tournament]);
   return <>{render}</>;
 };
 

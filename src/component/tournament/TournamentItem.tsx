@@ -40,7 +40,7 @@ const TournamentItem: React.FC<Props> = ({ tournament }: Props) => {
           console.log("you are in battle now");
         } else if (rs.code === 2) {
           const app = getCurrentAppConfig();
-          openPage({ name: "battlePlay", ctx: app.context, data: {} });
+          openPage({ name: "battlePlay", ctx: app.context, data: { tournament } });
         }
       }
     }
@@ -63,7 +63,7 @@ const TournamentItem: React.FC<Props> = ({ tournament }: Props) => {
         <div className="tournament-summary">
           <div style={{ height: 10 }}></div>
           <div style={{ marginLeft: 20, textAlign: "left" }}>
-            <span style={{ fontSize: Math.max(fontSize + 5, 14) }}>Tournament</span>
+            <span style={{ fontSize: Math.max(fontSize + 5, 14) }}>Tournament({tournament?.type})</span>
           </div>
           <div style={{ height: 20 }}></div>
           <div style={{ marginLeft: 20, width: "10%", minWidth: 120 }}>

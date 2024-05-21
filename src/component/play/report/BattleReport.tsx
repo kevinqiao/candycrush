@@ -40,10 +40,10 @@ const BattleReport: React.FC = () => {
       });
       console.log(battleReport);
       battleReport.items.sort((a: any, b: any) => {
-        if (typeof a.score === "undefined" && typeof b.score !== "undefined") return -1;
-        if (typeof a.score !== "undefined" && typeof b.score === "undefined") return 1;
+        if (typeof a.score === "undefined" && typeof b.score !== "undefined") return 1;
+        if (typeof a.score !== "undefined" && typeof b.score === "undefined") return -1;
         if (a.score === b.score) return 0;
-        return a.score > b.score ? 1 : -1;
+        return a.score > b.score ? -1 : 1;
       });
       setReport(battleReport);
     }

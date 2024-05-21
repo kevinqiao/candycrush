@@ -14,7 +14,7 @@ export const doAct = sessionAction({
 
         // console.log("do action:" + act + " actionId:" + actionId)
         const game: any = await ctx.runQuery(internal.games.getGame, { gameId: gameId as Id<"games"> });
-        if (!game || !game?.battleId) return;
+        if (!game || !game?.battleId || game.result) return;
 
         const battle = await ctx.runQuery(internal.battle.find, { battleId: game.battleId as Id<"battle"> });
         if (!battle?.data || !battle.startTime) return;
@@ -22,12 +22,15 @@ export const doAct = sessionAction({
 
         const actionResult: { data: any; result: any; gameData: { lastCellId: number; matched: CellItem[], move?: number, skillBuff?: { skill: number; quantity: number }[] } } = GameEngine.executeAct(game, battleModel, { act, data });
         if (actionResult) {
+            let eventTimeout = 0;
             const eventName = getEventByAct(act);
             const steptime = Math.round(Date.now() - battle['startTime']);
-            if (eventName)
+            if (eventName) {
                 await ctx.runMutation(internal.events.create, {
                     name: eventName, gameId, actionId, data: { ...actionResult.data, results: actionResult.result, gameData: { ...game.data, cells: undefined } }, steptime
                 })
+                eventTimeout = eventTimeout + 20;
+            }
             const diff = await ctx.runQuery(internal.diffcult.find, { id: game.diffcult })
 
             if (diff?.data) {
@@ -37,24 +40,28 @@ export const doAct = sessionAction({
                     else
                         return a.column - b.column
                 })
-                if (!game.data.goalCompleteTime && GameEngine.checkGoalComplete(game, diff.data.goal)) {
-                    game.data.goalCompleteTime = battle.duration - Date.now() + game.startTime;
-                    await ctx.runMutation(internal.events.create, {
-                        name: GAME_EVENT.GOAL_COMPLETE, gameId, data: { data: game.data }, steptime
-                    })
-                }
-                if (game.data.move >= diff.data.steps) {
+                const goalComplete = game.data.goalCompleteTime ? true : GameEngine.checkGoalComplete(game, diff.data.goal);
+                console.log("goal complete:" + goalComplete + " move:" + (game.data.move - diff.data.steps))
+                if (game.data.move >= diff.data.steps || goalComplete) {
+                    if (goalComplete) {
+                        eventTimeout = eventTimeout + 20;
+                        game.data.goalCompleteTime = battle.duration - Date.now() + game.startTime;
+                        await ctx.runMutation(internal.events.create, {
+                            name: GAME_EVENT.GOAL_COMPLETE, gameId, data: { data: game.data }, steptime: steptime + eventTimeout
+                        });
+                    }
                     game.result = GameEngine.settleGame(game);
                 }
-
-                await ctx.runMutation(internal.games.update, {
-                    gameId: gameId as Id<"games">, data: { ...game, gameId: undefined, defender: undefined, laststep: steptime }
-                });
                 if (game.result) {
+                    console.log("game over")
+                    eventTimeout = eventTimeout + 20;
                     await ctx.runMutation(internal.events.create, {
-                        name: GAME_EVENT.GAME_OVER, gameId, data: { result: game.result, score: game.score }, steptime
+                        name: GAME_EVENT.GAME_OVER, gameId, data: { result: game.result, score: game.score }, steptime: steptime + eventTimeout
                     })
                 }
+                await ctx.runMutation(internal.games.update, {
+                    gameId: gameId as Id<"games">, data: { ...game, gameId: undefined, defender: undefined, laststep: steptime + eventTimeout }
+                });
                 return { ok: true }
             }
         }

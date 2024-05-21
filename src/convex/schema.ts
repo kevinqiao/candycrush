@@ -60,7 +60,7 @@ export default defineSchema({
         tournamentId: v.string(),
         term: v.optional(v.number()),//schedule tournament term
         // uid: r.uid, gameId: r._id, rank: index, score: r.score, assets: [] 
-        rewards: v.optional(v.array(v.object({ uid: v.string(), gameId: v.string(), rank: v.number(), score: v.number(), assets: v.array(v.object({ asset: v.number(), amount: v.number() })) }))),
+        rewards: v.optional(v.array(v.object({ uid: v.string(), gameId: v.string(), rank: v.number(), score: v.number(), points: v.optional(v.number()), assets: v.array(v.object({ asset: v.number(), amount: v.number() })) }))),
         startTime: v.number(),
         dueTime: v.optional(v.number()),
         duration: v.number(),
@@ -79,7 +79,7 @@ export default defineSchema({
         closeTime: v.optional(v.number()),
         scheduler: v.optional(v.object({ day: v.number(), weekday: v.number(), hour: v.number(), minute: v.number() })),
         entry: v.optional(v.object({ level: v.number(), cost: v.array(v.object({ asset: v.number(), amount: v.number() })) })),
-        rewards: v.array(v.object({ rank: v.number(), assets: v.array(v.object({ asset: v.number(), amount: v.number() })) })),
+        rewards: v.array(v.object({ rank: v.number(), points: v.optional(v.number()), assets: v.array(v.object({ asset: v.number(), amount: v.number() })) })),
     }),
     asset: defineTable({
         type: v.number(),
@@ -128,9 +128,7 @@ export default defineSchema({
         tournamentId: v.string(),
         uid: v.string(),
         score: v.number(),
-        scoreLasttime: v.number(),
-        scoreStarttime: v.number(),
-        reward: v.optional(v.array(v.object({ asset: v.number(), quantity: v.number() })))
-    }).index("by_tournament", ["tournamentId"]).index("by_score", ["score"]).index("by_starttime", ["scoreStarttime"]),
+        lastUpdate: v.number(),
+    }).index("by_tournament", ["tournamentId"]).index("by_score", ["score"]).index("by_lastupdate", ["lastUpdate"]),
 
 });

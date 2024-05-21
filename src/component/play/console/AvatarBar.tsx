@@ -20,9 +20,9 @@ const AvatarBar: React.FC<Props> = ({ layout, game }) => {
   const [score, setScore] = useState<number>(0);
 
   const player = useMemo(() => {
-    if (battle?.games && game) {
-      const p = battle.games.find((g) => g.gameId === game.gameId);
-      if (p) return p.player;
+    if (battle?.players) {
+      const p = battle.players.find((g) => g.gameId === game.gameId);
+      return p;
     }
     return null;
   }, [battle, game]);

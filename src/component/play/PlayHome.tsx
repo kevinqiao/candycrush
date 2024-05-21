@@ -16,7 +16,7 @@ import BattleScene from "./BattleScene";
 import GameConsole from "./console/GameConsole";
 import TimeCount from "./console/TimeCount";
 import GamePlay from "./GamePlay";
-import OpponentMatch from "./match/OpponentMatch";
+import BattleReady from "./match/BattleReady";
 import OpponentSearch from "./match/OpponentSearch";
 import "./play.css";
 import BattleReport from "./report/BattleReport";
@@ -58,7 +58,7 @@ const PlayControl: React.FC<ControlProps> = ({ battleId }) => {
             <BattleScene />
           </BattleGround>
           <BattleReport />
-          {!matchCompleted ? <OpponentMatch /> : null}
+          {!matchCompleted ? <BattleReady /> : null}
         </BattleProvider>
       ) : null}
     </>
@@ -92,6 +92,7 @@ const PlayHome: React.FC<PageProps> = (pageProp) => {
     };
     if (!pageProp.data || !pageProp.data.battleId) setLoad(BATTLE_LOAD.PLAY);
     else setLoad(BATTLE_LOAD.RELOAD);
+    console.log(pageProp.data);
     document.addEventListener("visibilitychange", handleVisibilityChange);
     return () => {
       document.removeEventListener("visibilitychange", handleVisibilityChange);
@@ -105,6 +106,7 @@ const PlayHome: React.FC<PageProps> = (pageProp) => {
           <SceneProvider load={load} visible={visible} pageProp={pageProp} pagePosition={pagePosition}>
             {load >= 0 && visible && battleId ? <PlayControl battleId={battleId} /> : null}
             <OpponentSearch
+              tournament={pageProp.data ? pageProp.data.tournament : null}
               onExit={() => {
                 pageProp.close ? pageProp.close(0) : null;
               }}

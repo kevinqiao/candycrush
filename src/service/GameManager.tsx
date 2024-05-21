@@ -87,6 +87,7 @@ export const GameProvider = ({ gameId, children }: { gameId: string; children: R
     (eventList: any[]) => {
       let count = 0;
       if (!gameRef.current) return;
+      console.log(eventList);
       for (const event of eventList) {
         if (event.name === GAME_EVENT.GOAL_COMPLETE) {
           console.log(event);

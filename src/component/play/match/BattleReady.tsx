@@ -10,13 +10,11 @@ import Avatar from "../common/Avatar";
 import CountdownTimer from "../common/CountdownTimer";
 import "./search.css";
 
-const OpponentMatch = () => {
+const BattleReady = () => {
+  const playerAvatarRefs = useRef<Map<string, HTMLDivElement>>(new Map());
   const sceneContainerRef = useRef<HTMLDivElement | null>(null);
-  const foundRef = useRef<HTMLDivElement | null>(null);
-  const startRef = useRef<HTMLDivElement | null>(null);
+  const goalPanelRef = useRef<HTMLDivElement | null>(null);
   const vsRef = useRef<HTMLDivElement | null>(null);
-  const playerAvatarRef = useRef<HTMLDivElement | null>(null);
-  const opponentAvatarRef = useRef<HTMLDivElement | null>(null);
   // const { scenes, stageScene } = useSceneManager();
   const { width, height } = useDimension(sceneContainerRef);
   // const [countTime, setCountTime] = useState(0);
@@ -28,35 +26,10 @@ const OpponentMatch = () => {
   const eles = useCallback(() => {
     const es = new Map<string, HTMLDivElement>();
     if (sceneContainerRef.current) es.set("container", sceneContainerRef.current);
-    if (foundRef.current) es.set("found", foundRef.current);
-    if (startRef.current) es.set("start", startRef.current);
+    if (goalPanelRef.current) es.set("goal", goalPanelRef.current);
     if (vsRef.current) es.set("vs", vsRef.current);
-    if (playerAvatarRef.current) es.set("playerAvatar", playerAvatarRef.current);
-    if (opponentAvatarRef.current) es.set("opponentAvatar", opponentAvatarRef.current);
     return es;
-  }, [
-    sceneContainerRef.current,
-    foundRef.current,
-    startRef.current,
-    vsRef.current,
-    playerAvatarRef.current,
-    opponentAvatarRef.current,
-  ]);
-
-  const player = useMemo(() => {
-    if (battle?.games) {
-      const game = battle.games.find((g) => g.uid === user.uid);
-      if (game) return game.player;
-    }
-    return;
-  }, [battle]);
-  const opponent = useMemo(() => {
-    if (battle?.games) {
-      const game = battle.games.find((g) => g.uid !== user.uid);
-      if (game) return game.player;
-    }
-    return;
-  }, [battle]);
+  }, [sceneContainerRef.current, goalPanelRef.current, vsRef.current]);
 
   const matchComplete = useCallback(() => {
     if (!battle || !allGameLoaded) return;
@@ -65,7 +38,7 @@ const OpponentMatch = () => {
         tl.kill();
       },
     });
-    playCloseMatching(eles(), tl);
+    playCloseMatching(eles(), playerAvatarRefs.current, tl);
     const bl = gsap.timeline();
     tl.add(bl, ">");
     playInitBattle(battle, bl);
@@ -73,7 +46,10 @@ const OpponentMatch = () => {
   }, [battle, eles, allGameLoaded]);
 
   useEffect(() => {
-    if (battle && battle.startTime && user && allGameLoaded) {
+    if (!battle || !user) return;
+    const timeleft = battle?.startTime - user.timelag - Date.now();
+    if (allGameLoaded && timeleft > 0) {
+      console.log("closing search,play matching");
       const tl = gsap.timeline({
         onComplete: () => {
           // setCountTime(battle.startTime - Date.now() - user.timelag);
@@ -85,40 +61,43 @@ const OpponentMatch = () => {
       closeSearch(sl);
       const ml = gsap.timeline();
       tl.add(ml, "<");
-      playMatching(eles(), ml);
+      playMatching(eles(), playerAvatarRefs.current, ml);
       tl.play();
     }
   }, [battle, user, allGameLoaded]);
+  const timeLeft = useMemo(() => {
+    if (battle && user) {
+      const time = battle.startTime - user.timelag - Date.now();
+      return time;
+    }
+    return -1;
+  }, [battle, user]);
+  const load = (uid: string, ele: HTMLDivElement | null) => {
+    if (ele) {
+      playerAvatarRefs.current.set(uid, ele);
+    }
+  };
 
   return (
     <>
       <div ref={sceneContainerRef} className="match_container">
-        <div
-          ref={playerAvatarRef}
-          style={{
-            opacity: 0,
-            position: "absolute",
-            top: height * 0.4,
-            left: -80,
-            width: 80,
-            height: 80,
-          }}
-        >
-          {player ? <Avatar player={player} mode={0} /> : null}
-        </div>
-        <div
-          ref={opponentAvatarRef}
-          style={{
-            opacity: 0,
-            position: "absolute",
-            top: height * 0.4,
-            left: width,
-            width: 80,
-            height: 80,
-          }}
-        >
-          {opponent ? <Avatar player={opponent} mode={0} /> : null}
-        </div>
+        {battle?.players?.map((player) => (
+          <div
+            key={player.uid}
+            ref={(ele) => load(player.uid, ele)}
+            style={{
+              opacity: 0,
+              position: "absolute",
+              top: height * 0.4,
+              left: width / 2,
+              width: 80,
+              height: 80,
+            }}
+          >
+            {player ? <Avatar player={player} mode={0} /> : null}
+          </div>
+        ))}
+
         <div
           ref={vsRef}
           style={{
@@ -135,7 +114,7 @@ const OpponentMatch = () => {
         </div>
 
         <div
-          ref={foundRef}
+          ref={goalPanelRef}
           style={{
             opacity: 0,
             position: "absolute",
@@ -146,22 +125,7 @@ const OpponentMatch = () => {
             justifyContent: "center",
           }}
         >
-          <span style={{ fontSize: 20 }}>Opponent Found</span>
-        </div>
-        <div
-          ref={startRef}
-          style={{
-            opacity: 0,
-            position: "absolute",
-            top: height * 0.3,
-            left: 0,
-            width: "100%",
-            display: "flex",
-            justifyContent: "center",
-            backgroundColor: "white",
-          }}
-        >
-          <span style={{ fontSize: 20, color: "blue" }}>Start Game</span>
+          Goal List
         </div>
 
         <div
@@ -174,11 +138,11 @@ const OpponentMatch = () => {
             justifyContent: "center",
           }}
         >
-          {battle ? <CountdownTimer battleStartTime={battle.startTime} onTimeout={matchComplete} /> : null}
+          {timeLeft >= 0 ? <CountdownTimer time={timeLeft} onTimeout={matchComplete} /> : null}
         </div>
       </div>
     </>
   );
 };
 
-export default OpponentMatch;
+export default BattleReady;

@@ -1,7 +1,7 @@
 import { gsap } from "gsap";
 import React, { useCallback, useEffect, useRef } from "react";
 interface Props {
-  player: { uid: string; name: string; avatar?: number };
+  player: { uid: string; name?: string; avatar?: number };
   mode: number; //0-match 1-battle
 }
 const Avatar: React.FC<Props> = ({ player, mode }) => {

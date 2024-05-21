@@ -95,11 +95,11 @@ export const getGameBound = (width: number, height: number, column: number, row:
         case 0:
             {
                 const pw = Math.floor((0.8 * width) / column);
-                const ph = Math.floor(0.63 * height / row);
-                const pradius = Math.min(pw, ph);
+                const ph = Math.floor(0.6 * height / row);
+                const pradius = Math.min(60, Math.min(pw, ph));
                 const pwidth = pradius * column;
                 const pheight = pradius * row;
-                const ptop = 0.3 * height + (0.7 * height - pheight) / 2;
+                const ptop = 0.3 * height + (0.6 * height - pheight) / 2;
                 const pleft = (width - pwidth) / 2;
                 bound = {
                     top: ptop,
