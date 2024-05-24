@@ -1,7 +1,7 @@
 import { CandySprite } from "component/pixi/CandySprite";
 import { gsap } from "gsap";
 import { CellItem } from "model/CellItem";
-import { useCallback, useRef } from "react";
+import { useCallback } from "react";
 import { useBattleManager } from "service/BattleManager";
 import { useGameManager } from "service/GameManager";
 import { hasMatch3 } from "util/MatchGameUtils";
@@ -10,31 +10,17 @@ import { GAME_ACTION } from "model/Match3Constants";
 import useActAnimate from "./useActAnimate";
 
 
-const useAct = () => {
-    const timelineRef = useRef<any>(null);
+const useAct = (timelineRef: any) => {
+    // const timelineRef = useRef<any>(null);
     const { battle } = useBattleManager();
     const { game, doAct } = useGameManager();
     const { swipeSuccess, swipeFail } = useActAnimate();
-    const stopAct = useCallback(() => {
-        if (timelineRef.current) {
-            timelineRef.current.kill();
-            timelineRef.current = null;
-        }
-    }, [])
+
     const swipeAct = useCallback(
 
         async (candy: CellItem, target: CellItem) => {
 
             if (!battle || !game) return;
-            // animateStatusRef.current = 1;
-            const timeline = gsap.timeline({
-                onComplete: () => {
-                    timeline.kill();
-                    timelineRef.current = null;
-                    // animateStatusRef.current = 0;
-                }
-            })
-            timelineRef.current = timeline;
             const { row, column } = battle.data
             const scandy = { ...candy };
             const starget = { ...target };
@@ -52,15 +38,22 @@ const useAct = () => {
                 }
                 grid[sunit.row][sunit.column] = sunit
             }
-
             if (hasMatch3(grid) || smeshIds.includes(candy['asset']) || smeshIds.includes(target['asset'])) {
 
+                const timeline = gsap.timeline({
+                    onComplete: () => {
+                        timeline.kill();
+                        timelineRef.current = null;
+                    }
+                })
+                timelineRef.current = timeline;
                 swipeSuccess(game.gameId, scandy, starget, timeline);
+                timeline.play();
 
                 await doAct(GAME_ACTION.SWIPE_CANDY, { candyId: candy.id, targetId: target.id });
 
             } else {
-                swipeFail(game.gameId, candy.id, target.id, timeline);
+                swipeFail(game.gameId, candy.id, target.id, null);
             }
         },
         [battle, game, doAct]
@@ -77,6 +70,6 @@ const useAct = () => {
         [battle, game, doAct]
     );
 
-    return { swipeAct, hitAct, stopAct };
+    return { swipeAct, hitAct };
 };
 export default useAct

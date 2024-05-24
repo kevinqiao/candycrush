@@ -23,14 +23,16 @@ export interface SearchScene {
     containerEle: HTMLDivElement;
     searchEle: HTMLDivElement;
 }
-export interface ConsoleScene extends SceneModel {
-    avatarBars: { gameId: string; avatar: HTMLElement | null; bar: HTMLElement | null; score: HTMLElement | null; plus: HTMLElement | null }[];
-    goalPanels: { gameId: string; goals: { asset: number; iconEle: HTMLElement | null; qtyEle: HTMLElement | null }[] }[]
+
+export interface BattleConsoleScene extends SceneModel {
+    gameConsoles: GameConsoleScene[];
 }
-export interface GameConsoleScene extends SceneModel {
+export interface GameConsoleScene {
     gameId: string;
-    avatarBar?: { avatar: HTMLElement | null; bar: HTMLElement | null; score: HTMLElement | null; plus: HTMLElement | null };
-    goalPanel?: { goals: { asset: number; iconEle: HTMLElement | null; qtyEle: HTMLElement | null }[] };
-    moveDiv?: HTMLDivElement | null;
-    mode: number;
+    avatar?: HTMLElement;
+    bar?: HTMLElement;
+    score?: HTMLElement;
+    plus?: HTMLElement;
+    goals?: { asset: number; iconEle?: HTMLElement; qtyEle?: HTMLElement }[];
+    moves?: HTMLElement;
 }

@@ -30,10 +30,9 @@ export const GameProvider = ({ gameId, children }: { gameId: string; children: R
   const gameRef = useRef<GameModel | null>(null);
   const startTimeRef = useRef<number>(Date.now());
   const lastEventRef = useRef<any>({ steptime: 0 });
-  // const actionRef = useRef<{ act: number; id: number; status: number }>({ act: 0, id: 0, status: -1 });
   const [gameEvent, setGameEvent] = useState<GameEvent | null>(null);
   const [gameEvents, setGameEvents] = useState<GameEvent[]>([]);
-  const { load, battle, completeGame, setBattleOver } = useBattleManager();
+  const { load, battle, completeGame, setOverReport } = useBattleManager();
   const { visible } = useSceneManager();
   const [laststep, setLaststep] = useState(-1);
   const { user } = useUserManager();
@@ -95,7 +94,8 @@ export const GameProvider = ({ gameId, children }: { gameId: string; children: R
           const result = event.data.result;
           gameRef.current.result = result;
           setGameEvent(event);
-          completeGame(gameId, result);
+          setOverReport(1);
+          // completeGame(gameId, result);
         } else if (gameRef.current.uid !== user.uid) {
           lastEventRef.current = event;
           // console.log(event);

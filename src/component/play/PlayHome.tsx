@@ -13,13 +13,13 @@ import PageProps from "../../model/PageProps";
 import useTournamentManager from "../../service/TournamentManager";
 import BattleGround from "./BattleGround";
 import BattleScene from "./BattleScene";
-import GameConsole from "./console/GameConsole";
-import TimeCount from "./console/TimeCount";
+import BattleConsole from "./console/BattleConsole";
 import GamePlay from "./GamePlay";
 import BattleReady from "./match/BattleReady";
 import OpponentSearch from "./match/OpponentSearch";
 import "./play.css";
 import BattleReport from "./report/BattleReport";
+import GameReport from "./report/GameReport";
 
 interface ControlProps {
   battleId: string;
@@ -46,17 +46,16 @@ const PlayControl: React.FC<ControlProps> = ({ battleId }) => {
       {battle ? (
         <BattleProvider battle={battle}>
           <BattleGround>
-            <TimeCount />
+            <BattleConsole />
             {battle.games &&
               battle.games.map((g) => (
                 <GameProvider key={g.gameId} gameId={g.gameId}>
                   <GamePlay />
-                  <GameConsole />
-                  {/* {g.uid === user.uid ? <SkillControl /> : null} */}
                 </GameProvider>
               ))}
             <BattleScene />
           </BattleGround>
+          <GameReport />
           <BattleReport />
           {!matchCompleted ? <BattleReady /> : null}
         </BattleProvider>

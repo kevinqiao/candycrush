@@ -24,24 +24,22 @@ const useCollectCandies = () => {
     const getGoalTarget = (gameId: string, asset: number) => {
         if (!scenes) return;
         const ground = scenes.get(SCENE_NAME.BATTLE_GROUND);
-        const gameConsoleScenes = scenes?.get(SCENE_NAME.GAME_CONSOLES);
+        const gameConsoleScenes = scenes?.get(SCENE_NAME.GAME_CONSOLE_SCENES);
         const gameConsoleScene = gameConsoleScenes.find((s: GameConsoleScene) => s.gameId === gameId);
+        console.log(gameConsoleScene)
+        if (ground && gameConsoleScene?.goals) {
 
-        if (ground && gameConsoleScene?.goalPanel) {
-            const panel = gameConsoleScene.goalPanel;
-
-            if (panel) {
-                const goal = panel.goals.find((g) => g.asset === asset);
-                if (goal?.iconEle) {
-                    const goalBound = (goal.iconEle as HTMLElement).getBoundingClientRect();
-                    const groundBound = (ground.app as HTMLDivElement).getBoundingClientRect();
-                    if (goalBound && groundBound) {
-                        const x = goalBound.left - groundBound.left;
-                        const y = goalBound.top - groundBound.top;
-                        return { x, y }
-                    }
+            const goal = gameConsoleScene.goals.find((g) => g.asset === asset);
+            if (goal?.iconEle) {
+                const goalBound = (goal.iconEle as HTMLElement).getBoundingClientRect();
+                const groundBound = (ground.app as HTMLDivElement).getBoundingClientRect();
+                if (goalBound && groundBound) {
+                    const x = goalBound.left - groundBound.left;
+                    const y = goalBound.top - groundBound.top;
+                    return { x, y }
                 }
             }
+
         }
         return null;
 
@@ -51,7 +49,6 @@ const useCollectCandies = () => {
         const matched: { asset: number; quantity: number }[] = JSON.parse(JSON.stringify(prematchedRef.current));
         cells.forEach((r: CellItem) => {
             const ma = matched.find((m) => m.asset === r.asset || m.asset === r.src);
-
             if (ma)
                 ma.quantity++;
             else
@@ -74,30 +71,29 @@ const useCollectCandies = () => {
 
     const playChangeScore = useCallback((gameId: string, score: { from: number; to: number }, timeline: any) => {
         if (!scenes) return;
-        const gameConsoleScenes = scenes?.get(SCENE_NAME.GAME_CONSOLES);
+        const gameConsoleScenes = scenes?.get(SCENE_NAME.GAME_CONSOLE_SCENES);
         const gameConsoleScene = gameConsoleScenes.find((s: GameConsoleScene) => s.gameId === gameId);
-        if (!gameConsoleScene || !gameConsoleScene.avatarBar) return;
-        const avatarbar = gameConsoleScene.avatarBar;
+        if (!gameConsoleScene) return;
 
         const tl = timeline ?? gsap.timeline();
         const sl = gsap.timeline();
         tl.add(sl, "<");
-        sl.from(avatarbar.bar, {
+        sl.from(gameConsoleScene.bar, {
             duration: 0.7, onUpdate: () => {
                 const progress = sl.progress();
                 const animatedValue = progress * (score.to - score.from) + score.from;
-                if (avatarbar.score)
-                    avatarbar.score.innerHTML = Math.floor(animatedValue) + "";
+                if (gameConsoleScene.score)
+                    gameConsoleScene.score.innerHTML = Math.floor(animatedValue) + "";
             }
         }, "<");
 
-        if (avatarbar.plus) {
+        if (gameConsoleScene.plus) {
             const span = document.createElement('span');
-            avatarbar.plus.appendChild(span)
+            gameConsoleScene.plus.appendChild(span)
             const pl = gsap.timeline({
                 onComplete: () => {
-                    if (avatarbar.plus) {
-                        avatarbar.plus?.removeChild(span)
+                    if (gameConsoleScene.plus) {
+                        gameConsoleScene.plus?.removeChild(span)
                     }
                 }
             });
@@ -113,6 +109,7 @@ const useCollectCandies = () => {
     }, [game, battle])
 
     const playGoalCollect = useCallback((gameId: string, removes: CellItem[], timeline: any) => {
+        console.log("play goal collect ")
         if (!scenes) return;
         // console.log(removes)
         const gameScenes = scenes?.get(SCENE_NAME.GAME_SCENES);
@@ -150,12 +147,13 @@ const useCollectCandies = () => {
 
     }, [battle])
     const playGoalMove = useCallback((gameId: string, candy: CellItem, tl: any) => {
+        console.log("play goal move...")
         if (!scenes) return;
         const gameScenes = scenes?.get(SCENE_NAME.GAME_SCENES);
         const gameScene = gameScenes.find((s: GameScene) => s.gameId === gameId);
         const battleScene = scenes.get(SCENE_NAME.BATTLE_SCENE)
         const target = getGoalTarget(gameId, candy.asset);
-
+        console.log(target)
         const cwidth = gameScene?.cwidth;
         const texture = textures?.find((d) => d.id === candy.asset || d.id === candy.src);
         if (battleScene && gameScene && texture && target) {
@@ -196,17 +194,17 @@ const useCollectCandies = () => {
     const playChangeGoal = useCallback(
         (gameId: string, goalChanges: { asset: number; from: number; to: number }[], timeline: any) => {
             if (!scenes) return;
-            const gameConsoleScenes = scenes?.get(SCENE_NAME.GAME_CONSOLES);
+            const gameConsoleScenes = scenes?.get(SCENE_NAME.GAME_CONSOLE_SCENES);
             const gameConsoleScene = gameConsoleScenes.find((s: GameConsoleScene) => s.gameId === gameId);
 
             if (gameConsoleScene) {
                 const tl = timeline ?? gsap.timeline();
-                const panel = gameConsoleScene.goalPanel;
+
                 for (const item of goalChanges) {
                     // if (item.from <= 0) continue;
                     const et = gsap.timeline();
                     tl.add(et, "<")
-                    const m = panel?.goals.find((g: any) => g.asset === item.asset);
+                    const m = gameConsoleScene.goals.find((g: any) => g.asset === item.asset);
                     if (m?.qtyEle) {
                         et.to(m.qtyEle, {
                             duration: 0.7, onUpdate: () => {

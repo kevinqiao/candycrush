@@ -1,6 +1,9 @@
 import { v } from "convex/values";
+import * as GameEngine from "../service/GameEngine";
+import { internal } from "./_generated/api";
 import { Id } from "./_generated/dataModel";
 import { internalMutation, internalQuery, query } from "./_generated/server";
+import { sessionAction } from "./custom/session";
 
 
 export const getInitGame = internalQuery({
@@ -52,23 +55,24 @@ export const findGame = query({
   },
 });
 
-// export const findGame = action({
-//   args: { gameId: v.string() },
-//   handler: async (ctx, { gameId }): Promise<any> => {
-//     const gid = gameId as Id<"games">
-//     const game = await ctx.runQuery(internal.games.getGame, { gameId: gid });
-//     if (game && !game.result) {
-//       const result = GameEngine.settleGame(game);
-//       if (result && game.gameId) {
-//         const score = result['base'] + result['time'] + result['goal'];
-//         game.result = result;
-//         game.score = score;
-//         await ctx.runMutation(internal.games.update, { gameId: gid, data: { result, score, status: GAME_STATUS.SETTLED } })
-//       }
-//     }
-//     return { ...game, gameId: game._id, _id: undefined };
-//   },
-// });
+export const findReport = sessionAction({
+  args: { gameId: v.string() },
+  handler: async (ctx, { gameId }): Promise<any> => {
+    const gid = gameId as Id<"games">
+    const game = await ctx.runQuery(internal.games.getGame, { gameId: gid });
+    if (!game) return
+    if (!game.result) {
+      const result = GameEngine.settleGame(game);
+      if (result && game.gameId) {
+        const score = result['base'] + result['time'] + result['goal'];
+        game.result = result;
+        game.score = score;
+        await ctx.runMutation(internal.games.update, { gameId: gid, data: { result, score } })
+      }
+    }
+    return { result: game.result, score: game.score };
+  },
+});
 export const findUserGame = internalQuery({
   args: { uid: v.string() },
   handler: async (ctx, { uid }) => {

@@ -45,17 +45,17 @@ const GoalPanel: React.FC<Props> = ({ layout, game }) => {
   const loadGoal = useCallback(
     (type: number, el: HTMLElement | HTMLDivElement, goal: { asset: number; quantity: number }) => {
       if (scenes && game) {
-        const gameConsoleScenes = scenes?.get(SCENE_NAME.GAME_CONSOLES);
+        const gameConsoleScenes = scenes?.get(SCENE_NAME.GAME_CONSOLE_SCENES);
         const gameConsoleScene = gameConsoleScenes.find((s: GameConsoleScene) => s.gameId === game.gameId);
 
         if (gameConsoleScene) {
-          if (!gameConsoleScene.goalPanel) {
-            gameConsoleScene.goalPanel = { gameId: game.gameId, goals: [] };
+          if (!gameConsoleScene.goals) {
+            gameConsoleScene.goals = [];
           }
-          let item = gameConsoleScene.goalPanel.goals.find((g: any) => g.asset === goal.asset);
+          let item = gameConsoleScene.goals.find((g: any) => g.asset === goal.asset);
           if (!item) {
             item = { asset: goal.asset, iconEle: null, qtyEle: null };
-            gameConsoleScene.goalPanel.goals.push(item);
+            gameConsoleScene.goals.push(item);
           }
           if (type === 0) item.qtyEle = el;
           else if (type === 1) item.iconEle = el;

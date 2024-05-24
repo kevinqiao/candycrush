@@ -27,55 +27,50 @@ const AvatarBar: React.FC<Props> = ({ layout, game }) => {
     return null;
   }, [battle, game]);
 
-  const getAvatarBar = useCallback(() => {
-    if (!game || !scenes) return;
-    const gameConsoleScenes = scenes?.get(SCENE_NAME.GAME_CONSOLES);
-    const gameConsoleScene = gameConsoleScenes?.find((s: GameConsoleScene) => s.gameId === game.gameId);
-    if (gameConsoleScene) {
-      if (!gameConsoleScene.avatarBar)
-        gameConsoleScene.avatarBar = { avatar: null, bar: null, score: null, plus: null };
-      return gameConsoleScene.avatarBar;
+  const gameConsoleScene = useMemo(() => {
+    let consoleScene: GameConsoleScene | null = null;
+    const gameConsoleScenes = scenes?.get(SCENE_NAME.GAME_CONSOLE_SCENES);
+    if (gameConsoleScenes) {
+      consoleScene = gameConsoleScenes?.find((s: GameConsoleScene) => s.gameId === game.gameId);
+      if (!consoleScene) {
+        consoleScene = { gameId: game.gameId };
+        gameConsoleScenes.push(consoleScene);
+      }
     }
-    return null;
-  }, [game, scenes]);
+    return consoleScene;
+  }, [scenes, game]);
 
   const loadAvatar = useCallback(
     (el: HTMLElement | null) => {
-      if (el) {
-        const avatarBar = getAvatarBar();
-        if (avatarBar) {
-          avatarBar.avatar = el;
-        }
+      if (el && gameConsoleScene) {
+        gameConsoleScene.avatar = el;
       }
     },
-    [game, scenes]
+    [game, gameConsoleScene]
   );
   const loadBar = useCallback(
     (el: HTMLElement | null) => {
-      if (el) {
-        const avatarBar = getAvatarBar();
-        if (avatarBar) avatarBar.bar = el;
+      if (el && gameConsoleScene) {
+        gameConsoleScene.bar = el;
       }
     },
-    [game, scenes]
+    [game, gameConsoleScene]
   );
   const loadScore = useCallback(
     (el: HTMLElement | null) => {
-      if (el) {
-        const avatarBar = getAvatarBar();
-        if (avatarBar) avatarBar.score = el;
+      if (el && gameConsoleScene) {
+        gameConsoleScene.score = el;
       }
     },
-    [game, scenes]
+    [game, gameConsoleScene]
   );
   const loadPlus = useCallback(
     (el: HTMLElement | null) => {
-      if (el) {
-        const avatarBar = getAvatarBar();
-        if (avatarBar) avatarBar.plus = el;
+      if (el && gameConsoleScene) {
+        gameConsoleScene.plus = el;
       }
     },
-    [game, scenes]
+    [game, gameConsoleScene]
   );
 
   useEffect(() => {

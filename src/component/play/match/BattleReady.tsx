@@ -6,8 +6,10 @@ import useDimension from "../../../util/useDimension";
 
 import { useAnimation } from "component/animation/battle/useAnimation";
 import { useSearchMatch } from "component/animation/battle/useSearchMatch";
+import { GAME_GOAL } from "model/Match3Constants";
 import Avatar from "../common/Avatar";
 import CountdownTimer from "../common/CountdownTimer";
+import GoalCandy from "../console/GoalCandy";
 import "./search.css";
 
 const BattleReady = () => {
@@ -77,6 +79,13 @@ const BattleReady = () => {
       playerAvatarRefs.current.set(uid, ele);
     }
   };
+  const goals = useMemo(() => {
+    if (battle) {
+      const gameGoal = GAME_GOAL.find((g) => g.id === battle.data.goal);
+      return gameGoal?.goal;
+    }
+    return [];
+  }, [battle]);
 
   return (
     <>
@@ -121,11 +130,38 @@ const BattleReady = () => {
             top: height * 0.7,
             left: 0,
             width: "100%",
-            display: "flex",
-            justifyContent: "center",
           }}
         >
-          Goal List
+          <div
+            style={{
+              width: "100%",
+              display: "flex",
+              flexDirection: "column",
+              alignItems: "center",
+            }}
+          >
+            <div style={{ fontSize: 20, fontWeight: 25, color: "white" }}>Goal</div>
+            <div style={{ height: 40 }} />
+            <div style={{ display: "flex" }}>
+              {goals &&
+                goals.map((a: any) => (
+                  <div
+                    key={a.asset}
+                    style={{
+                      width: 55,
+                      display: "flex",
+                      flexDirection: "column",
+                      alignItems: "center",
+                    }}
+                  >
+                    <div style={{ fontSize: 12 }}>{a.quantity}</div>
+                    <div style={{ width: 35, height: 35 }}>
+                      <GoalCandy asset={a.asset} />
+                    </div>
+                  </div>
+                ))}
+            </div>
+          </div>
         </div>
 
         <div

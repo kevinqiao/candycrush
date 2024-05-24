@@ -14,15 +14,15 @@ import { useSceneManager } from "../../service/SceneManager";
 import { CandySprite } from "../pixi/CandySprite";
 import useSceneUtil from "./common/useSceneUtil";
 const useGameScene = () => {
-
+    const timelineRef = useRef<any>(null);
     const { gameEvent, game } = useGameManager();
     const { battle, loadGame, currentSkill, setCurrentSkill } = useBattleManager();
     const skillRef = useRef<number>(currentSkill);
     const { load, textures, scenes, containerBound } = useSceneManager();
     const { initGameScene, updateGameScene } = useSceneUtil();
-    const { playApply, stopPlay } = useMatchAnimate();
-    const { swipeAct, hitAct, stopAct } = useAct();
-    const { swapSelect, resetSkill, executeSkill, stopSkill } = useSkill();
+    const { playApply } = useMatchAnimate(timelineRef);
+    const { swipeAct, hitAct } = useAct(timelineRef);
+    const { swapSelect, resetSkill, executeSkill } = useSkill(timelineRef);
     const selectedCandyRef = useRef<CandySprite[]>([]);
     const boundRef = useRef<{
         top: number;
@@ -40,12 +40,9 @@ const useGameScene = () => {
     } | null>(null);
 
     const stopAnimate = useCallback(() => {
-
-        stopPlay();
-        stopAct();
-        stopSkill();
-
-    }, [stopPlay, stopAct, stopSkill])
+        if (timelineRef.current)
+            timelineRef.current.kill();
+    }, [])
 
     const createCandySprite = useCallback((cell: CellItem, x: number, y: number): PIXI.Sprite | null => {
         if (!game?.gameId || !scenes) return null;
@@ -166,7 +163,6 @@ const useGameScene = () => {
         const gameScene = gameScenes?.find((s: GameScene) => s.gameId === game.gameId);
 
         if (gameEvent?.name === "initGame") {
-
             stopAnimate();
             init(gameEvent.data.data.cells)
             loadGame(game.gameId, { matched: game.data.matched ?? [] });

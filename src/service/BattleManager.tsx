@@ -8,10 +8,10 @@ interface IBattleContext {
   load: number;
   battle: BattleModel | null;
   allGameLoaded: boolean;
-  battleOver: number;
+  overReport: number;
   // bounds: { name: string; top: number; left: number; width: number; height: number; radius?: number }[] | null;
   setCurrentSkill: (skill: number) => void;
-  setBattleOver: (status: number) => void;
+  setOverReport: (status: number) => void;
   reset: () => void;
   timeout: () => void;
   completeGame: (gameId: string, score: { base: number; time: number; goal: number }) => void;
@@ -22,12 +22,12 @@ const BattleContext = createContext<IBattleContext>({
   load: 0,
   allGameLoaded: false,
   battle: null,
-  battleOver: 0,
+  overReport: 0,
   // bounds: null,
   setCurrentSkill: (skill: number) => {
     return;
   },
-  setBattleOver: (status: number) => {
+  setOverReport: (status: number) => {
     return;
   },
   reset: () => null,
@@ -39,7 +39,7 @@ const BattleContext = createContext<IBattleContext>({
 export const BattleProvider = ({ battle, children }: { battle: BattleModel | null; children: React.ReactNode }) => {
   const [currentSkill, setCurrentSkill] = useState(0);
   const [allGameLoaded, setAllGameLoaded] = useState(false);
-  const [battleOver, setBattleOver] = useState(0);
+  const [overReport, setOverReport] = useState(0); //0-no report 1-my game is over(open game report) 2-battle is over (open battle report)
   const { user } = useUserManager();
   const { load } = useSceneManager();
   // console.log("load:" + load);
@@ -47,7 +47,7 @@ export const BattleProvider = ({ battle, children }: { battle: BattleModel | nul
     if (!user || !battle) return;
     const mygame = battle.games?.find((g) => g.uid === user.uid);
     const timeLeft = battle.duration + battle.startTime - Date.now() + user.timelag;
-    if (battle.rewards || battle.status || mygame?.result || timeLeft < 0) setBattleOver(1);
+    if (battle.rewards || battle.status || mygame?.result || timeLeft < 0) setOverReport(2);
   }, [battle, user]);
 
   const value = {
@@ -55,22 +55,22 @@ export const BattleProvider = ({ battle, children }: { battle: BattleModel | nul
     load,
     allGameLoaded,
     battle,
-    battleOver,
+    overReport,
     // bounds,
     setCurrentSkill,
-    setBattleOver,
+    setOverReport,
     timeout: useCallback(() => {
       // console.log(event);
-      setBattleOver(2);
+      if (overReport === 0) setOverReport(1);
     }, [battle]),
     completeGame: useCallback(
       (gameId: string, result: any) => {
-        if (!battle || !battle.games) return;
-        const game = battle?.games.find((g) => g.gameId === gameId);
-        if (game && game.uid === user.uid) {
-          game.result = result;
-          setBattleOver(1);
-        }
+        // if (!battle || !battle.games) return;
+        // const game = battle?.games.find((g) => g.gameId === gameId);
+        // if (game && game.uid === user.uid) {
+        //   game.result = result;
+        //   setBattleOver(1);
+        // }
       },
       [battle]
     ),

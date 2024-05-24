@@ -21,10 +21,13 @@ export interface GameReport {
 const BattleReport: React.FC = () => {
   const maskDivRef = useRef<HTMLDivElement | null>(null);
   const reportDivRef = useRef<HTMLDivElement | null>(null);
-  const { battle, battleOver } = useBattleManager();
-  const [report, setReport] = useState<{ id: string; items: GameReport[]; toCollect?: number } | null>(null);
-  // const [gameResults, setGameResults] = useState<GameResult[] | null>(null);
-  // const [battleRewards, setBattleRewards] = useState<BattleReward[] | null>(null);
+  const { battle, overReport } = useBattleManager();
+  const [report, setReport] = useState<{
+    id: string;
+    games?: GameReport[];
+    leaderboard: { type: number; score: number; points?: number; rank: number };
+    toCollect?: number;
+  } | null>(null);
   const { load } = useSceneManager();
   const { exit } = usePageProp();
   const convex = useConvex();
@@ -39,12 +42,13 @@ const BattleReport: React.FC = () => {
         token,
       });
       console.log(battleReport);
-      battleReport.items.sort((a: any, b: any) => {
-        if (typeof a.score === "undefined" && typeof b.score !== "undefined") return 1;
-        if (typeof a.score !== "undefined" && typeof b.score === "undefined") return -1;
-        if (a.score === b.score) return 0;
-        return a.score > b.score ? -1 : 1;
-      });
+      if (battleReport.items)
+        battleReport.items.sort((a: any, b: any) => {
+          if (typeof a.score === "undefined" && typeof b.score !== "undefined") return 1;
+          if (typeof a.score !== "undefined" && typeof b.score === "undefined") return -1;
+          if (a.score === b.score) return 0;
+          return a.score > b.score ? -1 : 1;
+        });
       setReport(battleReport);
     }
   }, [battle, user]);
@@ -54,20 +58,20 @@ const BattleReport: React.FC = () => {
         tl.kill();
       },
     });
-    tl.to(maskDivRef.current, { autoAlpha: 0.7, duration: 1.8 }).to(
+    tl.to(maskDivRef.current, { autoAlpha: 0.7, duration: 1.0 }).to(
       reportDivRef.current,
-      { scale: 1, autoAlpha: 1, duration: 1.8 },
+      { scale: 1, autoAlpha: 1, duration: 1.0 },
       "<"
     );
     tl.play();
   }, [battle]);
 
   useEffect(() => {
-    if (load !== BATTLE_LOAD.REPLAY && battleOver > 0) {
+    if (load !== BATTLE_LOAD.REPLAY && overReport === 2) {
       openReport();
       findReport();
     }
-  }, [load, battleOver]);
+  }, [load, overReport]);
 
   useEffect(() => {
     if (battle) gsap.to(reportDivRef.current, { autoAlpha: 0, scale: 0, duration: 0 });
@@ -84,16 +88,33 @@ const BattleReport: React.FC = () => {
         <div className="report_body">
           <div className="report_content">
             <div style={{ height: "15%" }}></div>
-            <div className="items_container">
-              {report && report.items.map((r, index) => <ReportItem key={r.gameId} gameReport={r} rank={index + 1} />)}
-            </div>
+            {report?.games ? (
+              <div className="items_container">
+                {report.games.map((r, index) => (
+                  <ReportItem key={r.gameId} gameReport={r} rank={index + 1} />
+                ))}
+              </div>
+            ) : null}
+            {report?.leaderboard && report.leaderboard.type === 1 && (
+              <div className="items_container">
+                <div>score:{report.leaderboard.score}</div>
+                <div>points:{report.leaderboard.points}</div>
+                <div>rank:{report.leaderboard.rank}</div>
+              </div>
+            )}
+            {report?.leaderboard && report.leaderboard.type === 2 && (
+              <div className="items_container">
+                <div style={{ color: "white" }}>Best Score:{report.leaderboard.score}</div>
+                <div style={{ color: "white" }}>Current Rank:{report.leaderboard.rank}</div>
+              </div>
+            )}
             {report?.toCollect ? (
               <div className="collect_btn" onClick={claim}>
                 <span>Collect</span>
               </div>
             ) : (
               <div className="collect_btn" onClick={exit}>
-                <span>Ok1</span>
+                <span>Ok</span>
               </div>
             )}
           </div>

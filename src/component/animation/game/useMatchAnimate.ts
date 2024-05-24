@@ -171,19 +171,19 @@ export const playSmesh = (toSmesh: { target: number; candy: CellItem; smesh: Cel
 const playStepChange = (gameConsoleScene: GameConsoleScene, from: number, to: number, tl: any) => {
     const ml = gsap.timeline();
     tl.add(ml, "<");
-    if (gameConsoleScene.moveDiv)
-        ml.from(gameConsoleScene.moveDiv, {
+    if (gameConsoleScene.moves)
+        ml.from(gameConsoleScene.moves, {
             duration: 0.7, onUpdate: () => {
                 const progress = ml.progress();
                 const animatedValue = from - progress * (from - to);
-                if (gameConsoleScene.moveDiv)
-                    gameConsoleScene.moveDiv.innerHTML = Math.floor(animatedValue) + "";
+                if (gameConsoleScene.moves)
+                    gameConsoleScene.moves.innerHTML = Math.floor(animatedValue) + "";
             }
         }, "<");
 
 }
-const useMatchAnimate = () => {
-    const timelineRef = useRef<any>(null);
+const useMatchAnimate = (timelineRef: any) => {
+    // const timelineRef = useRef<any>(null);
     const { game } = useGameManager();
     const { battle } = useBattleManager();
     const { user } = useUserManager();
@@ -198,11 +198,7 @@ const useMatchAnimate = () => {
             moveRef.current = game.data.move;
     }, [game])
 
-    const stopPlay = useCallback(() => {
-        if (timelineRef.current)
-            timelineRef.current.kill();
-        timelineRef.current = null;
-    }, [])
+
 
     const apply = useCallback((event: any) => {
         if (!battle || !game || !scenes?.get(SCENE_NAME.GAME_SCENES)) return;
@@ -219,7 +215,7 @@ const useMatchAnimate = () => {
         timelineRef.current = tl;
 
         if (game.data.move > moveRef.current) {
-            const gameConsoleScene: GameConsoleScene = scenes.get(SCENE_NAME.GAME_CONSOLES).find((g: GameConsoleScene) => g.gameId === game.gameId)
+            const gameConsoleScene: GameConsoleScene = scenes.get(SCENE_NAME.GAME_CONSOLE_SCENES).find((g: GameConsoleScene) => g.gameId === game.gameId)
             if (gameConsoleScene) {
                 const moves = battle.data.steps;
                 const from = moves - moveRef.current;
@@ -279,7 +275,8 @@ const useMatchAnimate = () => {
                 }
                 if (res.toRemove) {
                     const cl = gsap.timeline();
-                    res.toSmesh ? sl.add(cl, ">-=0.3") : sl.add(cl);
+                    sl.add(cl, ">");
+                    // res.toSmesh ? sl.add(cl, ">-=0.3") : sl.add(cl);
                     playRemove(res.toRemove, gameScene, textures, cl)
                     cl.call(
                         () => playCollect(game.gameId, res.toRemove, null),
@@ -319,7 +316,8 @@ const useMatchAnimate = () => {
     const playApply = useCallback(
         (event: any) => {
             const timeout = timelineRef.current ? timelineRef.current.totalDuration() - timelineRef.current.time() : 0;
-            setTimeout(() => apply(event), timeout)
+            console.log("play apply timeout:" + timeout)
+            setTimeout(() => apply(event), timeout * 1000)
         },
         [apply]
     );
@@ -413,7 +411,7 @@ const useMatchAnimate = () => {
 
     }, [playCollect, scenes, swipeSuccess, game, textures])
 
-    return { playApply, stopPlay, preapply };
+    return { playApply, preapply };
 };
 export default useMatchAnimate
 

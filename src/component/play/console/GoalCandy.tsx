@@ -1,8 +1,8 @@
-import { useRef } from "react";
+import React, { useRef } from "react";
 import candy_textures from "../../../model/candy_textures";
 import useDimension from "../../../util/useDimension";
 interface Props {
-  asset: number;
+  asset?: number;
 }
 const frameSize = 100;
 const GoalCandy: React.FC<Props> = ({ asset }) => {

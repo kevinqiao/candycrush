@@ -4,7 +4,7 @@ import * as PIXI from "pixi.js";
 import React, { createContext, useCallback, useContext, useEffect, useRef, useState } from "react";
 import { loadSvgAsTexture } from "util/Utils";
 import PageProps, { PagePosition } from "../model/PageProps";
-import { GameConsoleScene, GameScene, SceneModel } from "../model/SceneModel";
+import { GameScene, SceneModel } from "../model/SceneModel";
 interface ISceneContext {
   load: number; //0-play 1-replay;
   visible: boolean;
@@ -13,9 +13,6 @@ interface ISceneContext {
   avatarTextures: { name: string; texture: PIXI.Texture }[];
   iconTextures: { name: string; texture: PIXI.Texture }[];
   scenes: Map<string, any> | null;
-  // sceneEvent: SceneEvent | null;
-  // createdScenes: { type: number; id: number; gameId: string; scene: SceneModel }[];
-  // stageScene: (id: string, scene: SceneModel | null) => void;
   createScene: (sceneId: number, scene: SceneModel) => void;
   updateScene: (sceneId: number, data: any) => void;
   disableCloseBtn: () => void;
@@ -57,10 +54,6 @@ export const SceneProvider = ({
   const texturesRef = useRef<{ id: number; texture: PIXI.Texture }[]>([]);
   const avatarTexturesRef = useRef<{ name: string; texture: PIXI.Texture }[]>([]);
   const iconTexturesRef = useRef<{ name: string; texture: PIXI.Texture }[]>([]);
-  // const [sceneEvent, setSceneEvent] = useState<SceneEvent | null>(null);
-  // const [createdScenes, setCreatedScenes] = useState<{ type: number; id: number; gameId: string; scene: SceneModel }[]>(
-  //   []
-  // );
   const [complete, setComplete] = useState(false);
 
   useEffect(() => {
@@ -75,17 +68,20 @@ export const SceneProvider = ({
       texturesRef.current.push(...all);
       setComplete(true);
     };
+    scenesRef.current.set(SCENE_NAME.GAME_CONSOLE_SCENES, []);
     loadTextures();
     loadSvgAsTexture("/icons/focus-select-svgrepo-com.svg", (texture: PIXI.Texture) => {
       iconTexturesRef.current.push({ name: "focus", texture });
     });
     return () => {
-      if (scenesRef.current)
-        for (const scene of scenesRef.current.values()) {
-          if (scene?.app && !scene.type) {
+      if (scenesRef.current) {
+        const gameScenes = scenesRef.current.get(SCENE_NAME.GAME_SCENES);
+        if (gameScenes) {
+          gameScenes.forEach((scene: SceneModel) => {
             (scene.app as PIXI.Application).destroy(true);
-          }
+          });
         }
+      }
     };
   }, []);
 
@@ -121,31 +117,12 @@ export const SceneProvider = ({
               const gameScene = gameScenes.find((s) => s.gameId === gscene.gameId);
               if (!gameScene) {
                 gameScenes.push(gscene);
-
-                // setTimeout(
-                //   () => setSceneEvent({ type: SCENE_EVENT_TYPE.INIT, id: SCENE_ID.GAME_SCENE, scene }),
-                //   Math.floor(Math.random() * 30)
-                // );
               }
             }
             break;
-          case SCENE_ID.GAME_CONSOLE_SCENE:
-            {
-              const cscene = scene as GameConsoleScene;
-              let gameConsoleScenes: GameConsoleScene[] = scenesRef.current.get(SCENE_NAME.GAME_CONSOLES);
-              if (!gameConsoleScenes) {
-                gameConsoleScenes = [];
-                scenesRef.current.set(SCENE_NAME.GAME_CONSOLES, gameConsoleScenes);
-              }
-              const gameConsoleScene = gameConsoleScenes.find((s) => s.gameId === cscene.gameId);
-              if (!gameConsoleScene) {
-                gameConsoleScenes.push(cscene);
-              }
-            }
+          case SCENE_ID.BATTLE_CONSOLE_SCENE:
+            scenesRef.current.set(SCENE_NAME.BATTLE_CONSOLE, scene);
             break;
-          case SCENE_ID.BATTLE_SCENE:
-            break;
-
           default:
             break;
         }
@@ -162,25 +139,11 @@ export const SceneProvider = ({
               const gameScene = gameScenes?.find((s) => s.gameId === data.gameId);
               if (gameScene) {
                 Object.assign(gameScene, data);
-                // setSceneEvent({ type: SCENE_EVENT_TYPE.INIT, id: SCENE_ID.GAME_SCENE, scene: gameScene });
               }
             }
             break;
-          case SCENE_ID.GAME_CONSOLE_SCENE:
-            {
-              const gameConsoleScenes: GameConsoleScene[] | undefined = scenesRef.current.get(SCENE_NAME.GAME_CONSOLES);
-              const gameConsoleScene = gameConsoleScenes?.find((s) => s.gameId === data.gameId);
-              if (gameConsoleScene) {
-                Object.assign(gameConsoleScene, data);
-                // setSceneEvent({
-                //   type: SCENE_EVENT_TYPE.INIT,
-                //   id: SCENE_ID.GAME_CONSOLE_SCENE,
-                //   scene: gameConsoleScene,
-                // });
-              }
-            }
-            break;
-          case SCENE_ID.BATTLE_SCENE:
+
+          case SCENE_ID.BATTLE_CONSOLE_SCENE:
             break;
 
           default:

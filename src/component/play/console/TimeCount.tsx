@@ -6,14 +6,10 @@ import { useSceneManager } from "../../../service/SceneManager";
 
 const TimeCount = () => {
   const { user } = useUserManager();
-  const { load, visible, containerBound } = useSceneManager();
+  const { load, visible } = useSceneManager();
   const { battle, timeout } = useBattleManager();
   const pauseTimeRef = useRef(-1);
   const [timeLeft, setTimeLeft] = useState<number>(-1);
-  // useEffect(() => {
-  //   if (!visible) pauseTimeRef.current = timeLeft;
-  //   else setTimeLeft(pauseTimeRef.current);
-  // }, [visible]);
 
   useEffect(() => {
     if (!battle || !user || !visible) return;
@@ -51,25 +47,20 @@ const TimeCount = () => {
   };
 
   return (
-    <>
-      {containerBound ? (
-        <div
-          style={{
-            display: "flex",
-            justifyContent: "center",
-            alignItems: "center",
-            width: 60,
-            height: 25,
-            margin: 0,
-            borderRadius: 0,
-            backgroundColor: "white",
-            color: "blue",
-          }}
-        >
-          <div>{timeLeft > 0 ? formatTime(timeLeft) : "00:00"}</div>
-        </div>
-      ) : null}
-    </>
+    <div
+      style={{
+        display: "flex",
+        justifyContent: "center",
+        alignItems: "center",
+        width: 60,
+        height: 25,
+        margin: 0,
+        borderRadius: 0,
+        color: "white",
+      }}
+    >
+      <div>{timeLeft > 0 ? formatTime(timeLeft) : "00:00"}</div>
+    </div>
   );
 };
 

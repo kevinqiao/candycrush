@@ -7,17 +7,13 @@ import { useGameManager } from "service/GameManager";
 import { useSceneManager } from "../../../service/SceneManager";
 import useSkillAnimate from "./useSkillAnimate";
 
-const useSkill = () => {
-    const timelineRef = useRef<any>();
+const useSkill = (timelineRef: any) => {
+
     const focusIconRef = useRef<PIXI.Sprite | null>(null)
     const { iconTextures, scenes } = useSceneManager();
     const { game, doAct } = useGameManager();
     const { swapSuccess } = useSkillAnimate();
-    const stopSkill = useCallback(() => {
-        if (timelineRef.current)
-            timelineRef.current.kill();
-        timelineRef.current = null;
-    }, [])
+
     const swapSelect = useCallback(
 
         (candy: CandySprite) => {
@@ -50,7 +46,7 @@ const useSkill = () => {
     );
 
     const executeSkill = useCallback(
-        (skill: number, data: any) => {
+        async (skill: number, data: any) => {
             console.log("execute skill:" + skill)
             switch (skill) {
                 case GAME_ACTION.SKILL_HAMMER:
@@ -70,13 +66,14 @@ const useSkill = () => {
                             })
                             timelineRef.current = timeline;
                             swapSuccess(game.gameId, candy, target, timeline);
-                            doAct(GAME_ACTION.SKILL_SWAP, { candyId: data.candy.id, targetId: data.target.id })
+                            timeline.play();
+                            await doAct(GAME_ACTION.SKILL_SWAP, { candyId: data.candy.id, targetId: data.target.id })
                         }
                     }
                     break;
                 case GAME_ACTION.SKILL_SPRAY:
 
-                    doAct(GAME_ACTION.SKILL_SPRAY, { candyId: data.candy.id })
+                    await doAct(GAME_ACTION.SKILL_SPRAY, { candyId: data.candy.id })
                     break;
                 default:
                     break;
@@ -84,6 +81,6 @@ const useSkill = () => {
         },
         [doAct, game]
     );
-    return { swapSelect, resetSkill, executeSkill, stopSkill };
+    return { swapSelect, resetSkill, executeSkill };
 };
 export default useSkill

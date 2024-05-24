@@ -11,13 +11,10 @@ import AvatarBar from "./AvatarBar";
 import GoalPanel from "./GoalPanel";
 
 const GameConsole: React.FC = () => {
-  // const sceneRef = useRef<HTMLDivElement | null>(null);
   const { user } = useUserManager();
   const { load, battle } = useBattleManager();
   const { createScene, scenes, containerBound } = useSceneManager();
-
   const { game } = useGameManager();
-  // const { initGameConsoleScene } = useSceneUtil();
   const [bound, setBound] = useState<{ x: number; y: number; width: number; height: number; mode: number } | null>(
     null
   );
@@ -27,7 +24,7 @@ const GameConsole: React.FC = () => {
 
     const { width, height } = containerBound;
     const mode = battle.games?.length === 1 || load === BATTLE_LOAD.REPLAY ? 0 : game.uid === user.uid ? 1 : 2;
-    const gameConsoleScenes = scenes.get(SCENE_NAME.GAME_CONSOLES);
+    const gameConsoleScenes = scenes.get(SCENE_NAME.GAME_CONSOLE_SCENES);
     const gameConsoleScene = gameConsoleScenes?.find((s: GameConsoleScene) => s.gameId === game.gameId);
     const nbound = getGameConsoleBound(width, height, mode);
     if (nbound) {
@@ -55,7 +52,7 @@ const GameConsole: React.FC = () => {
   const loadMove = useCallback(
     (el: HTMLElement | null) => {
       if (el && scenes && game && bound) {
-        const gameConsoleScenes = scenes.get(SCENE_NAME.GAME_CONSOLES);
+        const gameConsoleScenes = scenes.get(SCENE_NAME.GAME_CONSOLE_SCENES);
         const gameConsoleScene = gameConsoleScenes?.find((s: GameConsoleScene) => s.gameId === game.gameId);
         if (gameConsoleScene) {
           gameConsoleScene.moveDiv = el;
@@ -87,28 +84,30 @@ const GameConsole: React.FC = () => {
             backgroundColor: "transparent",
           }}
         >
-          <div
-            style={{
-              display: "flex",
-              flexDirection: "column",
-              justifyContent: "center",
-              alignItems: bound?.mode === 1 ? "flex-start" : "flex-end",
-            }}
-          >
-            <div style={{ width: "80%", height: 45 }}>
-              {bound && game ? <AvatarBar key="player" layout={bound.mode} game={game} /> : null}
+          {bound && bound.mode > 0 ? (
+            <div
+              style={{
+                display: "flex",
+                flexDirection: "column",
+                justifyContent: "center",
+                alignItems: bound?.mode === 1 ? "flex-start" : "flex-end",
+              }}
+            >
+              <div style={{ width: "80%", height: 45 }}>
+                {bound && game ? <AvatarBar key="player" layout={bound.mode} game={game} /> : null}
+              </div>
+              <div style={{ position: "relative", left: -10, width: "80%" }}>
+                {bound && game ? <GoalPanel layout={bound.mode} game={game} /> : null}
+              </div>
+              <div style={{ display: "flex", justifyContent: "flex-end", width: "80%", height: 45 }}>
+                {bound && game ? (
+                  <div style={{ fontSize: 15, color: "white" }}>
+                    Move:<span ref={loadMove}>{moves}</span>
+                  </div>
+                ) : null}
+              </div>
             </div>
-            <div style={{ position: "relative", left: -10, width: "80%" }}>
-              {bound && game ? <GoalPanel layout={bound.mode} game={game} /> : null}
-            </div>
-            <div style={{ width: "80%", height: 45 }}>
-              {bound && game ? (
-                <div style={{ fontSize: 15, color: "white" }}>
-                  Move:<span ref={loadMove}>{moves}</span>
-                </div>
-              ) : null}
-            </div>
-          </div>
+          ) : null}
         </div>
       </>
     );

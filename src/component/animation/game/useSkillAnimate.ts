@@ -46,11 +46,7 @@ const useActAnimate = () => {
         },
         []
     );
-    const changeBuff = useCallback(
-        (skillBuff: { skill: number; progress: number }[], timeline: any) => {
-        },
-        []
-    );
+
     return { swapSuccess };
 };
 export default useActAnimate

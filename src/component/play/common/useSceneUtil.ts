@@ -2,14 +2,14 @@ import { CandySprite } from "component/pixi/CandySprite";
 import { CellItem } from "model/CellItem";
 import { BATTLE_LOAD } from "model/Constants";
 import { SCENE_ID, SCENE_NAME } from "model/Match3Constants";
-import { GameConsoleScene, GameScene } from "model/SceneModel";
+import { GameScene } from "model/SceneModel";
 import * as PIXI from "pixi.js";
 import { useCallback, useRef } from "react";
 import { useBattleManager } from "service/BattleManager";
 import { useGameManager } from "service/GameManager";
 import { useSceneManager } from "service/SceneManager";
 import { useUserManager } from "service/UserManager";
-import { getGameBound, getGameConsoleBound } from "util/BattleBoundUtil";
+import { getGameBound } from "util/BattleBoundUtil";
 
 const useSceneUtil = () => {
     const { user } = useUserManager();
@@ -62,41 +62,7 @@ const useSceneUtil = () => {
         },
         [battle, game, scenes, load]
     )
-    const initGameConsoleScene = useCallback(
-        () => {
-            if (!game || !battle || !battle.games || !containerBoundInitialRef.current || !scenes) return;
-            const { width, height } = containerBoundInitialRef.current;
 
-            const gameConsoleScenes: GameConsoleScene[] | null | undefined = scenes.get(SCENE_NAME.GAME_CONSOLES);
-
-            const mode =
-                battle.games?.length === 1 || load === BATTLE_LOAD.REPLAY
-                    ? 0
-                    : game.uid === user.uid || battle.games[0].gameId === game.gameId
-                        ? 1
-                        : 2;
-
-            let gameConsoleScene: GameConsoleScene | undefined = gameConsoleScenes?.find((s) => s.gameId === game.gameId);
-            if (!gameConsoleScene) {
-                const gameConsoleBound = getGameConsoleBound(width, height, mode);
-                if (gameConsoleBound) {
-                    gameConsoleScene = {
-                        gameId: game.gameId,
-                        app: null,
-                        x: gameConsoleBound.left,
-                        y: gameConsoleBound.top,
-                        width: gameConsoleBound.width,
-                        height: gameConsoleBound.height,
-                        mode,
-                    };
-                    createScene(SCENE_ID.GAME_CONSOLE_SCENE, gameConsoleScene)
-                }
-            }
-            return gameConsoleScene
-
-        },
-        [battle, game, scenes, load]
-    )
     const updateGameScene = useCallback(
         (bound: { top: number; left: number; width: number; height: number; radius: number }) => {
             if (!game || !battle || !scenes) return;
@@ -128,6 +94,6 @@ const useSceneUtil = () => {
         },
         [battle, game, scenes, load]
     )
-    return { initGameScene, initGameConsoleScene, updateGameScene }
+    return { initGameScene, updateGameScene }
 }
 export default useSceneUtil

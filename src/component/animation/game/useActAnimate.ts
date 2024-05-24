@@ -16,11 +16,9 @@ const useActAnimate = () => {
             const gameScene = gameScenes.find((s: GameScene) => s.gameId === gameId)
             if (!gameScene) return;
             const tl = gsap.timeline({
-                // onComplete: () => {
-                //     const index = animates.findIndex((a) => a.name === animate.name);
-                //     if (index >= 0)
-                //         animates.splice(index, 1)
-                // }
+                onComplete: () => {
+                    console.log("swipe complete")
+                }
             });
 
             const candySprite = gameScene.candies?.get(candy.id);

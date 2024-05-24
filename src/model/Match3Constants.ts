@@ -48,13 +48,15 @@ export const SCENE_NAME = {
     BATTLE_SCENE: "battle_scene",
     BATTLE_SEARCH: "battle_search",
     GAME_SCENES: "game_scenes",
-    GAME_CONSOLES: "game_consoles"
+    BATTLE_CONSOLE: "battle_console",
+    GAME_CONSOLE_SCENES: "game_console_scenes"
 }
 export const SCENE_ID = {
     GAME_SCENE: 1,
     GAME_CONSOLE_SCENE: 2,
     BATTLE_SCENE: 3,
-    BATTLE_GROUND_SCENE: 4
+    BATTLE_GROUND_SCENE: 4,
+    BATTLE_CONSOLE_SCENE: 5,
 }
 export const SCENE_TYPE = {
     PIXI_APPLICATION: 0,

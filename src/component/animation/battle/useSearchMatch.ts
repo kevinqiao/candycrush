@@ -25,9 +25,10 @@ export const useSearchMatch = () => {
 
     const playMatching = useCallback((eles: Map<string, HTMLDivElement>, playerAvatars: Map<string, HTMLDivElement>, timeline: any) => {
         const containerEle = eles.get("container");
+        const goalEle = eles.get("goal");
         const vsEle = eles.get("vs");
 
-        if (!containerEle || !vsEle) {
+        if (!containerEle || !goalEle) {
             console.log("match scene element is null")
             return;
         }
@@ -46,8 +47,9 @@ export const useSearchMatch = () => {
         //close search, open success match
         ml.add(tl);
         tl.to(containerEle, { autoAlpha: 1, duration: 0 })
-        tl.fromTo(vsEle, { scaleX: 0, scaleY: 0 }, { scaleX: 1.4, scaleY: 1.4, duration: 0.6 }, ">");
-        if (playerAvatars.size === 2) {
+
+        if (playerAvatars.size === 2 && vsEle) {
+            tl.fromTo(vsEle, { scaleX: 0, scaleY: 0 }, { scaleX: 1.4, scaleY: 1.4, duration: 0.6 }, ">");
             // tl.to(foundEle, { autoAlpha: 1, duration: 0.1 }, "<");
             tl.to(vsEle, { autoAlpha: 1, duration: 0.8 }, "<");
             const ol = gsap.timeline();
@@ -68,6 +70,7 @@ export const useSearchMatch = () => {
                 pl.to(playerAvatarEle, { duration: 1.2, autoAlpha: 1, x: -width * 0.25 }, "<");
             }
         }
+        tl.to(goalEle, { autoAlpha: 1, duration: 0.8 }, "<");
         // const sl = gsap.timeline();
         // ml.add(sl, ">");
         // sl.to(
