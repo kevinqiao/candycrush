@@ -14,7 +14,9 @@ const LeaderBoardHome: React.FC<PageProps> = (pageProp) => {
         backgroundColor: "white",
       }}
       onClick={() => console.log(pageProp)}
-    ></div>
+    >
+      
+    </div>
   );
 };
 

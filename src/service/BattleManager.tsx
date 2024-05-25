@@ -60,9 +60,9 @@ export const BattleProvider = ({ battle, children }: { battle: BattleModel | nul
     setCurrentSkill,
     setOverReport,
     timeout: useCallback(() => {
-      // console.log(event);
       if (overReport === 0) setOverReport(1);
-    }, [battle]),
+      else if (overReport === 2) setOverReport(3);
+    }, [battle, overReport]),
     completeGame: useCallback(
       (gameId: string, result: any) => {
         // if (!battle || !battle.games) return;

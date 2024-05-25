@@ -28,6 +28,7 @@ export interface PageConfig {
         direction: number;
         width: number;
         height: number;
+        maxWidth?: number;
     }
 }
 export default interface PageProps {

@@ -36,7 +36,7 @@ const StackPop: React.FC<PopupProps> = ({ zIndex, index }) => {
       const pattern: PagePattern = {
         vw: width as number,
         vh: height as number,
-        width: w,
+        width: position.maxWidth && position.maxWidth < w ? position.maxWidth : w,
         height: h,
         direction: position.direction,
       };

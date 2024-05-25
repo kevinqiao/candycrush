@@ -22,10 +22,17 @@ const BattleReport: React.FC = () => {
   const maskDivRef = useRef<HTMLDivElement | null>(null);
   const reportDivRef = useRef<HTMLDivElement | null>(null);
   const { battle, overReport } = useBattleManager();
+  const [leaderboard, setLeaderboard] = useState<{
+    type: number;
+    score: number;
+    points?: number;
+    rank: number;
+    uid: string;
+  } | null>(null);
   const [report, setReport] = useState<{
     id: string;
     games?: GameReport[];
-    leaderboard: { type: number; score: number; points?: number; rank: number };
+    leaderboards: { type: number; score: number; points?: number; rank: number; uid: string }[];
     toCollect?: number;
   } | null>(null);
   const { load } = useSceneManager();
@@ -41,7 +48,6 @@ const BattleReport: React.FC = () => {
         uid,
         token,
       });
-      console.log(battleReport);
       if (battleReport.items)
         battleReport.items.sort((a: any, b: any) => {
           if (typeof a.score === "undefined" && typeof b.score !== "undefined") return 1;
@@ -49,6 +55,10 @@ const BattleReport: React.FC = () => {
           if (a.score === b.score) return 0;
           return a.score > b.score ? -1 : 1;
         });
+      if (battleReport.leaderboards) {
+        const myboard = battleReport.leaderboards.find((l: any) => l.uid === user.uid);
+        if (myboard) setLeaderboard(myboard);
+      }
       setReport(battleReport);
     }
   }, [battle, user]);
@@ -65,9 +75,23 @@ const BattleReport: React.FC = () => {
     );
     tl.play();
   }, [battle]);
+  const closeReport = useCallback(() => {
+    const tl = gsap.timeline({
+      onComplete: () => {
+        tl.kill();
+        exit();
+      },
+    });
+    tl.to(maskDivRef.current, { autoAlpha: 0, duration: 0.3 }).to(
+      reportDivRef.current,
+      { scale: 0, autoAlpha: 1, duration: 0.3 },
+      "<"
+    );
+    tl.play();
+  }, [battle]);
 
   useEffect(() => {
-    if (load !== BATTLE_LOAD.REPLAY && overReport === 2) {
+    if (load !== BATTLE_LOAD.REPLAY && overReport >= 2) {
       openReport();
       findReport();
     }
@@ -78,7 +102,7 @@ const BattleReport: React.FC = () => {
   }, [battle]);
   const claim = () => {
     console.log("claim reward");
-    exit();
+    closeReport();
   };
   return (
     <>
@@ -88,26 +112,30 @@ const BattleReport: React.FC = () => {
         <div className="report_body">
           <div className="report_content">
             <div style={{ height: "15%" }}></div>
-            {report?.games ? (
-              <div className="items_container">
-                {report.games.map((r, index) => (
-                  <ReportItem key={r.gameId} gameReport={r} rank={index + 1} />
-                ))}
-              </div>
-            ) : null}
-            {report?.leaderboard && report.leaderboard.type === 1 && (
-              <div className="items_container">
-                <div>score:{report.leaderboard.score}</div>
-                <div>points:{report.leaderboard.points}</div>
-                <div>rank:{report.leaderboard.rank}</div>
-              </div>
-            )}
-            {report?.leaderboard && report.leaderboard.type === 2 && (
-              <div className="items_container">
-                <div style={{ color: "white" }}>Best Score:{report.leaderboard.score}</div>
-                <div style={{ color: "white" }}>Current Rank:{report.leaderboard.rank}</div>
-              </div>
-            )}
+            <div
+              style={{ display: "flex", flexDirection: "column", alignItems: "center", height: "70%", width: "100%" }}
+            >
+              {report?.games ? (
+                <div className="items_container">
+                  {report.games.map((r, index) => (
+                    <ReportItem key={r.gameId} gameReport={r} rank={index + 1} />
+                  ))}
+                </div>
+              ) : null}
+              {leaderboard && leaderboard.type === 1 && (
+                <div className="score_container">
+                  <div style={{ color: "white" }}>score:{leaderboard.score}</div>
+                  <div style={{ color: "white" }}>points:{leaderboard.points}</div>
+                  <div style={{ color: "white" }}>rank:{leaderboard.rank}</div>
+                </div>
+              )}
+              {leaderboard && leaderboard.type === 2 && (
+                <div className="score_container">
+                  <div style={{ color: "white" }}>Best Score:{leaderboard.score}</div>
+                  <div style={{ color: "white" }}>Current Rank:{leaderboard.rank}</div>
+                </div>
+              )}
+            </div>
             {report?.toCollect ? (
               <div className="collect_btn" onClick={claim}>
                 <span>Collect</span>

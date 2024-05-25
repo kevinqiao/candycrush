@@ -61,6 +61,7 @@ export default defineSchema({
         term: v.optional(v.number()),//schedule tournament term
         // uid: r.uid, gameId: r._id, rank: index, score: r.score, assets: [] 
         rewards: v.optional(v.array(v.object({ uid: v.string(), gameId: v.string(), rank: v.number(), score: v.number(), points: v.optional(v.number()), assets: v.array(v.object({ asset: v.number(), amount: v.number() })) }))),
+        leaderboards: v.optional(v.array(v.object({ type: v.number(), uid: v.string(), score: v.number(), points: v.optional(v.number()), rank: v.number() }))),
         startTime: v.number(),
         dueTime: v.optional(v.number()),
         duration: v.number(),

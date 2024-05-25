@@ -111,10 +111,11 @@ export const PlayPlace =
             path: "./battle/BattleLeaderboard",
             uri: "./battle/leaderboard",
             position: {
-                closeControl: { btn: 0, confirm: 0, maskActive: 1 },
-                direction: 2,
-                width: 0.3,
-                height: 1,
+                closeControl: { btn: 0, confirm: 0, maskActive: 0 },
+                direction: 0,
+                width: 0.7,
+                height: 0.7,
+                maxWidth: 500,
             }
         }
 

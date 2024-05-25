@@ -45,6 +45,10 @@ const TournamentItem: React.FC<Props> = ({ tournament }: Props) => {
       }
     }
   }, [tournament, join]);
+  const openLeaderboard = useCallback(() => {
+    const app = getCurrentAppConfig();
+    openPage({ name: "leaderboard", ctx: app.context, data: { tournament } });
+  }, [tournament]);
   const render = useMemo(() => {
     return (
       <div ref={divRef} className="tournament-item roboto-bold" style={{ width: width > height ? "90%" : "100%" }}>
@@ -66,7 +70,7 @@ const TournamentItem: React.FC<Props> = ({ tournament }: Props) => {
             <span style={{ fontSize: Math.max(fontSize + 5, 14) }}>Tournament({tournament?.type})</span>
           </div>
           <div style={{ height: 20 }}></div>
-          <div style={{ marginLeft: 20, width: "10%", minWidth: 120 }}>
+          <div style={{ cursor: "pointer", marginLeft: 20, width: "10%", minWidth: 120 }} onClick={openLeaderboard}>
             <PlayersIcon players={5} />
           </div>
         </div>
