@@ -75,7 +75,7 @@ const SoloConsole: React.FC = () => {
     [battle, gameConsoleScene]
   );
   const moves = useMemo(() => {
-    if (battle?.games) {
+    if (battle && battle.games && battle.data?.steps) {
       const game = battle.games[0];
       return battle.data.steps - game.data.move;
     }
@@ -84,8 +84,10 @@ const SoloConsole: React.FC = () => {
   const score = useMemo(() => {
     if (battle?.games) {
       const game = battle.games[0];
-      const s = GameUtils.countBaseScore(game.data.matched);
-      return s;
+      if (game.data?.matched) {
+        const s = GameUtils.countBaseScore(game.data.matched);
+        return s;
+      }
     }
     return null;
   }, [battle]);

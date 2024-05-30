@@ -39,7 +39,7 @@ const BattleReport: React.FC = () => {
   const { exit } = usePageProp();
   const convex = useConvex();
   const { user } = useUserManager();
-
+  console.log(report);
   const findReport = useCallback(async () => {
     if (battle && user) {
       const { uid, token } = user;
@@ -48,8 +48,8 @@ const BattleReport: React.FC = () => {
         uid,
         token,
       });
-      if (battleReport.items)
-        battleReport.items.sort((a: any, b: any) => {
+      if (battleReport.games)
+        battleReport.games.sort((a: any, b: any) => {
           if (typeof a.score === "undefined" && typeof b.score !== "undefined") return 1;
           if (typeof a.score !== "undefined" && typeof b.score === "undefined") return -1;
           if (a.score === b.score) return 0;

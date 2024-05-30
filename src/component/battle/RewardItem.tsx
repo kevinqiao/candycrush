@@ -27,7 +27,7 @@ const RewardItem: React.FC<Props> = ({ claim, reward }) => {
     }
   };
   useEffect(() => {
-    if (event?.topic === reward.gameId) setCollected(1);
+    if (reward && event?.topic === reward.gameId) setCollected(1);
   }, [event]);
 
   useEffect(() => {

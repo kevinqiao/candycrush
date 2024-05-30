@@ -8,6 +8,7 @@ interface ITerminalContext {
   headH: number;
   LobbyMenuH: number;
   LobbyMenuW: number;
+  visible: boolean;
   direction: number; //0-horization 1-vertical
   changeConnect: (status: number) => void;
 }
@@ -20,6 +21,7 @@ const TerminalContext = createContext<ITerminalContext>({
   direction: 0,
   LobbyMenuH: 0,
   LobbyMenuW: 0,
+  visible: true,
   changeConnect: (status: number) => {
     return;
   },
@@ -27,6 +29,7 @@ const TerminalContext = createContext<ITerminalContext>({
 
 export const TerminalProvider = ({ children }: { children: ReactNode }) => {
   const terminalRef = useRef(-1);
+  const [visible, setVisible] = useState(true);
   const [connect, setConnect] = useState(1);
   const [dimension, setDimension] = useState<{
     headH: number;
@@ -43,7 +46,7 @@ export const TerminalProvider = ({ children }: { children: ReactNode }) => {
     LobbyMenuH: 0,
     LobbyMenuW: 0,
   });
-
+  console.log("visible:" + visible);
   const updateCoord = () => {
     const w = window.innerWidth as number;
     const h = window.innerHeight as number;
@@ -59,6 +62,7 @@ export const TerminalProvider = ({ children }: { children: ReactNode }) => {
       LobbyMenuW,
       headH,
       direction,
+      visible,
       isMobile,
     };
     setDimension(v);
@@ -86,7 +90,22 @@ export const TerminalProvider = ({ children }: { children: ReactNode }) => {
       // if (window.Telegram) window.Telegram.WebApp.close();
     };
   }, []);
+
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === "visible") {
+        setVisible(true);
+      } else {
+        setVisible(false);
+      }
+    };
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+    return () => {
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
+    };
+  }, []);
   const value = {
+    visible,
     ...dimension,
     terminal: terminalRef.current,
     connect,

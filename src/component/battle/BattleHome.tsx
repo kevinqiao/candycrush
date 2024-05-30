@@ -29,9 +29,12 @@ const BattleHome: React.FC = () => {
 
   useEffect(() => {
     const getList = async () => {
-      const history = await convex.query(api.battle.findMyBattles, { uid: user.uid, token: user.token });
-      history.sort((a: any, b: any) => b.time - a.time);
-      setBattles(history);
+      const history = await convex.mutation(api.battle.findMyBattles, { uid: user.uid, token: user.token });
+      if (history) {
+        history.sort((a: any, b: any) => b.time - a.time);
+        console.log(history);
+        setBattles(history);
+      }
     };
     if (!user || !convex || menuIndex !== 2) return;
     getList();

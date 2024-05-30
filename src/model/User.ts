@@ -14,7 +14,7 @@ export interface User {
     token: string;
     tenant?: number;
     name?: string;
-    battle?: any;
+    battleId?: any;
     insearch?: number;
     timelag: number;
     timestamp?: number;

@@ -1,4 +1,5 @@
 import { cronJobs } from "convex/server";
+import { internal } from "./_generated/api";
 
 const crons = cronJobs();
 
@@ -7,11 +8,11 @@ const crons = cronJobs();
 //     { seconds: 2 }, // every minute
 //     internal.matchqueue.settleMatch,
 // );
-// crons.interval(
-//     "settle battle",
-//     { seconds: 10 }, // every minute
-//     internal.battle.settleBattle,
-// );
+crons.interval(
+    "tournament settle",
+    { seconds: 30 }, // every minute
+    internal.tournaments.schedule,
+);
 
 //  
 export default crons

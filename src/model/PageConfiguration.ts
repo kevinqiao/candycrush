@@ -108,7 +108,7 @@ export const PlayPlace =
         },
         {
             name: "leaderboard",
-            path: "./battle/BattleLeaderboard",
+            path: "./leaderboard/LeaderBoardHome",
             uri: "./battle/leaderboard",
             position: {
                 closeControl: { btn: 0, confirm: 0, maskActive: 0 },

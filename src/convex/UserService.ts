@@ -14,7 +14,7 @@ export const authByToken = action({
                 if (game?.battleId && !game.status) {
                     const battle = await ctx.runQuery(internal.battle.findById, { battleId: game.battleId as Id<"battle"> })
                     if (battle && ((battle.duration + battle.startTime) > Date.now()))
-                        user['battle'] = battle
+                        user['battleId'] = battle._id
                 }
                 const matching = await ctx.runQuery(internal.matchqueue.finByUid, { uid: user.uid });
                 if (matching)

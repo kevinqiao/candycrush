@@ -50,7 +50,7 @@ const BattleItem: React.FC<Props> = ({ battleId, time, claim, reward, participan
   const collect = useCallback(() => {
     console.log("do collection");
   }, [battleId]);
-  
+
   const openLeaderboard = () => {
     openPage({ name: "leaderboard", ctx: "match3", data: { battleId, claim } });
   };
@@ -76,9 +76,7 @@ const BattleItem: React.FC<Props> = ({ battleId, time, claim, reward, participan
         <div style={{ height: 20 }}></div>
       </div>
       <div className="reward">
-        <div style={{ height: "100%" }}>
-          <RewardItem claim={claim ?? 0} reward={reward} />
-        </div>
+        <div style={{ height: "100%" }}>{reward ? <RewardItem claim={claim ?? 0} reward={reward} /> : null}</div>
       </div>
     </div>
   );

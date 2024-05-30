@@ -41,13 +41,13 @@ export const UserProvider = ({ children }: { children: React.ReactNode }) => {
   });
 
   const openPlay = useCallback(
-    (u: User, battle: any) => {
+    (u: User, battleId: string) => {
       const app: any = getCurrentAppConfig();
       const pageItem: PageItem = {
         name: "battlePlay",
         ctx: app.context,
-        data: battle ? { battleId: battle.id } : null,
-        params: battle ? { battleId: battle.id } : null,
+        data: battleId ? { battleId } : null,
+        params: battleId ? { battleId } : null,
       };
 
       if (u?.authEmbed) {
@@ -62,14 +62,15 @@ export const UserProvider = ({ children }: { children: React.ReactNode }) => {
 
   const authComplete = useCallback(
     (u: User) => {
+      console.log(u);
       u.timelag = u.timestamp ? u.timestamp - Date.now() : 0;
       localStorage.setItem("user", JSON.stringify({ uid: u.uid, token: u.token, authEmbed: u.authEmbed ?? 0 }));
       if (u["insearch"]) {
         // console.log("you are in searching opponent");
         openPlay(u, null);
-      } else if (u.battle) {
+      } else if (u.battleId) {
         const stack = stacks.find((s) => s.name === "battlePlay");
-        if (!stack) openPlay(u, u.battle);
+        if (!stack) openPlay(u, u.battleId);
       }
       if (u.timestamp) setLastTime(u.timestamp);
       setUser(u);

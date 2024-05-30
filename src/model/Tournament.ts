@@ -2,7 +2,7 @@ export interface Tournament {
     id: string;
     creator?: string;//uid
     context?: string;
-    type?: number;//0-one battle score  is final 1-PVP N battle for  points rank  2-solo battle for best score rank
+    type: number;//0-one battle score  is final 1-PVP N battle for  points rank  2-solo battle for best score rank
     participants: number;
     battle: { type: number; duration: number; sessions: number; players: number };//type:0-sync 1-async 2-sync or async
     openTime?: number;

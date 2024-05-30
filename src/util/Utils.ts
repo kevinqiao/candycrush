@@ -1,3 +1,4 @@
+import moment from 'moment-timezone';
 import * as PIXI from "pixi.js";
 import seedrandom from 'seedrandom';
 export const getNthRandom = (seed: string, n: number): number => {
@@ -41,4 +42,43 @@ export const loadSvgAsTexture = (url: string, callback: (texture: PIXI.Texture) 
         throw new Error('Failed to load image at ' + url);
     };
     image.src = url;
+}
+
+
+
+// 定义一个函数来获取指定时区的日期时间信息及星期的数字形式
+export const getNow = (timeZone: string): { day: number; hour: number; weekday: number, minute: number } => {
+    // 获取指定时区的当前时间
+    const now = moment().tz(timeZone);
+    const day: number = now.date();  // 日
+    const weekday: number = now.day();  // 星期几（数字形式，0 = Sunday, 6 = Saturday）
+    const hour: number = now.hours();  // 小时（数字，0至23）
+    const minute: number = now.minutes();  // 分钟（数字，0至59
+    return {
+        day, weekday, hour, minute
+    };
+}
+export const getMonthDate = (timeZone: string, day: number, hour: number, minute: number): Date => {
+    // 获取指定时区的当月的时间
+    const date = moment().tz(timeZone);
+   
+    // 设置日、小时和分钟
+    date.date(day);   // 设置日期（日）
+    date.hours(hour);  // 设置小时
+    date.minutes(minute);  // 设置分钟
+
+    return date.toDate();
+
+}
+export const getWeekDate = (timeZone: string, weekday: number, hour: number, minute: number): Date => {
+    // 获取指定时区的当月的时间
+    const date = moment().tz(timeZone);
+
+    date.startOf('week').add(weekday, 'days');  // 从本周开始，增加指定的天数（weekday）
+    date.hours(hour);  // 设置小时
+    date.minutes(minute);  // 设置分钟
+    date.seconds(0);  // 通常将秒数设置为0，以保持一致性
+    date.milliseconds(0);  // 同样，将毫秒设置为0
+    return date.toDate();
+
 }

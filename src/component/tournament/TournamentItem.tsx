@@ -6,16 +6,18 @@ import { usePageManager } from "service/PageManager";
 import useCoord from "service/TerminalManager";
 import useTournamentManager from "service/TournamentManager";
 import { getCurrentAppConfig } from "util/PageUtils";
+import CountDown from "./CountDown";
 import "./tournament.css";
 interface Props {
   tournament?: Tournament;
 }
-const TournamentItem: React.FC<Props> = ({ tournament }: Props) => {
+const TournamentItem: React.FC<Props> = ({ tournament }) => {
   const { width, height } = useCoord();
   const { join } = useTournamentManager();
   const divRef = useRef<HTMLDivElement | null>(null);
   const [fontSize, setFontSize] = useState(25);
   const { openPage } = usePageManager();
+  const [isOver, setOver] = useState<boolean>(false);
 
   const calculateFontSize = () => {
     if (divRef.current) {
@@ -31,10 +33,17 @@ const TournamentItem: React.FC<Props> = ({ tournament }: Props) => {
       window.removeEventListener("resize", calculateFontSize);
     };
   }, []);
+  useEffect(() => {
+    if (!tournament) return;
+    if (tournament.type === 1 || tournament.type === 2) {
+      if (tournament.closeTime && tournament.closeTime < 0) setOver(true);
+    }
+  }, [tournament]);
 
   const joinTournament = useCallback(async () => {
-    if (tournament) {
+    if (tournament && !isOver) {
       const rs = await join(tournament.id);
+      console.log(rs);
       if (rs && !rs.ok) {
         if (rs.code === 1) {
           console.log("you are in battle now");
@@ -44,47 +53,67 @@ const TournamentItem: React.FC<Props> = ({ tournament }: Props) => {
         }
       }
     }
-  }, [tournament, join]);
+  }, [tournament, join, isOver]);
   const openLeaderboard = useCallback(() => {
-    const app = getCurrentAppConfig();
-    openPage({ name: "leaderboard", ctx: app.context, data: { tournament } });
+    if (tournament?.type) {
+      const app = getCurrentAppConfig();
+      openPage({ name: "leaderboard", ctx: app.context, data: { tournament } });
+    }
   }, [tournament]);
+
   const render = useMemo(() => {
     return (
-      <div ref={divRef} className="tournament-item roboto-bold" style={{ width: width > height ? "90%" : "100%" }}>
-        <div style={{ width: "20%" }}>
-          <div className="tournament-trophy">
-            <div style={{ height: 20 }}></div>
-            <div style={{ textAlign: "center" }}>
-              <span style={{ fontSize: Math.max(fontSize + 5, 14), color: "yellow" }}>$40</span>
+      <>
+        {tournament ? (
+          <div ref={divRef} className="tournament-item roboto-bold" style={{ width: width > height ? "90%" : "100%" }}>
+            <div style={{ width: "20%" }}>
+              <div className="tournament-trophy">
+                <div style={{ height: 20 }}></div>
+                <div style={{ textAlign: "center" }}>
+                  <span style={{ fontSize: Math.max(fontSize + 5, 14), color: "yellow" }}>$40</span>
+                </div>
+                <div style={{ height: 10 }}></div>
+                <div style={{ height: "25px" }}>
+                  <span style={{ fontSize: Math.max(fontSize - 5, 10), color: "white" }}>PRIZE POOL</span>
+                </div>
+              </div>
             </div>
-            <div style={{ height: 10 }}></div>
-            <div style={{ height: "25px" }}>
-              <span style={{ fontSize: Math.max(fontSize - 5, 10), color: "white" }}>PRIZE POOL</span>
+            <div className="tournament-summary">
+              <div style={{ height: 10 }}></div>
+              <div style={{ marginLeft: 20, textAlign: "left" }}>
+                <span style={{ fontSize: Math.max(fontSize + 5, 14) }}>Tournament({tournament?.type})</span>
+              </div>
+              <div style={{ height: 20 }}></div>
+              <div
+                style={{ cursor: tournament.type ? "pointer" : "default", marginLeft: 20, width: "10%", minWidth: 120 }}
+                onClick={openLeaderboard}
+              >
+                <PlayersIcon players={tournament?.participants} />
+              </div>
+              <div style={{ display: "flex", justifyContent: "center", width: "100%" }}>
+                {tournament.type > 0 && !isOver ? (
+                  <CountDown closeTime={tournament.closeTime} onOver={() => setOver(true)}></CountDown>
+                ) : null}
+                {(tournament.type === 1 || tournament.type === 2) && isOver ? <div>Closed</div> : null}
+              </div>
+            </div>
+            <div className="tournament-entryfee">
+              <DollarIcon amount={40} />
+              {tournament ? (
+                <div
+                  className="play-tournament"
+                  style={{ cursor: isOver ? "default" : "pointer", backgroundColor: isOver ? "grey" : "#5590f5" }}
+                  onClick={joinTournament}
+                >
+                  <span style={{ fontSize: Math.max(fontSize - 5, 12), color: isOver ? "white" : "yellow" }}>PLAY</span>
+                </div>
+              ) : null}
             </div>
           </div>
-        </div>
-        <div className="tournament-summary">
-          <div style={{ height: 10 }}></div>
-          <div style={{ marginLeft: 20, textAlign: "left" }}>
-            <span style={{ fontSize: Math.max(fontSize + 5, 14) }}>Tournament({tournament?.type})</span>
-          </div>
-          <div style={{ height: 20 }}></div>
-          <div style={{ cursor: "pointer", marginLeft: 20, width: "10%", minWidth: 120 }} onClick={openLeaderboard}>
-            <PlayersIcon players={5} />
-          </div>
-        </div>
-        <div className="tournament-entryfee">
-          <DollarIcon amount={40} />
-          {tournament ? (
-            <div className="play-tournament" onClick={joinTournament}>
-              <span style={{ fontSize: Math.max(fontSize - 5, 12), color: "yellow" }}>PLAY</span>
-            </div>
-          ) : null}
-        </div>
-      </div>
+        ) : null}
+      </>
     );
-  }, [fontSize]);
+  }, [fontSize, tournament, isOver]);
   return <>{render}</>;
 };
 

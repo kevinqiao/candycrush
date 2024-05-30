@@ -30,9 +30,9 @@ export default defineSchema({
         result: v.optional(v.object({ base: v.number(), time: v.number(), goal: v.number() })),//{base:number;time:number;goal:number}
         score: v.optional(v.number()),//final score used by index
         status: v.optional(v.number()),//0-open 1-settled 2-rewarded
-        type: v.number(),//
+        type: v.number(),//0-one time battle tournament 1-leaderboard with pvp 2-leaderboard with best score;
         data: v.object({ cells: v.array(v.any()), matched: v.optional(v.array(v.any())), skillBuff: v.array(v.object({ skill: v.number(), progress: v.number() })), move: v.optional(v.number()), lastCellId: v.number(), goalCompleteTime: v.optional(v.number()) })
-    }).index("by_type", ["type"]).index("by_status", ["status"]),
+    }).index("by_seed", ["seed"]).index("by_user_type", ["uid", "type"]).index("by_score", ["score"]),
     events: defineTable({
         name: v.string(),
         battleId: v.optional(v.string()),
@@ -43,10 +43,7 @@ export default defineSchema({
         actionId: v.optional(v.number()),
         data: v.any(),
     }).index("by_game", ["gameId"]).index("by_uid", ["uid"]).index("by_battle", ["battleId"]),
-    // rounds: defineTable({
-    //     gameId: v.string(),
-    //     cells: v.any(),
-    // }),
+
     diffcult: defineTable({
         id: v.string(),
         level: v.number(),
@@ -60,7 +57,7 @@ export default defineSchema({
         tournamentId: v.string(),
         term: v.optional(v.number()),//schedule tournament term
         // uid: r.uid, gameId: r._id, rank: index, score: r.score, assets: [] 
-        rewards: v.optional(v.array(v.object({ uid: v.string(), gameId: v.string(), rank: v.number(), score: v.number(), points: v.optional(v.number()), assets: v.array(v.object({ asset: v.number(), amount: v.number() })) }))),
+        rewards: v.optional(v.array(v.object({ uid: v.string(), gameId: v.string(), rank: v.number(), score: v.number(), collected: v.optional(v.number()), assets: v.array(v.object({ asset: v.number(), amount: v.number() })) }))),
         leaderboards: v.optional(v.array(v.object({ type: v.number(), uid: v.string(), score: v.number(), points: v.optional(v.number()), rank: v.number() }))),
         startTime: v.number(),
         dueTime: v.optional(v.number()),
@@ -73,14 +70,16 @@ export default defineSchema({
         id: v.string(),
         context: v.optional(v.string()),
         creator: v.optional(v.string()),
-        type: v.optional(v.number()),//0-one battle for all  1-scoring rank by pvp point 2-scoring rank by  best score
+        type: v.number(),//0-one battle for all  1-scoring rank by pvp point 2-scoring rank by  best score
         participants: v.number(),
-        battle: v.object({ type: v.number(), duration: v.number(), sessions: v.number(), players: v.number() }),
+        settled: v.optional(v.number()),
+        currentTerm: v.optional(v.number()),
+        battle: v.object({ type: v.number(), duration: v.number(), sessions: v.number(), players: v.number(), reward: v.optional(v.object({ win: v.number(), draw: v.number(), fail: v.number() })) }),
         openTime: v.optional(v.number()),
         closeTime: v.optional(v.number()),
-        scheduler: v.optional(v.object({ day: v.number(), weekday: v.number(), hour: v.number(), minute: v.number() })),
+        scheduler: v.optional(v.object({ timeZone: v.string(), slots: v.array(v.object({ day: v.number(), weekday: v.number(), hour: v.number(), minute: v.number(), duration: v.number() })) })),
         entry: v.optional(v.object({ level: v.number(), cost: v.array(v.object({ asset: v.number(), amount: v.number() })) })),
-        rewards: v.array(v.object({ rank: v.number(), points: v.optional(v.number()), assets: v.array(v.object({ asset: v.number(), amount: v.number() })) })),
+        rewards: v.array(v.object({ rank: v.number(), assets: v.array(v.object({ asset: v.number(), amount: v.number() })) })),
     }),
     asset: defineTable({
         type: v.number(),
@@ -127,9 +126,13 @@ export default defineSchema({
     }),
     leaderboard: defineTable({
         tournamentId: v.string(),
+        term: v.optional(v.number()),
         uid: v.string(),
         score: v.number(),
+        rank: v.optional(v.number()),
         lastUpdate: v.number(),
-    }).index("by_tournament", ["tournamentId"]).index("by_score", ["score"]).index("by_lastupdate", ["lastUpdate"]),
+        reward: v.optional(v.array(v.object({ asset: v.number(), amount: v.number() }))),
+        collected: v.optional(v.number())
+    }).index("by_user", ['uid']).index("by_tournament_term_score", ["tournamentId", "term", "score"]).index("by_tournament_term_uid", ["tournamentId", "term", "uid"]),
 
 });

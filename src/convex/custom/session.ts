@@ -1,8 +1,8 @@
-import { customAction, customQuery } from "convex-helpers/server/customFunctions";
+import { customAction, customMutation, customQuery } from "convex-helpers/server/customFunctions";
 import { v } from "convex/values";
 import { internal } from "../_generated/api";
 import { Id } from "../_generated/dataModel";
-import { action, query } from "../_generated/server";
+import { action, mutation, query } from "../_generated/server";
 
 export const sessionAction = customAction(action, {
     // Argument validation for sessionMutation: two named args here.
@@ -34,5 +34,12 @@ export const sessionQuery = customQuery(
 
     }
 );
-
-
+export const sessionMutation = customMutation(mutation,
+    {
+        args: { uid: v.string(), token: v.string() },
+        input: async (ctx, { uid, token }) => {
+            const u = await ctx.db.get(uid as Id<"user">);
+            const user = u && u._id === uid && u.token == token ? { ...u, uid: u._id, _id: undefined, _creationTime: undefined } : null;
+            return { ctx: { ...ctx, user }, args: {} };
+        }
+    })

@@ -63,7 +63,7 @@ export const settleMatch = internalMutation({
         const gameData: { seed: string; data: { cells: CellItem[]; lastCellId: number } } | null = createGame(diffcult.data);
 
         if (!gameData) return;
-        const game: any = { diffcult: diffcult.id, battleId, tid: tournament.id, data: { cells: gameData?.data.cells, lastCellId: gameData.data.lastCellId }, seed, type: 0, laststep: 0, uid: m.uid, startTime, dueTime: battle['dueTime'], ref: "####" };
+        const game: any = { diffcult: diffcult.id, battleId, tid: tournament.id, data: { cells: gameData?.data.cells, lastCellId: gameData.data.lastCellId }, seed, type: tournament.type, laststep: 0, uid: m.uid, startTime, dueTime: battle['dueTime'], ref: "####" };
         game.data['skillBuff'] = [{ skill: 1, progress: 85 }, { skill: 2, progress: 98 }, { skill: 3, progress: 100 }]
         game.data['move'] = 0
 

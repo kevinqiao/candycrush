@@ -14,12 +14,8 @@ export interface GameModel {
     score?: number;
     lastStep: number;
     seed?: string;
-    // cells: CellItem[];
-    // lastCellId?: number;
-    // matched?: { asset: number, quantity: number }[];
-    // goal: number;
     startTime: number;
-    status: number;
+    status: number;//0-open 1-settled 2-rewarded
     type: number;
     data: any;
 }

@@ -74,7 +74,6 @@ const PlayHome: React.FC<PageProps> = (pageProp) => {
 
   useEffect(() => {
     if (userEvent?.name === "battleCreated") {
-      console.log(userEvent);
       setBattleId(userEvent.data.id);
       setLoad(BATTLE_LOAD.PLAY);
     }

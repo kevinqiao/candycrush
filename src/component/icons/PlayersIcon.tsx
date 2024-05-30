@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from "react";
 interface IconProps {
   //   color: string; // Define the type of the color prop
-  players: string | number;
+  players: number | undefined;
 }
 const PlayersIcon: React.FC<IconProps> = ({ players }) => {
   const divRef = useRef<HTMLDivElement | null>(null);
@@ -59,7 +59,7 @@ const PlayersIcon: React.FC<IconProps> = ({ players }) => {
       </svg>
       <div style={{ width: "60%", overflow: "hidden", whiteSpace: "nowrap" }}>
         <span className="roboto-regular" style={{ fontSize }}>
-          {players + " players"}
+          {players && players > 0 ? players + " players" : "unlimit"}
         </span>
       </div>
     </div>

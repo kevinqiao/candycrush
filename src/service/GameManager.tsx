@@ -86,7 +86,6 @@ export const GameProvider = ({ gameId, children }: { gameId: string; children: R
     (eventList: any[]) => {
       let count = 0;
       if (!gameRef.current) return;
-      console.log(eventList);
       for (const event of eventList) {
         if (event.name === GAME_EVENT.GOAL_COMPLETE) {
           console.log(event);
@@ -94,7 +93,7 @@ export const GameProvider = ({ gameId, children }: { gameId: string; children: R
           const result = event.data.result;
           gameRef.current.result = result;
           setGameEvent(event);
-          setOverReport(1);
+          if (gameRef.current.uid === user.uid) setOverReport(1);
           // completeGame(gameId, result);
         } else if (gameRef.current.uid !== user.uid) {
           lastEventRef.current = event;
