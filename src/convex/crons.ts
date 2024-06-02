@@ -9,10 +9,16 @@ const crons = cronJobs();
 //     internal.matchqueue.settleMatch,
 // );
 crons.interval(
+    "battle settle",
+    { seconds: 30 }, // every minute
+    internal.battle.schedule,
+);
+crons.interval(
     "tournament settle",
     { seconds: 30 }, // every minute
     internal.tournaments.schedule,
 );
+
 
 //  
 export default crons

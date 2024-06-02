@@ -1,3 +1,4 @@
+import { useSlideNavManager } from "component/SlideNavManager";
 import React, { useEffect, useState } from "react";
 import styled from "styled-components";
 import useCoord from "../../service/TerminalManager";
@@ -17,15 +18,16 @@ const Container = styled.div`
 const TournamentHome: React.FC = () => {
   const { width, height, headH, LobbyMenuH } = useCoord();
   const [tournaments, setTournaments] = useState<any[]>([]);
-
+  const { menuIndex } = useSlideNavManager();
   const { listActives } = useTournamentManager();
   useEffect(() => {
-    listActives().then((ts) => {
-      console.log(ts);
-      setTournaments(ts);
-      return;
-    });
-  }, [listActives]);
+    if (menuIndex === 0) {
+      console.log("list tournaments");
+      listActives().then((ts) => {
+        setTournaments(ts);
+      });
+    }
+  }, [listActives, menuIndex]);
 
   return (
     <Container height={`${height - headH}px`}>
@@ -33,9 +35,7 @@ const TournamentHome: React.FC = () => {
         {tournaments.map((t) => (
           <TournamentItem key={t.id} tournament={t} />
         ))}
-        {Array.from({ length: 25 }, (_, k) => k).map((p, index) => (
-          <TournamentItem key={p} />
-        ))}
+
         <div style={{ height: width < height ? LobbyMenuH : 0 }}></div>
       </div>
     </Container>

@@ -5,6 +5,7 @@ import React, { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import { usePageManager } from "service/PageManager";
 import useCoord from "service/TerminalManager";
 import useTournamentManager from "service/TournamentManager";
+import { useUserManager } from "service/UserManager";
 import { getCurrentAppConfig } from "util/PageUtils";
 import CountDown from "./CountDown";
 import "./tournament.css";
@@ -17,6 +18,7 @@ const TournamentItem: React.FC<Props> = ({ tournament }) => {
   const divRef = useRef<HTMLDivElement | null>(null);
   const [fontSize, setFontSize] = useState(25);
   const { openPage } = usePageManager();
+  const { user } = useUserManager();
   const [isOver, setOver] = useState<boolean>(false);
 
   const calculateFontSize = () => {
@@ -34,11 +36,13 @@ const TournamentItem: React.FC<Props> = ({ tournament }) => {
     };
   }, []);
   useEffect(() => {
-    if (!tournament) return;
-    if (tournament.type === 1 || tournament.type === 2) {
-      if (tournament.closeTime && tournament.closeTime < 0) setOver(true);
+    if (!tournament || !user) return;
+    if (tournament.closeTime && (tournament.type === 1 || tournament.type === 2)) {
+      const gap = tournament.closeTime - Date.now() - user.timelag;
+      console.log(gap);
+      setOver(gap < 0 ? true : false);
     }
-  }, [tournament]);
+  }, [tournament, user]);
 
   const joinTournament = useCallback(async () => {
     if (tournament && !isOver) {

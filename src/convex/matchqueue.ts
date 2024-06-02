@@ -53,7 +53,7 @@ export const settleMatch = internalMutation({
         battle['duration'] = 120000;
         battle['dueTime'] = startTime + battle['duration'];
 
-        const battleId = await ctx.db.insert("battle", { ...battle, status: 0 });
+        const battleId = await ctx.db.insert("battle", { ...battle, status: 0, type: tournament.type });
         const seed = Utils.getRandomSeed(10);
 
         const m = allToMatch[0];

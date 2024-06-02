@@ -5,7 +5,7 @@ import styled from "styled-components";
 import { api } from "../../convex/_generated/api";
 import useCoord from "../../service/TerminalManager";
 import { useUserManager } from "../../service/UserManager";
-import BattleItem from "./BattleItem";
+import RecordItem from "./RecordItem";
 import "./battle.css";
 const Container = styled.div`
   display: flex;
@@ -19,7 +19,7 @@ const Container = styled.div`
   overflow-x: hidden;
 `;
 
-const BattleHome: React.FC = () => {
+const RecordListHome: React.FC = () => {
   const battleRef = useRef<HTMLDivElement | null>(null);
   const { width, height, headH, LobbyMenuH } = useCoord();
   const { user } = useUserManager();
@@ -50,7 +50,7 @@ const BattleHome: React.FC = () => {
             height: "100%",
           }}
         >
-          {battles && battles.map((t: any, index: number) => <BattleItem key={t.battleId} {...t} />)}
+          {battles && battles.map((t: any, index: number) => <RecordItem key={t.battleId} {...t} />)}
           <div style={{ height: width < height ? LobbyMenuH : 0 }}></div>
         </div>
       </Container>
@@ -58,4 +58,4 @@ const BattleHome: React.FC = () => {
   );
 };
 
-export default BattleHome;
+export default RecordListHome;

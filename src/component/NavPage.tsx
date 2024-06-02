@@ -28,7 +28,6 @@ const NavPage: React.FC = () => {
   }, [currentPage]);
   const render = useMemo(() => {
     if (pageProp?.config.path) {
-      console.log(pageProp);
       const SelectedComponent: FunctionComponent<PageProps> = lazy(() => import(`${pageProp.config.path}`));
       return (
         <Suspense

@@ -52,7 +52,7 @@ export default defineSchema({
     }).index("by_level", ["level"]).index("by_hard", ["hard"]).index("by_did", ["id"]),
 
     battle: defineTable({
-        type: v.optional(v.number()),
+        type: v.number(),//0-one battle for all  1-scoring rank by pvp point 2-scoring rank by  best score
         participants: v.number(),
         tournamentId: v.string(),
         term: v.optional(v.number()),//schedule tournament term
@@ -64,7 +64,7 @@ export default defineSchema({
         duration: v.number(),
         status: v.number(),//0-going 1-settled 2-cancelled
         diffcult: v.string(),
-    }),
+    }).index("by_type_status_duetime", ["type", "status", "dueTime"]),
 
     tournament: defineTable({
         id: v.string(),
@@ -80,7 +80,8 @@ export default defineSchema({
         scheduler: v.optional(v.object({ timeZone: v.string(), slots: v.array(v.object({ day: v.number(), weekday: v.number(), hour: v.number(), minute: v.number(), duration: v.number() })) })),
         entry: v.optional(v.object({ level: v.number(), cost: v.array(v.object({ asset: v.number(), amount: v.number() })) })),
         rewards: v.array(v.object({ rank: v.number(), assets: v.array(v.object({ asset: v.number(), amount: v.number() })) })),
-    }),
+        status: v.number()
+    }).index("by_status", ["status"]),
     asset: defineTable({
         type: v.number(),
         uid: v.string(),

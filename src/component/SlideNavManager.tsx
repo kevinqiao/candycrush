@@ -30,6 +30,7 @@ const NavContext = createContext<INavContext>({
 
 export const SlideNavProvider = ({ pageProp, children }: { pageProp: PageProps; children: React.ReactNode }) => {
   const { width, height } = useCoord();
+
   const startXRef = useRef<number>(0);
   const menusRef = useRef<Map<number, SVGPolygonElement>>(new Map());
   const menuIndexRef = useRef<number>(2);
@@ -125,8 +126,14 @@ export const SlideNavProvider = ({ pageProp, children }: { pageProp: PageProps; 
     };
   }, [pageProp]);
   useEffect(() => {
-    if (components.length > 0) initContainer();
-  }, [components, width, height]);
+    if (components.length > 0 && pageProp) {
+      const con = components.find((c) => c.name === pageProp.child);
+      const menu = con ? con.index : 0;
+      menuIndexRef.current = menu;
+      setMenuIndex(menu);
+      initContainer();
+    }
+  }, [pageProp, components, width, height]);
 
   const initContainer = () => {
     const index = menuIndexRef.current;

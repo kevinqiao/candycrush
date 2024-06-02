@@ -72,7 +72,7 @@ export const PlayPlace =
             children: [
                 { name: "tournamentHome", path: "./tournament/TournamentHome", uri: "tournament/home" },
                 { name: "skillControl", path: "./play/skill/SkillPanel", uri: "skill/panel" },
-                { name: "battleHome", path: "./battle/BattleHome", uri: "battle/home" },
+                { name: "battleHome", path: "./battle/RecordListHome", uri: "battle/home" },
                 { name: "accountHome", path: "./signin/AccountHome", uri: "signin/home" },
                 { name: "avatarList", path: "", uri: "" },
             ]

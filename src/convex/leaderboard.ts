@@ -51,7 +51,7 @@ export const findByTournament = sessionQuery({
   handler: async (ctx, { tournamentId, term }) => {
     console.log("tournamentId:" + tournamentId + " term:" + term)
     // const tournament = await ctx.db.get(tournamentId as Id<"tournament">)
-    const tournament = await ctx.db.query("tournament").filter((q) => q.eq(q.field("id"), tournamentId)).first();
+    const tournament = await ctx.db.query("tournament").filter((q) => q.eq(q.field("id"), tournamentId)).unique();
     if (!ctx.user || !tournament) return;
     const result: any = { leaders: [], rank: -1 };
     const uid = ctx.user.uid;
@@ -62,7 +62,6 @@ export const findByTournament = sessionQuery({
         .query("leaderboard").withIndex("by_tournament_term_score", (q) => q.eq("tournamentId", tournament.id).eq("term", term ?? tournament.currentTerm).gte("score", boardItem.score)).order("desc").collect();
       result['rank'] = ranks.length;
     }
-
     const leaders = await ctx.db
       .query("leaderboard").withIndex("by_tournament_term_score", (q) => q.eq("tournamentId", tournament.id).eq("term", term ?? tournament.currentTerm)).order("desc").take(20);
     let rank = 0;

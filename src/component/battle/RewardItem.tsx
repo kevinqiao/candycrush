@@ -1,21 +1,16 @@
-import { useConvex } from "convex/react";
-import { APP_EVENT } from "model/Constants";
-import React, { useCallback, useEffect, useRef, useState } from "react";
-import useEventSubscriber from "service/EventManager";
-import { useUserManager } from "service/UserManager";
-import { api } from "../../convex/_generated/api";
+import React, { useEffect, useRef, useState } from "react";
 interface Props {
-  claim: number;
-  reward: { gameId: string; assets: { asset: number; amount: number } };
+  prize: {
+    battleId: string;
+    collected: number; //0-to collect 1-collected
+    assets: { asset: number; amount: number }[] | null;
+  } | null;
 }
-const RewardItem: React.FC<Props> = ({ claim, reward }) => {
+const RewardItem: React.FC<Props> = ({ prize }) => {
   const divRef = useRef<HTMLDivElement | null>(null);
   const [fontSize, setFontSize] = useState(20);
-  const [collected, setCollected] = useState(claim);
   const [dimensions, setDimensions] = useState<{ width: number; height: number } | null>(null);
-  const convex = useConvex();
-  const { user } = useUserManager();
-  const { event } = useEventSubscriber([APP_EVENT.REWARD_CLAIM], [reward.gameId]);
+
   const calculateFontSize = () => {
     if (divRef.current) {
       const divWidth = divRef.current.offsetWidth;
@@ -26,9 +21,6 @@ const RewardItem: React.FC<Props> = ({ claim, reward }) => {
       setDimensions({ width: divHeight * 0.6, height: divHeight * 0.6 });
     }
   };
-  useEffect(() => {
-    if (reward && event?.topic === reward.gameId) setCollected(1);
-  }, [event]);
 
   useEffect(() => {
     calculateFontSize();
@@ -37,14 +29,7 @@ const RewardItem: React.FC<Props> = ({ claim, reward }) => {
       window.removeEventListener("resize", calculateFontSize);
     };
   }, [divRef.current]);
-  const collectReward = useCallback(async () => {
-    const res = await convex.action(api.battle.claim, {
-      uid: user.uid,
-      token: user.token,
-      gameId: reward.gameId,
-    });
-    if (res.ok) setCollected(1);
-  }, [convex]);
+
   return (
     <div
       ref={divRef}
@@ -197,32 +182,18 @@ const RewardItem: React.FC<Props> = ({ claim, reward }) => {
                 </g>
               </g>
             </svg>
-            <text x="45" y="30" textAnchor="end" fill="white" style={{ fontSize: "12px" }}>
-              40
-            </text>
+            {prize?.assets &&
+              prize.assets.map((a) => (
+                <text key={a.asset} x="45" y="30" textAnchor="end" fill="white" style={{ fontSize: "12px" }}>
+                  40
+                </text>
+              ))}
             <text x="50" y="50" textAnchor="end" fill="white" style={{ fontSize: "10px" }}>
               You won
             </text>
           </svg>
 
           <div style={{ height: 10 }}></div>
-          {!collected ? (
-            <div
-              style={{
-                cursor: "pointer",
-                display: "flex",
-                justifyContent: "center",
-                alignItems: "center",
-                width: dimensions.width,
-                height: "20%",
-                backgroundColor: "blue",
-                borderRadius: 4,
-              }}
-              onClick={collectReward}
-            >
-              <span style={{ fontSize, color: "white" }}>Collect</span>
-            </div>
-          ) : null}
         </>
       )}
     </div>

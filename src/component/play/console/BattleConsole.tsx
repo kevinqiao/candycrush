@@ -107,7 +107,7 @@ const BattleConsole: React.FC = () => {
                 <TimeCount />
               </div>
               <div id="dual-console" style={{ display: "flex", justifyContent: "center", width: "80%", maxWidth: 500 }}>
-                {playerGame ? (
+                {playerGame && battle?.data ? (
                   <div
                     id="player_console"
                     style={{
@@ -121,7 +121,7 @@ const BattleConsole: React.FC = () => {
                     <div style={{ fontSize: 15, color: "white" }}>
                       Move:
                       <span ref={(el) => loadMove(playerGame.gameId, el)}>
-                        {(battle?.data.steps ?? 0) - (playerGame.data.move ?? 0)}
+                        {(battle.data.steps ?? 0) - (playerGame.data.move ?? 0)}
                       </span>
                     </div>
                   </div>

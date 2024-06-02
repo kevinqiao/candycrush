@@ -12,7 +12,7 @@ const SoloConsole: React.FC = () => {
   const [goals, setGoals] = useState<{ asset: number; quantity: number }[]>([]);
   const { scenes } = useSceneManager();
   useEffect(() => {
-    if (battle?.data.goal && battle.games) {
+    if (battle && battle.data?.goal && battle.games) {
       const game = battle.games[0];
       const battleGoal = GAME_GOAL.find((g) => g.id === battle.data.goal);
       if (battleGoal) {

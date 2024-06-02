@@ -6,16 +6,14 @@ import LobbyContent from "./LobbyContent";
 import LobbyMenu from "./LobbyMenu";
 const LobbyHome: React.FC<PageProps> = (prop) => {
   const { width, height, headH } = useCoord();
+  console.log(prop);
   const render = useMemo(() => {
     return (
       <>
         <div style={{ position: "relative", display: "flex", height: height }}>
           <SlideNavProvider pageProp={prop}>
             <LobbyMenu />
-            {/* <div style={{ width: "100%", height: height - 60, backgroundColor: "green" }}></div>
-          {/* <div style={{ width: 90, height: 800, backgroundColor: "blue" }}></div> */}
             <LobbyContent />
-            {/* <div style={{ width: "100%", height: "100%", backgroundColor: "red" }}></div> */}
           </SlideNavProvider>
         </div>
       </>

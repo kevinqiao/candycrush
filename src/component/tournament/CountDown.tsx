@@ -9,6 +9,7 @@ const CountDown: React.FC<Props> = ({ closeTime, onOver }) => {
   const { user } = useUserManager();
   const [visible, setVisible] = useState(true);
   const [counter, setCounter] = useState<string | null>(null);
+
   useEffect(() => {
     const handleVisibilityChange = () => {
       if (document.visibilityState === "visible") {
@@ -34,7 +35,7 @@ const CountDown: React.FC<Props> = ({ closeTime, onOver }) => {
     if (!closeTime || !visible || !user) return;
 
     const timer = setInterval(() => {
-      const time = closeTime - Date.now() + user.timelag;
+      const time = closeTime - Date.now() - user.timelag;
       if (time < 0) {
         onOver();
         clearInterval(timer);
