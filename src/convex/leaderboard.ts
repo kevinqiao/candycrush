@@ -53,7 +53,7 @@ export const findByTournament = sessionQuery({
     // const tournament = await ctx.db.get(tournamentId as Id<"tournament">)
     const tournament = await ctx.db.query("tournament").filter((q) => q.eq(q.field("id"), tournamentId)).unique();
     if (!ctx.user || !tournament) return;
-    const result: any = { leaders: [], rank: -1 };
+    const result: any = { leadboards: [], rank: -1 };
     const uid = ctx.user.uid;
     const boardItem = await ctx.db
       .query("leaderboard").withIndex("by_tournament_term_uid", (q) => q.eq("tournamentId", tournament.id).eq("term", term ?? tournament.currentTerm).eq("uid", uid)).unique();
@@ -61,14 +61,16 @@ export const findByTournament = sessionQuery({
       const ranks = await ctx.db
         .query("leaderboard").withIndex("by_tournament_term_score", (q) => q.eq("tournamentId", tournament.id).eq("term", term ?? tournament.currentTerm).gte("score", boardItem.score)).order("desc").collect();
       result['rank'] = ranks.length;
+      result['reward'] = boardItem.reward;
+      result['collected'] = boardItem['collected']
     }
-    const leaders = await ctx.db
+    const leadboards = await ctx.db
       .query("leaderboard").withIndex("by_tournament_term_score", (q) => q.eq("tournamentId", tournament.id).eq("term", term ?? tournament.currentTerm)).order("desc").take(20);
     let rank = 0;
-    for (const leader of leaders) {
-      const player = await ctx.db.get(leader.uid as Id<"user">);
+    for (const leadboard of leadboards) {
+      const player = await ctx.db.get(leadboard.uid as Id<"user">);
       if (player) {
-        result['leaders'].push({ player: { name: player.name, uid: leader.uid, avatar: player.avatar }, rank: ++rank, score: leader.score })
+        result['leadboards'].push({ player: { name: player.name, uid: leadboard.uid, avatar: player.avatar }, rank: ++rank, score: leadboard.score })
       }
     }
     return result

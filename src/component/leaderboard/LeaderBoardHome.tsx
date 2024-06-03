@@ -24,6 +24,7 @@ const LeaderBoardHome: React.FC<PageProps> = (pageProp) => {
           uid,
           token,
         });
+        console.log(report);
         setBattleReport(report);
       }
     };
@@ -36,6 +37,7 @@ const LeaderBoardHome: React.FC<PageProps> = (pageProp) => {
           token,
           term,
         });
+        console.log(board);
         setLeaderboard(board);
       }
     };
@@ -56,6 +58,16 @@ const LeaderBoardHome: React.FC<PageProps> = (pageProp) => {
     }
     return null;
   }, [user, leaderboard, battleReport]);
+  const myreward = useMemo(() => {
+    if (!user) return null;
+    if (leaderboard) {
+      console.log(leaderboard);
+      return { collected: leaderboard.collected, assets: leaderboard.reward };
+    } else if (battleReport?.games) {
+      const game = battleReport.games.find((g: any) => g.uid === user.uid);
+      return { collected: game.collected, assets: game.assets };
+    }
+  }, [user, leaderboard, battleReport]);
 
   return (
     <div
@@ -72,7 +84,9 @@ const LeaderBoardHome: React.FC<PageProps> = (pageProp) => {
           display: "flex",
           justifyContent: "center",
           alignItems: "center",
-          height: 90,
+          height: "20%",
+          maxHeight: 120,
+          minHeight: 60,
           width: "100%",
           color: "blue",
         }}
@@ -85,7 +99,7 @@ const LeaderBoardHome: React.FC<PageProps> = (pageProp) => {
           justifyContent: "center",
           alignItems: "center",
           width: "100%",
-          height: "70%",
+          height: "60%",
         }}
       >
         <div
@@ -99,7 +113,7 @@ const LeaderBoardHome: React.FC<PageProps> = (pageProp) => {
             color: "blue",
           }}
         >
-          {leaderboard?.leaders.map((leader: any, index: number) => (
+          {leaderboard?.leadboards.map((leader: any, index: number) => (
             <div
               key={leader.player.uid}
               style={{ display: "flex", justifyContent: "space-between", width: "100%", height: 50 }}
@@ -187,6 +201,35 @@ const LeaderBoardHome: React.FC<PageProps> = (pageProp) => {
         <span>My Rank:</span>
         <span>{myrank}</span>
       </div>
+      {!myreward?.collected ? (
+        <div
+          style={{
+            display: "flex",
+            justifyContent: "center",
+            alignItems: "center",
+            height: 40,
+            width: "100%",
+            fontSize: 15,
+          }}
+        >
+          <div
+            style={{
+              cursor: "pointer",
+              display: "flex",
+              justifyContent: "center",
+              alignItems: "center",
+              width: "60%",
+              height: "100%",
+              maxWidth: 300,
+              borderRadius: 4,
+              backgroundColor: "blue",
+              color: "white",
+            }}
+          >
+            Claim
+          </div>
+        </div>
+      ) : null}
     </div>
   );
 };

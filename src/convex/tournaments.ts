@@ -17,7 +17,9 @@ export const findAll = sessionQuery({
   args: {},
   handler: async (ctx) => {
     const tournaments = await ctx.db.query("tournament").filter((q) => q.eq(q.field("status"), 0)).collect();
+    // const tlist = tournaments.filter((t) => t.type === 0 || (t.type > 0 && t.openTime && t.openTime > 0)).map((t) => ({ ...t, _id: undefined }));
     const tlist = tournaments.map((t) => ({ ...t, _id: undefined }));
+
     return tlist
   },
 });
@@ -66,7 +68,7 @@ export const schedule = internalMutation({
         await ctx.db.patch(tournament._id, { closeTime: -1, openTime: -1, settled: 1 })
       }
       //check if launch new tournament
-      if (tournament.scheduler && tournament.closeTime === -1 && tournament.closeTime === -1) {
+      if (tournament.scheduler && tournament.closeTime === -1 && tournament.openTime === -1) {
         const scheduler = tournament.scheduler;
         const timeZone = scheduler.timeZone;
         const now = Date.now();
