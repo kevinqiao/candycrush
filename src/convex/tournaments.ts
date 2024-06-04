@@ -12,7 +12,14 @@ export const findById = internalQuery({
   },
 });
 
-
+export const findByType = internalQuery({
+  args: { type: v.number() },
+  handler: async (ctx, { type }) => {
+    // Grab the most recent messages.
+    const tournaments = await ctx.db.query("tournament").filter((q) => q.gt(q.field("type"), type)).collect();
+    return tournaments
+  },
+});
 export const findAll = sessionQuery({
   args: {},
   handler: async (ctx) => {
@@ -29,9 +36,12 @@ export const claim = sessionMutation({
   handler: async (ctx, { battleId, leaderboardId }): Promise<any> => {
     if (ctx.user) {
       const { uid } = ctx.user;
+      const hasAssets = await ctx.db.query("asset").withIndex("by_user", (q) => q.eq("uid", uid)).collect();
+      let rewardAssets;
       if (leaderboardId) {
         const leaderboard = await ctx.db.get(leaderboardId as Id<"leaderboard">);
-        if (leaderboard?.uid === uid && !leaderboard.collected) {
+        if (leaderboard?.uid === uid && !leaderboard.collected && leaderboard.reward) {
+          rewardAssets = leaderboard.reward;
           leaderboard.collected = 1;
           await ctx.db.patch(leaderboardId as Id<"leaderboard">, { collected: 1 })
         }
@@ -40,9 +50,20 @@ export const claim = sessionMutation({
         if (battle?.rewards) {
           const reward = battle.rewards.find((r) => r.uid === uid);
           if (reward && !reward.collected) {
+            rewardAssets = reward.assets;
             reward.collected = 1;
             await ctx.db.patch(battleId as Id<"battle">, { rewards: battle.rewards })
           }
+        }
+      }
+      console.log(rewardAssets)
+      if (rewardAssets) {
+        for (const asset of rewardAssets) {
+          const hasAsset = hasAssets.find((a) => a.asset === asset.asset);
+          if (hasAsset) {
+            await ctx.db.patch(hasAsset._id, { amount: hasAsset.amount + asset.amount })
+          } else
+            await ctx.db.insert("asset", { asset: asset.asset, amount: asset.amount, uid })
         }
       }
       return { ok: true }

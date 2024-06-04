@@ -83,11 +83,11 @@ export default defineSchema({
         status: v.number()
     }).index("by_status", ["status"]),
     asset: defineTable({
-        type: v.number(),
+        asset: v.number(),
         uid: v.string(),
         amount: v.number(),
         lastUpdate: v.optional(v.number())
-    }),
+    }).index("by_user", ['uid']).index("by_user_asset", ['uid', 'asset']),
     cuser: defineTable({
         cid: v.string(),
         cuid: v.string(),

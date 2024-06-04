@@ -83,6 +83,18 @@ export const findUserGame = internalQuery({
     return games;
   },
 });
+
+export const findUserGames = internalQuery({
+  args: { uid: v.string(), type: v.number(), status: v.optional(v.number()), to: v.optional(v.number()) },
+  handler: async (ctx, { uid, type, to, status }) => {
+    let games;
+    if (!to)
+      games = await ctx.db.query("games").withIndex("by_user_type", (q) => q.eq("uid", uid).eq("type", type)).filter((q) => q.eq(q.field("status"), status ?? 0)).order("desc").take(20);
+    else
+      games = await ctx.db.query("games").withIndex("by_user_type", (q) => q.eq("uid", uid).eq("type", type)).filter((q) => q.and(q.eq(q.field("status"), status ?? 0), q.lt(q.field("_creationTime"), to))).order("desc").take(20);
+    return games;
+  },
+});
 export const findBattleGames = internalQuery({
   args: { battleId: v.string() },
   handler: async (ctx, { battleId }) => {
@@ -116,104 +128,9 @@ export const update = internalMutation({
     await ctx.db.patch(gameId, { ...data });
   },
 });
-// export const log = internalMutation({
-//   args: { gameId: v.string(), cells: v.any() },
-//   handler: async (ctx, args) => {
-//     await ctx.db.insert("rounds", { cells: args.cells, gameId: args.gameId });
-//   },
-// });
-export const settle = internalMutation({
-  args: { gameId: v.id("games") },
-  handler: async (ctx, { gameId }) => {
-    const game = await ctx.db.get(gameId);
-    if (game) {
-      const df = await ctx.db.query("diffcult")
-        .filter((q) => q.eq(q.field("id"), game?.diffcult)).unique()
-    }
-  },
-});
-// export const settleGame = internalMutation({
-//   args: { battleId: v.id("battle"), uid: v.string(), gameId: v.string(), score: v.number() },
-//   handler: async (ctx, { battleId, gameId, uid, score }) => {
-//     const battle = await ctx.db.get(battleId);
-//     if (battle && battleId) {
-//       const battleObj = Object.assign({}, battle, { id: battleId, _id: undefined })
-//       battle.report.push({ uid, gameId, score });
-//       if (battle.participants === battle.report.length) {
-//         // const tournament = await ctx.db.get(battle.tournamentId as Id<"tournament">);
-//         const tournament = await ctx.db.query("tournament").filter((q) => q.eq(q.field("id"), battle.tournamentId)).order("asc").first();
-//         if (tournament) {
-//           const rewards = countRewards(tournament, battleObj);
-//           for (const r of rewards) {
-//             if (r.assets) {
-//               for (const a of r.assets) {
-//                 const asset = await ctx.db.query("asset")
-//                   .filter((q) => q.and(q.eq(q.field("type"), a.asset), q.eq(q.field("uid"), r.uid))).first();
-//                 if (asset) {
-//                   asset.amount = asset.amount + a.amount;
-//                   await ctx.db.patch(asset._id, { amount: asset.amount });
-//                 } else {
-//                   await ctx.db.insert("asset", { uid, type: a.asset, amount: a.amount, lastUpdate: Date.now() });
-//                 }
-//               }
-//             }
-//             if (r.points) {
-//               const boardItem = await ctx.db.query("leaderboard")
-//                 .filter((q) => q.and(q.eq(q.field("tournamentId"), tournament.id), q.eq(q.field("term"), tournament.currentTerm), q.eq(q.field("uid"), r.uid))).first();
-//               if (boardItem) {
-//                 await ctx.db.patch(boardItem._id, { points: boardItem.points + r.points });
-//               } else {
-//                 const term = tournament.currentTerm ?? 0;
-//                 await ctx.db.insert("leaderboard", { uid: r.uid, tournamentId: tournament.id, term, points: r.points, lastUpdate: Date.now() })
-//               }
-//             }
-//           }
-//           battle.rewards = rewards
-//           battle.status = 1;
-//         }
-
-//       }
-//       await ctx.db.patch(battle._id, { status: battle.status, report: battle.report, rewards: battle.rewards })
-//     }
-//     return battle;
-//   }
-// });
 
 
-// export const autoStep = internalMutation({
-//   handler: async (ctx) => {
-//     const bgames = await ctx.db
-//       .query("bgames")
-//       .filter((q) => q.eq(q.field("status"), 0)).order("desc").collect();
 
-//     for (let bgame of bgames) {
-//       const steptime = Date.now() - bgame.starttime;
-//       if (steptime >= 600000) {
-//         ctx.db.patch(bgame._id, { status: 1 })
-//       } else {
-
-//         const from = bgame.laststep;
-//         const events = await ctx.db
-//           .query("events").withIndex("by_game", (q) => q.eq("gameId", bgame.ref))
-//           .filter((q) => q.and(q.gt(q.field("steptime"), from), q.lte(q.field("steptime"), steptime))).order("asc")
-//           .collect();
-//         if (events.length > 0) {
-//           const game = await ctx.db.get(bgame.gameId as Id<"games">)
-//           if (game) {
-//             let laststep = from;
-//             for (let event of events) {
-//               laststep = event.steptime ?? laststep;
-//               gameEngine.handleEvent(event.name, event.data, game);
-//             }
-//             ctx.db.patch(game._id, { laststep, cells: game.cells, matched: game.matched })
-//             ctx.db.patch(bgame._id, { laststep })
-//           }
-//         }
-//       }
-//     }
-
-//   },
-// });
 export const agent = internalMutation({
   handler: async (ctx) => {
     const games = await ctx.db

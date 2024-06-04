@@ -60,13 +60,13 @@ const LeaderBoardHome: React.FC<PageProps> = (pageProp) => {
   }, [user, leaderboard, battleReport]);
   const myreward = useMemo(() => {
     if (!user) return null;
-    if (leaderboard) {
-      console.log(leaderboard);
+    if (leaderboard && leaderboard.reward) {
       return { collected: leaderboard.collected, assets: leaderboard.reward };
     } else if (battleReport?.games) {
       const game = battleReport.games.find((g: any) => g.uid === user.uid);
-      return { collected: game.collected, assets: game.assets };
+      if (game && game.assets) return { collected: game.collected, assets: game.assets };
     }
+    return null;
   }, [user, leaderboard, battleReport]);
 
   return (
@@ -77,7 +77,6 @@ const LeaderBoardHome: React.FC<PageProps> = (pageProp) => {
         borderRadius: 18,
         backgroundColor: "white",
       }}
-      onClick={() => console.log(pageProp)}
     >
       <div
         style={{
@@ -201,7 +200,7 @@ const LeaderBoardHome: React.FC<PageProps> = (pageProp) => {
         <span>My Rank:</span>
         <span>{myrank}</span>
       </div>
-      {!myreward?.collected ? (
+      {myreward && !myreward.collected ? (
         <div
           style={{
             display: "flex",

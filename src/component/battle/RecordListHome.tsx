@@ -29,7 +29,7 @@ const RecordListHome: React.FC = () => {
 
   useEffect(() => {
     const getList = async () => {
-      const history = await convex.mutation(api.battle.findMyBattles, { uid: user.uid, token: user.token });
+      const history = await convex.action(api.battle.findMyBattles, { uid: user.uid, token: user.token });
       if (history) {
         history.sort((a: any, b: any) => b.time - a.time);
         console.log(history);

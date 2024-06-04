@@ -53,7 +53,7 @@ const RecordItem: React.FC<Props> = ({ battleId, time, leaderboard, reward, part
   const { user } = useUserManager();
   const { event } = useEventSubscriber([APP_EVENT.REWARD_CLAIM], [battleId]);
   const { openPage } = usePageManager();
-  const [collected, setCollected] = useState(0);
+  const [collected, setCollected] = useState(-1);
   const convex = useConvex();
   const openLeaderboard = () => {
     if (leaderboard)
@@ -71,8 +71,8 @@ const RecordItem: React.FC<Props> = ({ battleId, time, leaderboard, reward, part
     }
   };
   useEffect(() => {
-    if (leaderboard) setCollected(leaderboard.collected);
-    else if (reward) setCollected(reward.collected);
+    if (leaderboard) setCollected(leaderboard.collected ?? 0);
+    else if (reward) setCollected(reward.collected ?? 0);
   }, [leaderboard, reward]);
 
   const collect = useCallback(async () => {
@@ -130,7 +130,7 @@ const RecordItem: React.FC<Props> = ({ battleId, time, leaderboard, reward, part
         <div style={{ height: "100%" }}>
           <RewardItem prize={prize} />
         </div>
-        {!collected ? (
+        {collected === 0 ? (
           <div
             style={{
               cursor: "pointer",

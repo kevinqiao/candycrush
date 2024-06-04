@@ -21,23 +21,39 @@ export const find = internalQuery({
     return await ctx.db.get(id)
   },
 });
-
-// export const find = internalQuery({
-//   args: { uid: v.string(), tournamentId: v.string() },
-//   handler: async (ctx, args) => {
-//     let board = null;
-//     const boardItem = await ctx.db.query("leaderboard")
-//       .filter((q) => q.and(q.eq(q.field("uid"), args.uid), q.eq(q.field("tournamentId"), args.tournamentId)))
-//       .first();
-//     if (boardItem) {
-//       const ranks = await ctx.db.query("leaderboard")
-//         .filter((q) => q.and(q.gte(q.field("score"), boardItem.score), q.eq(q.field("tournamentId"), args.tournamentId))).collect();
-//       const rank: number = ranks.length;
-//       board = Object.assign({}, boardItem, { _id: undefined, _creationTime: undefined, id: boardItem['_id'], rank })
-//     }
-//     return board
-//   },
-// });
+export const findRankByScore = internalQuery({
+  args: { score: v.number(), tournamentId: v.string(), term: v.number() },
+  handler: async (ctx, { score, tournamentId, term }) => {
+    const ranks = await ctx.db
+      .query("leaderboard").withIndex("by_tournament_term_score", (q) => q.eq("tournamentId", tournamentId).eq("term", term).gte("score", score)).order("desc").collect();
+    return ranks.length;
+  },
+});
+export const findUserRank = internalQuery({
+  args: { uid: v.string(), tournamentId: v.string(), term: v.number() },
+  handler: async (ctx, { uid, tournamentId, term }) => {
+    const leaderboard = await ctx.db.query("leaderboard").withIndex("by_tournament_term_uid", (q) => q.eq("tournamentId", tournamentId).eq("term", term).gte("uid", uid)).unique();
+    if (leaderboard) {
+      const ranks = await ctx.db
+        .query("leaderboard").withIndex("by_tournament_term_score", (q) => q.eq("tournamentId", tournamentId).eq("term", term).gte("score", leaderboard.score)).order("desc").collect();
+      return ranks.length;
+    }
+    return null;
+  },
+});
+export const findByUser = internalQuery({
+  args: { uid: v.string(), from: v.optional(v.number()), to: v.optional(v.number()), size: v.number() },
+  handler: async (ctx, { uid, from, to, size }) => {
+    let leaderboards: any[] = [];
+    const end = to ?? Date.now();
+    if (from) {
+      leaderboards = await ctx.db.query("leaderboard").withIndex("by_user", (q) => q.eq("uid", uid)).filter((q) => q.and(q.gte(q.field("_creationTime"), from), q.lte(q.field("_creationTime"), end))).order("desc").collect();
+    } else {
+      leaderboards = await ctx.db.query("leaderboard").withIndex("by_user", (q) => q.eq("uid", uid)).filter((q) => q.lte(q.field("_creationTime"), end)).order("desc").take(size);
+    }
+    return leaderboards
+  },
+});
 
 export const update = internalMutation({
   args: { boardId: v.id("leaderboard"), score: v.number() },
