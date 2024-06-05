@@ -1,5 +1,5 @@
 import { cronJobs } from "convex/server";
-import { internal } from "./_generated/api";
+import { api, internal } from "./_generated/api";
 
 const crons = cronJobs();
 
@@ -11,7 +11,7 @@ const crons = cronJobs();
 crons.interval(
     "battle settle",
     { seconds: 30 }, // every minute
-    internal.battle.schedule,
+    api.battle.schedule,
 );
 crons.interval(
     "tournament settle",

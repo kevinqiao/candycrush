@@ -121,7 +121,7 @@ const BattleConsole: React.FC = () => {
                     <div style={{ fontSize: 15, color: "white" }}>
                       Move:
                       <span ref={(el) => loadMove(playerGame.gameId, el)}>
-                        {(battle.data.steps ?? 0) - (playerGame.data.move ?? 0)}
+                        {battle.data ? (battle.data.steps ?? 0) - (playerGame.data.move ?? 0) : null}
                       </span>
                     </div>
                   </div>
@@ -147,7 +147,7 @@ const BattleConsole: React.FC = () => {
                     >
                       Move:
                       <span ref={(el) => loadMove(opponentGame.gameId, el)}>
-                        {(battle?.data.steps ?? 0) - (opponentGame.data.move ?? 0)}
+                        {battle.data ? (battle?.data.steps ?? 0) - (opponentGame.data.move ?? 0) : null}
                       </span>
                     </div>
                   </div>

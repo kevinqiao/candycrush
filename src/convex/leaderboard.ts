@@ -3,17 +3,6 @@ import { Id } from "./_generated/dataModel";
 import { internalMutation, internalQuery } from "./_generated/server";
 import { sessionQuery } from "./custom/session";
 
-// export const findRanks = internalQuery({
-//   args: { tournamentId: v.string(), numbers: v.number(), startTime: v.number() },
-//   handler: async (ctx, { tournamentId, numbers }) => {
-//     const ranks = await ctx.db.query("leaderboard")
-//       .filter((q) => q.eq(q.field("tournamentId"), tournamentId)).withIndex("by_score").order("desc")
-//       .take(numbers);
-//     if (ranks)
-//       return ranks.map((r) => Object.assign({}, r, { _id: undefined, _creationTime: undefined }))
-//     return null;
-//   },
-// });
 
 export const find = internalQuery({
   args: { id: v.id("leaderboard") },
@@ -44,12 +33,14 @@ export const findUserRank = internalQuery({
 export const findByUser = internalQuery({
   args: { uid: v.string(), from: v.optional(v.number()), to: v.optional(v.number()), size: v.number() },
   handler: async (ctx, { uid, from, to, size }) => {
+    console.log(from + ":" + to + ":" + size)
     let leaderboards: any[] = [];
     const end = to ?? Date.now();
     if (from) {
       leaderboards = await ctx.db.query("leaderboard").withIndex("by_user", (q) => q.eq("uid", uid)).filter((q) => q.and(q.gte(q.field("_creationTime"), from), q.lte(q.field("_creationTime"), end))).order("desc").collect();
     } else {
       leaderboards = await ctx.db.query("leaderboard").withIndex("by_user", (q) => q.eq("uid", uid)).filter((q) => q.lte(q.field("_creationTime"), end)).order("desc").take(size);
+      console.log("size:" + leaderboards.length)
     }
     return leaderboards
   },

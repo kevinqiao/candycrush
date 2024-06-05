@@ -32,7 +32,7 @@ export default defineSchema({
         status: v.optional(v.number()),//0-open 1-settled 2-rewarded
         type: v.number(),//0-one time battle tournament 1-leaderboard with pvp 2-leaderboard with best score;
         data: v.object({ cells: v.array(v.any()), matched: v.optional(v.array(v.any())), skillBuff: v.array(v.object({ skill: v.number(), progress: v.number() })), move: v.optional(v.number()), lastCellId: v.number(), goalCompleteTime: v.optional(v.number()) })
-    }).index("by_seed", ["seed"]).index("by_user_type", ["uid", "type"]).index("by_score", ["score"]),
+    }).index("by_seed", ["seed"]).index("by_user_type", ["uid", "type"]).index("by_score", ["score"]).index("by_battle", ['battleId']),
     events: defineTable({
         name: v.string(),
         battleId: v.optional(v.string()),

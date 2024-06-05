@@ -87,11 +87,13 @@ export const findUserGame = internalQuery({
 export const findUserGames = internalQuery({
   args: { uid: v.string(), type: v.number(), status: v.optional(v.number()), to: v.optional(v.number()) },
   handler: async (ctx, { uid, type, to, status }) => {
+    console.log(type + ":" + status)
     let games;
     if (!to)
       games = await ctx.db.query("games").withIndex("by_user_type", (q) => q.eq("uid", uid).eq("type", type)).filter((q) => q.eq(q.field("status"), status ?? 0)).order("desc").take(20);
     else
       games = await ctx.db.query("games").withIndex("by_user_type", (q) => q.eq("uid", uid).eq("type", type)).filter((q) => q.and(q.eq(q.field("status"), status ?? 0), q.lt(q.field("_creationTime"), to))).order("desc").take(20);
+    console.log(games.length)
     return games;
   },
 });
