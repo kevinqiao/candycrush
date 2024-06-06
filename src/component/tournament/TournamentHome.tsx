@@ -22,7 +22,6 @@ const TournamentHome: React.FC = () => {
   const { listActives } = useTournamentManager();
   useEffect(() => {
     if (menuIndex === 0) {
-      console.log("list tournaments");
       listActives().then((ts) => {
         setTournaments(ts);
       });

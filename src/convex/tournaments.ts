@@ -38,6 +38,8 @@ export const claim = sessionMutation({
       const { uid } = ctx.user;
       const hasAssets = await ctx.db.query("asset").withIndex("by_user", (q) => q.eq("uid", uid)).collect();
       let rewardAssets;
+      console.log("battleId:" + battleId + " leaderboardId:" + leaderboardId)
+
       if (leaderboardId) {
         const leaderboard = await ctx.db.get(leaderboardId as Id<"leaderboard">);
         if (leaderboard?.uid === uid && !leaderboard.collected && leaderboard.reward) {
@@ -49,14 +51,15 @@ export const claim = sessionMutation({
         const battle = await ctx.db.get(battleId as Id<"battle">);
         if (battle?.rewards) {
           const reward = battle.rewards.find((r) => r.uid === uid);
-          if (reward && !reward.collected) {
+          if (reward) {
             rewardAssets = reward.assets;
-            reward.collected = 1;
-            await ctx.db.patch(battleId as Id<"battle">, { rewards: battle.rewards })
+            if (!reward.collected) {
+              reward.collected = 1;
+              await ctx.db.patch(battleId as Id<"battle">, { rewards: battle.rewards })
+            }
           }
         }
       }
-      console.log(rewardAssets)
       if (rewardAssets) {
         for (const asset of rewardAssets) {
           const hasAsset = hasAssets.find((a) => a.asset === asset.asset);

@@ -39,9 +39,11 @@ export default interface PageProps {
     child?: string;
     anchor?: string;
     config: PageConfig;
+    dimension?: PagePattern;
     disableCloseBtn?: () => void;
     close?: (type: number) => void;
 }
+
 export interface PageItem {
     name: string;
     ctx?: string; //null|undefined-cover

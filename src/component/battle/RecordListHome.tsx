@@ -34,7 +34,7 @@ const RecordListHome: React.FC = () => {
         history.sort((a: any, b: any) => b.time - a.time);
         console.log(history);
         setBattles(history);
-      }
+      } else setBattles([]);
     };
     if (!user || !convex || menuIndex !== 2) return;
     getList();

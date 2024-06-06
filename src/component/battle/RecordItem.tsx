@@ -13,7 +13,7 @@ import useCoord from "service/TerminalManager";
 import { useUserManager } from "service/UserManager";
 import { api } from "../../convex/_generated/api";
 import "./battle.css";
-const TounamentTitle: React.FC = () => {
+const TounamentTitle: React.FC<{ tournamentId: string }> = ({ tournamentId }) => {
   const divRef = useRef<HTMLDivElement | null>(null);
   const [fontSize, setFontSize] = useState(20);
 
@@ -35,20 +35,32 @@ const TounamentTitle: React.FC = () => {
   return (
     <div ref={divRef} style={{ display: "flex", alignItems: "center", width: "100%", height: "100%" }}>
       <span className="roboto-black-italic" style={{ fontSize: Math.max(fontSize + 5, 20) }}>
-        Tournament
+        Tournament({tournamentId})
       </span>
     </div>
   );
 };
 interface Props {
+  tournamentId: string;
   battleId: string;
   leaderboard?: any;
   time: number;
   reward?: any;
   participants: number;
+  status: number;
+  type?: number;
 }
 
-const RecordItem: React.FC<Props> = ({ battleId, time, leaderboard, reward, participants }) => {
+const RecordItem: React.FC<Props> = ({
+  tournamentId,
+  battleId,
+  time,
+  leaderboard,
+  reward,
+  participants,
+  status,
+  type,
+}) => {
   const { width, height } = useCoord();
   const { user } = useUserManager();
   const { event } = useEventSubscriber([APP_EVENT.REWARD_CLAIM], [battleId]);
@@ -60,7 +72,7 @@ const RecordItem: React.FC<Props> = ({ battleId, time, leaderboard, reward, part
       openPage({
         name: "leaderboard",
         ctx: "match3",
-        data: { tournament: { id: leaderboard.tournamentId, term: leaderboard.term } },
+        data: { tournament: { id: leaderboard.tournamentId, term: leaderboard.term }, battleId },
       });
     else if (battleId) {
       openPage({
@@ -71,9 +83,15 @@ const RecordItem: React.FC<Props> = ({ battleId, time, leaderboard, reward, part
     }
   };
   useEffect(() => {
-    if (leaderboard) setCollected(leaderboard.collected ?? 0);
-    else if (reward) setCollected(reward.collected ?? 0);
+    console.log(leaderboard);
+    if (leaderboard && leaderboard.reward) setCollected(leaderboard.collected ? 1 : 0);
+    else if (reward) {
+      setCollected(reward.collected ? 1 : 0);
+    }
   }, [leaderboard, reward]);
+  useEffect(() => {
+    if (event && collected <= 0) setCollected(1);
+  }, [event]);
 
   const collect = useCallback(async () => {
     if (!user) return;
@@ -81,10 +99,11 @@ const RecordItem: React.FC<Props> = ({ battleId, time, leaderboard, reward, part
       const res = await convex.mutation(api.tournaments.claim, {
         uid: user.uid,
         token: user.token,
-        leaderboardId: leaderboard?.id,
+        leaderboardId: battleId,
       });
       if (res.ok) setCollected(1);
     } else if (battleId) {
+      console.log(battleId);
       const res = await convex.mutation(api.tournaments.claim, {
         uid: user.uid,
         token: user.token,
@@ -93,7 +112,7 @@ const RecordItem: React.FC<Props> = ({ battleId, time, leaderboard, reward, part
       if (res.ok) setCollected(1);
     }
   }, [convex, user, leaderboard, battleId]);
-  const prize = useMemo(() => {
+  const award = useMemo(() => {
     if (leaderboard?.reward) return { battleId, collected: leaderboard.collected, assets: leaderboard.reward };
     if (reward) return { battleId, collected: reward.collected, assets: reward.assets };
     return null;
@@ -111,7 +130,7 @@ const RecordItem: React.FC<Props> = ({ battleId, time, leaderboard, reward, part
       </div>
       <div style={{ width: "65%" }}>
         <div style={{ height: "30%", width: "100%" }}>
-          <TounamentTitle />
+          <TounamentTitle tournamentId={tournamentId} />
         </div>
         <div className="summary roboto-regular">
           <div style={{ width: "45%", maxWidth: 150, marginLeft: 5 }}>
@@ -127,27 +146,31 @@ const RecordItem: React.FC<Props> = ({ battleId, time, leaderboard, reward, part
         <div style={{ height: 20 }}></div>
       </div>
       <div className="reward">
-        <div style={{ height: "100%" }}>
-          <RewardItem prize={prize} />
-        </div>
-        {collected === 0 ? (
-          <div
-            style={{
-              cursor: "pointer",
-              display: "flex",
-              justifyContent: "center",
-              alignItems: "center",
-              width: "80%",
-              maxWidth: 100,
-              height: "20%",
-              backgroundColor: "blue",
-              borderRadius: 4,
-            }}
-            onClick={collect}
-          >
-            <span style={{ color: "white" }}>Collect</span>
-          </div>
-        ) : null}
+        {status > 0 ? (
+          <>
+            <RewardItem reward={award} />
+            {collected === 0 ? (
+              <div
+                style={{
+                  cursor: "pointer",
+                  display: "flex",
+                  justifyContent: "center",
+                  alignItems: "center",
+                  width: "80%",
+                  maxWidth: 100,
+                  height: "20%",
+                  backgroundColor: "blue",
+                  borderRadius: 4,
+                }}
+                onClick={collect}
+              >
+                <span style={{ color: "white" }}>Collect</span>
+              </div>
+            ) : null}
+          </>
+        ) : (
+          <div>In Progress</div>
+        )}
       </div>
     </div>
   );

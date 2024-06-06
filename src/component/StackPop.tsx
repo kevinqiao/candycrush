@@ -122,16 +122,15 @@ const StackPop: React.FC<PopupProps> = ({ zIndex, index }) => {
   }, [pageProp, exit]);
 
   const renderComponent = useMemo(() => {
-    if (!pageProp) return;
-
+    if (!pageProp || !pagePattern) return;
     const SelectedComponent: FunctionComponent<PageProps> = lazy(async () => import(`${pageProp.config.path}`));
-    const prop = Object.assign({}, pageProp, { disableCloseBtn, close });
+    const prop = Object.assign({}, pageProp, { disableCloseBtn, close, dimension: pagePattern });
     return (
       <Suspense fallback={<div>Loading</div>}>
         <SelectedComponent {...prop} />
       </Suspense>
     );
-  }, [pageProp]);
+  }, [pageProp, pagePattern]);
   return (
     <>
       {pageProp ? (

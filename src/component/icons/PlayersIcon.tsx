@@ -18,7 +18,6 @@ const PlayersIcon: React.FC<IconProps> = ({ players }) => {
   useEffect(() => {
     calculateFontSize();
     window.addEventListener("resize", calculateFontSize);
-
     return () => {
       window.removeEventListener("resize", calculateFontSize);
     };
