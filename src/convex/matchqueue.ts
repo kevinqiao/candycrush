@@ -3,7 +3,9 @@ import { CellItem } from "../model/CellItem";
 import { BATTLE_COUNT_DOWN_TIME } from "../model/Constants";
 import { createGame } from "../service/GameEngine";
 import * as Utils from "../util/Utils";
+import { internal } from "./_generated/api";
 import { internalMutation, internalQuery } from "./_generated/server";
+import { sessionAction } from "./custom/session";
 export const finByUid = internalQuery({
   args: {
     uid: v.string()
@@ -30,7 +32,8 @@ export const create = internalMutation({
 export const remove = internalMutation({
   args: { id: v.id("matchqueue") },
   handler: async (ctx, { id }) => {
-    await ctx.db.delete(id);
+    const mid = await ctx.db.delete(id);
+    return mid;
   },
 });
 
@@ -87,7 +90,21 @@ export const settleMatch = internalMutation({
     }
   },
 });
-
+export const exit = sessionAction({
+  args: {},
+  handler: async (ctx, args) => {
+    const { uid } = ctx.user
+    const qs = await ctx.runQuery(internal.matchqueue.finByUid, { uid });
+    if (qs) {
+      const tournament = await ctx.runQuery(internal.tournaments.findById, { id: qs.tournamentId });
+      if (tournament && tournament.entry) {
+        const mid = await ctx.runMutation(internal.matchqueue.remove, { id: qs._id });
+        await ctx.runMutation(internal.asset.chargeBack, { uid, cost: tournament.entry.cost })
+        return { ok: true }
+      }
+    }
+  }
+})
 const findOpponent = async (ctx: any) => {
   const users = await ctx.db.query("user").filter((q: any) => q.eq(q.field("tenant"), "####")).collect();
   if (users.length > 0) {

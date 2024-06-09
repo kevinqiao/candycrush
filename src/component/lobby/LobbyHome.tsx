@@ -6,7 +6,6 @@ import LobbyContent from "./LobbyContent";
 import LobbyMenu from "./LobbyMenu";
 const LobbyHome: React.FC<PageProps> = (prop) => {
   const { width, height, headH } = useCoord();
-  console.log(prop);
   const render = useMemo(() => {
     return (
       <>

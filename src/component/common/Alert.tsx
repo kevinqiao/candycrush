@@ -1,42 +1,50 @@
 import gsap from "gsap";
 import React, { useCallback, useEffect, useRef } from "react";
+import useEventSubscriber from "service/EventManager";
 
-const StackCloseConfirm: React.FC<{ onConfirm: () => void; onCancel: () => void }> = ({ onConfirm, onCancel }) => {
+const Alert: React.FC = () => {
+  const containerRef = useRef<HTMLDivElement>(null);
   const maskRef = useRef<HTMLDivElement>(null);
   const confirmRef = useRef<HTMLDivElement>(null);
+  const { event } = useEventSubscriber([], ["alert"]);
+
   useEffect(() => {
+    if (!event) {
+      cancel();
+    } else open();
+  }, [event]);
+
+  const open = useCallback(() => {
     const tl = gsap.timeline({
       onComplete: () => {
         tl.kill();
       },
     });
-    tl.to(maskRef.current, { autoAlpha: 0.6, duration: 0.7 }).to(
-      confirmRef.current,
-      { scale: 1, autoAlpha: 1, duration: 0.7 },
-      "<"
-    );
+    tl.to(containerRef.current, { autoAlpha: 1, duration: 0.1 })
+      .to(maskRef.current, { autoAlpha: 0.6, duration: 0.7 }, ">")
+      .to(confirmRef.current, { scale: 1, autoAlpha: 1, duration: 0.7 }, "<");
     tl.play();
   }, []);
+
   const cancel = useCallback(() => {
     const tl = gsap.timeline({
       onComplete: () => {
-        onCancel();
         tl.kill();
       },
     });
-    tl.to(maskRef.current, { autoAlpha: 0, duration: 0.1 }).to(
-      confirmRef.current,
-      { scale: 0, autoAlpha: 0, duration: 0.1 },
-      "<"
-    );
+    tl.to(maskRef.current, { autoAlpha: 0, duration: 0.4 })
+      .to(confirmRef.current, { scale: 0.4, autoAlpha: 0, duration: 0.4 }, "<")
+      .to(containerRef.current, { autoAlpha: 0, duration: 0.1 }, ">");
     tl.play();
-  }, [onCancel]);
+  }, []);
+
   return (
     <>
       <div
         ref={maskRef}
         style={{
           position: "absolute",
+          zIndex: 10000,
           margin: 0,
           border: 0,
           top: 0,
@@ -49,8 +57,10 @@ const StackCloseConfirm: React.FC<{ onConfirm: () => void; onCancel: () => void 
       ></div>
 
       <div
+        ref={containerRef}
         style={{
           position: "absolute",
+          zIndex: 10002,
           top: 0,
           left: 0,
           display: "flex",
@@ -58,17 +68,20 @@ const StackCloseConfirm: React.FC<{ onConfirm: () => void; onCancel: () => void 
           alignItems: "center",
           width: "100%",
           height: "100%",
+          opacity: 0,
         }}
+        onClick={cancel}
       >
         <div
           ref={confirmRef}
           style={{
             display: "flex",
-            justifyContent: "space-around",
+            flexDirection: "column",
+            justifyContent: "space-between",
             alignItems: "center",
             width: "70%",
             maxWidth: 300,
-            height: "50%",
+            height: "70%",
             maxHeight: 150,
             backgroundColor: "red",
           }}
@@ -78,15 +91,12 @@ const StackCloseConfirm: React.FC<{ onConfirm: () => void; onCancel: () => void 
               display: "flex",
               justifyContent: "center",
               alignItems: "center",
-              width: 100,
-              height: 40,
-              backgroundColor: "blue",
-              borderRadius: 4,
+              height: "60%",
+              width: "100%",
               color: "white",
             }}
-            onClick={onConfirm}
           >
-            <span>Confirm</span>
+            {event?.data}
           </div>
           <div
             style={{
@@ -96,12 +106,13 @@ const StackCloseConfirm: React.FC<{ onConfirm: () => void; onCancel: () => void 
               width: 100,
               height: 40,
               backgroundColor: "blue",
+              marginBottom: 5,
               borderRadius: 4,
               color: "white",
             }}
             onClick={cancel}
           >
-            <span>Cancel</span>
+            <span>Ok</span>
           </div>
         </div>
       </div>
@@ -109,4 +120,4 @@ const StackCloseConfirm: React.FC<{ onConfirm: () => void; onCancel: () => void 
   );
 };
 
-export default StackCloseConfirm;
+export default Alert;

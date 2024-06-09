@@ -1,9 +1,8 @@
 import { useSlideNavManager } from "component/SlideNavManager";
-import { useConvex } from "convex/react";
 import React, { useEffect, useState } from "react";
+import useEventSubscriber from "service/EventManager";
 import { useUserManager } from "service/UserManager";
 import styled from "styled-components";
-import { api } from "../../convex/_generated/api";
 import useCoord from "../../service/TerminalManager";
 const Container = styled.div`
   display: flex;
@@ -21,24 +20,22 @@ const AssetListHome: React.FC = () => {
   const { user } = useUserManager();
   const [assets, setAssets] = useState<{ asset: number; amount: number }[]>([]);
   const { menuIndex } = useSlideNavManager();
-  const convex = useConvex();
+  const { createEvent } = useEventSubscriber([], []);
   useEffect(() => {
-    const findAll = async () => {
-      const all = await convex.query(api.asset.findByUser, { uid: user.uid, token: user.token });
-      console.log(all);
-      if (all) setAssets(all);
-    };
-    if (menuIndex === 1 && user) {
-      findAll();
-    }
-  }, [menuIndex, user]);
-
+    setAssets(user.assets);
+  }, [menuIndex]);
   return (
     <Container height={`${height - headH}px`}>
       <div style={{ width: "100%", height: "100%" }}>
         <div style={{ height: width < height ? LobbyMenuH : 0 }}></div>
         {assets.map((asset) => (
-          <div key={asset.asset}>
+          <div
+            key={asset.asset}
+            style={{ cursor: "pointer", width: 400, height: 40, backgroundColor: "red", marginBottom: 20 }}
+            onClick={() =>
+              createEvent({ name: "assetClaimed", topic: "asset", data: { asset: asset.asset, amount: 40 }, delay: 0 })
+            }
+          >
             {asset.asset}:{asset.amount}
           </div>
         ))}

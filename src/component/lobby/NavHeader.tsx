@@ -1,5 +1,6 @@
+import ClaimAssetAnimate from "component/common/AssetCollectAnimate";
 import gsap from "gsap";
-import React, { useEffect, useRef } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import useCoord from "service/TerminalManager";
 import { useUserManager } from "service/UserManager";
 import styled from "styled-components";
@@ -116,10 +117,13 @@ const MenuIcon = styled.div`
 `;
 
 const NavHeader = () => {
-  const { user } = useUserManager();
+  const { user, userEvent } = useUserManager();
+  const [assets, setAssets] = useState<{ asset: number; amount: number }[]>([]);
   const { headH } = useCoord();
   const maskRef = useRef<HTMLDivElement | null>(null);
   const menuRef = useRef<HTMLDivElement | null>(null);
+  const diamondRef = useRef<HTMLDivElement | null>(null);
+  const coinRef = useRef<HTMLDivElement | null>(null);
 
   const openMenu = () => {
     const tl = gsap.timeline({
@@ -142,11 +146,40 @@ const NavHeader = () => {
     tl.play();
   };
   useEffect(() => {
+    if (userEvent && user) {
+      console.log(userEvent);
+      if (userEvent?.name === "assetUpdated") {
+        // const { asset, amount } = userEvent.data;
+        for (const item of userEvent.data) {
+          const { asset, amount } = item;
+          const as = user.assets.find((a: { asset: number; amount: number }) => a.asset === asset);
+          if (as) as.amount = amount;
+          else user.assets.push({ asset, amount });
+          setAssets([...user.assets]);
+        }
+      }
+    }
+  }, [user, userEvent]);
+  useEffect(() => {
     gsap.to(maskRef.current, { autoAlpha: 0, duration: 0 });
+    if (user) setAssets(user.assets);
   }, [user]);
+  const openAsset = (asset: number) => {
+    console.log("open asset:" + asset);
+  };
 
+  const diamond = useMemo(() => {
+    const asset = assets?.find((a) => a.asset === 1);
+    if (asset) return asset.amount;
+    return 0;
+  }, [assets]);
+  const coin = useMemo(() => {
+    const asset = user.assets.find((a) => a.asset === 2);
+    if (asset) return asset.amount;
+    return 0;
+  }, [user]);
   return (
-    <div>
+    <>
       {user?.uid ? (
         <>
           <div style={{ display: "flex", justifyContent: "center", width: "100%" }}>
@@ -155,14 +188,14 @@ const NavHeader = () => {
                 <Avatar></Avatar>
                 <div style={{ width: 20 }} />
                 <AssetContainer>
-                  <Asset>
+                  <Asset ref={diamondRef} onClick={() => openAsset(1)}>
                     <Diamond />
-                    <span style={{ color: "white", fontSize: 12 }}>40</span>
+                    <span style={{ color: "white", fontSize: 12 }}>{diamond}</span>
                   </Asset>
                   <div style={{ width: 40 }} />
-                  <Asset>
+                  <Asset ref={coinRef} onClick={() => openAsset(2)}>
                     <Coin />
-                    <span style={{ color: "white", fontSize: 12 }}>100</span>
+                    <span style={{ color: "white", fontSize: 12 }}>{coin}</span>
                   </Asset>
                 </AssetContainer>
               </div>
@@ -184,7 +217,8 @@ const NavHeader = () => {
           </MenuPanel>
         </>
       ) : null}
-    </div>
+      <ClaimAssetAnimate diamondDivRef={diamondRef} coinDivRef={coinRef} assets={assets} />
+    </>
   );
 };
 

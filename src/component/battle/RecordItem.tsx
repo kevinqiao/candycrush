@@ -61,6 +61,7 @@ const RecordItem: React.FC<Props> = ({
   status,
   type,
 }) => {
+  const { createEvent } = useEventSubscriber([], []);
   const { width, height } = useCoord();
   const { user } = useUserManager();
   const { event } = useEventSubscriber([APP_EVENT.REWARD_CLAIM], [battleId]);
@@ -83,7 +84,6 @@ const RecordItem: React.FC<Props> = ({
     }
   };
   useEffect(() => {
-    console.log(leaderboard);
     if (leaderboard && leaderboard.reward) setCollected(leaderboard.collected ? 1 : 0);
     else if (reward) {
       setCollected(reward.collected ? 1 : 0);
@@ -95,21 +95,16 @@ const RecordItem: React.FC<Props> = ({
 
   const collect = useCallback(async () => {
     if (!user) return;
-    if (leaderboard) {
-      const res = await convex.mutation(api.tournaments.claim, {
-        uid: user.uid,
-        token: user.token,
-        leaderboardId: battleId,
-      });
-      if (res.ok) setCollected(1);
-    } else if (battleId) {
-      console.log(battleId);
-      const res = await convex.mutation(api.tournaments.claim, {
-        uid: user.uid,
-        token: user.token,
-        battleId,
-      });
-      if (res.ok) setCollected(1);
+
+    const res = await convex.mutation(api.tournaments.claim, {
+      uid: user.uid,
+      token: user.token,
+      leaderboardId: leaderboard ? battleId : undefined,
+      battleId: leaderboard ? undefined : battleId,
+    });
+    if (res.ok) {
+      createEvent({ name: "assetCollected", topic: "asset", data: res.data, delay: 0 });
+      setCollected(1);
     }
   }, [convex, user, leaderboard, battleId]);
   const award = useMemo(() => {

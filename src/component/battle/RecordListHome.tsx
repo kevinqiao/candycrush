@@ -32,7 +32,6 @@ const RecordListHome: React.FC = () => {
       const history = await convex.action(api.battle.findMyBattles, { uid: user.uid, token: user.token });
       if (history) {
         history.sort((a: any, b: any) => b.time - a.time);
-        console.log(history);
         setBattles(history);
       } else setBattles([]);
     };

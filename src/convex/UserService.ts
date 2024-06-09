@@ -19,7 +19,9 @@ export const authByToken = action({
                 const matching = await ctx.runQuery(internal.matchqueue.finByUid, { uid: user.uid });
                 if (matching)
                     user['insearch'] = 1;
-                // await ctx.runMutation(internal.user.update, { id: user["_id"], data: {} })
+                const assets = await ctx.runQuery(internal.asset.findUserAssets, { uid });
+                if (assets)
+                    user['assets'] = assets
             }
             return { token: "123456", ...user, timestamp: Date.now() }
         } catch (err) {

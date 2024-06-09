@@ -26,14 +26,13 @@ const useEventSubscriber = (selectors: string[], topics?: string[]) => {
   const [event, setEvent] = useState<EventModel | null>(null);
   const { subject } = useContext(EventContext);
   useEffect(() => {
-    if (selectors && selectors.length > 0 && subject) {
+    if (subject) {
       const observable = subject.asObservable();
       const subscription = observable.subscribe((event: EventModel) => {
         if (
           (!topics || topics.length === 0 || !event.topic || topics?.includes(event.topic)) &&
-          selectors?.includes(event.name)
+          (selectors?.length === 0 || selectors.includes(event.name))
         ) {
-          console.log(event);
           setEvent(event);
         }
       });

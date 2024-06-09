@@ -66,6 +66,11 @@ export default defineSchema({
         diffcult: v.string(),
     }).index("by_type_status_duetime", ["type", "status", "dueTime"]),
 
+    resources: defineTable({
+        name: v.string(),
+        locale: v.string(),
+        data: v.any(),
+    }).index("by_locale", ["locale"]),
     tournament: defineTable({
         id: v.string(),
         context: v.optional(v.string()),

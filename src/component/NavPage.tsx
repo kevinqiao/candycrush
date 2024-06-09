@@ -52,7 +52,6 @@ const NavPage: React.FC = () => {
     }
   }, [pageProp]);
 
-  // return <div style={{ backgroundColor: "transparent" }}>{user?.uid ? render : <W3Home prop={pageProp} />}</div>;
   return <div style={{ backgroundColor: "transparent" }}>{render}</div>;
 };
 

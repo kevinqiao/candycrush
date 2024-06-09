@@ -1,8 +1,9 @@
 import { v } from "convex/values";
 import { getMonthDate, getWeekDate } from "../util/Utils";
+import { internal } from "./_generated/api";
 import { Id } from "./_generated/dataModel";
 import { internalMutation, internalQuery } from "./_generated/server";
-import { sessionMutation, sessionQuery } from "./custom/session";
+import { sessionAction, sessionMutation, sessionQuery } from "./custom/session";
 export const findById = internalQuery({
   args: { id: v.string() },
   handler: async (ctx, { id }) => {
@@ -30,13 +31,51 @@ export const findAll = sessionQuery({
     return tlist
   },
 });
+export const join = sessionAction({
+  args: { tid: v.string() },
+  handler: async (ctx, { tid }) => {
 
+    const { uid } = ctx.user;
+    const result: { ok: boolean, code?: number, message?: string } = { ok: false }
+    const qs = await ctx.runQuery(internal.matchqueue.finByUid, { uid });
+    if (qs) {
+      result.code = 2;
+      return result
+    }
+
+    const tournament = await ctx.runQuery(internal.tournaments.findById, { id: tid });
+    if (tournament?.type === 0 || (tournament?.closeTime && tournament.closeTime > Date.now())) {
+
+      const game = await ctx.runQuery(internal.games.findUserGame, { uid });
+      if (game && !game.status) {
+        if (!game.dueTime || Date.now() < game.dueTime)
+          result.code = 1;
+        return result
+      }
+
+      try {
+        const entryValid = tournament && tournament.entry?.cost ? await ctx.runMutation(internal.asset.charge, { uid, cost: tournament.entry.cost }) : 1
+        console.log("valid:" + entryValid)
+        if (entryValid > 0) {
+          await ctx.runMutation(internal.matchqueue.create, { uid, tournamentId: tid });
+          result.ok = true;
+          return result
+        }
+      } catch (e: any) {
+        result.message = e.data;
+        result.code = 3;
+      }
+    }
+    return result
+
+  }
+})
 export const claim = sessionMutation({
   args: { battleId: v.optional(v.string()), leaderboardId: v.optional(v.string()) },
   handler: async (ctx, { battleId, leaderboardId }): Promise<any> => {
     if (ctx.user) {
       const { uid } = ctx.user;
-      const hasAssets = await ctx.db.query("asset").withIndex("by_user", (q) => q.eq("uid", uid)).collect();
+      const hasAssets: any = await ctx.db.query("asset").withIndex("by_user", (q) => q.eq("uid", uid)).collect();
       let rewardAssets;
       console.log("battleId:" + battleId + " leaderboardId:" + leaderboardId)
 
@@ -62,14 +101,18 @@ export const claim = sessionMutation({
       }
       if (rewardAssets) {
         for (const asset of rewardAssets) {
-          const hasAsset = hasAssets.find((a) => a.asset === asset.asset);
+          let hasAsset = hasAssets.find((a: any) => a.asset === asset.asset);
           if (hasAsset) {
-            await ctx.db.patch(hasAsset._id, { amount: hasAsset.amount + asset.amount })
-          } else
-            await ctx.db.insert("asset", { asset: asset.asset, amount: asset.amount, uid })
+            hasAsset.amount = hasAsset.amount + asset.amount;
+            await ctx.db.patch(hasAsset._id, { amount: hasAsset.amount })
+          } else {
+            hasAsset = { asset: asset.asset, amount: asset.amount, uid };
+            await ctx.db.insert("asset", { ...hasAsset });
+          }
+          // await ctx.db.insert("events", { name: "assetCollected", uid, time: Date.now(), data: asset });
         }
       }
-      return { ok: true }
+      return { ok: true, data: rewardAssets }
     }
   },
 });

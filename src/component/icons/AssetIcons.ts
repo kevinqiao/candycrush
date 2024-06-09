@@ -17,5 +17,5 @@ export const MenuIcon = styled.div`
   height: 35px;
   margin-right: 10px;
   background-image: url("icons/list.svg");
-  background-size: cover;
+  background-size: contain;
 `;

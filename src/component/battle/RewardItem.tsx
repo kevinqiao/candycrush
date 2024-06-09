@@ -1,6 +1,7 @@
-import { Diamond } from "component/icons/AssetIcons";
+import { Coin, Diamond } from "component/icons/AssetIcons";
 import WonIcon from "component/icons/WonIcon";
 import React from "react";
+import useEventSubscriber from "service/EventManager";
 interface Props {
   reward: {
     battleId: string;
@@ -9,6 +10,7 @@ interface Props {
   } | null;
 }
 const RewardItem: React.FC<Props> = ({ reward }) => {
+  const { createEvent } = useEventSubscriber([], []);
   return (
     <div style={{ position: "relative", width: "100%", height: "75%" }}>
       <div
@@ -18,6 +20,9 @@ const RewardItem: React.FC<Props> = ({ reward }) => {
           width: "100%",
           height: "100%",
         }}
+        // onClick={() =>
+        //   createEvent({ name: "assetCollected", topic: "asset", data: [{ asset: 1, amount: 40 }], delay: 0 })
+        // }
       >
         <WonIcon />
       </div>
@@ -38,7 +43,8 @@ const RewardItem: React.FC<Props> = ({ reward }) => {
         {reward?.assets?.map((a, index) => (
           <div key={a.asset} style={{ display: "flex", justifyContent: "center", width: "100%" }}>
             <div style={{ width: 15, height: 15, marginRight: 5 }}>
-              <Diamond />
+              {a.asset === 1 ? <Diamond /> : null}
+              {a.asset === 2 ? <Coin /> : null}
             </div>
             <span>{a.amount}</span>
           </div>

@@ -4,6 +4,7 @@ import { gsap } from "gsap";
 import MotionPathPlugin from "gsap/MotionPathPlugin";
 import React from "react";
 
+import Alert from "component/common/Alert";
 import NavHeader from "component/lobby/NavHeader";
 import StackController from "component/StackController";
 import { EventProvider } from "service/EventManager";
@@ -59,6 +60,7 @@ function M3App() {
   return (
     <Providers>
       <AuthCheck />
+      <Alert />
     </Providers>
   );
 }

@@ -39,7 +39,6 @@ const TournamentItem: React.FC<Props> = ({ tournament }) => {
     if (!tournament || !user) return;
     if (tournament.closeTime && (tournament.type === 1 || tournament.type === 2)) {
       const gap = tournament.closeTime - Date.now() - user.timelag;
-      console.log(gap);
       setOver(gap < 0 ? true : false);
     }
   }, [tournament, user]);

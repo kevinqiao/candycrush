@@ -17,6 +17,7 @@ interface IUserContext {
   sessionCheck: number;
   authComplete: (user: User) => void;
   signout: () => void;
+  updateAsset: (asset: number, amount: number) => void;
 }
 
 const UserContext = createContext<IUserContext>({
@@ -25,6 +26,7 @@ const UserContext = createContext<IUserContext>({
   sessionCheck: 0,
   authComplete: () => null,
   signout: () => null,
+  updateAsset: () => null,
 });
 
 export const UserProvider = ({ children }: { children: React.ReactNode }) => {
@@ -78,11 +80,29 @@ export const UserProvider = ({ children }: { children: React.ReactNode }) => {
 
     [stacks]
   );
+  const updateAsset = useCallback(
+    (asset: number, amount: number) => {
+      if (user.assets) {
+        const as = user.assets.find((a: { asset: number; amount: number }) => a.asset === asset);
+        if (as) as.amount = as.amount + amount;
+        else user.assets.push({ asset: asset, amount });
+      }
+    },
+    [user]
+  );
   useEffect(() => {
     if (userEvent && user) {
+      console.log(userEvent);
       if (userEvent?.name === "battleCreated") {
         const stack = stacks.find((s) => s.name === "battlePlay");
         if (!stack) openPlay(user, userEvent.data);
+      } else if (userEvent?.name === "assetUpdated") {
+        const { asset, amount } = userEvent.data;
+        if (asset) {
+          const as = user.assets.find((a: { asset: number; amount: number }) => a.asset === asset);
+          if (as) as.amount = amount;
+          else user.assets.push({ asset, amount });
+        }
       }
       // console.log("time:" + userEvent.time + ":" + lastTime);
       if (userEvent.time > lastTime) setLastTime(userEvent.time);
@@ -131,6 +151,7 @@ export const UserProvider = ({ children }: { children: React.ReactNode }) => {
     user,
     userEvent,
     sessionCheck,
+    updateAsset,
     authComplete,
     signout: useCallback(() => {
       localStorage.removeItem("user");
