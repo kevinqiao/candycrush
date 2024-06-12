@@ -26,7 +26,6 @@ export const update = internalMutation({
 export const charge = internalMutation({
   args: { uid: v.string(), cost: v.array(v.object({ asset: v.number(), amount: v.number() })) },
   handler: async (ctx, { uid, cost }) => {
-    console.log(cost)
     for (const c of cost) {
       const as = await ctx.db.query("asset").withIndex("by_user_asset", (q) => q.eq("uid", uid).eq("asset", c.asset)).unique();
       if (as && as.amount >= c.amount) {
@@ -35,6 +34,7 @@ export const charge = internalMutation({
       } else
         throw new ConvexError("asset balance is not enough");
     }
+    console.log(cost)
     await ctx.db.insert("events", { name: "assetUpdated", uid, time: Date.now(), data: cost });
     return 1;
   },

@@ -17,6 +17,13 @@
   position:fixed;
   z-index: 110;
 }
+.triangle-up {
+      width: 0;
+      height: 0;
+      margin-right:10px;
+      border-left: 15px solid transparent;
+      border-bottom: 20px solid #f1f3f4;
+}
 
 
 

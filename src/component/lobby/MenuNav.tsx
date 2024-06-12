@@ -14,8 +14,8 @@ const MenuItem = styled.div`
   border-radius: 4px;
   margin-top: 10px;
 `;
-const LobbyMenu: React.FC = () => {
-  const { width, height, LobbyMenuH, LobbyMenuW } = useCoord();
+const MenuNav: React.FC = () => {
+  const { width, height, LobbyMenuH, LobbyMenuW, headH } = useCoord();
   const { loadMenu, changeIndex } = useSlideNavManager();
   const openChild = (index: number) => {
     changeIndex(index);
@@ -23,7 +23,8 @@ const LobbyMenu: React.FC = () => {
   return (
     <>
       {width >= height ? (
-        <div style={{ width: LobbyMenuW, height: "99%", backgroundColor: "blue", margin: "5px 10px 15px 5px" }}>
+        <div style={{ width: LobbyMenuW, height: "99%", backgroundColor: "blue", margin: "2px 2px 0px 0px" }}>
+          <div style={{ height: headH, backgroundColor: "white" }}></div>
           <MenuItem key={"tournament"} onClick={() => changeIndex(0)}>
             <span style={{ color: "white" }}>Tournament</span>
           </MenuItem>
@@ -116,4 +117,4 @@ const LobbyMenu: React.FC = () => {
   );
 };
 
-export default LobbyMenu;
+export default MenuNav;

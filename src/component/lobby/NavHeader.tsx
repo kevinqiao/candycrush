@@ -1,9 +1,10 @@
-import ClaimAssetAnimate from "component/common/AssetCollectAnimate";
+import AssetCollectAnimate from "component/lobby/AssetCollectAnimate";
 import gsap from "gsap";
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import useCoord from "service/TerminalManager";
 import { useUserManager } from "service/UserManager";
 import styled from "styled-components";
+import MenuBar from "./menubar/MenuBar";
 const CloseButton = styled.div`
   cursor: pointer;
   display: flex;
@@ -17,7 +18,7 @@ const CloseButton = styled.div`
 `;
 const Mask = styled.div`
   position: fixed;
-  z-index: 9999;
+  z-index: 999;
   top: 0px;
   left: 0px;
   opacity: 0;
@@ -31,7 +32,7 @@ const MenuPanel = styled.div`
   justify-content: space-between;
   position: fixed;
   z-index: 10000;
-  top: 10px;
+  top: 40px;
   right: -190px;
   height: 300px;
   width: 190px;
@@ -65,7 +66,6 @@ const NavHead = styled.div`
   height: ${(props) => props.height};
   width: ${(props) => props.width};
   min-width: 400px;
-  background-color: blue;
   border-radius: 0px 0px 8px 8px;
 `;
 const Avatar = styled.div`
@@ -117,34 +117,15 @@ const MenuIcon = styled.div`
 `;
 
 const NavHeader = () => {
+  const [menubarOpen, setMenubarOpen] = useState(false);
   const { user, userEvent } = useUserManager();
   const [assets, setAssets] = useState<{ asset: number; amount: number }[]>([]);
   const { headH } = useCoord();
   const maskRef = useRef<HTMLDivElement | null>(null);
-  const menuRef = useRef<HTMLDivElement | null>(null);
   const diamondRef = useRef<HTMLDivElement | null>(null);
   const coinRef = useRef<HTMLDivElement | null>(null);
+  const menuIconRef = useRef<HTMLDivElement | null>(null);
 
-  const openMenu = () => {
-    const tl = gsap.timeline({
-      onComplete: () => {
-        tl.kill();
-      },
-    });
-    tl.to(maskRef.current, { autoAlpha: 1, duration: 0.7 });
-    tl.to(menuRef.current, { x: -190, duration: 0.7 }, "<");
-    tl.play();
-  };
-  const closeMenu = () => {
-    const tl = gsap.timeline({
-      onComplete: () => {
-        tl.kill();
-      },
-    });
-    tl.to(maskRef.current, { autoAlpha: 0, duration: 0.7 });
-    tl.to(menuRef.current, { x: 0, duration: 0.7 }, "<");
-    tl.play();
-  };
   useEffect(() => {
     if (userEvent && user) {
       console.log(userEvent);
@@ -161,11 +142,15 @@ const NavHeader = () => {
     }
   }, [user, userEvent]);
   useEffect(() => {
-    gsap.to(maskRef.current, { autoAlpha: 0, duration: 0 });
+    if (maskRef.current) gsap.to(maskRef.current, { autoAlpha: 0, duration: 0 });
     if (user) setAssets(user.assets);
   }, [user]);
+
   const openAsset = (asset: number) => {
     console.log("open asset:" + asset);
+  };
+  const toggleMenubar = () => {
+    setMenubarOpen((pre) => !pre);
   };
 
   const diamond = useMemo(() => {
@@ -174,15 +159,37 @@ const NavHeader = () => {
     return 0;
   }, [assets]);
   const coin = useMemo(() => {
-    const asset = user.assets.find((a) => a.asset === 2);
+    const asset = assets.find((a) => a.asset === 2);
     if (asset) return asset.amount;
     return 0;
-  }, [user]);
+  }, [assets]);
   return (
     <>
       {user?.uid ? (
         <>
-          <div style={{ display: "flex", justifyContent: "center", width: "100%" }}>
+          <div
+            style={{
+              position: "absolute",
+              top: 0,
+              left: 0,
+              zIndex: 100,
+              width: "100%",
+              opacity: 0.9,
+              height: `${headH}px`,
+              backgroundColor: "blue",
+            }}
+          ></div>
+          <div
+            style={{
+              position: "absolute",
+              top: 0,
+              left: 0,
+              zIndex: 102,
+              display: "flex",
+              justifyContent: "center",
+              width: "100%",
+            }}
+          >
             <NavHead height={`${headH}px`} width={"100%"}>
               <div style={{ display: "flex", justifyContent: "flex-start", alignItems: "center", height: "100%" }}>
                 <Avatar></Avatar>
@@ -199,25 +206,13 @@ const NavHeader = () => {
                   </Asset>
                 </AssetContainer>
               </div>
-              <MenuIcon onClick={openMenu} />
+              <MenuIcon ref={menuIconRef} onClick={toggleMenubar} />
             </NavHead>
           </div>
-          <Mask ref={maskRef} onClick={closeMenu} />
-          <MenuPanel ref={menuRef}>
-            <MenuList>
-              {Array.from({ length: 4 }, (_, k) => k).map((p, index) => (
-                <MenuItem key={p}>
-                  <span style={{ color: "white" }}>Menu{index}</span>
-                </MenuItem>
-              ))}
-            </MenuList>
-            <CloseButton onClick={closeMenu}>
-              <span>Close</span>
-            </CloseButton>
-          </MenuPanel>
         </>
       ) : null}
-      <ClaimAssetAnimate diamondDivRef={diamondRef} coinDivRef={coinRef} assets={assets} />
+      <AssetCollectAnimate diamondDivRef={diamondRef} coinDivRef={coinRef} assets={assets} />
+      <MenuBar menuIconRef={menuIconRef} open={menubarOpen} onClose={() => setMenubarOpen(false)} />
     </>
   );
 };

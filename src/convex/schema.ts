@@ -66,7 +66,7 @@ export default defineSchema({
         diffcult: v.string(),
     }).index("by_type_status_duetime", ["type", "status", "dueTime"]),
 
-    resources: defineTable({
+    localization: defineTable({
         name: v.string(),
         locale: v.string(),
         data: v.any(),

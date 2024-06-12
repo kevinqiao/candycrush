@@ -53,7 +53,7 @@ const AssetCollectAnimate: React.FC<Props> = ({ diamondDivRef, coinDivRef, asset
             const ds = Array.from({ length: amount }).map((a, index) => index + 1);
             setCoins(ds);
           }
-        }, 20 * index++);
+        }, 400 * index++);
       }
     }
   }, [event, maskRef, containerRef]);

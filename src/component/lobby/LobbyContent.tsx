@@ -13,8 +13,6 @@ const SlideContainer = styled.div`
 `;
 const SideContainer = styled.div`
   position: relative;
-  top: 0px;
-  left: 0px;
   width: ${(props) => props.width};
   height: ${(props) => props.height};
 `;
@@ -31,7 +29,6 @@ const SideNav = styled.div`
   height: 100%;
   margin: 0px;
   padding: 0px;
-  background-color: transparent;
 `;
 const LobbyContent = () => {
   const { components, loadSlideContainer, loadSlide } = useSlideNavManager();
@@ -82,7 +79,12 @@ const LobbyContent = () => {
                     <div
                       key={c.name}
                       ref={(ele) => loadSlide(c.index, ele)}
-                      style={{ position: "absolute", top: 0, left: 0, opacity: 0, width: "100%", height: "100%" }}
+                      style={{
+                        position: "absolute",
+                        top: 0,
+                        width: "100%",
+                        height: "100%",
+                      }}
                     >
                       <SideNav>
                         <Suspense fallback={<div>Loading...</div>}>

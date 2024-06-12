@@ -14,7 +14,6 @@ const Container = styled.div`
   align-items: center;
   width: 100%;
   height: ${(props) => props.height};
-  background-color: white;
   overflow-y: auto;
   overflow-x: hidden;
 `;
@@ -41,7 +40,7 @@ const RecordListHome: React.FC = () => {
 
   return (
     <>
-      <Container height={`${height - headH}px`}>
+      <Container height={`${height}px`}>
         <div
           ref={battleRef}
           style={{
@@ -49,8 +48,8 @@ const RecordListHome: React.FC = () => {
             height: "100%",
           }}
         >
+          <div style={{ height: headH }}></div>
           {battles && battles.map((t: any, index: number) => <RecordItem key={t.battleId} {...t} />)}
-          <div style={{ height: width < height ? LobbyMenuH : 0 }}></div>
         </div>
       </Container>
     </>

@@ -3,7 +3,7 @@ import PageProps from "model/PageProps";
 import React, { useMemo } from "react";
 import useCoord from "service/TerminalManager";
 import LobbyContent from "./LobbyContent";
-import LobbyMenu from "./LobbyMenu";
+import MenuNav from "./MenuNav";
 const LobbyHome: React.FC<PageProps> = (prop) => {
   const { width, height, headH } = useCoord();
   const render = useMemo(() => {
@@ -11,7 +11,7 @@ const LobbyHome: React.FC<PageProps> = (prop) => {
       <>
         <div style={{ position: "relative", display: "flex", height: height }}>
           <SlideNavProvider pageProp={prop}>
-            <LobbyMenu />
+            <MenuNav />
             <LobbyContent />
           </SlideNavProvider>
         </div>

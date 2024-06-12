@@ -8,6 +8,7 @@ import Alert from "component/common/Alert";
 import NavHeader from "component/lobby/NavHeader";
 import StackController from "component/StackController";
 import { EventProvider } from "service/EventManager";
+import { LocalizationProvider } from "service/LocalizationManager";
 import { TerminalProvider } from "service/TerminalManager";
 import { PageProvider } from "./service/PageManager";
 import { UserProvider, useUserManager } from "./service/UserManager";
@@ -52,9 +53,10 @@ function M3App() {
   };
   const Providers = FlattenedProviderTree([
     [EventProvider],
+    [ConvexProvider, { client: convex }],
+    [LocalizationProvider],
     [TerminalProvider],
     [PageProvider],
-    [ConvexProvider, { client: convex }],
     [UserProvider],
   ]);
   return (

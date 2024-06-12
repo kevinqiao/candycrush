@@ -1,5 +1,6 @@
 import { useSlideNavManager } from "component/SlideNavManager";
 import React, { useEffect, useState } from "react";
+import useLocalization from "service/LocalizationManager";
 import styled from "styled-components";
 import useCoord from "../../service/TerminalManager";
 import useTournamentManager from "../../service/TournamentManager";
@@ -11,7 +12,6 @@ const Container = styled.div`
   align-items: center;
   width: 100%;
   height: ${(props) => props.height};
-  background-color: white;
   overflow-y: auto;
   overflow-x: hidden;
 `;
@@ -20,6 +20,14 @@ const TournamentHome: React.FC = () => {
   const [tournaments, setTournaments] = useState<any[]>([]);
   const { menuIndex } = useSlideNavManager();
   const { listActives } = useTournamentManager();
+  const resources = useLocalization();
+  console.log(resources);
+  useEffect(() => {
+    if (resources) {
+      console.log(resources["menu"]["account"]);
+      console.log(resources["bar"]["setting"]);
+    }
+  }, [resources]);
   useEffect(() => {
     if (menuIndex === 0) {
       listActives().then((ts) => {
@@ -27,10 +35,11 @@ const TournamentHome: React.FC = () => {
       });
     }
   }, [listActives, menuIndex]);
-
+  console.log(tournaments);
   return (
     <Container height={`${height - headH}px`}>
       <div style={{ width: "100%", height: "100%" }}>
+        <div style={{ height: headH }}></div>
         {tournaments.map((t) => (
           <TournamentItem key={t.id} tournament={t} />
         ))}
