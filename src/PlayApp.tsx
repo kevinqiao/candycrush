@@ -1,12 +1,12 @@
+import Alert from "component/common/Alert";
+import LocaleStyleLoader from "component/common/LocaleStyleLoader";
+import NavHeader from "component/lobby/NavHeader";
 import NavPage from "component/NavPage";
+import StackController from "component/StackController";
 import { ConvexProvider, ConvexReactClient } from "convex/react";
 import { gsap } from "gsap";
 import MotionPathPlugin from "gsap/MotionPathPlugin";
 import React from "react";
-
-import Alert from "component/common/Alert";
-import NavHeader from "component/lobby/NavHeader";
-import StackController from "component/StackController";
 import { EventProvider } from "service/EventManager";
 import { LocalizationProvider } from "service/LocalizationManager";
 import { TerminalProvider } from "service/TerminalManager";
@@ -32,6 +32,7 @@ const AuthCheck = () => {
     </>
   );
 };
+
 function M3App() {
   const FlattenedProviderTree = (providers: any): any => {
     if (providers?.length === 1) {
@@ -60,10 +61,13 @@ function M3App() {
     [UserProvider],
   ]);
   return (
-    <Providers>
-      <AuthCheck />
-      <Alert />
-    </Providers>
+    <>
+      <Providers>
+        <LocaleStyleLoader />
+        <AuthCheck />
+        <Alert />
+      </Providers>
+    </>
   );
 }
 

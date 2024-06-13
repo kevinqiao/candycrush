@@ -52,7 +52,7 @@ export const TerminalProvider = ({ children }: { children: ReactNode }) => {
     const h = window.innerHeight as number;
     const headH = Math.floor(Math.max(50, Math.min(w * 0.06, 100)));
     const LobbyMenuH = w > h ? h - headH : (50 * w) / 500;
-    const LobbyMenuW = w < h ? w : Math.max(70, w * 0.12);
+    const LobbyMenuW = w < h ? w : Math.max(250, w * 0.14);
     const direction = w > h ? 0 : 1;
     const isMobile = w > h ? false : true;
     const v: any = {

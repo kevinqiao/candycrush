@@ -19,8 +19,9 @@ const MenuPanel = styled.div`
   display: flex;
   flex-direction: column;
   justify-content: space-between;
+  align-items: flex-start;
   position: fixed;
-  z-index: 10000;
+  z-index: 1009;
   top: 0px;
   right: -190px;
   width: 190px;
@@ -28,7 +29,7 @@ const MenuPanel = styled.div`
 const MenuList = styled.div`
   display: flex;
   flex-direction: column;
-  justify-content: flex-start;
+  justify-content: center;
   align-items: center;
   width: 100%;
   height: 300px;
@@ -42,9 +43,9 @@ const MenuItem = styled.div`
   align-items: center;
   width: 80%;
   height: 35px;
-  background-color: blue;
   border-radius: 4px;
   margin-top: 10px;
+  background-color: blue;
 `;
 export interface MenuConfigItem {
   id: number;

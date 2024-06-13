@@ -1,20 +1,41 @@
 import { useConvex } from "convex/react";
 import React, { ReactNode, createContext, useContext, useEffect, useState } from "react";
 import { api } from "../convex/_generated/api";
+const locales = [
+  {
+    locale: "en-US",
+    eles: ["en-US", "en_US", "en", "en-us", "en-"],
+  },
+  {
+    locale: "zh-CN",
+    eles: ["zh-CN", "zh_CN", "zh", "zh-cn", "zh-"],
+  },
+  {
+    locale: "zh-TW",
+    eles: ["zh-TW", "zh_TW", "zh-tw", "tw"],
+  },
+];
 interface IResourceContext {
-  [k: string]: { [k: string]: string };
+  locale: string;
+  resources: { [k: string]: { [k: string]: string } };
 }
 const ResourceContext = createContext<IResourceContext>({});
 
 export const LocalizationProvider = ({ children }: { children: ReactNode }) => {
   const [resources, setResources] = useState<{ [k: string]: { [k: string]: string } }>({});
-  const [locale, setLocale] = useState(navigator.language);
   const convex = useConvex();
+  const [locale, setLocale] = useState<string>("en-US");
   useEffect(() => {
     const handleLanguageChange = () => {
-      setLocale(navigator.language);
+      const lan = navigator.language;
+      const loc = locales.find((loc) => {
+        if (loc.eles.includes(lan)) return true;
+        else return false;
+      });
+      if (loc && loc.locale !== lan) setLocale(loc.locale);
     };
     window.addEventListener("languagechange", handleLanguageChange);
+    handleLanguageChange();
     // Cleanup the event listener on component unmount
     return () => window.removeEventListener("languagechange", handleLanguageChange);
   }, []);
@@ -27,9 +48,13 @@ export const LocalizationProvider = ({ children }: { children: ReactNode }) => {
       }
       setResources(result);
     };
-    if (locale) fetchResources("us_en");
+
+    if (locale) {
+      console.log(locale);
+      fetchResources(locale);
+    }
   }, [locale]);
-  return <ResourceContext.Provider value={resources}> {children} </ResourceContext.Provider>;
+  return <ResourceContext.Provider value={{ resources, locale }}> {children} </ResourceContext.Provider>;
 };
 const useLocalization = () => {
   return useContext(ResourceContext);

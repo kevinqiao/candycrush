@@ -47,7 +47,7 @@ const MenuDialog: React.FC<Props> = ({ activeMenu, onClose }) => {
         ref={maskRef}
         style={{
           position: "absolute",
-          zIndex: 10008,
+          zIndex: 1100,
           margin: 0,
           border: 0,
           top: 0,
@@ -63,7 +63,7 @@ const MenuDialog: React.FC<Props> = ({ activeMenu, onClose }) => {
         ref={containerRef}
         style={{
           position: "absolute",
-          zIndex: 20100,
+          zIndex: 1200,
           top: 0,
           left: 0,
           display: "flex",

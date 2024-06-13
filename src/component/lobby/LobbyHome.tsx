@@ -3,9 +3,9 @@ import PageProps from "model/PageProps";
 import React, { useMemo } from "react";
 import useCoord from "service/TerminalManager";
 import LobbyContent from "./LobbyContent";
-import MenuNav from "./MenuNav";
+import MenuNav from "./menunav/MenuNav";
 const LobbyHome: React.FC<PageProps> = (prop) => {
-  const { width, height, headH } = useCoord();
+  const { width, height } = useCoord();
   const render = useMemo(() => {
     return (
       <>
