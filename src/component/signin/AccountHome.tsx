@@ -7,7 +7,7 @@ import "./signin.css";
 const AccountHome: React.FC = () => {
   const maskRef = useRef<HTMLDivElement | null>(null);
   const signoutRef = useRef<HTMLDivElement | null>(null);
-  const { user } = useUserManager();
+  const { user, logout } = useUserManager();
   const { stacks, openPage } = usePageManager();
   useEffect(() => {
     gsap.to(maskRef.current, { duration: 0, autoAlpha: 0 });
@@ -32,7 +32,8 @@ const AccountHome: React.FC = () => {
     tl.to(maskRef.current, { autoAlpha: 0, duration: 0.3 });
     tl.to(signoutRef.current, { autoAlpha: 0, duration: 0.3 }, "<");
     tl.play();
-    if (type > 0) window.location.href = "/?signout=1";
+    if (type > 0) logout();
+    // if (type > 0) window.location.href = "/?signout=1";
   };
   const isActive = useCallback(() => {
     const stack = stacks.find((s) => s.name === "signin");

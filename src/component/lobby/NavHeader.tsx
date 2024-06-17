@@ -143,7 +143,7 @@ const NavHeader = () => {
   }, [user, userEvent]);
   useEffect(() => {
     if (maskRef.current) gsap.to(maskRef.current, { autoAlpha: 0, duration: 0 });
-    if (user) setAssets(user.assets);
+    if (user?.assets) setAssets(user.assets);
   }, [user]);
 
   const openAsset = (asset: number) => {

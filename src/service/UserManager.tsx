@@ -4,6 +4,7 @@ import { User } from "model/User";
 import React, { createContext, useCallback, useContext, useEffect, useState } from "react";
 import { buildStackURL, getCurrentAppConfig } from "util/PageUtils";
 import { api } from "../convex/_generated/api";
+import useEventSubscriber from "./EventManager";
 import { usePageManager } from "./PageManager";
 interface UserEvent {
   id: string;
@@ -16,7 +17,7 @@ interface IUserContext {
   userEvent: UserEvent | null;
   sessionCheck: number;
   authComplete: (user: User) => void;
-  signout: () => void;
+  logout: () => void;
   updateAsset: (asset: number, amount: number) => void;
 }
 
@@ -25,13 +26,14 @@ const UserContext = createContext<IUserContext>({
   userEvent: null,
   sessionCheck: 0,
   authComplete: () => null,
-  signout: () => null,
+  logout: () => null,
   updateAsset: () => null,
 });
 
 export const UserProvider = ({ children }: { children: React.ReactNode }) => {
   const { stacks, currentPage, openPage } = usePageManager();
   const [user, setUser] = useState<any>(null);
+  const { createEvent } = useEventSubscriber([], ["account"]);
 
   const [sessionCheck, setSessionCheck] = useState(0); //0-to check 1-checked
   const [lastTime, setLastTime] = useState<number>(0);
@@ -153,10 +155,11 @@ export const UserProvider = ({ children }: { children: React.ReactNode }) => {
     sessionCheck,
     updateAsset,
     authComplete,
-    signout: useCallback(() => {
+    logout: useCallback(() => {
       localStorage.removeItem("user");
       setUser(null);
-    }, []),
+      createEvent({ name: "logout", topic: "account", delay: 0 });
+    }, [createEvent]),
   };
 
   return <UserContext.Provider value={value}>{children}</UserContext.Provider>;

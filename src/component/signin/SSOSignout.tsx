@@ -1,17 +1,18 @@
 import React, { useCallback } from "react";
-import { useSSOManager } from "service/SSOManager";
+import { useUserManager } from "service/UserManager";
 interface Props {
   onComplete: () => void;
   onCancel: () => void;
 }
 const SSOSignout: React.FC<Props> = ({ onComplete, onCancel }) => {
-  const { signout } = useSSOManager();
+  // const { signout } = useSSOManager();
   // const { signOut } = useClerk();
+  const { logout } = useUserManager();
   const complete = useCallback(async () => {
-    signout();
+    logout();
 
     onComplete();
-  }, [signout]);
+  }, [logout]);
   const cancel = () => {
     onCancel();
   };

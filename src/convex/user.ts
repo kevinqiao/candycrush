@@ -1,5 +1,4 @@
 import { v } from "convex/values";
-import { getRandom } from "../util/Utils";
 import { Id } from "./_generated/dataModel";
 import { internalMutation, internalQuery, mutation, query } from "./_generated/server";
 export const findAll = internalQuery({
@@ -25,6 +24,13 @@ export const findByUid = query({
   },
 });
 
+export const findByPartner = query({
+  args: { cuid: v.string(), partner: v.number() },
+  handler: async (ctx, { cuid, partner }) => {
+    const user = await ctx.db.query("user").withIndex("by_channel_partner", (q) => q.eq("cuid", cuid).eq("partner", partner)).unique();
+    return user;
+  },
+});
 export const findPlayers = query({
   args: { uids: v.any() },
   handler: async (ctx, { uids }) => {
@@ -39,31 +45,17 @@ export const findPlayers = query({
     return players
   },
 });
-export const findByCuid = query({
-  args: { cuid: v.string(), tenant: v.string() },
-  handler: async (ctx, { cuid, tenant }) => {
-    const user = await ctx.db.query("user").filter((q) => q.and(q.eq(q.field("cuid"), cuid), q.eq(q.field("tenant"), tenant))).unique();
-    return { ...user, uid: user?._id, _id: undefined };
-  },
-});
-export const findOpponent = internalQuery({
-  args: { battleId: v.id("battle") },
-  handler: async (ctx, { battleId }) => {
-    const users = await ctx.db.query("user").filter((q) => q.eq(q.field("tenant"), "####")).collect();
-    if (users?.length > 0) {
-      const r = getRandom(users.length - 1);
-      return { ...users[r], uid: users[r]._id, _id: undefined };
-    }
 
-  },
-})
 export const create = mutation({
-  args: { cuid: v.string(), name: v.string(), tenant: v.optional(v.string()), token: v.optional(v.string()), email: v.optional(v.string()) },
-  handler: async (ctx, { cuid, name, tenant, token, email }) => {
-    const docId = await ctx.db.insert("user", { cuid, name, email, token, tenant });
+  args: { cuid: v.string(), name: v.string(), partner: v.optional(v.number()), token: v.optional(v.string()), email: v.optional(v.string()) },
+  handler: async (ctx, { cuid, name, partner, token, email }) => {
+    const docId = await ctx.db.insert("user", { cuid, name, email, token, partner });
+    if (docId)
+      await ctx.db.patch(docId, { uid: docId })
     return docId
   },
 });
+
 export const update = internalMutation({
   args: { id: v.id("user"), data: v.any() },
   handler: async (ctx, args) => {

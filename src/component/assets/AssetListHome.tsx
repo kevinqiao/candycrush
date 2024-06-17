@@ -22,8 +22,8 @@ const AssetListHome: React.FC = () => {
   const { menuIndex } = useSlideNavManager();
   const { createEvent } = useEventSubscriber([], []);
   useEffect(() => {
-    setAssets(user.assets);
-  }, [menuIndex]);
+    if (user?.assets) setAssets(user.assets);
+  }, [menuIndex, user]);
   return (
     <Container height={`${height - headH}px`}>
       <div style={{ width: "100%", height: "100%" }}>

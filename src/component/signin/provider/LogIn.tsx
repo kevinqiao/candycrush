@@ -19,7 +19,7 @@ const LogIn: React.FC<PageProps> = (pageProp) => {
         alignItems: "center",
         width: "100%",
         height: "100vh",
-        backgroundColor: "white",
+        backgroundColor: "black",
       }}
     >
       <div style={{ fontSize: "20px", color: "blue" }}>Welcome!</div>

@@ -2,6 +2,11 @@ import { defineSchema, defineTable } from "convex/server";
 import { v } from "convex/values";
 
 export default defineSchema({
+    authprovider: defineTable({
+        id: v.string(),
+        name: v.string(),
+        path: v.string()
+    }),
     bgames: defineTable({
         gameId: v.string(),
         laststep: v.number(),
@@ -32,7 +37,7 @@ export default defineSchema({
         status: v.optional(v.number()),//0-open 1-settled 2-rewarded
         type: v.number(),//0-one time battle tournament 1-leaderboard with pvp 2-leaderboard with best score;
         data: v.object({ cells: v.array(v.any()), matched: v.optional(v.array(v.any())), skillBuff: v.array(v.object({ skill: v.number(), progress: v.number() })), move: v.optional(v.number()), lastCellId: v.number(), goalCompleteTime: v.optional(v.number()) })
-    }).index("by_seed", ["seed"]).index("by_user_type", ["uid", "type"]).index("by_score", ["score"]).index("by_battle", ['battleId']),
+    }).index("by_seed", ["seed"]).index("by_user_type", ["uid", "type"]).index("by_score", ["score"]).index("by_battle", ['battleId']).index("by_tournament_user", ["tid", "uid"]),
     events: defineTable({
         name: v.string(),
         battleId: v.optional(v.string()),
@@ -71,6 +76,7 @@ export default defineSchema({
         locale: v.string(),
         data: v.any(),
     }).index("by_locale", ["locale"]),
+
     tournament: defineTable({
         id: v.string(),
         context: v.optional(v.string()),
@@ -104,21 +110,25 @@ export default defineSchema({
     }),
     user: defineTable({
         name: v.string(),
+        uid: v.optional(v.string()),
         avatar: v.optional(v.number()),
         cuid: v.string(),
         token: v.optional(v.string()),
-        tenant: v.optional(v.string()),
+        partner: v.optional(v.number()),
         lastUpdate: v.optional(v.number()),
         lastEventTime: v.optional(v.number()),
         email: v.optional(v.string()),
         status: v.optional(v.number())//0-active 1-removed
-    }),
+    }).index("by_channel_partner", ['cuid', 'partner']).index("by_uid", ['uid']),
     partner: defineTable({
-        pid: v.string(),
         name: v.string(),
-        desc: v.string(),
-        contact: v.string()
-    }),
+        pid: v.number(),
+        host: v.string(),
+        domain: v.optional(v.string()),
+        auth: v.optional(v.array(v.object({ provider: v.string(), data: v.any() }))),
+        desc: v.optional(v.string()),
+        email: v.optional(v.string())
+    }).index("by_host", ["host"]).index("by_domain", ['domain']).index("by_name", ['name']).index("by_pid", ['pid']),
     transaction: defineTable({
         tid: v.string(),
         type: v.number(),//0-credit 1-debit
@@ -128,6 +138,7 @@ export default defineSchema({
     }),
     matchqueue: defineTable({
         uid: v.string(),
+        type: v.optional(v.number()),
         tournamentId: v.string(),
     }),
     leaderboard: defineTable({

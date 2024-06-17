@@ -138,7 +138,7 @@ const StackPop: React.FC<PopupProps> = ({ zIndex, index }) => {
           <div
             ref={maskRef}
             className="mask"
-            style={{ zIndex, opacity: 0, width: "100vw", height: "100vh" }}
+            style={{ zIndex: zIndex + 1990, opacity: 0, width: "100vw", height: "100vh" }}
             onClick={closeFromMask}
           ></div>
 
@@ -151,7 +151,7 @@ const StackPop: React.FC<PopupProps> = ({ zIndex, index }) => {
               left: 0,
               width: pagePattern?.width,
               height: pagePattern?.height,
-              zIndex: zIndex + 10,
+              zIndex: zIndex + 2000,
             }}
           >
             {renderComponent}

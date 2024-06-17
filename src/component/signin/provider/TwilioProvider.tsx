@@ -2,7 +2,7 @@ import { SignIn } from "@clerk/clerk-react";
 import PageProps from "model/PageProps";
 import React, { useMemo } from "react";
 
-const LogIn: React.FC<PageProps> = (pageProp) => {
+const TwilioProvider: React.FC<PageProps> = (pageProp) => {
   const redirectURL = useMemo(() => {
     const url = pageProp.data?.src
       ? window.location.pathname + "?redirect=" + pageProp.data.src
@@ -28,4 +28,4 @@ const LogIn: React.FC<PageProps> = (pageProp) => {
   );
 };
 
-export default LogIn;
+export default TwilioProvider;

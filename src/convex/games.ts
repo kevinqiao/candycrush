@@ -32,6 +32,20 @@ export const findInitGame = query({
     return event?.data
   },
 });
+
+export const findPlayTimesByTournament = internalQuery({
+  args: { uid: v.string(), tournamentId: v.string() },
+  handler: async (ctx, { uid, tournamentId }) => {
+    const tournament = await ctx.db.query("tournament").filter((q) => q.eq(q.field("id"), tournamentId)).unique();
+    if (tournament?.openTime) {
+      const time = tournament.openTime;
+      const games = await ctx.db.query("games").withIndex("by_tournament_user", (q) => q.eq("tid", tournamentId).eq("uid", uid).gte("_creationTime", time)).collect();
+      return games.length
+    }
+    return 0;
+
+  },
+});
 export const getGame = internalQuery({
   args: { gameId: v.id("games") },
   handler: async (ctx, { gameId }): Promise<any> => {

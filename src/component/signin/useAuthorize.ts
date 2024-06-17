@@ -3,9 +3,9 @@ import { useCallback } from "react";
 
 export const useAuthorize = () => {
 
-    const authClerk = useCallback(async (token: string): Promise<any> => {
-        // const url = "http://localhost/clerk";
-        const url = "https://telegram-bot-8bgi.onrender.com/clerk";
+    const authClerk = useCallback(async (token: string, partnerId: number): Promise<any> => {
+        const url = "http://localhost/clerk?partner=" + partnerId;
+        // const url = "https://telegram-bot-8bgi.onrender.com/clerk";
         console.log("clerk token:" + token)
         const res = await fetch(url, {
             method: "GET", // 或 'POST', 'PUT', 'DELETE' 等
