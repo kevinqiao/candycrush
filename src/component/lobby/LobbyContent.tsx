@@ -48,10 +48,30 @@ const LobbyContent = () => {
                     <div
                       key={c.name}
                       ref={(ele) => loadSlide(index, ele)}
-                      style={{ display: "flex", justifyContent: "center", width: "100vw", height: "100%" }}
+                      style={{
+                        display: "flex",
+                        justifyContent: "center",
+                        width: "100vw",
+                        height: "100%",
+                        backgroundColor: "red",
+                      }}
                     >
                       <SlideNav>
-                        <Suspense fallback={<div>Loading...</div>}>
+                        <Suspense
+                          fallback={
+                            <div
+                              style={{
+                                display: "flex",
+                                justifyContent: "center",
+                                width: "100vw",
+                                height: "100%",
+                                backgroundColor: "red",
+                              }}
+                            >
+                              Loading...
+                            </div>
+                          }
+                        >
                           <SelectedComponent />
                         </Suspense>
                       </SlideNav>
@@ -62,7 +82,13 @@ const LobbyContent = () => {
                     <div
                       key={c.name}
                       ref={(ele) => loadSlide(index, ele)}
-                      style={{ display: "flex", justifyContent: "center", width: "100vw", height: "100%" }}
+                      style={{
+                        display: "flex",
+                        justifyContent: "center",
+                        width: "100vw",
+                        height: "100%",
+                        backgroundColor: "white",
+                      }}
                     >
                       <SlideNav style={{ backgroundColor: colors[index] }}></SlideNav>
                     </div>
@@ -84,10 +110,24 @@ const LobbyContent = () => {
                         top: 0,
                         width: "100%",
                         height: "100%",
+                        // backgroundColor: "red",
                       }}
                     >
                       <SideNav>
-                        <Suspense fallback={<div>Loading...</div>}>
+                        <Suspense
+                          fallback={
+                            <div
+                              style={{
+                                display: "flex",
+                                justifyContent: "center",
+                                width: "100vw",
+                                height: "100%",
+                              }}
+                            >
+                              Loading...
+                            </div>
+                          }
+                        >
                           <SelectedComponent />
                         </Suspense>
                       </SideNav>
@@ -98,7 +138,15 @@ const LobbyContent = () => {
                     <div
                       key={c.name}
                       ref={(ele) => loadSlide(c.index, ele)}
-                      style={{ position: "absolute", top: 0, left: 0, opacity: 0, width: "100%", height: "100%" }}
+                      style={{
+                        position: "absolute",
+                        top: 0,
+                        left: 0,
+                        opacity: 0,
+                        width: "100%",
+                        height: "100%",
+                        backgroundColor: "red",
+                      }}
                     >
                       <SideNav style={{ backgroundColor: colors[c.index] }}></SideNav>
                     </div>

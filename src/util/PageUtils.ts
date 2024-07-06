@@ -1,5 +1,5 @@
 import { AppsConfiguration, Covers } from "model/PageConfiguration";
-import { PageItem } from "model/PageProps";
+import { PageConfig, PageItem } from "model/PageProps";
 
 export const parseURL = (location: any): { navItem?: PageItem; ctx?: string; stackItems?: PageItem[] } => {
     const res: any = {};
@@ -10,15 +10,22 @@ export const parseURL = (location: any): { navItem?: PageItem; ctx?: string; sta
     let app: any = AppsConfiguration.find((a) => a.context === res['ctx']);
     if (!app) {
         app = AppsConfiguration.find((a) => a.context === "/" || a.context === "");
+        res['ctx'] = "/"
     }
 
     if (app) {
-        const uri = location.pathname.substring(res['ctx'].length + 1);
-        const navCfg: any = uri.length === 0 ? app.navs[0] : app.navs.find((nav: any) => uri.includes(nav.uri));
+
+        const uri = res['ctx'] === "/" ? location.pathname : location.pathname.substring(res['ctx'].length);
+        let navCfg: any = app.navs.find((nav: any) => uri.includes(nav.uri));
+        if (!navCfg) {
+            navCfg = app.navs[0]
+        }
 
         if (navCfg) {
             navItem["ctx"] = app.context;
             navItem.name = navCfg.name;
+            navItem.app = app.name;
+            navItem.child = navCfg.child;
             res.navItem = navItem;
             const pos = uri.lastIndexOf(navCfg.uri) + navCfg.uri.length;
             const sub = uri.substring(pos + 1);
@@ -56,19 +63,20 @@ export const parseURL = (location: any): { navItem?: PageItem; ctx?: string; sta
         }
 
     }
-
+    console.log(res)
     return res;
 };
 export const buildNavURL = (pageItem: PageItem): string | null => {
-    const app = AppsConfiguration.find((a) => a.context === pageItem.ctx);
+    const app = AppsConfiguration.find((a) => a.name === pageItem.app);
     if (app) {
-        let url = "/" + app.context;
+        let url = "/" + (app.context !== "/" ? app.context : "");
         const nav = app.navs.find((nav) => nav.name === pageItem.name);
         if (nav) {
             url = url + nav.uri;
+            console.log(url)
             if (pageItem.child) {
                 const child = nav.children.find((c) => c.name === pageItem.child);
-                if (child) url = url + child.uri;
+                if (child) url = url + "/" + child.uri;
             }
         }
         return url;
@@ -87,8 +95,8 @@ export const buildStackURL = (pageItem: PageItem): string | null => {
         });
     }
 
-    if (pageItem.ctx) {
-        const app: any = AppsConfiguration.find((a) => a.context === pageItem.ctx);
+    if (pageItem.app) {
+        const app: any = AppsConfiguration.find((a) => a.name === pageItem.app);
         if (app?.stacks) {
             const stack = app.stacks.find((s) => s.name === pageItem.name);
             if (stack) return uri + "#@" + pageItem.name;
@@ -100,9 +108,20 @@ export const buildStackURL = (pageItem: PageItem): string | null => {
     return null;
 };
 export const getCurrentAppConfig = () => {
-    const ps = location.pathname.split("/");
-    const app: any = AppsConfiguration.find((a) => a.context === ps[1]);
+    const ps = window.location.pathname.split("/");
+    const app: any = AppsConfiguration.find((a) => a.context === (ps[1].length === 0 ? "/" : ps[1]));
+    if (!app) {
+        return AppsConfiguration.find((a) => a.context === "/")
+    }
     return app;
+}
+export const getPageConfig = (appName: string, page: string) => {
+    const app = AppsConfiguration.find((a) => a.name === appName);
+    let cfg: PageConfig | undefined = app.navs.find((p) => p.name === page);
+    if (!cfg) {
+        cfg = app.stacks.find((p) => p.name === page);
+    }
+    return cfg
 }
 export const getUriByPop = (stacks: PageItem[], pop: string): string => {
     let url = window.location.pathname;
@@ -123,4 +142,10 @@ export const getUriByPop = (stacks: PageItem[], pop: string): string => {
         url = url + (nhash !== "#" ? nhash : "");
     }
     return url
+}
+
+export const getURIParam = (name: string): string | null | undefined => {
+    const urlObj = new URL(window.location.href);
+    const params = new URLSearchParams(urlObj.search);
+    return params.get(name);
 }

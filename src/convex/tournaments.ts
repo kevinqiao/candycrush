@@ -44,6 +44,7 @@ export const join = sessionAction({
     }
 
     const tournament = await ctx.runQuery(internal.tournaments.findById, { id: tid });
+    console.log(tournament?.closeTime + "-" + Date.now())
     if (tournament?.type === 0 || (tournament?.closeTime && tournament.closeTime > Date.now())) {
 
       const game = await ctx.runQuery(internal.games.findUserGame, { uid });
@@ -52,7 +53,6 @@ export const join = sessionAction({
           result.code = 1;
         return result
       }
-
       try {
         const entryValid = tournament && tournament.entry?.cost ? await ctx.runMutation(internal.asset.charge, { uid, cost: tournament.entry.cost }) : 1
         console.log("valid:" + entryValid)

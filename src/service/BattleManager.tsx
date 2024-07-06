@@ -1,6 +1,8 @@
+import { BATTLE_LOAD } from "model/Constants";
+import PageProps, { PagePosition } from "model/PageProps";
 import React, { createContext, useCallback, useContext, useEffect, useState } from "react";
 import { BattleModel } from "../model/Battle";
-import { useSceneManager } from "./SceneManager";
+import useTournamentManager from "./TournamentManager";
 import { useUserManager } from "./UserManager";
 
 interface IBattleContext {
@@ -9,13 +11,14 @@ interface IBattleContext {
   battle: BattleModel | null;
   allGameLoaded: boolean;
   overReport: number;
-  // bounds: { name: string; top: number; left: number; width: number; height: number; radius?: number }[] | null;
+  containerBound: PagePosition | null | undefined;
   setCurrentSkill: (skill: number) => void;
   setOverReport: (status: number) => void;
   reset: () => void;
   timeout: () => void;
-  completeGame: (gameId: string, score: { base: number; time: number; goal: number }) => void;
   loadGame: (gameId: string, data: any) => void;
+  disableCloseBtn: () => void;
+  exit: () => void;
 }
 const BattleContext = createContext<IBattleContext>({
   currentSkill: 0,
@@ -23,7 +26,7 @@ const BattleContext = createContext<IBattleContext>({
   allGameLoaded: false,
   battle: null,
   overReport: 0,
-  // bounds: null,
+  containerBound: null,
   setCurrentSkill: (skill: number) => {
     return;
   },
@@ -32,17 +35,35 @@ const BattleContext = createContext<IBattleContext>({
   },
   reset: () => null,
   timeout: () => null,
-  completeGame: (gameId: string, score: { base: number; time: number; goal: number }) => null,
   loadGame: (gameId: string, data: any) => null,
+  disableCloseBtn: () => null,
+  exit: () => null,
 });
 
-export const BattleProvider = ({ battle, children }: { battle: BattleModel | null; children: React.ReactNode }) => {
+export const BattleProvider = ({
+  pageProp,
+  pagePosition,
+  children,
+}: {
+  pageProp: PageProps;
+  pagePosition: PagePosition;
+  children: React.ReactNode;
+}) => {
   const [currentSkill, setCurrentSkill] = useState(0);
   const [allGameLoaded, setAllGameLoaded] = useState(false);
   const [overReport, setOverReport] = useState(0); //0-no report 1-my game is over(open game report) 2-battle is over (open battle report)
   const { user } = useUserManager();
-  const { load } = useSceneManager();
-  // console.log("load:" + load);
+  const [battle, setBattle] = useState<BattleModel | null>(null);
+  const { findBattle } = useTournamentManager();
+  useEffect(() => {
+    if (!battle && pageProp?.data && pageProp.data.battleId) {
+      findBattle(pageProp.data.battleId).then((b: any) => {
+        console.log(b);
+        setBattle(b);
+      });
+    }
+  }, [pageProp]);
+
   useEffect(() => {
     if (!user || !battle) return;
     const mygame = battle.games?.find((g) => g.uid === user.uid);
@@ -52,28 +73,18 @@ export const BattleProvider = ({ battle, children }: { battle: BattleModel | nul
 
   const value = {
     currentSkill,
-    load,
+    load: BATTLE_LOAD.PLAY,
     allGameLoaded,
     battle,
     overReport,
-    // bounds,
+    containerBound: pagePosition,
     setCurrentSkill,
     setOverReport,
     timeout: useCallback(() => {
       if (overReport === 0) setOverReport(1);
       else if (overReport === 2) setOverReport(3);
     }, [battle, overReport]),
-    completeGame: useCallback(
-      (gameId: string, result: any) => {
-        // if (!battle || !battle.games) return;
-        // const game = battle?.games.find((g) => g.gameId === gameId);
-        // if (game && game.uid === user.uid) {
-        //   game.result = result;
-        //   setBattleOver(1);
-        // }
-      },
-      [battle]
-    ),
+
     loadGame: useCallback(
       (gameId: string, data: any) => {
         if (!battle || !battle.games) return;
@@ -92,9 +103,18 @@ export const BattleProvider = ({ battle, children }: { battle: BattleModel | nul
     reset: useCallback(() => {
       setAllGameLoaded(false);
     }, [battle]),
+    exit: useCallback(() => {
+      if (pageProp.close) pageProp.close(0);
+    }, [pageProp]),
+
+    disableCloseBtn: useCallback(() => {
+      if (pageProp.disableCloseBtn) {
+        pageProp.disableCloseBtn();
+      }
+    }, [pageProp]),
   };
 
-  return <BattleContext.Provider value={value}> {children} </BattleContext.Provider>;
+  return <BattleContext.Provider value={value}> {battle ? children : null} </BattleContext.Provider>;
 };
 export const useBattleManager = () => {
   return useContext(BattleContext);

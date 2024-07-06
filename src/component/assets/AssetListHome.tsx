@@ -27,7 +27,7 @@ const AssetListHome: React.FC = () => {
   return (
     <Container height={`${height - headH}px`}>
       <div style={{ width: "100%", height: "100%" }}>
-        <div style={{ height: width < height ? LobbyMenuH : 0 }}></div>
+        <div style={{ height: width < height ? LobbyMenuH : headH }}></div>
         {assets.map((asset) => (
           <div
             key={asset.asset}

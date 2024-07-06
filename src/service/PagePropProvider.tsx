@@ -22,7 +22,6 @@ export const PagePropContext = createContext<IContextProps>({
 
 export const PagePropProvider = ({ pageProp, children }: { pageProp: PageProps; children: React.ReactNode }) => {
   const exit = useCallback(() => {
-    console.log("exit page");
     if (pageProp.close) pageProp.close(0);
   }, [pageProp]);
   const value = { ...pageProp, close: undefined, exit };

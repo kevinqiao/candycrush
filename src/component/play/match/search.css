@@ -12,7 +12,7 @@
 }
 .search_container{
     position:absolute;
-    z-index: 300;
+    z-index: 30000;
     top: 0px;
     left: 0px;
     width: 100%;

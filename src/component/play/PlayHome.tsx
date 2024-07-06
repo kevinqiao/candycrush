@@ -1,65 +1,28 @@
-import isPropValid from "@emotion/is-prop-valid";
-import { BattleModel } from "model/Battle";
-import { BATTLE_LOAD } from "model/Constants";
-import React, { useEffect, useMemo, useRef, useState } from "react";
-import BattleProvider from "service/BattleManager";
+import React, { useRef } from "react";
+import BattleProvider, { useBattleManager } from "service/BattleManager";
 import GameProvider from "service/GameManager";
-import SceneProvider from "service/SceneManager";
-import { useUserManager } from "service/UserManager";
-import { StyleSheetManager } from "styled-components";
 import useDimension from "util/useDimension";
-import { Id } from "../../convex/_generated/dataModel";
 import PageProps from "../../model/PageProps";
-import useTournamentManager from "../../service/TournamentManager";
 import BattleGround from "./BattleGround";
 import BattleScene from "./BattleScene";
 import BattleConsole from "./console/BattleConsole";
 import GamePlay from "./GamePlay";
 import BattleReady from "./match/BattleReady";
-import OpponentSearch from "./match/OpponentSearch";
 import "./play.css";
 import BattleReport from "./report/BattleReport";
 import GameReport from "./report/GameReport";
 
-interface ControlProps {
-  battleId: string;
-}
-const PlayControl: React.FC<ControlProps> = ({ battleId }) => {
-  const [battle, setBattle] = useState<BattleModel | null>(null);
-  const { findBattle } = useTournamentManager();
-  const { user } = useUserManager();
-
-  useEffect(() => {
-    if (!battle && battleId) {
-      findBattle(battleId as Id<"battle">).then((b: any) => {
-        console.log(b);
-        setBattle(b);
-      });
-    }
-  }, [battleId]);
-
-  const matchCompleted = useMemo(() => {
-    return battle && battle.startTime - Date.now() - user.timelag <= 0 ? true : false;
-  }, [battle, user]);
+const PlayControl: React.FC = () => {
+  const { battle } = useBattleManager();
   return (
     <>
-      {battle ? (
-        <BattleProvider battle={battle}>
-          <BattleGround>
-            <BattleConsole />
-            {battle.games &&
-              battle.games.map((g) => (
-                <GameProvider key={g.gameId} gameId={g.gameId}>
-                  <GamePlay />
-                </GameProvider>
-              ))}
-            <BattleScene />
-          </BattleGround>
-          <GameReport />
-          <BattleReport />
-          {!matchCompleted ? <BattleReady /> : null}
-        </BattleProvider>
-      ) : null}
+      {battle &&
+        battle.games &&
+        battle.games.map((g) => (
+          <GameProvider key={g.gameId} gameId={g.gameId}>
+            <GamePlay />
+          </GameProvider>
+        ))}
     </>
   );
 };
@@ -67,51 +30,23 @@ const PlayControl: React.FC<ControlProps> = ({ battleId }) => {
 const PlayHome: React.FC<PageProps> = (pageProp) => {
   const sceneRef = useRef<HTMLDivElement | null>(null);
   const pagePosition = useDimension(sceneRef);
-  const { userEvent } = useUserManager();
-  const [load, setLoad] = useState(-1);
-  const [visible, setVisible] = useState(true);
-  const [battleId, setBattleId] = useState<string | null>(pageProp.data ? pageProp.data.battleId : null);
-
-  useEffect(() => {
-    if (userEvent?.name === "battleCreated") {
-      setBattleId(userEvent.data.id);
-      setLoad(BATTLE_LOAD.PLAY);
-    }
-  }, [userEvent]);
-  useEffect(() => {
-    const handleVisibilityChange = () => {
-      if (document.visibilityState === "visible") {
-        console.log("tab visible");
-        setVisible(true);
-      } else {
-        console.log("tab invisible");
-        setVisible(false);
-      }
-    };
-    if (!pageProp.data || !pageProp.data.battleId) setLoad(BATTLE_LOAD.PLAY);
-    else setLoad(BATTLE_LOAD.RELOAD);
-    console.log(pageProp.data);
-    document.addEventListener("visibilitychange", handleVisibilityChange);
-    return () => {
-      document.removeEventListener("visibilitychange", handleVisibilityChange);
-    };
-  }, []);
 
   return (
     <>
-      <StyleSheetManager shouldForwardProp={(propName) => isPropValid(propName)}>
-        <div ref={sceneRef} className="play_container">
-          <SceneProvider load={load} visible={visible} pageProp={pageProp} pagePosition={pagePosition}>
-            {load >= 0 && visible && battleId ? <PlayControl battleId={battleId} /> : null}
-            <OpponentSearch
-              tournament={pageProp.data ? pageProp.data.tournament : null}
-              onExit={() => {
-                pageProp.close ? pageProp.close(0) : null;
-              }}
-            />
-          </SceneProvider>
-        </div>
-      </StyleSheetManager>
+      {/* <StyleSheetManager shouldForwardProp={(propName) => isPropValid(propName)}> */}
+      <div ref={sceneRef} className="play_container">
+        <BattleProvider pageProp={pageProp} pagePosition={pagePosition}>
+          <BattleGround>
+            <BattleConsole />
+            <PlayControl />
+            <BattleScene />
+          </BattleGround>
+          <GameReport />
+          <BattleReport />
+          <BattleReady />
+        </BattleProvider>
+      </div>
+      {/* </StyleSheetManager> */}
     </>
   );
 };

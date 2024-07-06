@@ -70,7 +70,7 @@ export const SlideNavProvider = ({ pageProp, children }: { pageProp: PageProps; 
       // const component = components.find((c) => c.index === index);
       if (pageProp.config.children) {
         const child = pageProp.config.children[index];
-        const uri = "/" + pageProp.ctx + "/" + pageProp.config.uri + "/" + child.uri;
+        const uri = (pageProp.ctx !== "/" ? "/" + pageProp.ctx + "/" : "") + pageProp.config.uri + "/" + child.uri;
         window.history.pushState({}, "", uri);
       }
       const tl = gsap.timeline({

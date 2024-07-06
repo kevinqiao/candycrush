@@ -1,11 +1,13 @@
 import { SceneModel } from "model/SceneModel";
 import * as PIXI from "pixi.js";
 import React, { useCallback, useEffect } from "react";
+import { useBattleManager } from "service/BattleManager";
 import { SCENE_NAME } from "../../model/Match3Constants";
 import { useSceneManager } from "../../service/SceneManager";
 
 const BattleScene = () => {
-  const { scenes, containerBound } = useSceneManager();
+  const { containerBound } = useBattleManager();
+  const { scenes } = useSceneManager();
 
   useEffect(() => {
     if (containerBound && scenes) {

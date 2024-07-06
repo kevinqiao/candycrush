@@ -8,8 +8,9 @@ export const authByToken = action({
     handler: async (ctx, { uid, token }) => {
         // console.log("uid:" + uid)
         try {
-            const user: any = await ctx.runQuery(internal.user.find, { id: uid as Id<"user"> })
-            if (user) {
+            const user: any = await ctx.runQuery(internal.user.find, { id: uid as Id<"user"> });
+            console.log(user.token + ":" + token)
+            if (user && user.token === token) {
                 const game = await ctx.runQuery(internal.games.findUserGame, { uid });
                 if (game?.battleId && !game.status) {
                     const battle = await ctx.runQuery(internal.battle.findById, { battleId: game.battleId as Id<"battle"> })
@@ -22,11 +23,13 @@ export const authByToken = action({
                 const assets = await ctx.runQuery(internal.asset.findUserAssets, { uid });
                 if (assets)
                     user['assets'] = assets
+                return { ...user, timestamp: Date.now() }
             }
-            return { token: "123456", ...user, timestamp: Date.now() }
+
         } catch (err) {
             return null
         }
+        return null
     }
 })
 

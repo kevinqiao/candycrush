@@ -27,9 +27,14 @@ const GlobalStyle = createGlobalStyle<GlobalStyleProps>`
     margin: 0;
     padding: 0;
   }
+  h1 {
+    font-size: 2rem;
+    color: ${(props) => props.theme.primaryColor};
+  }
 `;
 const LocaleStyleLoader: React.FC = () => {
   const { locale } = useLocalization();
+  console.log("locale:" + locale);
   return (
     <>
       <GlobalStyle locale={locale} />

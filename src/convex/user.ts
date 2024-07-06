@@ -1,3 +1,4 @@
+"platform: 'node'"
 import { v } from "convex/values";
 import { Id } from "./_generated/dataModel";
 import { internalMutation, internalQuery, mutation, query } from "./_generated/server";
@@ -68,3 +69,34 @@ export const updateToken = mutation({
     await ctx.db.patch(id, { token });
   },
 });
+export const authorize = internalMutation({
+  args: { channel: v.number(), cid: v.string(), token: v.string(), partner: v.number(), username: v.string(), email: v.optional(v.string()), phone: v.optional(v.string()) },
+  handler: async (ctx, { cid, channel, token, username, phone, email, partner }) => {
+    let cuser: any = await ctx.db.query("cuser").withIndex("by_channel_cid", (q) => q.eq('channel', channel).eq("cid", cid)).unique();
+    const cuid = cid + "-" + channel;
+    if (!cuser) {
+      cuser = { cid, cuid, name: username, channel, phone, email }
+      const _id = await ctx.db.insert("cuser", cuser);
+      cuser['id'] = _id;
+    }
+    let user: any = await ctx.db.query("user").withIndex("by_channel_partner", (q) => q.eq("cuid", cuid).eq("partner", partner)).unique();
+    if (!user) {
+      user = {
+        cuid,
+        name: username,
+        partner,
+        token
+      }
+      const uid = await ctx.db.insert("user", user);
+      if (uid) {
+        await ctx.db.patch(uid, { uid });
+        user.uid = uid;
+      }
+    } else {
+      await ctx.db.patch(user._id, { token });
+      user.token = token
+    }
+    return user;
+  },
+});
+

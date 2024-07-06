@@ -39,6 +39,7 @@ const StackPop: React.FC<PopupProps> = ({ zIndex, index }) => {
         width: position.maxWidth && position.maxWidth < w ? position.maxWidth : w,
         height: h,
         direction: position.direction,
+        animate: position.animate ?? undefined,
       };
 
       return pattern;

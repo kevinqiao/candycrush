@@ -2,19 +2,18 @@ import { defineSchema, defineTable } from "convex/server";
 import { v } from "convex/values";
 
 export default defineSchema({
-    authprovider: defineTable({
+    authenticator: defineTable({
         id: v.string(),
         name: v.string(),
         path: v.string()
-    }),
-    bgames: defineTable({
-        gameId: v.string(),
-        laststep: v.number(),
-        starttime: v.number(),
-        endTime: v.optional(v.number()),
-        ref: v.string(),
-        status: v.number()
-    }),
+    }).index("by_name", ['name']).index("by_pid", ["id"]),
+    authchannel: defineTable({
+        id: v.number(),
+        authenticator: v.string(),
+        desc: v.optional(v.string()),
+        data: v.optional(v.any())
+    }).index("by_channelId", ["id"]),
+
     gameseeds: defineTable({
         seed: v.string(),
         top: v.number(),
@@ -91,7 +90,7 @@ export default defineSchema({
         scheduler: v.optional(v.object({ timeZone: v.string(), slots: v.array(v.object({ day: v.number(), weekday: v.number(), hour: v.number(), minute: v.number(), duration: v.number() })) })),
         entry: v.optional(v.object({ level: v.number(), cost: v.array(v.object({ asset: v.number(), amount: v.number() })) })),
         rewards: v.array(v.object({ rank: v.number(), assets: v.array(v.object({ asset: v.number(), amount: v.number() })) })),
-        status: v.number()
+        status: v.number()//0-open 1-disable
     }).index("by_status", ["status"]),
     asset: defineTable({
         asset: v.number(),
@@ -107,7 +106,7 @@ export default defineSchema({
         email: v.optional(v.string()),
         phone: v.optional(v.string()),
         data: v.optional(v.any())
-    }),
+    }).index("by_channel_cid", ["channel", "cid"]),
     user: defineTable({
         name: v.string(),
         uid: v.optional(v.string()),
@@ -118,14 +117,16 @@ export default defineSchema({
         lastUpdate: v.optional(v.number()),
         lastEventTime: v.optional(v.number()),
         email: v.optional(v.string()),
-        status: v.optional(v.number())//0-active 1-removed
+        phone: v.optional(v.string()),
+        role: v.optional(v.number()),//0-consumer 1-employee 2-owner
+        status: v.optional(v.number())//0-inactive 1-active
     }).index("by_channel_partner", ['cuid', 'partner']).index("by_uid", ['uid']),
     partner: defineTable({
         name: v.string(),
         pid: v.number(),
         host: v.string(),
         domain: v.optional(v.string()),
-        auth: v.optional(v.array(v.object({ provider: v.string(), data: v.any() }))),
+        auth: v.any(),
         desc: v.optional(v.string()),
         email: v.optional(v.string())
     }).index("by_host", ["host"]).index("by_domain", ['domain']).index("by_name", ['name']).index("by_pid", ['pid']),
@@ -152,4 +153,79 @@ export default defineSchema({
         collected: v.optional(v.number())
     }).index("by_user", ['uid']).index("by_tournament_term_score", ["tournamentId", "term", "score"]).index("by_tournament_term_uid", ["tournamentId", "term", "uid"]),
 
+    review: defineTable({
+        email: v.optional(v.string()),
+        phone: v.optional(v.string()),
+        partnerId: v.number(),
+        app: v.number(),//1-google 2-facebook 3-twitter
+        aid: v.string(),//reviewId from app;
+        star: v.number(),
+        comment: v.string(),
+        status: v.number(),//0-created 1-deleted
+    }).index("by_partner", ['partnerId']).index("by_email", ['partnerId', 'email']).index("by_phone", ['partnerId', 'phone']),
+
+    order: defineTable({
+        email: v.optional(v.string()),
+        phone: v.optional(v.string()),
+        uid: v.optional(v.string()),
+        tableNo: v.optional(v.number()),
+        partnerId: v.number(),//partner id
+        oid: v.string(),//original order id created by pos
+        pos: v.number(),//1-clover 2-shopify 3-other...
+        referId: v.optional(v.string()),//eg table no
+        status: v.number(),//0-open 1-paid 2-claimed 3-cancelled
+        amount: v.number(),
+        data: v.any(),
+    }).index("by_partner", ['partnerId']).index("by_partner_customer", ['partnerId', 'uid']).index("by_refer", ['partnerId', 'status', 'referId']),
+
+    reward_rule: defineTable({
+        partnerId: v.number(),
+        type: v.number(),//0-order 1-review
+        rule: v.any(),//{stampRatio:20,limit:-1,
+        status: v.number(),//0-active 1-inactive
+    }),
+
+    reward: defineTable({
+        uid: v.string(),
+        partnerId: v.number(),
+        type: v.number(),//0-order 1-good review 2-
+        sid: v.optional(v.string()),//reward for source id (eg orderId, reviewId ...)
+        stamp: v.optional(v.number()),
+        point: v.optional(v.number()),
+        status: v.number(),//0-created 1-cancelled
+    }).index("by_user", ['uid']),
+
+    product: defineTable({
+        partnerId: v.number(),
+        itemId: v.string(),
+        name: v.string(),
+        stamp: v.number(),
+        point: v.number(),
+        status: v.number(),//0-active 1-inactive
+    }),
+
+    redeem: defineTable({
+        uid: v.optional(v.string()),
+        emloyeeId: v.optional(v.string()),
+        partnerId: v.number(),
+        itemId: v.string(),
+        orderId: v.string(),
+        stamp: v.number(),
+        point: v.number(),
+        status: v.number(),//0-created 1-cancelled
+    }),
+
+    table: defineTable({
+        no: v.number(),
+        partnerId: v.number(),
+        merchantId: v.string(),
+        status: v.number(),//0-open 1-in service 2-close
+    }),
+    membership: defineTable({
+        uid: v.string(),
+        title: v.optional(v.string()),
+        partnerId: v.number(),
+        star: v.number(),
+        status: v.number(),//0-active 1-suspend
+    }),
 });

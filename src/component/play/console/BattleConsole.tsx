@@ -11,8 +11,9 @@ import TimeCount from "./TimeCount";
 
 const BattleConsole: React.FC = () => {
   const { user } = useUserManager();
-  const { battle } = useBattleManager();
-  const { scenes, containerBound } = useSceneManager();
+  const { battle, containerBound } = useBattleManager();
+
+  const { scenes } = useSceneManager();
 
   const mode = useMemo(() => {
     if (battle?.games) {

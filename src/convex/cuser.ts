@@ -11,15 +11,8 @@ export const find = query({
 export const findByCid = query({
   args: { cid: v.string(), channel: v.number() },
   handler: async (ctx, { cid, channel }) => {
-    const cuser = await ctx.db.query("cuser").filter((q) => q.and(q.eq(q.field("cid"), cid), q.eq(q.field("channel"), channel))).unique();
+    const cuser = await ctx.db.query("cuser").withIndex("by_channel_cid", (q) => q.eq("channel", channel).eq("cid", cid)).unique();
     return { ...cuser, _id: undefined }
-  },
-});
-export const create = mutation({
-  args: { cid: v.string(), name: v.optional(v.string()), email: v.optional(v.string()), phone: v.optional(v.string()), channel: v.number(), data: v.optional(v.any()) },
-  handler: async (ctx, { cid, name, email, phone, channel, data }) => {
-    const cuid = cid + "-" + channel;
-    return await ctx.db.insert("cuser", { cid, cuid, name, channel, email, phone, data });
   },
 });
 export const update = mutation({

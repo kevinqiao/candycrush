@@ -39,7 +39,7 @@ const BattleReport: React.FC = () => {
   const { exit } = usePageProp();
   const convex = useConvex();
   const { user } = useUserManager();
-  console.log(report);
+  // console.log(report);
   const findReport = useCallback(async () => {
     if (battle && user) {
       const { uid, token } = user;

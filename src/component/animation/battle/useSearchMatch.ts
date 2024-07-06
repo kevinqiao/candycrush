@@ -97,21 +97,8 @@ export const useSearchMatch = () => {
                 tl.kill();
             }
         });
-        // const sl = gsap.timeline({
-        //     repeat: 100,
-        //     yoyo: true,
-        //     onComplete: () => {
-        //         sl.kill();
-        //     }
-        // });
-        // tl.add(sl);
-        tl.to(searchScene.containerEle, { duration: 0, autoAlpha: 1 })
-        // sl.fromTo(
-        //     searchScene.searchEle,
-        //     { scaleX: 0.9, scaleY: 0.9 },
-        //     { duration: 0.5, scaleX: 1.1, scaleY: 1.1, ease: "power2.inOut" }, ">"
-        // );
-        // sl.play();
+
+        tl.fromTo(searchScene.containerEle, { scale: 0.5, autoAlpha: 0 }, { duration: 0.5, scale: 1, autoAlpha: 1 }).to(searchScene.searchEle, { duration: 0, autoAlpha: 1 }, "<")
         if (!timeline)
             tl.play();
     }, [scenes]);
@@ -119,22 +106,13 @@ export const useSearchMatch = () => {
     const closeSearch = useCallback((timeline: any) => {
         if (!scenes) return;
         const searchScene = scenes.get(SCENE_NAME.BATTLE_SEARCH) as SearchScene;
-
         if (!searchScene.containerEle || !searchScene.searchEle) return;
-
-        const cl = gsap.timeline({
-            // repeat: 100,
-            // yoyo: true,
-        });
         const tl = timeline ?? gsap.timeline({
             onComplete: () => {
                 tl.kill();
             }
         });
-        tl.add(cl, "<")
-        tl.to(searchScene.containerEle, { autoAlpha: 0, duration: 0.5 });
-        cl.to(searchScene.searchEle, { autoAlpha: 0, duration: 0.5 })
-
+        tl.to(searchScene.containerEle, { scale: 0.5, autoAlpha: 0, duration: 0.5 }).to(searchScene.searchEle, { duration: 0.5, autoAlpha: 0 }, "<")
         if (!timeline)
             tl.play();
     }, [scenes]);

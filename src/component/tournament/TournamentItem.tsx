@@ -3,6 +3,7 @@ import PlayersIcon from "component/icons/PlayersIcon";
 import { Tournament } from "model/Tournament";
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { usePageManager } from "service/PageManager";
+import usePartnerManager from "service/PartnerManager";
 import useCoord from "service/TerminalManager";
 import useTournamentManager from "service/TournamentManager";
 import { useUserManager } from "service/UserManager";
@@ -20,6 +21,7 @@ const TournamentItem: React.FC<Props> = ({ tournament }) => {
   const { openPage } = usePageManager();
   const { user } = useUserManager();
   const [isOver, setOver] = useState<boolean>(false);
+  const { partner } = usePartnerManager();
 
   const calculateFontSize = () => {
     if (divRef.current) {
@@ -47,16 +49,8 @@ const TournamentItem: React.FC<Props> = ({ tournament }) => {
     if (tournament && !isOver) {
       const rs = await join(tournament.id);
       console.log(rs);
-      if (rs && !rs.ok) {
-        if (rs.code === 1) {
-          console.log("you are in battle now");
-        } else if (rs.code === 2) {
-          const app = getCurrentAppConfig();
-          openPage({ name: "battlePlay", ctx: app.context, data: { tournament } });
-        }
-      }
     }
-  }, [tournament, join, isOver]);
+  }, [tournament, join, partner, isOver]);
   const openLeaderboard = useCallback(() => {
     if (tournament?.type) {
       const app = getCurrentAppConfig();

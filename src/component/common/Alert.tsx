@@ -1,17 +1,19 @@
 import gsap from "gsap";
 import React, { useCallback, useEffect, useRef } from "react";
 import useEventSubscriber from "service/EventManager";
+import usePartnerManager from "service/PartnerManager";
 
 const Alert: React.FC = () => {
   const containerRef = useRef<HTMLDivElement>(null);
   const maskRef = useRef<HTMLDivElement>(null);
   const confirmRef = useRef<HTMLDivElement>(null);
   const { event } = useEventSubscriber([], ["alert"]);
-
+  const { partner } = usePartnerManager();
   useEffect(() => {
-    if (!event) {
-      cancel();
-    } else open();
+    if (partner) cancel();
+  }, [partner]);
+  useEffect(() => {
+    if (event) open();
   }, [event]);
 
   const open = useCallback(() => {
@@ -44,7 +46,7 @@ const Alert: React.FC = () => {
         ref={maskRef}
         style={{
           position: "absolute",
-          zIndex: 10000,
+          zIndex: 90000,
           margin: 0,
           border: 0,
           top: 0,
@@ -60,7 +62,7 @@ const Alert: React.FC = () => {
         ref={containerRef}
         style={{
           position: "absolute",
-          zIndex: 10002,
+          zIndex: 90002,
           top: 0,
           left: 0,
           display: "flex",

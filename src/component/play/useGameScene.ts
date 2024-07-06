@@ -16,9 +16,9 @@ import useSceneUtil from "./common/useSceneUtil";
 const useGameScene = () => {
     const timelineRef = useRef<any>(null);
     const { gameEvent, game } = useGameManager();
-    const { battle, loadGame, currentSkill, setCurrentSkill } = useBattleManager();
+    const { battle, loadGame, currentSkill, setCurrentSkill, containerBound } = useBattleManager();
     const skillRef = useRef<number>(currentSkill);
-    const { load, textures, scenes, containerBound } = useSceneManager();
+    const { load, textures, scenes } = useSceneManager();
     const { initGameScene, updateGameScene } = useSceneUtil();
     const { playApply } = useMatchAnimate(timelineRef);
     const { swipeAct, hitAct } = useAct(timelineRef);

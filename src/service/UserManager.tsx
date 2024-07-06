@@ -1,11 +1,13 @@
-import { useAction, useQuery } from "convex/react";
+import { useQuery } from "convex/react";
+import { BATTLE_LOAD } from "model/Constants";
 import { PageItem } from "model/PageProps";
 import { User } from "model/User";
 import React, { createContext, useCallback, useContext, useEffect, useState } from "react";
-import { buildStackURL, getCurrentAppConfig } from "util/PageUtils";
+import { buildStackURL, getCurrentAppConfig, getURIParam } from "util/PageUtils";
 import { api } from "../convex/_generated/api";
 import useEventSubscriber from "./EventManager";
 import { usePageManager } from "./PageManager";
+import usePartnerManager from "./PartnerManager";
 interface UserEvent {
   id: string;
   name: string;
@@ -15,29 +17,28 @@ interface UserEvent {
 interface IUserContext {
   user: any | null;
   userEvent: UserEvent | null;
-  sessionCheck: number;
   authComplete: (user: User) => void;
   logout: () => void;
   updateAsset: (asset: number, amount: number) => void;
+  openPlay: (player: any, battleId: string | null) => void;
 }
 
 const UserContext = createContext<IUserContext>({
   user: null,
   userEvent: null,
-  sessionCheck: 0,
   authComplete: () => null,
   logout: () => null,
   updateAsset: () => null,
+  openPlay: () => null,
 });
 
 export const UserProvider = ({ children }: { children: React.ReactNode }) => {
-  const { stacks, currentPage, openPage } = usePageManager();
+  const { stacks, openPage } = usePageManager();
   const [user, setUser] = useState<any>(null);
   const { createEvent } = useEventSubscriber([], ["account"]);
-
-  const [sessionCheck, setSessionCheck] = useState(0); //0-to check 1-checked
   const [lastTime, setLastTime] = useState<number>(0);
-  const authByToken = useAction(api.UserService.authByToken);
+  const { app, partner } = usePartnerManager();
+  // const authByToken = useAction(api.UserService.authByToken);
 
   const userEvent: any = useQuery(api.events.getByUser, {
     uid: user?.uid ?? "###",
@@ -45,36 +46,48 @@ export const UserProvider = ({ children }: { children: React.ReactNode }) => {
   });
 
   const openPlay = useCallback(
-    (u: User, battleId: string) => {
-      const app: any = getCurrentAppConfig();
+    (player: any, battleId: string | null) => {
+      const appConfig: any = getCurrentAppConfig();
+
       const pageItem: PageItem = {
         name: "battlePlay",
-        ctx: app.context,
-        data: battleId ? { battleId } : null,
-        params: battleId ? { battleId } : null,
+        app: appConfig.name,
+        data: battleId ? { battleId, load: BATTLE_LOAD.PLAY } : null,
+        params: battleId ? { battleId, load: BATTLE_LOAD.PLAY } : null,
       };
+      const mode = getURIParam("m");
 
-      if (u?.authEmbed) {
-        pageItem.params.uid = u.uid;
-        pageItem.params.token = u.token;
+      if (window.Telegram) {
+        pageItem.params = { uid: player.uid, token: player.token, m: 1 };
         const url = buildStackURL(pageItem);
         window.Telegram.WebApp.openLink(url);
-      } else openPage(pageItem);
+      } else if (mode && mode === "1") {
+        pageItem.name = "lobbyPlay";
+        openPage(pageItem);
+      } else {
+        pageItem.name = "battlePlay";
+        const stack = stacks.find((s) => s.name === "battlePlay");
+        if (!stack) openPage(pageItem);
+      }
     },
-    [openPage]
+    [openPage, stacks]
   );
 
   const authComplete = useCallback(
     (u: User) => {
       console.log(u);
       u.timelag = u.timestamp ? u.timestamp - Date.now() : 0;
-      localStorage.setItem("user", JSON.stringify({ uid: u.uid, token: u.token, authEmbed: u.authEmbed ?? 0 }));
-      if (u["insearch"]) {
-        // console.log("you are in searching opponent");
-        openPlay(u, null);
-      } else if (u.battleId) {
-        const stack = stacks.find((s) => s.name === "battlePlay");
-        if (!stack) openPlay(u, u.battleId);
+      const mode = getURIParam("m"); //mode=1 one time play session
+
+      if (!mode) {
+        localStorage.setItem("user", JSON.stringify({ uid: u.uid, token: u.token }));
+        console.log("complete persist user");
+      }
+      if (u.battleId) {
+        openPlay(u, u.battleId);
+      } else if (u["insearch"]) {
+        console.log("open search event create");
+        createEvent({ name: "searchOpen", topic: "search", delay: 0 });
       }
       if (u.timestamp) setLastTime(u.timestamp);
       setUser(u);
@@ -92,12 +105,20 @@ export const UserProvider = ({ children }: { children: React.ReactNode }) => {
     },
     [user]
   );
+  const logout = useCallback(() => {
+    console.log(app);
+    if (app) {
+      localStorage.removeItem("user");
+      setUser(null);
+      openPage({ name: "playcenter", app: app.name });
+    }
+  }, [app, createEvent]);
   useEffect(() => {
     if (userEvent && user) {
       console.log(userEvent);
       if (userEvent?.name === "battleCreated") {
-        const stack = stacks.find((s) => s.name === "battlePlay");
-        if (!stack) openPlay(user, userEvent.data);
+        const { id: battleId } = userEvent.data;
+        openPlay(user, battleId);
       } else if (userEvent?.name === "assetUpdated") {
         const { asset, amount } = userEvent.data;
         if (asset) {
@@ -106,60 +127,17 @@ export const UserProvider = ({ children }: { children: React.ReactNode }) => {
           else user.assets.push({ asset, amount });
         }
       }
-      // console.log("time:" + userEvent.time + ":" + lastTime);
       if (userEvent.time > lastTime) setLastTime(userEvent.time);
     }
   }, [user, userEvent]);
 
-  useEffect(() => {
-    if (user || !currentPage) return;
-
-    let uid, token;
-    let authEmbed = 0; //0-external browser 1-telegram bot 2-browser url
-    if (currentPage.params?.uid && currentPage.params?.token) {
-      uid = currentPage.params?.uid;
-      token = currentPage.params?.token;
-    } else {
-      const userJSON = localStorage.getItem("user");
-      if (userJSON !== null) {
-        const userObj = JSON.parse(userJSON);
-        if (userObj["uid"] && userObj["token"]) {
-          uid = userObj["uid"];
-          token = userObj["token"];
-          authEmbed = userObj["authEmbed"] ?? 0;
-        }
-      }
-    }
-    if (uid && token) {
-      let status = 1;
-      authByToken({ uid, token })
-        .then((u: any) => {
-          if (u) {
-            u.timelag = u.timestamp - Date.now();
-            authComplete({ ...u, authEmbed });
-            status = 2;
-          }
-        })
-        .catch((err) => {
-          console.log(err);
-        })
-        .finally(() => {
-          setSessionCheck(status);
-        });
-    } else setSessionCheck(1);
-  }, [user, currentPage]);
-
   const value = {
     user,
     userEvent,
-    sessionCheck,
     updateAsset,
     authComplete,
-    logout: useCallback(() => {
-      localStorage.removeItem("user");
-      setUser(null);
-      createEvent({ name: "logout", topic: "account", delay: 0 });
-    }, [createEvent]),
+    openPlay,
+    logout,
   };
 
   return <UserContext.Provider value={value}>{children}</UserContext.Provider>;

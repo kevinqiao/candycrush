@@ -3,33 +3,32 @@ import { SCENE_ID, SCENE_NAME } from "model/Match3Constants";
 import * as PIXI from "pixi.js";
 import React, { createContext, useCallback, useContext, useEffect, useRef, useState } from "react";
 import { loadSvgAsTexture } from "util/Utils";
-import PageProps, { PagePosition } from "../model/PageProps";
 import { GameScene, SceneModel } from "../model/SceneModel";
 interface ISceneContext {
-  load: number; //0-play 1-replay;
+  // load: number; //0-play 1-replay;
   visible: boolean;
-  containerBound: PagePosition | null | undefined;
+  // containerBound: PagePosition | null | undefined;
   textures: { id: number; texture: PIXI.Texture }[];
   avatarTextures: { name: string; texture: PIXI.Texture }[];
   iconTextures: { name: string; texture: PIXI.Texture }[];
   scenes: Map<string, any> | null;
   createScene: (sceneId: number, scene: SceneModel) => void;
   updateScene: (sceneId: number, data: any) => void;
-  disableCloseBtn: () => void;
-  exit: () => void;
+  // disableCloseBtn: () => void;
+  // exit: () => void;
 }
 const SceneContext = createContext<ISceneContext>({
-  load: 0,
+  // load: 0,
   visible: true,
-  containerBound: null,
+  // containerBound: null,
   textures: [],
   avatarTextures: [],
   iconTextures: [],
   scenes: null,
   createScene: (sceneId: number, scene: SceneModel) => null,
   updateScene: (sceneId: number, data: any) => null,
-  disableCloseBtn: () => null,
-  exit: () => null,
+  // disableCloseBtn: () => null,
+  // exit: () => null,
 });
 interface SceneEvent {
   type: number;
@@ -37,25 +36,28 @@ interface SceneEvent {
   scene: SceneModel;
 }
 
-export const SceneProvider = ({
-  load,
-  visible,
-  pageProp,
-  pagePosition,
-  children,
-}: {
-  load: number;
-  visible: boolean;
-  pageProp: PageProps;
-  pagePosition: PagePosition;
-  children: React.ReactNode;
-}) => {
+export const SceneProvider = ({ children }: { children: React.ReactNode }) => {
+  const [visible, setVisible] = useState(true);
   const scenesRef = useRef<Map<string, any>>(new Map());
   const texturesRef = useRef<{ id: number; texture: PIXI.Texture }[]>([]);
   const avatarTexturesRef = useRef<{ name: string; texture: PIXI.Texture }[]>([]);
   const iconTexturesRef = useRef<{ name: string; texture: PIXI.Texture }[]>([]);
   const [complete, setComplete] = useState(false);
-
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === "visible") {
+        console.log("tab visible");
+        setVisible(true);
+      } else {
+        console.log("tab invisible");
+        setVisible(false);
+      }
+    };
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+    return () => {
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
+    };
+  }, []);
   useEffect(() => {
     const loadTextures = async () => {
       const frameSize = 100;
@@ -86,21 +88,12 @@ export const SceneProvider = ({
   }, []);
 
   const value = {
-    load,
     visible,
-    containerBound: pagePosition,
+    // containerBound: pagePosition,
     textures: texturesRef.current,
     avatarTextures: avatarTexturesRef.current,
     iconTextures: iconTexturesRef.current,
     scenes: scenesRef.current,
-    exit: useCallback(() => {
-      if (pageProp.close) pageProp.close(0);
-    }, [pageProp]),
-    disableCloseBtn: useCallback(() => {
-      if (pageProp.disableCloseBtn) {
-        pageProp.disableCloseBtn();
-      }
-    }, [pageProp]),
 
     createScene: useCallback(
       (sceneId: number, scene: SceneModel) => {

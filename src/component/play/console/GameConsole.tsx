@@ -12,8 +12,8 @@ import GoalPanel from "./GoalPanel";
 
 const GameConsole: React.FC = () => {
   const { user } = useUserManager();
-  const { load, battle } = useBattleManager();
-  const { createScene, scenes, containerBound } = useSceneManager();
+  const { load, battle, containerBound } = useBattleManager();
+  const { createScene, scenes } = useSceneManager();
   const { game } = useGameManager();
   const [bound, setBound] = useState<{ x: number; y: number; width: number; height: number; mode: number } | null>(
     null

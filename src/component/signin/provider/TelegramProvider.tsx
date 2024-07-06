@@ -1,20 +1,46 @@
+import { useConvex } from "convex/react";
 import React, { useEffect } from "react";
+import usePartnerManager from "service/PartnerManager";
 import { useUserManager } from "service/UserManager";
-import { useAuthorize } from "../useAuthorize";
-const TelegramProvider = () => {
-  const { authTgbot } = useAuthorize();
+import { api } from "../../../convex/_generated/api";
+import { AuthProps } from "../SSOController";
+const TelegramProvider: React.FC<AuthProps> = ({ channel, provider }) => {
+  // const { authTgbot } = useAuthorize();
   const { authComplete } = useUserManager();
+  const { partner } = usePartnerManager();
+  const convex = useConvex();
   useEffect(() => {
-    const authorizeToken = async () => {
+    if (!partner) return;
+    const src = "https://telegram.org/js/telegram-web-app.js";
+    const script = document.createElement("script");
+    script.src = src;
+    script.async = true;
+    script.onload = async () => {
+      // console.log(`${src} has been loaded.`);
       if (!window.Telegram || !window.Telegram.WebApp) return;
       const telegramData = window.Telegram.WebApp.initData;
-      const res = await authTgbot(telegramData);
-      if (res?.status === "success") {
+      console.log(telegramData);
+      // const res = await authTgbot(telegramData);
+      // console.log(res);
+      const res = await convex.action(api.authoize.authorize, {
+        data: { authData: telegramData },
+        channelId: channel,
+        partner: partner.pid,
+      });
+      if (res.ok) {
         authComplete(res.message);
       }
     };
-    authorizeToken();
-  }, []);
+    script.onerror = () => {
+      console.error(`Error loading ${src}`);
+    };
+
+    document.body.appendChild(script);
+    return () => {
+      document.body.removeChild(script);
+    };
+  }, [partner]);
+
   return (
     <>
       <div

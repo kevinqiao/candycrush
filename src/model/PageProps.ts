@@ -4,7 +4,8 @@ export interface PagePattern {
     vh: number;
     width: number;
     height: number;
-    direction: number
+    direction: number;
+    animate?: { from: any; to: any }
 }
 export interface PagePosition {
     top: number;
@@ -26,6 +27,7 @@ export interface PageConfig {
     position?: {
         closeControl?: { btn: number; confirm: number; maskActive: number };
         direction: number;
+        animate?: { from: any; to: any }
         width: number;
         height: number;
         maxWidth?: number;
@@ -36,8 +38,8 @@ export default interface PageProps {
     ctx?: string;
     data?: any;
     params?: any;
-    child?: string;
-    anchor?: string;
+    // child?: string;
+    // anchor?: string;
     config: PageConfig;
     dimension?: PagePattern;
     disableCloseBtn?: () => void;
@@ -46,7 +48,8 @@ export default interface PageProps {
 
 export interface PageItem {
     name: string;
-    ctx?: string; //null|undefined-cover
+    app: string; //null|undefined-cover
+    ctx?: string;
     data?: any;
     params?: any;
     anchor?: string;

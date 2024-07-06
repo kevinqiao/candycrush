@@ -165,52 +165,49 @@ const NavHeader = () => {
   }, [assets]);
   return (
     <>
-      {user?.uid ? (
-        <>
-          <div
-            style={{
-              position: "absolute",
-              top: 0,
-              left: 0,
-              zIndex: 1000,
-              width: "100%",
-              opacity: 0.9,
-              height: `${headH}px`,
-              backgroundColor: "blue",
-            }}
-          ></div>
-          <div
-            style={{
-              position: "absolute",
-              top: 0,
-              left: 0,
-              zIndex: 1002,
-              display: "flex",
-              justifyContent: "center",
-              width: "100%",
-            }}
-          >
-            <NavHead height={`${headH}px`} width={"100%"}>
-              <div style={{ display: "flex", justifyContent: "flex-start", alignItems: "center", height: "100%" }}>
-                <Avatar></Avatar>
-                <div style={{ width: 20 }} />
-                <AssetContainer>
-                  <Asset ref={diamondRef} onClick={() => openAsset(1)}>
-                    <Diamond />
-                    <span style={{ color: "white", fontSize: 12 }}>{diamond}</span>
-                  </Asset>
-                  <div style={{ width: 40 }} />
-                  <Asset ref={coinRef} onClick={() => openAsset(2)}>
-                    <Coin />
-                    <span style={{ color: "white", fontSize: 12 }}>{coin}</span>
-                  </Asset>
-                </AssetContainer>
-              </div>
-              <MenuIcon ref={menuIconRef} onClick={toggleMenubar} />
-            </NavHead>
+      <div
+        style={{
+          position: "absolute",
+          top: 0,
+          left: 0,
+          zIndex: 1000,
+          width: "100%",
+          opacity: 0.9,
+          height: `${headH}px`,
+          backgroundColor: "blue",
+        }}
+      ></div>
+      <div
+        style={{
+          position: "absolute",
+          top: 0,
+          left: 0,
+          zIndex: 1002,
+          display: "flex",
+          justifyContent: "center",
+          width: "100%",
+        }}
+      >
+        <NavHead height={`${headH}px`} width={"100%"}>
+          <div style={{ display: "flex", justifyContent: "flex-start", alignItems: "center", height: "100%" }}>
+            <Avatar></Avatar>
+            <div style={{ width: 20 }} />
+            <AssetContainer>
+              <Asset ref={diamondRef} onClick={() => openAsset(1)}>
+                <Diamond />
+                <span style={{ color: "white", fontSize: 12 }}>{diamond}</span>
+              </Asset>
+              <div style={{ width: 40 }} />
+              <Asset ref={coinRef} onClick={() => openAsset(2)}>
+                <Coin />
+                <span style={{ color: "white", fontSize: 12 }}>{coin}</span>
+              </Asset>
+            </AssetContainer>
           </div>
-        </>
-      ) : null}
+          <MenuIcon ref={menuIconRef} onClick={toggleMenubar} />
+        </NavHead>
+      </div>
+
       <AssetCollectAnimate diamondDivRef={diamondRef} coinDivRef={coinRef} assets={assets} />
       <MenuBar menuIconRef={menuIconRef} open={menubarOpen} onClose={() => setMenubarOpen(false)} />
     </>

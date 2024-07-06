@@ -46,7 +46,9 @@ const BattleReady = () => {
     playInitBattle(battle, bl);
     tl.play();
   }, [battle, eles, allGameLoaded]);
-
+  const matchCompleted = useMemo(() => {
+    return battle && battle.startTime - Date.now() - user.timelag <= 0 ? true : false;
+  }, [battle, user]);
   useEffect(() => {
     if (!battle || !user) return;
     const timeleft = battle?.startTime - user.timelag - Date.now();
@@ -89,94 +91,96 @@ const BattleReady = () => {
 
   return (
     <>
-      <div ref={sceneContainerRef} className="match_container">
-        {battle?.players?.map((player) => (
+      {!matchCompleted ? (
+        <div ref={sceneContainerRef} className="match_container">
+          {battle?.players?.map((player) => (
+            <div
+              key={player.uid}
+              ref={(ele) => load(player.uid, ele)}
+              style={{
+                opacity: 0,
+                position: "absolute",
+                top: height * 0.4,
+                left: width / 2,
+                width: 80,
+                height: 80,
+              }}
+            >
+              {player ? <Avatar player={player} mode={0} /> : null}
+            </div>
+          ))}
+
           <div
-            key={player.uid}
-            ref={(ele) => load(player.uid, ele)}
+            ref={vsRef}
             style={{
               opacity: 0,
               position: "absolute",
-              top: height * 0.4,
-              left: width / 2,
-              width: 80,
-              height: 80,
-            }}
-          >
-            {player ? <Avatar player={player} mode={0} /> : null}
-          </div>
-        ))}
-
-        <div
-          ref={vsRef}
-          style={{
-            opacity: 0,
-            position: "absolute",
-            top: height * 0.4 + 40,
-            left: 0,
-            display: "flex",
-            justifyContent: "center",
-            width: "100%",
-          }}
-        >
-          <span style={{ fontSize: 20 }}>VS</span>
-        </div>
-
-        <div
-          ref={goalPanelRef}
-          style={{
-            opacity: 0,
-            position: "absolute",
-            top: height * 0.7,
-            left: 0,
-            width: "100%",
-          }}
-        >
-          <div
-            style={{
-              width: "100%",
+              top: height * 0.4 + 40,
+              left: 0,
               display: "flex",
-              flexDirection: "column",
-              alignItems: "center",
+              justifyContent: "center",
+              width: "100%",
             }}
           >
-            <div style={{ fontSize: 20, fontWeight: 25, color: "white" }}>Goal</div>
-            <div style={{ height: 40 }} />
-            <div style={{ display: "flex" }}>
-              {goals &&
-                goals.map((a: any) => (
-                  <div
-                    key={a.asset}
-                    style={{
-                      width: 55,
-                      display: "flex",
-                      flexDirection: "column",
-                      alignItems: "center",
-                    }}
-                  >
-                    <div style={{ fontSize: 12 }}>{a.quantity}</div>
-                    <div style={{ width: 35, height: 35 }}>
-                      <GoalCandy asset={a.asset} />
+            <span style={{ fontSize: 20 }}>VS</span>
+          </div>
+
+          <div
+            ref={goalPanelRef}
+            style={{
+              opacity: 0,
+              position: "absolute",
+              top: height * 0.7,
+              left: 0,
+              width: "100%",
+            }}
+          >
+            <div
+              style={{
+                width: "100%",
+                display: "flex",
+                flexDirection: "column",
+                alignItems: "center",
+              }}
+            >
+              <div style={{ fontSize: 20, fontWeight: 25, color: "white" }}>Goal</div>
+              <div style={{ height: 40 }} />
+              <div style={{ display: "flex" }}>
+                {goals &&
+                  goals.map((a: any) => (
+                    <div
+                      key={a.asset}
+                      style={{
+                        width: 55,
+                        display: "flex",
+                        flexDirection: "column",
+                        alignItems: "center",
+                      }}
+                    >
+                      <div style={{ fontSize: 12 }}>{a.quantity}</div>
+                      <div style={{ width: 35, height: 35 }}>
+                        <GoalCandy asset={a.asset} />
+                      </div>
                     </div>
-                  </div>
-                ))}
+                  ))}
+              </div>
             </div>
           </div>
-        </div>
 
-        <div
-          style={{
-            position: "absolute",
-            top: height * 0.3,
-            left: 0,
-            width: "100%",
-            display: "flex",
-            justifyContent: "center",
-          }}
-        >
-          {timeLeft >= 0 ? <CountdownTimer time={timeLeft} onTimeout={matchComplete} /> : null}
+          <div
+            style={{
+              position: "absolute",
+              top: height * 0.3,
+              left: 0,
+              width: "100%",
+              display: "flex",
+              justifyContent: "center",
+            }}
+          >
+            {timeLeft >= 0 ? <CountdownTimer time={timeLeft} onTimeout={matchComplete} /> : null}
+          </div>
         </div>
-      </div>
+      ) : null}
     </>
   );
 };

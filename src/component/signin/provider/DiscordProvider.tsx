@@ -1,19 +1,41 @@
-import React, { useEffect } from "react";
+import { DiscordSDK } from "@discord/embedded-app-sdk";
+import { useConvex } from "convex/react";
+import React, { useEffect, useRef } from "react";
 import { useUserManager } from "service/UserManager";
-import { useAuthorize } from "../useAuthorize";
+import { api } from "../../../convex/_generated/api";
+const DISCORD_CLIENT_ID = "1252780878078152844";
 const DiscordProvider = () => {
-  const { authTgbot } = useAuthorize();
+  const convex = useConvex();
   const { authComplete } = useUserManager();
+  const discordSDKRef = useRef<any>();
+  console.log("discord provider");
   useEffect(() => {
-    const authorizeToken = async () => {
-      if (!window.Telegram || !window.Telegram.WebApp) return;
-      const telegramData = window.Telegram.WebApp.initData;
-      const res = await authTgbot(telegramData);
-      if (res?.status === "success") {
-        authComplete(res.message);
+    const startDiscordAuth = async () => {
+      try {
+        const discordSdk = new DiscordSDK(DISCORD_CLIENT_ID);
+        await discordSdk.ready();
+        discordSDKRef.current = discordSdk;
+        const { code } = await discordSdk.commands.authorize({
+          client_id: DISCORD_CLIENT_ID,
+          response_type: "code",
+          state: "",
+          prompt: "none",
+          scope: ["identify", "guilds"],
+        });
+
+        const { access_token } = await convex.action(api.authoize.authorizeDiscord, { code, partner: 1 });
+        console.log(access_token);
+
+        // Authenticate with Discord client (using the access_token)
+        const auth = await discordSdk.commands.authenticate({
+          access_token,
+        });
+      } catch (err) {
+        console.log(err);
       }
     };
-    authorizeToken();
+
+    startDiscordAuth();
   }, []);
   return (
     <>

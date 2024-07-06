@@ -61,7 +61,7 @@ export const getNow = (timeZone: string): { day: number; hour: number; weekday: 
 export const getMonthDate = (timeZone: string, day: number, hour: number, minute: number): Date => {
     // 获取指定时区的当月的时间
     const date = moment().tz(timeZone);
-   
+
     // 设置日、小时和分钟
     date.date(day);   // 设置日期（日）
     date.hours(hour);  // 设置小时
@@ -81,4 +81,40 @@ export const getWeekDate = (timeZone: string, weekday: number, hour: number, min
     date.milliseconds(0);  // 同样，将毫秒设置为0
     return date.toDate();
 
+}
+export function sleep(ms: number) {
+    return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+export async function fetchAndRetry(
+    input: RequestInfo,
+    init?: RequestInit | undefined,
+    nRetries = 3,
+): Promise<Response> {
+    try {
+        // Make the request
+        const response = await fetch(input, init);
+
+        // If there's a 429 error code, retry after retry_after seconds
+        // https://discord.com/developers/docs/topics/rate-limits#rate-limits
+        if (response.status === 429 && nRetries > 0) {
+            const retryAfter = Number(response.headers.get('retry_after'));
+            if (Number.isNaN(retryAfter)) {
+                return response;
+            }
+            await sleep(retryAfter * 1000);
+            return await fetchAndRetry(input, init, nRetries - 1);
+        } else {
+            return response;
+        }
+    } catch (ex) {
+        if (nRetries <= 0) {
+            throw ex;
+        }
+
+        // If the request failed, wait one second before trying again
+        // This could probably be fancier with exponential backoff
+        await sleep(1000);
+        return await fetchAndRetry(input, init, nRetries - 1);
+    }
 }

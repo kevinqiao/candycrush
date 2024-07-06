@@ -16,7 +16,6 @@ interface IPageContext {
   stacks: PageItem[];
   prevPage: PageItem | null;
   currentPage: PageItem | null;
-  // pushPage: (p: PageItem) => void;
   popPage: (p: string[]) => void;
   openPage: (page: PageItem) => void;
 }
@@ -58,8 +57,8 @@ const reducer = (state: any, action: any) => {
     case actions.APP_OPEN: {
       const res = action.data;
       if (res.navItem) {
-        // console.log(res);
         const obj = { currentPage: res.navItem, stacks: res.stackItems ?? [] };
+        console.log(obj);
         return Object.assign({}, state, obj);
       } else return state;
     }
@@ -74,7 +73,6 @@ const PageContext = createContext<IPageContext>({
   stacks: [],
   prevPage: null,
   currentPage: null,
-  // pushPage: (p: PageItem) => null,
   popPage: (p: string[]) => null,
   openPage: (p: PageItem) => null,
 });
@@ -86,7 +84,7 @@ export const PageProvider = ({ children }: { children: React.ReactNode }) => {
     (page: PageItem) => {
       const hash = window.location.hash;
       if (hash && hash.lastIndexOf(page.name) > 0) return;
-      if (!page.ctx) {
+      if (!page.app) {
         const cover: PageConfig | undefined = Covers.find((c) => c.name === page.name);
         if (cover) {
           dispatch({ type: actions.PAGE_PUSH, data: page });
@@ -96,9 +94,11 @@ export const PageProvider = ({ children }: { children: React.ReactNode }) => {
           }
         }
       } else {
-        const app = AppsConfiguration[0];
+        const app = AppsConfiguration.find((a) => a.name === page.app);
         const cfg: PageConfig | undefined = app.navs.find((p) => p.name === page.name);
+        console.log(cfg);
         if (cfg) {
+          if (cfg.child) page.child = cfg.child;
           if (!cfg.nohistory) {
             const url = buildNavURL(page);
             window.history.pushState({}, "", url);
@@ -120,11 +120,15 @@ export const PageProvider = ({ children }: { children: React.ReactNode }) => {
   );
   const openApp = useCallback(
     (app: any) => {
+      console.log(app);
       if (app["navItem"]) {
-        if (app.stackItems && app.data) {
-          const stack = app.stackItems[app.stackItems.length - 1];
-          stack.data = app.data;
-        }
+        console.log(app);
+        const url = buildNavURL(app.navItem);
+        window.history.pushState({}, "", url);
+        // if (app.stackItems && app.data) {
+        //   const stack = app.stackItems[app.stackItems.length - 1];
+        //   stack.data = app.data;
+        // }
         dispatch({ type: actions.APP_OPEN, data: app });
       }
     },
@@ -138,35 +142,16 @@ export const PageProvider = ({ children }: { children: React.ReactNode }) => {
     };
 
     const prop = parseURL(window.location);
+    console.log(prop);
     if (prop.ctx) {
-      if (!prop["navItem"]) {
-        prop.stackItems = undefined;
-        const app: any = AppsConfiguration.find((a) => a.context === prop.ctx);
-        if (app?.navs && app.navs.length > 0) {
-          let uri = "/" + app.context + "/" + app.navs[0].uri;
-          prop.navItem = { name: app.navs[0].name };
-          prop.navItem.ctx = prop.ctx;
-          if (app.navs[0]["children"]) {
-            prop.navItem.child = app.navs[0].child ?? app.navs[0].children[0].name;
-            const child: { name: string; path: string; uri: string } = app.navs[0].children.find(
-              (c: any) => c.name === app.navs[0]["child"]
-            );
-            if (child) uri = uri + "/" + child.uri;
-          }
-          window.history.replaceState({}, "", uri);
-        }
-      }
       openApp(prop);
-    } else {
-      //open page not found
     }
-
     window.addEventListener("popstate", handlePopState);
 
     return () => {
       window.removeEventListener("popstate", handlePopState);
     };
-  }, [openPage]);
+  }, [openApp]);
 
   const value = {
     stacks: state.stacks,

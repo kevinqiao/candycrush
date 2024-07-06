@@ -61,11 +61,13 @@ export const Telegram =
 export const PlayPlace =
 {
     name: "playPlace",
-    context: "match3",
-    auth: true,
+    entry: "playcenter",
+    context: "/",
+    auth: 1,//0-public 1-consumer 2-worker 3-admin
     navs: [
         {
             name: "playcenter",
+            auth: 1,
             path: "./lobby/LobbyHome",
             uri: "playcenter",
             child: "battleHome",
@@ -76,6 +78,12 @@ export const PlayPlace =
                 { name: "accountHome", path: "./signin/AccountHome", uri: "signin/home" },
                 { name: "avatarList", path: "", uri: "" },
             ]
+        },
+        {
+            name: "www",
+            auth: 0,
+            path: "./www/W3Home",
+            uri: "w3",
         }
     ],
     stacks: [
@@ -89,6 +97,7 @@ export const PlayPlace =
             position: {
                 closeControl: { btn: 0, confirm: 1, maskActive: 1 },
                 direction: 0,
+                animate: { from: { scale: 0.5 }, to: { scale: 1 } },
                 width: 1,
                 height: 1,
             }
@@ -121,18 +130,18 @@ export const PlayPlace =
 
     ]
 }
-export const W3Home =
-{
-    name: "w3",
-    context: "/",
-    navs: [
-        {
-            name: "w3player",
-            path: "./www/W3Home",
-            uri: "/",
-        }
-    ],
-}
+// export const W3Home =
+// {
+//     name: "w3",
+//     context: "/w3",
+//     navs: [
+//         {
+//             name: "w3player",
+//             path: "./www/W3Home",
+//             uri: "/",
+//         }
+//     ],
+// }
 export const Covers = [
     {
         name: "signin",
@@ -159,4 +168,4 @@ export const Covers = [
     }
 ]
 
-export const AppsConfiguration: any = [PlayPlace, Telegram, W3Home]
+export const AppsConfiguration: any[] = [PlayPlace]

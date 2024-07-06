@@ -13,8 +13,8 @@ import { getGameBound } from "util/BattleBoundUtil";
 
 const useSceneUtil = () => {
     const { user } = useUserManager();
-    const { load, scenes, containerBound, createScene, updateScene } = useSceneManager();
-    const { battle } = useBattleManager();
+    const { load, scenes, createScene, updateScene } = useSceneManager();
+    const { battle, containerBound } = useBattleManager();
     const { game } = useGameManager();
     const containerBoundInitialRef = useRef(containerBound)
 
@@ -31,7 +31,7 @@ const useSceneUtil = () => {
                     : game.uid === user.uid
                         ? 1
                         : 2;
-            console.log(game.uid + ":" + game.gameId + ":" + mode)
+
             const gameScene: GameScene | undefined = gameScenes?.find((s) => s.gameId === game.gameId);
             if (!gameScene) {
                 const gameBound = getGameBound(width, height, column, row, mode);

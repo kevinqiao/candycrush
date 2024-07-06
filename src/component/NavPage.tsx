@@ -7,14 +7,17 @@ import "./popup.css";
 
 const NavPage: React.FC = () => {
   const { user } = useUserManager();
-  const { openPage, currentPage } = usePageManager();
+  const { currentPage } = usePageManager();
   const [pageProp, setPageProp] = useState<PageProps | null>(null);
 
   useEffect(() => {
+    console.log(currentPage);
     if (currentPage) {
       const app: any = AppsConfiguration.find((c) => c.context === currentPage.ctx);
+      console.log(app);
       if (app?.navs) {
         const config: PageConfig | undefined = app.navs.find((s) => s.name === currentPage.name);
+        console.log(config);
         // const config = NavPages.find((s) => s.name === currentPage.name);
         if (config) {
           const prop = { ...currentPage, config };
@@ -35,14 +38,18 @@ const NavPage: React.FC = () => {
             <div
               style={{
                 position: "fixed",
+                display: "flex",
+                justifyContent: "center",
+                alignItems: "center",
                 top: 0,
                 left: 0,
                 width: "100vw",
                 height: "100vh",
-                backgroundColor: "transparent",
+                backgroundColor: "blueviolet",
+                color: "white",
               }}
             >
-              Loading
+              <span>Loading</span>
             </div>
           }
         >
@@ -52,7 +59,7 @@ const NavPage: React.FC = () => {
     }
   }, [pageProp]);
 
-  return <div style={{ backgroundColor: "transparent" }}>{render}</div>;
+  return <>{render}</>;
 };
 
 export default NavPage;

@@ -50,7 +50,6 @@ export const LocalizationProvider = ({ children }: { children: ReactNode }) => {
     };
 
     if (locale) {
-      console.log(locale);
       fetchResources(locale);
     }
   }, [locale]);
