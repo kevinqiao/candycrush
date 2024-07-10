@@ -5,7 +5,8 @@ export default defineSchema({
     authenticator: defineTable({
         id: v.string(),
         name: v.string(),
-        path: v.string()
+        path: v.string(),
+        embed: v.optional(v.number())
     }).index("by_name", ['name']).index("by_pid", ["id"]),
     authchannel: defineTable({
         id: v.number(),
@@ -127,6 +128,7 @@ export default defineSchema({
         host: v.string(),
         domain: v.optional(v.string()),
         auth: v.any(),
+        pos: v.optional(v.any()),
         desc: v.optional(v.string()),
         email: v.optional(v.string())
     }).index("by_host", ["host"]).index("by_domain", ['domain']).index("by_name", ['name']).index("by_pid", ['pid']),
@@ -168,15 +170,14 @@ export default defineSchema({
         email: v.optional(v.string()),
         phone: v.optional(v.string()),
         uid: v.optional(v.string()),
+        locationId: v.optional(v.string()),
         tableNo: v.optional(v.number()),
         partnerId: v.number(),//partner id
         oid: v.string(),//original order id created by pos
-        pos: v.number(),//1-clover 2-shopify 3-other...
-        referId: v.optional(v.string()),//eg table no
         status: v.number(),//0-open 1-paid 2-claimed 3-cancelled
         amount: v.number(),
-        data: v.any(),
-    }).index("by_partner", ['partnerId']).index("by_partner_customer", ['partnerId', 'uid']).index("by_refer", ['partnerId', 'status', 'referId']),
+        data: v.optional(v.any()),
+    }).index("by_location", ["partnerId", "locationId"]).index("by_partner_oid", ['partnerId', 'oid']).index("by_partner_customer", ['partnerId', 'uid']),
 
     reward_rule: defineTable({
         partnerId: v.number(),
@@ -215,12 +216,6 @@ export default defineSchema({
         status: v.number(),//0-created 1-cancelled
     }),
 
-    table: defineTable({
-        no: v.number(),
-        partnerId: v.number(),
-        merchantId: v.string(),
-        status: v.number(),//0-open 1-in service 2-close
-    }),
     membership: defineTable({
         uid: v.string(),
         title: v.optional(v.string()),

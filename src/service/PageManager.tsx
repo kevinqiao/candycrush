@@ -79,8 +79,15 @@ const PageContext = createContext<IPageContext>({
 
 export const PageProvider = ({ children }: { children: React.ReactNode }) => {
   const [state, dispatch] = React.useReducer(reducer, initialState);
-
   const openPage = useCallback(
+    (page: PageItem) => {
+      const app = AppsConfiguration.find((a) => a.name === page.app);
+      const cfg: PageConfig | undefined = app.navs.find((p) => p.name === page.name);
+      if (cfg) dispatch({ type: actions.PAGE_CHANGE, data: page });
+    },
+    [dispatch]
+  );
+  const openPage_bak = useCallback(
     (page: PageItem) => {
       const hash = window.location.hash;
       if (hash && hash.lastIndexOf(page.name) > 0) return;
@@ -96,7 +103,6 @@ export const PageProvider = ({ children }: { children: React.ReactNode }) => {
       } else {
         const app = AppsConfiguration.find((a) => a.name === page.app);
         const cfg: PageConfig | undefined = app.navs.find((p) => p.name === page.name);
-        console.log(cfg);
         if (cfg) {
           if (cfg.child) page.child = cfg.child;
           if (!cfg.nohistory) {
@@ -124,6 +130,7 @@ export const PageProvider = ({ children }: { children: React.ReactNode }) => {
       if (app["navItem"]) {
         console.log(app);
         const url = buildNavURL(app.navItem);
+        console.log(url);
         window.history.pushState({}, "", url);
         // if (app.stackItems && app.data) {
         //   const stack = app.stackItems[app.stackItems.length - 1];
@@ -138,13 +145,15 @@ export const PageProvider = ({ children }: { children: React.ReactNode }) => {
   useEffect(() => {
     const handlePopState = (event: any) => {
       const prop = parseURL(window.location);
-      openApp(prop);
+      dispatch({ type: actions.APP_OPEN, data: prop });
+      // openApp(prop);
     };
 
     const prop = parseURL(window.location);
     console.log(prop);
     if (prop.ctx) {
-      openApp(prop);
+      // openApp(prop);
+      dispatch({ type: actions.APP_OPEN, data: prop });
     }
     window.addEventListener("popstate", handlePopState);
 

@@ -1,5 +1,6 @@
 "use node";
 import { v } from "convex/values";
+import crypto from "crypto";
 import { CHANNEL_AUTH } from "../model/Constants";
 import { internal } from "./_generated/api";
 import { Id } from "./_generated/dataModel";
@@ -41,14 +42,45 @@ const verifyTelegram = async (data: any): Promise<{ cid: string; username: strin
   }
   return null;
 }
+const verifyCloverEmbed = async (data: { accessToken: string }, pos: { merchantId: string }): Promise<{ cid: string; username: string; email?: string; phone?: string; token: string; role: number } | null> => {
+  return { cid: "10000010001", username: "test", token: crypto.randomBytes(24).toString("hex"), role: 2 }
+}
+const verifyClover = async (data: { accessToken: string }, pos: { merchantId: string }): Promise<{ cid: string; username: string; email?: string; phone?: string; token: string; role: number } | null> => {
+  return { cid: "10000010002", username: "test", token: crypto.randomBytes(24).toString("hex"), role: 2 }
+  // const CLOVER_URL = "https://apisandbox.dev.clover.com/v3/merchants/YOUR_MERCHANT_ID/employees";
+  // const res = await fetch(CLOVER_URL, {
+  //   method: "GET", // 或 'POST', 'PUT', 'DELETE' 等
+  //   headers: {
+  //     "Content-Type": "application/json",
+  //     Authorization: `Bearer ${data.accessToken}`, // 将 token 添加到请求头中
+  //     mode: "cors",
+  //   },
+  // });
+  // const employee = await res.json();
+  // if (employee) {
+  //   const token = crypto.randomBytes(24).toString("hex");
+  //   const { id, name, email } = employee;
+  //   return { cid: id, username: name, email, token };
+  // }
+  // return null;
+}
 export const authorize = action({
-  args: { partner: v.number(), app: v.optional(v.string()), channelId: v.number(), data: v.any() },
-  handler: async (ctx, { app, channelId, partner, data }): Promise<any> => {
+  args: { partnerId: v.number(), app: v.optional(v.string()), channelId: v.number(), data: v.any() },
+  handler: async (ctx, { app, channelId, partnerId, data }): Promise<any> => {
+    const partner = await ctx.runQuery(internal.partner.findById, { pid: partnerId })
     const channel = await ctx.runQuery(internal.authchannel.find, { id: channelId })
     if (!channel) return;
-    let auth;
+    let auth: { cid: string; username: string; email?: string; phone?: string; token: string; role?: number } | null = null;
     switch (channel.authenticator) {
-      case "1":
+      case "cloverEmbed":
+        if (!data.accessToken)
+          return { ok: false, errorCode: 1 }
+        auth = await verifyCloverEmbed(data, partner.pos);
+        break;
+      case "clover":
+        if (!data.code)
+          return { ok: false, errorCode: 1 }
+        auth = await verifyClover(data, partner.pos);
         break;
       case "clerk":
         auth = await verifyClerk(data);
@@ -66,8 +98,10 @@ export const authorize = action({
         break;
     }
     console.log(auth)
+
     if (auth) {
-      const user = await ctx.runMutation(internal.user.authorize, { ...auth, channel: 1, partner });
+      const user = await ctx.runMutation(internal.user.authorize, { ...auth, channel: channelId, partner: partnerId });
+      console.log(user)
       await ctx.runMutation(internal.asset.update, { uid: user.uid, asset: 1, amount: 100 });
       await ctx.runMutation(internal.asset.update, { uid: user.uid, asset: 2, amount: 100 });
 
@@ -77,15 +111,17 @@ export const authorize = action({
         if (battle && ((battle.duration + battle.startTime) > Date.now()))
           user['battleId'] = battle._id
       }
-      const matching = await ctx.runQuery(internal.matchqueue.finByUid, { uid: user.uid });
-      if (matching)
-        user['insearch'] = 1;
-      const assets = await ctx.runQuery(internal.asset.findUserAssets, { uid: user.uid });
-      if (assets)
-        user['assets'] = assets
+      if (!user.role || user.role === 0) {
+        const matching = await ctx.runQuery(internal.matchqueue.finByUid, { uid: user.uid });
+        if (matching)
+          user['insearch'] = 1;
+        const assets = await ctx.runQuery(internal.asset.findUserAssets, { uid: user.uid });
+        if (assets)
+          user['assets'] = assets
+      }
       return { ok: true, message: user };
     }
-    return { ok: true, message: auth }
+    return { ok: false, errorCode: 2 }
   },
 });
 export const authorizeClerk = action({

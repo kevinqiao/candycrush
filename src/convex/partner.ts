@@ -1,5 +1,5 @@
 import { v } from "convex/values";
-import { mutation, query } from "./_generated/server";
+import { internalQuery, mutation, query } from "./_generated/server";
 export const find = query({
   //app:consumer/merchant
   args: { pid: v.optional(v.number()), host: v.optional(v.string()), app: v.string(), channelId: v.number() },
@@ -52,5 +52,12 @@ export const update = mutation({
     const partner = await ctx.db.query("partner").withIndex("by_pid", (q) => q.eq("pid", id)).unique();
     if (partner)
       await ctx.db.patch(partner._id, { ...data });
+  },
+});
+export const findById = internalQuery({
+  args: { pid: v.number() },
+  handler: async (ctx, { pid }) => {
+    const p = await ctx.db.query("partner").withIndex("by_pid", (q) => q.eq("pid", pid)).unique();
+    return { ...p, _id: undefined, _creationTime: undefined };
   },
 });

@@ -110,12 +110,12 @@ export const UserProvider = ({ children }: { children: React.ReactNode }) => {
     if (app) {
       localStorage.removeItem("user");
       setUser(null);
-      openPage({ name: "playcenter", app: app.name });
+      const appConfig = getCurrentAppConfig();
+      openPage({ name: appConfig.entry, app: app.name });
     }
   }, [app, createEvent]);
   useEffect(() => {
     if (userEvent && user) {
-      console.log(userEvent);
       if (userEvent?.name === "battleCreated") {
         const { id: battleId } = userEvent.data;
         openPlay(user, battleId);

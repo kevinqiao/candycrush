@@ -11,7 +11,7 @@ interface IPartnerContext {
     name: string;
     host: string;
     pid: number;
-    auth: { id: string; channel: number; name: string; path: string; data: any };
+    auth: { id: string; channel: number; name: string; path: string; embed?: number; data: any };
   } | null;
 }
 const PartnerContext = createContext<IPartnerContext>({
@@ -27,14 +27,13 @@ export const PartnerProvider = ({ children }: { children: ReactNode }) => {
     name: string;
     host: string;
     pid: number;
-    auth: { id: string; channel: number; name: string; path: string; data: any };
+    auth: { id: string; channel: number; name: string; path: string; embed?: number; data: any };
   } | null>(null);
   const convex = useConvex();
-  console.log(app);
+
   useEffect(() => {
     // localStorage.removeItem("partner");
     if (currentPage) {
-      console.log(currentPage);
       let partnerId = 0;
       let channel = 0;
       if (currentPage.params) {
@@ -42,18 +41,18 @@ export const PartnerProvider = ({ children }: { children: ReactNode }) => {
         partnerId = partner ? +partner : 0;
         channel = c ? +c : 0;
       }
-      const p = localStorage.getItem("partner");
-      if (partnerId > 0) {
-        localStorage.setItem("partner", JSON.stringify({ partnerId, channel }));
-      } else if (p !== null) {
-        const d = JSON.parse(p);
-        partnerId = d.partnerId;
-      }
+      // const p = localStorage.getItem("partner");
+      // if (partnerId > 0) {
+      //   localStorage.setItem("partner", JSON.stringify({ partnerId, channel }));
+      // } else if (p !== null) {
+      //   const d = JSON.parse(p);
+      //   partnerId = d.partnerId;
+      // }
       const appConfig = AppsConfiguration.find((a) => a.name === currentPage.app);
-      console.log(appConfig);
+
       if (
         appConfig &&
-        (!app || app.host !== window.location.hostname || appConfig.name !== app.name || partnerId !== app.partnerId)
+        (!app || (partnerId > 0 && partnerId !== app.partnerId) || (channel > 0 && channel !== app.channel))
       ) {
         const appData = {
           name: appConfig.name,

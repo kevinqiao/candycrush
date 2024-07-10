@@ -70,8 +70,9 @@ export const updateToken = mutation({
   },
 });
 export const authorize = internalMutation({
-  args: { channel: v.number(), cid: v.string(), token: v.string(), partner: v.number(), username: v.string(), email: v.optional(v.string()), phone: v.optional(v.string()) },
-  handler: async (ctx, { cid, channel, token, username, phone, email, partner }) => {
+  args: { channel: v.number(), cid: v.string(), token: v.string(), partner: v.number(), username: v.string(), email: v.optional(v.string()), phone: v.optional(v.string()), role: v.optional(v.number()) },
+  handler: async (ctx, { cid, channel, token, username, phone, email, partner, role }) => {
+    console.log("role:" + role)
     let cuser: any = await ctx.db.query("cuser").withIndex("by_channel_cid", (q) => q.eq('channel', channel).eq("cid", cid)).unique();
     const cuid = cid + "-" + channel;
     if (!cuser) {
@@ -85,7 +86,8 @@ export const authorize = internalMutation({
         cuid,
         name: username,
         partner,
-        token
+        token,
+        role
       }
       const uid = await ctx.db.insert("user", user);
       if (uid) {
@@ -93,9 +95,11 @@ export const authorize = internalMutation({
         user.uid = uid;
       }
     } else {
-      await ctx.db.patch(user._id, { token });
+      await ctx.db.patch(user._id, { token, role });
       user.token = token
+      user.role = role
     }
+
     return user;
   },
 });

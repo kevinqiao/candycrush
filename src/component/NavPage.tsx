@@ -3,32 +3,37 @@ import PageProps, { PageConfig } from "model/PageProps";
 import React, { FunctionComponent, Suspense, lazy, useEffect, useMemo, useState } from "react";
 import { usePageManager } from "service/PageManager";
 import { useUserManager } from "service/UserManager";
+import { buildNavURL } from "util/PageUtils";
 import "./popup.css";
 
 const NavPage: React.FC = () => {
   const { user } = useUserManager();
-  const { currentPage } = usePageManager();
-  const [pageProp, setPageProp] = useState<PageProps | null>(null);
+  const { prevPage, currentPage } = usePageManager();
+  const [pageProp, setPageProp] = useState<any>(null);
 
   useEffect(() => {
-    console.log(currentPage);
+    // if (currentPage && (!prevPage || prevPage.name !== currentPage.name || prevPage.app !== currentPage.app)) {
     if (currentPage) {
-      const app: any = AppsConfiguration.find((c) => c.context === currentPage.ctx);
+      const app: any = AppsConfiguration.find((c) => c.name === currentPage.app);
       console.log(app);
       if (app?.navs) {
         const config: PageConfig | undefined = app.navs.find((s) => s.name === currentPage.name);
-        console.log(config);
-        // const config = NavPages.find((s) => s.name === currentPage.name);
-        if (config) {
+        console.log(user);
+        const role = user ? user.role ?? 1 : 0;
+        console.log(role + ":" + config?.auth);
+        if (config && (!config.auth || role >= config.auth)) {
           const prop = { ...currentPage, config };
           if (!pageProp || currentPage.ctx !== pageProp.ctx || currentPage.name !== pageProp.name) {
+            if (config.child) currentPage.child = config.child;
+            const url = buildNavURL(currentPage);
+            window.history.pushState({}, "", url);
             setPageProp(prop);
-            // if (app.auth) openPage({ name: "signin", data: {} });
           }
         }
       }
     }
-  }, [currentPage]);
+  }, [currentPage, user]);
+
   const render = useMemo(() => {
     if (pageProp?.config.path) {
       const SelectedComponent: FunctionComponent<PageProps> = lazy(() => import(`${pageProp.config.path}`));

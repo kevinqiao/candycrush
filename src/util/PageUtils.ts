@@ -6,7 +6,6 @@ export const parseURL = (location: any): { navItem?: PageItem; ctx?: string; sta
     const navItem: any = {};
     const ps = location.pathname.split("/");
     res["ctx"] = ps[1].length === 0 ? "/" : ps[1];
-
     let app: any = AppsConfiguration.find((a) => a.context === res['ctx']);
     if (!app) {
         app = AppsConfiguration.find((a) => a.context === "/" || a.context === "");
@@ -77,6 +76,15 @@ export const buildNavURL = (pageItem: PageItem): string | null => {
             if (pageItem.child) {
                 const child = nav.children.find((c) => c.name === pageItem.child);
                 if (child) url = url + "/" + child.uri;
+            }
+            if (pageItem.params && Object.keys(pageItem.params).length > 0) {
+                url = url + "?"
+                Object.keys(pageItem.params).forEach((k, index) => {
+                    const v = pageItem.params[k];
+                    if (Object.keys(pageItem.params).length === index + 1) {
+                        url = url + k + "=" + v;
+                    } else url = url + k + "=" + v + "&";
+                })
             }
         }
         return url;

@@ -1,63 +1,4 @@
-export const Telegram =
-{
-    name: "telegram",
-    context: "tg",
-    authLife: 1,
-    navs: [
-        {
-            name: "playcenter",
-            path: "./PlayCenter",
-            uri: "playcenter",
-            child: "tournamentHome",
-            children: [
-                { name: "tournamentHome", path: "./tournament/TournamentHome", uri: "tournament/home" },
-                { name: "textureList", path: "", uri: "" },
-                { name: "battleHome", path: "./battle/BattleHome", uri: "battle/home" },
-                { name: "accountHome", path: "./signin/AccountHome", uri: "signin/home" },
-                { name: "avatarList", path: "", uri: "" },
-            ]
-        }
-    ],
-    stacks: [
 
-        {
-            name: "battlePlay",
-            path: "./play/PlayHome",
-            uri: "./play/PlayHome",
-            auth: true,
-            nohistory: true,
-            position: {
-                closeControl: { btn: 0, confirm: 1, maskActive: 1 },
-                direction: 0,
-                width: 550,
-                height: 1,
-            }
-        },
-        {
-            name: "battleReplay",
-            path: "./play/PlayHome",
-            uri: "./play/PlayHome",
-            auth: true,
-            position: {
-                direction: 4,
-                width: 550,
-                height: 1,
-            }
-        },
-        {
-            name: "leaderboard",
-            path: "./leaderboard/LeaderBoardHome",
-            uri: "./leaderboard/LeaderBoardHome",
-            position: {
-                closeControl: { btn: 0, confirm: 1, maskActive: 1 },
-                direction: 3,
-                width: 1,
-                height: 0.7,
-            }
-        }
-
-    ]
-}
 export const PlayPlace =
 {
     name: "playPlace",
@@ -79,12 +20,12 @@ export const PlayPlace =
                 { name: "avatarList", path: "", uri: "" },
             ]
         },
-        {
-            name: "www",
-            auth: 0,
-            path: "./www/W3Home",
-            uri: "w3",
-        }
+        // {
+        //     name: "www",
+        //     auth: 0,
+        //     path: "./www/W3Home",
+        //     uri: "w3",
+        // }
     ],
     stacks: [
 
@@ -130,18 +71,72 @@ export const PlayPlace =
 
     ]
 }
-// export const W3Home =
-// {
-//     name: "w3",
-//     context: "/w3",
-//     navs: [
-//         {
-//             name: "w3player",
-//             path: "./www/W3Home",
-//             uri: "/",
-//         }
-//     ],
-// }
+export const Consumer =
+{
+    name: "consumer",
+    context: "loyalty",
+    entry: "home",
+    auth: 0,
+    navs: [
+        {
+            name: "home",
+            auth: 0,
+            path: "./loyalty/consumer/ConsumerHome",
+            uri: "/home",
+        },
+        {
+            name: "order",
+            auth: 0,
+            path: "./loyalty/consumer/OrderHome",
+            uri: "/order",
+        },
+        {
+            name: "member",
+            auth: 1,
+            path: "./loyalty/consumer/MemberHome",
+            uri: "/member",
+        }
+    ],
+}
+export const Merchant =
+{
+    name: "merchant",
+    context: "merchant",
+    entry: "home",
+    auth: 2,
+    navs: [
+        {
+            name: "home",
+            auth: 2,
+            path: "./loyalty/merchant/MerchantHome",
+            uri: "/home",
+        },
+        {
+            name: "order",
+            auth: 2,
+            path: "./loyalty/merchant/OrderHome",
+            uri: "/order",
+        },
+        {
+            name: "member",
+            auth: 2,
+            path: "./loyalty/merchant/MemberHome",
+            uri: "/member",
+        }
+    ],
+}
+export const W3Home =
+{
+    name: "w3",
+    context: "/w3",
+    navs: [
+        {
+            name: "home",
+            path: "./www/W3Home",
+            uri: "/",
+        }
+    ],
+}
 export const Covers = [
     {
         name: "signin",
@@ -168,4 +163,4 @@ export const Covers = [
     }
 ]
 
-export const AppsConfiguration: any[] = [PlayPlace]
+export const AppsConfiguration: any[] = [PlayPlace, Consumer, Merchant, W3Home]

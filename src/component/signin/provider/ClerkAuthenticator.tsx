@@ -11,10 +11,11 @@ import { AuthProps } from "../SSOController";
 
 const AuthorizeToken: React.FC<AuthProps> = ({ authenticator }) => {
   const { signOut } = useClerk();
+  const { app } = usePartnerManager();
   const { getToken, isSignedIn } = useAuth();
-  const { authComplete } = useUserManager();
+  const { user, authComplete } = useUserManager();
   const { event: accountEvent } = useEventSubscriber([], ["account"]);
-  const { user } = useUserManager();
+
   const { partner } = usePartnerManager();
   const { currentPage } = usePageManager();
   // const [redirectURL, setRedirectURL] = useState<string | null>(null);
@@ -26,14 +27,21 @@ const AuthorizeToken: React.FC<AuthProps> = ({ authenticator }) => {
   //   }
   // }, [user]);
   const redirectURL = useMemo(() => {
-    if (currentPage) {
+    if (app && currentPage) {
+      console.log(app);
+      if (app.partnerId > 0) {
+        currentPage.params
+          ? (currentPage.params["partner"] = app.partnerId)
+          : (currentPage.params = { partnerId: app.partnerId });
+      }
+      console.log(currentPage);
       const url = buildNavURL(currentPage);
       console.log(url);
       return url;
     }
     // const appConfig = getCurrentAppConfig();
     // if (appConfig) return appConfig.context;
-  }, [user, currentPage]);
+  }, [app, user, currentPage]);
   useEffect(() => {
     if (user && isSignedIn) {
       signOut();
@@ -53,7 +61,7 @@ const AuthorizeToken: React.FC<AuthProps> = ({ authenticator }) => {
         const res = await convex.action(api.authoize.authorize, {
           data: { jwttoken: t },
           channelId: authenticator.channel,
-          partner: partner.pid,
+          partnerId: partner.pid,
         });
         if (res?.ok) {
           authComplete(res.message);
@@ -75,7 +83,7 @@ const AuthorizeToken: React.FC<AuthProps> = ({ authenticator }) => {
             alignItems: "center",
             width: "100%",
             height: "100%",
-            backgroundColor: "black",
+            backgroundColor: "transparent",
           }}
         >
           {/* <div style={{ fontSize: "20px", color: "blue" }}>Welcome!</div> */}
