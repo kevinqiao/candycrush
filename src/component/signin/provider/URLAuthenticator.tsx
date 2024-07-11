@@ -6,7 +6,7 @@ import { useUserManager } from "service/UserManager";
 import { getURIParam } from "util/PageUtils";
 import { api } from "../../../convex/_generated/api";
 import { AuthProps } from "../SSOController";
-const CloverAuthenticator: React.FC<AuthProps> = ({ authenticator }) => {
+const URLAuthenticator: React.FC<AuthProps> = ({ authenticator }) => {
   const { partner } = usePartnerManager();
   const { authComplete } = useUserManager();
   const [error, setError] = useState(0);
@@ -35,12 +35,8 @@ const CloverAuthenticator: React.FC<AuthProps> = ({ authenticator }) => {
       window.location.href = url;
     }
   }, [accountEvent]);
-  // const login = useCallback(() => {
-  //   const url = "http://localhost:3000/www/oauth-code.html";
-  //   window.location.href = url;
-  // }, []);
 
   return <></>;
 };
 
-export default CloverAuthenticator;
+export default URLAuthenticator;

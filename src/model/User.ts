@@ -11,6 +11,8 @@
 // }
 export interface User {
     uid: string;
+    role?: number;
+    partner: number;
     token: string;
     tenant?: number;
     name?: string;

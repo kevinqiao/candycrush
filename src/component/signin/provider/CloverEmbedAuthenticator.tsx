@@ -1,5 +1,6 @@
 import { useConvex } from "convex/react";
-import React, { useCallback, useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
+import useEventSubscriber from "service/EventManager";
 import usePartnerManager from "service/PartnerManager";
 import { useUserManager } from "service/UserManager";
 import { getURIParam } from "util/PageUtils";
@@ -10,11 +11,10 @@ const CloverEmbedAuthenticator: React.FC<AuthProps> = ({ authenticator, close })
   const { user, authComplete } = useUserManager();
   const [error, setError] = useState(0);
   const convex = useConvex();
-
+  const { event: accountEvent } = useEventSubscriber([], ["account"]);
   useEffect(() => {
     const channelAuth = async (accessToken: string) => {
       if (!partner) return;
-      console.log("access token:" + accessToken);
       const res = await convex.action(api.authoize.authorize, {
         data: { accessToken },
         channelId: authenticator.channel,
@@ -29,23 +29,28 @@ const CloverEmbedAuthenticator: React.FC<AuthProps> = ({ authenticator, close })
     if (token) channelAuth(token);
     else setError(1);
   }, [partner]);
-  const login = useCallback(() => {
-    const url = "http://localhost:3000/www/oauth-token.html";
-    window.location.href = url;
-  }, []);
+  useEffect(() => {
+    if (accountEvent?.name === "signin") {
+      const url = "http://localhost:3000/www/oauth-token.html";
+      window.location.href = url;
+    }
+  }, [accountEvent]);
 
   return (
-    <div
-      style={{
-        display: "flex",
-        justifyContent: "center",
-        alignItems: "center",
-        width: "100%",
-        height: "100%",
-        backgroundColor: "red",
-      }}
-    >
-      <div
+    <>
+      {/* {!user ? (
+        <div
+          style={{
+            display: "flex",
+            justifyContent: "center",
+            alignItems: "center",
+            width: "100%",
+            height: "100%",
+            backgroundColor: "transparent",
+          }}
+        >
+          <span>You need to login!</span> */}
+      {/* <div
         style={{
           display: "flex",
           flexDirection: "column",
@@ -90,8 +95,10 @@ const CloverEmbedAuthenticator: React.FC<AuthProps> = ({ authenticator, close })
             close
           </div>
         )}
-      </div>
-    </div>
+      </div> */}
+      {/* </div>
+      ) : null} */}
+    </>
   );
 };
 

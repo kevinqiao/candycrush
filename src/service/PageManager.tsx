@@ -1,7 +1,7 @@
-import { AppsConfiguration, Covers } from "model/PageConfiguration";
+import { AppsConfiguration } from "model/PageConfiguration";
 import { PageConfig, PageItem } from "model/PageProps";
 import React, { createContext, useCallback, useContext, useEffect } from "react";
-import { buildNavURL, buildStackURL, parseURL } from "util/PageUtils";
+import { buildNavURL, parseURL } from "util/PageUtils";
 
 export const PAGE_EVENT_NAME = {
   OPEN_PAGE: "open_page",
@@ -14,14 +14,17 @@ export interface PageEvent {
 
 interface IPageContext {
   stacks: PageItem[];
+  currentPageStatus: number;
   prevPage: PageItem | null;
   currentPage: PageItem | null;
   popPage: (p: string[]) => void;
   openPage: (page: PageItem) => void;
+  setCurrentPageStatus: (status: number) => void;
 }
 
 const initialState = {
   stacks: [],
+  currentPageStatus: -1,
   prevPage: null,
   currentPage: null,
 };
@@ -33,6 +36,7 @@ const actions = {
   PAGE_LEFT: "PAGE_LEFT",
   PAGE_PUSH: "PAGE_PUSH",
   PAGE_POP: "PAGE_POP",
+  STATUS_CHANGE: "STATUS_CHANGE",
 };
 
 const reducer = (state: any, action: any) => {
@@ -53,6 +57,11 @@ const reducer = (state: any, action: any) => {
       return Object.assign({}, state, {
         prevPage: state.currentPage,
         currentPage: action.data,
+        currentPageStatus: 0,
+      });
+    case actions.STATUS_CHANGE:
+      return Object.assign({}, state, {
+        currentPageStatus: action.data.status,
       });
     case actions.APP_OPEN: {
       const res = action.data;
@@ -71,14 +80,22 @@ const reducer = (state: any, action: any) => {
 
 const PageContext = createContext<IPageContext>({
   stacks: [],
+  currentPageStatus: 0,
   prevPage: null,
   currentPage: null,
   popPage: (p: string[]) => null,
   openPage: (p: PageItem) => null,
+  setCurrentPageStatus: (status: number) => null,
 });
 
 export const PageProvider = ({ children }: { children: React.ReactNode }) => {
   const [state, dispatch] = React.useReducer(reducer, initialState);
+  const setCurrentPageStatus = useCallback(
+    (status: number) => {
+      dispatch({ type: actions.STATUS_CHANGE, data: { status } });
+    },
+    [dispatch]
+  );
   const openPage = useCallback(
     (page: PageItem) => {
       const app = AppsConfiguration.find((a) => a.name === page.app);
@@ -87,55 +104,13 @@ export const PageProvider = ({ children }: { children: React.ReactNode }) => {
     },
     [dispatch]
   );
-  const openPage_bak = useCallback(
-    (page: PageItem) => {
-      const hash = window.location.hash;
-      if (hash && hash.lastIndexOf(page.name) > 0) return;
-      if (!page.app) {
-        const cover: PageConfig | undefined = Covers.find((c) => c.name === page.name);
-        if (cover) {
-          dispatch({ type: actions.PAGE_PUSH, data: page });
-          if (!cover.nohistory) {
-            const url = buildStackURL(page);
-            window.history.pushState({}, "", url);
-          }
-        }
-      } else {
-        const app = AppsConfiguration.find((a) => a.name === page.app);
-        const cfg: PageConfig | undefined = app.navs.find((p) => p.name === page.name);
-        if (cfg) {
-          if (cfg.child) page.child = cfg.child;
-          if (!cfg.nohistory) {
-            const url = buildNavURL(page);
-            window.history.pushState({}, "", url);
-          }
-          dispatch({ type: actions.PAGE_CHANGE, data: page });
-        } else {
-          const scfg: PageConfig | undefined = app.stacks.find((p) => p.name === page.name);
-          if (scfg) {
-            if (!scfg.nohistory) {
-              const url = buildStackURL(page);
-              window.history.pushState({ data: page.data }, "", url);
-            }
-            dispatch({ type: actions.PAGE_PUSH, data: page });
-          }
-        }
-      }
-    },
-    [dispatch]
-  );
+
   const openApp = useCallback(
     (app: any) => {
       console.log(app);
       if (app["navItem"]) {
-        console.log(app);
         const url = buildNavURL(app.navItem);
-        console.log(url);
         window.history.pushState({}, "", url);
-        // if (app.stackItems && app.data) {
-        //   const stack = app.stackItems[app.stackItems.length - 1];
-        //   stack.data = app.data;
-        // }
         dispatch({ type: actions.APP_OPEN, data: app });
       }
     },
@@ -150,7 +125,6 @@ export const PageProvider = ({ children }: { children: React.ReactNode }) => {
     };
 
     const prop = parseURL(window.location);
-    console.log(prop);
     if (prop.ctx) {
       // openApp(prop);
       dispatch({ type: actions.APP_OPEN, data: prop });
@@ -164,8 +138,10 @@ export const PageProvider = ({ children }: { children: React.ReactNode }) => {
 
   const value = {
     stacks: state.stacks,
+    currentPageStatus: state.currentPageStatus,
     prevPage: state.prevPage,
     currentPage: state.currentPage,
+    setCurrentPageStatus,
     popPage: (pages: string[]) => {
       dispatch({ type: actions.PAGE_POP, data: pages });
     },

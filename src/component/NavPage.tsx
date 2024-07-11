@@ -8,17 +8,15 @@ import "./popup.css";
 
 const NavPage: React.FC = () => {
   const { user } = useUserManager();
-  const { prevPage, currentPage } = usePageManager();
+  const { setCurrentPageStatus, currentPage } = usePageManager();
   const [pageProp, setPageProp] = useState<any>(null);
 
   useEffect(() => {
     // if (currentPage && (!prevPage || prevPage.name !== currentPage.name || prevPage.app !== currentPage.app)) {
     if (currentPage) {
       const app: any = AppsConfiguration.find((c) => c.name === currentPage.app);
-      console.log(app);
       if (app?.navs) {
         const config: PageConfig | undefined = app.navs.find((s) => s.name === currentPage.name);
-        console.log(user);
         const role = user ? user.role ?? 1 : 0;
         console.log(role + ":" + config?.auth);
         if (config && (!config.auth || role >= config.auth)) {
@@ -28,11 +26,12 @@ const NavPage: React.FC = () => {
             const url = buildNavURL(currentPage);
             window.history.pushState({}, "", url);
             setPageProp(prop);
+            setCurrentPageStatus(1);
           }
         }
       }
     }
-  }, [currentPage, user]);
+  }, [setCurrentPageStatus, currentPage, user]);
 
   const render = useMemo(() => {
     if (pageProp?.config.path) {

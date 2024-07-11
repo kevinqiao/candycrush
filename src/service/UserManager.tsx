@@ -3,7 +3,7 @@ import { BATTLE_LOAD } from "model/Constants";
 import { PageItem } from "model/PageProps";
 import { User } from "model/User";
 import React, { createContext, useCallback, useContext, useEffect, useState } from "react";
-import { buildStackURL, getCurrentAppConfig, getURIParam } from "util/PageUtils";
+import { buildStackURL, getCurrentAppConfig, getPageConfig, getURIParam } from "util/PageUtils";
 import { api } from "../convex/_generated/api";
 import useEventSubscriber from "./EventManager";
 import { usePageManager } from "./PageManager";
@@ -17,7 +17,7 @@ interface UserEvent {
 interface IUserContext {
   user: any | null;
   userEvent: UserEvent | null;
-  authComplete: (user: User) => void;
+  authComplete: (user: User) => number;
   logout: () => void;
   updateAsset: (asset: number, amount: number) => void;
   openPlay: (player: any, battleId: string | null) => void;
@@ -26,14 +26,14 @@ interface IUserContext {
 const UserContext = createContext<IUserContext>({
   user: null,
   userEvent: null,
-  authComplete: () => null,
   logout: () => null,
+  authComplete: () => 1,
   updateAsset: () => null,
   openPlay: () => null,
 });
 
 export const UserProvider = ({ children }: { children: React.ReactNode }) => {
-  const { stacks, openPage } = usePageManager();
+  const { stacks, currentPage, openPage } = usePageManager();
   const [user, setUser] = useState<any>(null);
   const { createEvent } = useEventSubscriber([], ["account"]);
   const [lastTime, setLastTime] = useState<number>(0);
@@ -74,26 +74,31 @@ export const UserProvider = ({ children }: { children: React.ReactNode }) => {
   );
 
   const authComplete = useCallback(
-    (u: User) => {
-      console.log(u);
+    (u: User): number => {
+      if (!currentPage) return 2;
+      const pageConfig: any = getPageConfig(currentPage.app, currentPage.name);
+      const role = u.role ?? 1;
+      if (u.partner !== partner?.pid || pageConfig.auth > role) {
+        return 2;
+      }
       u.timelag = u.timestamp ? u.timestamp - Date.now() : 0;
-      const mode = getURIParam("m"); //mode=1 one time play session
+      // const mode = getURIParam("m"); //mode=1 one time play session
 
-      if (!mode) {
+      if (!partner.auth["embed"]) {
+        console.log("persist user to local storage");
         localStorage.setItem("user", JSON.stringify({ uid: u.uid, token: u.token }));
-        console.log("complete persist user");
       }
       if (u.battleId) {
         openPlay(u, u.battleId);
       } else if (u["insearch"]) {
-        console.log("open search event create");
         createEvent({ name: "searchOpen", topic: "search", delay: 0 });
       }
       if (u.timestamp) setLastTime(u.timestamp);
       setUser(u);
+      return 1;
     },
 
-    [stacks]
+    [partner, currentPage]
   );
   const updateAsset = useCallback(
     (asset: number, amount: number) => {
@@ -106,12 +111,9 @@ export const UserProvider = ({ children }: { children: React.ReactNode }) => {
     [user]
   );
   const logout = useCallback(() => {
-    console.log(app);
     if (app) {
       localStorage.removeItem("user");
       setUser(null);
-      const appConfig = getCurrentAppConfig();
-      openPage({ name: appConfig.entry, app: app.name });
     }
   }, [app, createEvent]);
   useEffect(() => {

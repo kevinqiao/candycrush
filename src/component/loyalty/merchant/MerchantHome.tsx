@@ -7,10 +7,17 @@ const MerchantHome: React.FC<PageProps> = (pageProp) => {
   const { logout } = useUserManager();
   const { user } = useUserManager();
   const { openPage } = usePageManager();
+
   const openMemberCenter = useCallback(() => {
     const page = { name: "member", app: "merchant" };
     openPage(page);
   }, [openPage]);
+  const signout = useCallback(() => {
+    logout();
+    const page = { name: "landing", app: "merchant" };
+    openPage(page);
+  }, []);
+
   return (
     <>
       <div
@@ -52,7 +59,7 @@ const MerchantHome: React.FC<PageProps> = (pageProp) => {
               backgroundColor: "blue",
               color: "white",
             }}
-            onClick={logout}
+            onClick={signout}
           >
             Logout
           </div>

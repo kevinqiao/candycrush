@@ -11,7 +11,7 @@ interface IPartnerContext {
     name: string;
     host: string;
     pid: number;
-    auth: { id: string; channel: number; name: string; path: string; embed?: number; data: any };
+    auth: { id: string; channel: number; name: string; path: string; embed?: number; noshow?: number; data: any };
   } | null;
 }
 const PartnerContext = createContext<IPartnerContext>({
@@ -27,12 +27,11 @@ export const PartnerProvider = ({ children }: { children: ReactNode }) => {
     name: string;
     host: string;
     pid: number;
-    auth: { id: string; channel: number; name: string; path: string; embed?: number; data: any };
+    auth: { id: string; channel: number; name: string; path: string; embed?: number; noshow?: number; data: any };
   } | null>(null);
   const convex = useConvex();
 
   useEffect(() => {
-    // localStorage.removeItem("partner");
     if (currentPage) {
       let partnerId = 0;
       let channel = 0;
@@ -41,15 +40,7 @@ export const PartnerProvider = ({ children }: { children: ReactNode }) => {
         partnerId = partner ? +partner : 0;
         channel = c ? +c : 0;
       }
-      // const p = localStorage.getItem("partner");
-      // if (partnerId > 0) {
-      //   localStorage.setItem("partner", JSON.stringify({ partnerId, channel }));
-      // } else if (p !== null) {
-      //   const d = JSON.parse(p);
-      //   partnerId = d.partnerId;
-      // }
       const appConfig = AppsConfiguration.find((a) => a.name === currentPage.app);
-
       if (
         appConfig &&
         (!app || (partnerId > 0 && partnerId !== app.partnerId) || (channel > 0 && channel !== app.channel))
@@ -60,6 +51,7 @@ export const PartnerProvider = ({ children }: { children: ReactNode }) => {
           partnerId: partnerId ? +partnerId : 0,
           channel: channel ? +channel : 0,
         };
+
         setApp(appData);
       }
     }
@@ -75,13 +67,13 @@ export const PartnerProvider = ({ children }: { children: ReactNode }) => {
         host,
         channelId: channel,
       });
-      // console.log(res);
+      console.log(res);
       if (res.ok) setPartner(res.message);
       else {
         createEvent({ name: "partnerNotExist", topic: "alert", data: "Partner Not Found", delay: 0 });
       }
     };
-    fetchPartner();
+    if (app) fetchPartner();
   }, [app]);
 
   return <PartnerContext.Provider value={{ partner, app }}> {children} </PartnerContext.Provider>;

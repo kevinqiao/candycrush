@@ -6,6 +6,7 @@ export default defineSchema({
         id: v.string(),
         name: v.string(),
         path: v.string(),
+        noshow: v.optional(v.number()),
         embed: v.optional(v.number())
     }).index("by_name", ['name']).index("by_pid", ["id"]),
     authchannel: defineTable({

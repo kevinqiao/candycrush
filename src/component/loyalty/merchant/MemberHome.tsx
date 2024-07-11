@@ -6,12 +6,15 @@ import { useUserManager } from "service/UserManager";
 
 const MemberHome: React.FC<PageProps> = (prop) => {
   const { width, height } = useCoord();
-  const { user } = useUserManager();
+  const { user, logout } = useUserManager();
   const { openPage } = usePageManager();
   const openHome = useCallback(() => {
     const page = { name: "home", app: "merchant" };
     openPage(page);
   }, [openPage]);
+  const signout = useCallback(() => {
+    logout();
+  }, []);
   const render = useMemo(() => {
     return (
       <>

@@ -103,8 +103,14 @@ export const Merchant =
     name: "merchant",
     context: "merchant",
     entry: "home",
-    auth: 2,
+    auth: 0,
     navs: [
+        {
+            name: "landing",
+            auth: 0,
+            path: "./loyalty/merchant/Landing",
+            uri: "/landing",
+        },
         {
             name: "home",
             auth: 2,

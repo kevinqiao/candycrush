@@ -40,5 +40,20 @@ const Loading = styled.div`
   background-color: red;
   color: white;
 `;
-export { Button, Container, Heading, Loading };
+const AuthCloseBtn = styled.div`
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  position: fixed;
+  top: 0px;
+  right: 0px;
+  width: 60px;
+  height: 50px;
+  background-color: white;
+  color: blue;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+`;
+export { AuthCloseBtn, Button, Container, Heading, Loading };
 
