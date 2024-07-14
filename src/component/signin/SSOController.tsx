@@ -1,137 +1,60 @@
 import { Loading } from "component/common/StyledComponents";
 import { useAction } from "convex/react";
 import { gsap } from "gsap";
-import { AppsConfiguration } from "model/PageConfiguration";
-import { PageConfig } from "model/PageProps";
-import React, { FunctionComponent, lazy, Suspense, useCallback, useEffect, useMemo, useRef, useState } from "react";
-import useEventSubscriber from "service/EventManager";
-import { usePageManager } from "service/PageManager";
+import React, { FunctionComponent, lazy, Suspense, useEffect, useMemo, useRef, useState } from "react";
 import usePartnerManager from "service/PartnerManager";
 import { useUserManager } from "service/UserManager";
-import styled from "styled-components";
-import { getCurrentAppConfig, getURIParam } from "util/PageUtils";
+import { getURIParam } from "util/PageUtils";
 import { api } from "../../convex/_generated/api";
 import "./signin.css";
-const CloseBtn = styled.div`
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  position: fixed;
-  z-index: 2001;
-  top: 0px;
-  right: 0px;
-  width: 60px;
-  height: 50px;
-  background-color: white;
-  color: blue;
-  border: none;
-  border-radius: 5px;
-  cursor: pointer;
-`;
 export interface AuthProps {
   authenticator: { id: string; channel: number; name: string; path: string; embed?: number; data: any };
   close?: () => void;
 }
 // gsap.registerPlugin(MotionPathPlugin);
 const SSOController: React.FC = () => {
-  const maskRef = useRef<HTMLDivElement | null>(null);
-  const controllerRef = useRef<HTMLDivElement | null>(null);
-  const closeBtnRef = useRef<HTMLDivElement | null>(null);
   const loadingRef = useRef<HTMLDivElement | null>(null);
-  const { partner } = usePartnerManager();
-  const { user, authComplete } = useUserManager();
-  const { currentPageStatus, currentPage, openPage, prevPage } = usePageManager();
-  const { event: accountEvent } = useEventSubscriber([], ["account"]);
+  const { app, partner } = usePartnerManager();
+  const { authComplete } = useUserManager();
   const authByToken = useAction(api.UserService.authByToken);
   const [sessionCheckCompleted, setSessionCheckCompleted] = useState(0);
-
   useEffect(() => {
-    const checkSession = async () => {
-      let uid = getURIParam("uid");
-      let token = getURIParam("token");
-      if (!uid || !token) {
-        const userJSON = localStorage.getItem("user");
-        if (userJSON !== null) {
-          const userObj = JSON.parse(userJSON);
-          uid = userObj["uid"];
-          token = userObj["token"];
-        }
-      }
-      let u;
-      let r = 1;
+    if (sessionCheckCompleted === 0) gsap.to(loadingRef.current, { autoAlpha: 0, duration: 0 });
+  }, [sessionCheckCompleted]);
+  useEffect(() => {
+    const checkURL = async () => {
+      const uid = getURIParam("u");
+      const token = getURIParam("t");
       if (uid && token) {
-        u = await authByToken({ uid, token });
+        const u = await authByToken({ uid, token });
         if (u) {
-          r = authComplete(u);
+          authComplete(u, 0);
+          gsap.to(loadingRef.current, { autoAlpha: 0, duration: 0.7 });
         }
       }
-      setSessionCheckCompleted(r);
+    };
+    const checkStorage = async () => {
+      const userJSON = localStorage.getItem("user");
+      if (userJSON !== null) {
+        const userObj = JSON.parse(userJSON);
+        if (userObj["uid"] && userObj["token"]) {
+          const u = await authByToken({ uid: userObj["uid"], token: userObj["token"] });
+          if (u) authComplete(u, 1);
+        }
+      }
+      setSessionCheckCompleted(1);
       gsap.to(loadingRef.current, { autoAlpha: 0, duration: 0.7 });
     };
-    if (partner) {
-      if (!partner.auth["embed"]) checkSession();
-      else setSessionCheckCompleted(2);
-    }
-  }, [partner]);
 
-  useEffect(() => {
-    if (!partner || !currentPage) return;
-    if (sessionCheckCompleted === 0) {
-      close();
-      return;
-    }
-   
-    const app: any = AppsConfiguration.find((c) => c.name === currentPage.app);
-    if (app?.navs) {
-      const config: PageConfig | undefined = app.navs.find((s) => s.name === currentPage.name);
-      const role = user ? user.role ?? 1 : 0;
-      gsap.to(loadingRef.current, { autoAlpha: 0, duration: 0.3 });
-      if (config?.auth && role < config.auth) {
-        open();
-      }
-    }
-  }, [partner, user, currentPage, sessionCheckCompleted]);
-  const open = useCallback(() => {
-    const tl = gsap.timeline({
-      onComplete: () => {
-        tl.kill();
-      },
-    });
-    tl.fromTo(maskRef.current, { autoAlpha: 0 }, { autoAlpha: 0.7, duration: 0.8 });
-    tl.fromTo(closeBtnRef.current, { autoAlpha: 0 }, { autoAlpha: 1, duration: 0.8 }, "<");
-    tl.fromTo(controllerRef.current, { autoAlpha: 0, scale: 0.5 }, { autoAlpha: 1, scale: 1.0, duration: 0.8 }, "<");
-    tl.play();
-  }, []);
-
-  const close = useCallback(() => {
-    const tl = gsap.timeline({
-      onComplete: () => {
-        tl.kill();
-      },
-    });
-    tl.to(maskRef.current, { autoAlpha: 0, duration: 0.8 });
-    tl.to(closeBtnRef.current, { autoAlpha: 0, duration: 0.8 }, "<");
-    tl.to(controllerRef.current, { autoAlpha: 0, duration: 0.8 }, "<");
-    tl.play();
-  }, []);
-
-  const cancel = useCallback(() => {
-    if (currentPageStatus < 1) {
-      if (prevPage) openPage(prevPage);
+    if (partner && app) {
+      if (app.channel === -1) checkURL();
+      else if (!partner.auth?.embed) checkStorage();
       else {
-        const appConfig = getCurrentAppConfig();
-        if (appConfig.entry) openPage({ name: appConfig.entry, app: appConfig.name });
+        setSessionCheckCompleted(1);
+        gsap.to(loadingRef.current, { autoAlpha: 0, duration: 0.7 });
       }
     }
-    close();
-  }, []);
-  useEffect(() => {
-    if (accountEvent?.name === "signin") {
-      open();
-    } else if (accountEvent?.name === "logout") {
-      close();
-    }
-  }, [accountEvent]);
+  }, [app, partner]);
 
   const render = useMemo(() => {
     if (sessionCheckCompleted > 0 && partner?.auth?.path) {
@@ -161,22 +84,7 @@ const SSOController: React.FC = () => {
   }, [partner, sessionCheckCompleted]);
   return (
     <>
-      <div ref={maskRef} className="mask" style={{ zIndex: 1990, width: "100vw", height: "100vh" }}></div>
-      <CloseBtn ref={closeBtnRef} onClick={cancel} />
-      <div
-        ref={controllerRef}
-        style={{
-          position: "absolute",
-          zIndex: 2000,
-          top: 0,
-          left: 0,
-          width: "100vw",
-          height: "100vh",
-          backgroundColor: "transparent",
-        }}
-      >
-        {render}
-      </div>
+      {render}
       <div
         ref={loadingRef}
         style={{ position: "absolute", zIndex: 2100, top: 0, left: 0, width: "100vw", height: "100vh" }}

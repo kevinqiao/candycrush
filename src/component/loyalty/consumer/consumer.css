@@ -18,7 +18,7 @@
   height: 100%;
   background-color: rgba(0, 0, 0, 0.7);
 }
-.signin_control {
+.menu_control {
    position: absolute;
    top: 0px;
    left: 0px;
@@ -28,6 +28,21 @@
    width: 100vw;
    height: 100vh;
    background-color: transparent;
+}
+.logout_control {
+   position: absolute;
+   top: 0px;
+   left: 0px;
+   display:flex;
+   justify-content: center;
+   align-items: center;
+   width: 100vw;
+   height: 100vh;
+   background-color: transparent;
+}
+.logout_confirm {
+   width: 250px;
+   height: 180px;
 }
 
 

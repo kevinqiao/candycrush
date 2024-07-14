@@ -1,5 +1,5 @@
 import { BATTLE_LOAD } from "model/Constants";
-import PageProps, { PagePosition } from "model/PageProps";
+import { PagePosition } from "model/PageProps";
 import React, { createContext, useCallback, useContext, useEffect, useState } from "react";
 import { BattleModel } from "../model/Battle";
 import useTournamentManager from "./TournamentManager";
@@ -14,11 +14,11 @@ interface IBattleContext {
   containerBound: PagePosition | null | undefined;
   setCurrentSkill: (skill: number) => void;
   setOverReport: (status: number) => void;
-  reset: () => void;
   timeout: () => void;
   loadGame: (gameId: string, data: any) => void;
-  disableCloseBtn: () => void;
-  exit: () => void;
+  // disableCloseBtn: () => void;
+  // exit: () => void;
+  // reset: () => void;
 }
 const BattleContext = createContext<IBattleContext>({
   currentSkill: 0,
@@ -33,19 +33,19 @@ const BattleContext = createContext<IBattleContext>({
   setOverReport: (status: number) => {
     return;
   },
-  reset: () => null,
+  // reset: () => null,
   timeout: () => null,
   loadGame: (gameId: string, data: any) => null,
-  disableCloseBtn: () => null,
-  exit: () => null,
+  // disableCloseBtn: () => null,
+  // exit: () => null,
 });
 
 export const BattleProvider = ({
-  pageProp,
+  battleId,
   pagePosition,
   children,
 }: {
-  pageProp: PageProps;
+  battleId: string | undefined;
   pagePosition: PagePosition;
   children: React.ReactNode;
 }) => {
@@ -56,13 +56,13 @@ export const BattleProvider = ({
   const [battle, setBattle] = useState<BattleModel | null>(null);
   const { findBattle } = useTournamentManager();
   useEffect(() => {
-    if (!battle && pageProp?.data && pageProp.data.battleId) {
-      findBattle(pageProp.data.battleId).then((b: any) => {
+    if (!battle && battleId) {
+      findBattle(battleId).then((b: any) => {
         console.log(b);
         setBattle(b);
       });
     }
-  }, [pageProp]);
+  }, [battleId]);
 
   useEffect(() => {
     if (!user || !battle) return;
@@ -100,18 +100,18 @@ export const BattleProvider = ({
       },
       [battle]
     ),
-    reset: useCallback(() => {
-      setAllGameLoaded(false);
-    }, [battle]),
-    exit: useCallback(() => {
-      if (pageProp.close) pageProp.close(0);
-    }, [pageProp]),
+    // reset: useCallback(() => {
+    //   setAllGameLoaded(false);
+    // }, [battle]),
+    // exit: useCallback(() => {
+    //   if (pageProp.close) pageProp.close(0);
+    // }, [pageProp]),
 
-    disableCloseBtn: useCallback(() => {
-      if (pageProp.disableCloseBtn) {
-        pageProp.disableCloseBtn();
-      }
-    }, [pageProp]),
+    // disableCloseBtn: useCallback(() => {
+    //   if (pageProp.disableCloseBtn) {
+    //     pageProp.disableCloseBtn();
+    //   }
+    // }, [pageProp]),
   };
 
   return <BattleContext.Provider value={value}> {battle ? children : null} </BattleContext.Provider>;

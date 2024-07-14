@@ -31,23 +31,23 @@ const Landing: React.FC<PageProps> = (pageProp) => {
           color: "blue",
         }}
       >
+        <div
+          style={{
+            cursor: "pointer",
+            width: "200px",
+            height: "40px",
+            display: "flex",
+            justifyContent: "center",
+            alignItems: "center",
+            backgroundColor: "blue",
+            color: "white",
+          }}
+          onClick={openHome}
+        >
+          Home
+        </div>
         {user ? (
           <>
-            <div
-              style={{
-                cursor: "pointer",
-                width: "200px",
-                height: "40px",
-                display: "flex",
-                justifyContent: "center",
-                alignItems: "center",
-                backgroundColor: "blue",
-                color: "white",
-              }}
-              onClick={openHome}
-            >
-              Home
-            </div>
             <div
               style={{
                 cursor: "pointer",

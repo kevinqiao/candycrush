@@ -15,19 +15,24 @@ export const find = query({
       partner = await ctx.db.query("partner").withIndex("by_host", (q) => q.eq("host", hostname)).unique();
     }
     if (partner) {
+      if (channelId < 0) {
+        res.message = { ...partner, auth: undefined, _id: undefined, _creationTime: undefined }
+        res.ok = true;
+      } else {
 
-      const auth: { channels: number[]; role: number } | null = partner.auth[app];
-      if (auth && (channelId === 0 || auth.channels.includes(channelId))) {
+        const auth: { channels: number[]; role: number } | null = partner.auth[app];
+        if (auth && (channelId === 0 || auth.channels.includes(channelId))) {
 
-        const cid = channelId > 0 ? channelId : auth.channels[0]
-        const channel = await ctx.db.query("authchannel").withIndex("by_channelId", (q) => q.eq("id", cid)).unique();
-        if (channel) {
-          const authenticator = await ctx.db.query("authenticator").withIndex("by_name", (q) => q.eq("name", channel.authenticator)).unique();
-          res.message = { ...partner, _id: undefined, _creationTime: undefined, auth: { ...authenticator, channel: channel.id, data: channel['data']['public'], _id: undefined, _creationTime: undefined } }
-          res.ok = true;
-        }
-      } else
-        res.errorCode = 2
+          const cid = channelId > 0 ? channelId : auth.channels[0]
+          const channel = await ctx.db.query("authchannel").withIndex("by_channelId", (q) => q.eq("id", cid)).unique();
+          if (channel) {
+            const authenticator = await ctx.db.query("authenticator").withIndex("by_name", (q) => q.eq("name", channel.authenticator)).unique();
+            res.message = { ...partner, _id: undefined, _creationTime: undefined, auth: { ...authenticator, channel: channel.id, data: channel['data']['public'], _id: undefined, _creationTime: undefined } }
+            res.ok = true;
+          }
+        } else
+          res.errorCode = 2
+      }
     } else {
       res.errorCode = 1;
     }

@@ -1,7 +1,7 @@
 import { AppsConfiguration } from "model/PageConfiguration";
 import { PageConfig, PageItem } from "model/PageProps";
 import React, { createContext, useCallback, useContext, useEffect } from "react";
-import { buildNavURL, parseURL } from "util/PageUtils";
+import { buildNavURL, getCurrentAppConfig, parseURL } from "util/PageUtils";
 
 export const PAGE_EVENT_NAME = {
   OPEN_PAGE: "open_page",
@@ -18,6 +18,7 @@ interface IPageContext {
   prevPage: PageItem | null;
   currentPage: PageItem | null;
   popPage: (p: string[]) => void;
+  openEntry: () => void;
   openPage: (page: PageItem) => void;
   setCurrentPageStatus: (status: number) => void;
 }
@@ -84,6 +85,7 @@ const PageContext = createContext<IPageContext>({
   prevPage: null,
   currentPage: null,
   popPage: (p: string[]) => null,
+  openEntry: () => null,
   openPage: (p: PageItem) => null,
   setCurrentPageStatus: (status: number) => null,
 });
@@ -104,7 +106,10 @@ export const PageProvider = ({ children }: { children: React.ReactNode }) => {
     },
     [dispatch]
   );
-
+  const openEntry = useCallback(() => {
+    const appConfig = getCurrentAppConfig();
+    if (appConfig) dispatch({ type: actions.PAGE_CHANGE, data: { name: appConfig.entry, app: appConfig.name } });
+  }, [dispatch]);
   const openApp = useCallback(
     (app: any) => {
       console.log(app);
@@ -146,6 +151,7 @@ export const PageProvider = ({ children }: { children: React.ReactNode }) => {
       dispatch({ type: actions.PAGE_POP, data: pages });
     },
     openPage,
+    openEntry,
   };
   return <PageContext.Provider value={value}>{children}</PageContext.Provider>;
 };

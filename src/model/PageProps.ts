@@ -38,7 +38,7 @@ export default interface PageProps {
     ctx?: string;
     data?: any;
     params?: any;
-    // child?: string;
+    child?: string;
     // anchor?: string;
     config: PageConfig;
     dimension?: PagePattern;

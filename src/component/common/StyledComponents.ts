@@ -55,5 +55,20 @@ const AuthCloseBtn = styled.div`
   border-radius: 5px;
   cursor: pointer;
 `;
-export { AuthCloseBtn, Button, Container, Heading, Loading };
+const MemberMenuCloseBtn = styled.div`
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  position: fixed;
+  top: 0px;
+  left: 0px;
+  width: 60px;
+  height: 50px;
+  background-color: white;
+  color: blue;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+`;
+export { AuthCloseBtn, Button, Container, Heading, Loading, MemberMenuCloseBtn };
 

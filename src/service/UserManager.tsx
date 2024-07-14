@@ -17,7 +17,7 @@ interface UserEvent {
 interface IUserContext {
   user: any | null;
   userEvent: UserEvent | null;
-  authComplete: (user: User) => number;
+  authComplete: (user: User, persist: number) => number;
   logout: () => void;
   updateAsset: (asset: number, amount: number) => void;
   openPlay: (player: any, battleId: string | null) => void;
@@ -74,7 +74,7 @@ export const UserProvider = ({ children }: { children: React.ReactNode }) => {
   );
 
   const authComplete = useCallback(
-    (u: User): number => {
+    (u: User, persist: number): number => {
       if (!currentPage) return 2;
       const pageConfig: any = getPageConfig(currentPage.app, currentPage.name);
       const role = u.role ?? 1;
@@ -84,7 +84,7 @@ export const UserProvider = ({ children }: { children: React.ReactNode }) => {
       u.timelag = u.timestamp ? u.timestamp - Date.now() : 0;
       // const mode = getURIParam("m"); //mode=1 one time play session
 
-      if (!partner.auth["embed"]) {
+      if (persist) {
         console.log("persist user to local storage");
         localStorage.setItem("user", JSON.stringify({ uid: u.uid, token: u.token }));
       }

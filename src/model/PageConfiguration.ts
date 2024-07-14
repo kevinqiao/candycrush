@@ -20,12 +20,6 @@ export const PlayPlace =
                 { name: "avatarList", path: "", uri: "" },
             ]
         },
-        // {
-        //     name: "www",
-        //     auth: 0,
-        //     path: "./www/W3Home",
-        //     uri: "w3",
-        // }
     ],
     stacks: [
 
@@ -85,16 +79,28 @@ export const Consumer =
             uri: "/home",
         },
         {
-            name: "order",
+            name: "orderAct",
             auth: 0,
-            path: "./loyalty/consumer/OrderHome",
-            uri: "/order",
+            path: "./loyalty/consumer/OrderAct",
+            uri: "/orderact",
         },
         {
             name: "member",
             auth: 1,
-            path: "./loyalty/consumer/MemberHome",
+            path: "./loyalty/consumer/member/MemberHome",
             uri: "/member",
+            children: [
+                { name: "orderhistory", path: "./OrderHistoryHome", uri: "order" },
+                { name: "inbox", path: "./InboxHome", uri: "inbox" },
+                { name: "booking", path: "./BookingHome", uri: "booking" },
+                { name: "setting", path: "./SettingHome", uri: "setting" },
+            ]
+        },
+        {
+            name: "gameplay",
+            auth: 1,
+            path: "./loyalty/consumer/GameHome",
+            uri: "/gameplay",
         }
     ],
 }

@@ -22,7 +22,7 @@ const URLAuthenticator: React.FC<AuthProps> = ({ authenticator }) => {
       });
       console.log(res);
       if (res?.ok) {
-        authComplete(res.message);
+        authComplete(res.message, 0);
       } else setError(res.errorCode);
     };
     const code = getURIParam("code");

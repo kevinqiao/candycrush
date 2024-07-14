@@ -28,14 +28,13 @@ const AuthorizeToken: React.FC<AuthProps> = ({ authenticator }) => {
 
   const redirectURL = useMemo(() => {
     if (app && currentPage) {
-      console.log(app);
       if (app.partnerId > 0) {
         currentPage.params
           ? (currentPage.params["partner"] = app.partnerId)
           : (currentPage.params = { partner: app.partnerId });
       }
       const url = buildNavURL(currentPage);
-      console.log(url);
+
       return url;
     }
   }, [app, user, currentPage]);
@@ -78,9 +77,9 @@ const AuthorizeToken: React.FC<AuthProps> = ({ authenticator }) => {
         tl.kill();
       },
     });
-    tl.to(maskRef.current, { autoAlpha: 0, duration: 0.8 });
-    tl.to(closeBtnRef.current, { autoAlpha: 0, duration: 0.8 }, "<");
-    tl.to(controllerRef.current, { autoAlpha: 0, duration: 0.8 }, "<");
+    tl.to(maskRef.current, { autoAlpha: 0, duration: 0.6 });
+    tl.to(closeBtnRef.current, { autoAlpha: 0, duration: 0.6 }, "<");
+    tl.to(controllerRef.current, { autoAlpha: 0, scale: 0.6, duration: 0.6 }, "<");
     tl.play();
   }, []);
   const cancel = useCallback(() => {
@@ -104,7 +103,7 @@ const AuthorizeToken: React.FC<AuthProps> = ({ authenticator }) => {
           partnerId: partner.pid,
         });
         if (res?.ok) {
-          authComplete(res.message);
+          authComplete(res.message, 1);
         }
       }
     };
@@ -121,6 +120,7 @@ const AuthorizeToken: React.FC<AuthProps> = ({ authenticator }) => {
         className="signin_control"
         style={{
           zIndex: 2000,
+          opacity: 0,
         }}
       >
         {!isSignedIn && redirectURL ? <SignIn redirectUrl={redirectURL} afterSignInUrl={redirectURL} /> : null}

@@ -36,19 +36,20 @@ export const PartnerProvider = ({ children }: { children: ReactNode }) => {
       let partnerId = 0;
       let channel = 0;
       if (currentPage.params) {
-        const { partner, c } = currentPage.params;
+        const { partner, c, u, t } = currentPage.params;
+        console.log("uid:" + u + ";token:" + t);
         partnerId = partner ? +partner : 0;
-        channel = c ? +c : 0;
+        channel = c ? +c : u && t ? -1 : 0;
       }
       const appConfig = AppsConfiguration.find((a) => a.name === currentPage.app);
       if (
         appConfig &&
-        (!app || (partnerId > 0 && partnerId !== app.partnerId) || (channel > 0 && channel !== app.channel))
+        (!app || (partnerId > 0 && partnerId !== app.partnerId) || (channel !== 0 && channel !== app.channel))
       ) {
         const appData = {
           name: appConfig.name,
           host: window.location.hostname,
-          partnerId: partnerId ? +partnerId : 0,
+          partnerId,
           channel: channel ? +channel : 0,
         };
 
@@ -59,7 +60,6 @@ export const PartnerProvider = ({ children }: { children: ReactNode }) => {
   useEffect(() => {
     const fetchPartner = async () => {
       if (!app) return;
-
       const { name, partnerId, host, channel } = app;
       const res = await convex.query(api.partner.find, {
         pid: partnerId,
@@ -73,6 +73,8 @@ export const PartnerProvider = ({ children }: { children: ReactNode }) => {
         createEvent({ name: "partnerNotExist", topic: "alert", data: "Partner Not Found", delay: 0 });
       }
     };
+    console.log(app);
+
     if (app) fetchPartner();
   }, [app]);
 

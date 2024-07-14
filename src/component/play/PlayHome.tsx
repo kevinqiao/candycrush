@@ -12,7 +12,7 @@ import "./play.css";
 import BattleReport from "./report/BattleReport";
 import GameReport from "./report/GameReport";
 
-const PlayControl: React.FC = () => {
+const PlayGame: React.FC = () => {
   const { battle } = useBattleManager();
   return (
     <>
@@ -35,10 +35,10 @@ const PlayHome: React.FC<PageProps> = (pageProp) => {
     <>
       {/* <StyleSheetManager shouldForwardProp={(propName) => isPropValid(propName)}> */}
       <div ref={sceneRef} className="play_container">
-        <BattleProvider pageProp={pageProp} pagePosition={pagePosition}>
+        <BattleProvider battleId={pageProp.data.battleId} pagePosition={pagePosition}>
           <BattleGround>
             <BattleConsole />
-            <PlayControl />
+            <PlayGame />
             <BattleScene />
           </BattleGround>
           <GameReport />

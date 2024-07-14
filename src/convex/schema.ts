@@ -6,7 +6,6 @@ export default defineSchema({
         id: v.string(),
         name: v.string(),
         path: v.string(),
-        noshow: v.optional(v.number()),
         embed: v.optional(v.number())
     }).index("by_name", ['name']).index("by_pid", ["id"]),
     authchannel: defineTable({
@@ -175,7 +174,7 @@ export default defineSchema({
         tableNo: v.optional(v.number()),
         partnerId: v.number(),//partner id
         oid: v.string(),//original order id created by pos
-        status: v.number(),//0-open 1-paid 2-claimed 3-cancelled
+        status: v.number(),//0-open 1-paid 2-collected 3-cancelled
         amount: v.number(),
         data: v.optional(v.any()),
     }).index("by_location", ["partnerId", "locationId"]).index("by_partner_oid", ['partnerId', 'oid']).index("by_partner_customer", ['partnerId', 'uid']),
@@ -183,7 +182,7 @@ export default defineSchema({
     reward_rule: defineTable({
         partnerId: v.number(),
         type: v.number(),//0-order 1-review
-        rule: v.any(),//{stampRatio:20,limit:-1,
+        rule: v.any(),//{stampRatio:20,limit per order:-1,
         status: v.number(),//0-active 1-inactive
     }),
 

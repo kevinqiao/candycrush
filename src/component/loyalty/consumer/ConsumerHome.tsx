@@ -1,15 +1,26 @@
 import React, { useCallback } from "react";
 import { usePageManager } from "service/PageManager";
+import usePartnerManager from "service/PartnerManager";
 import { useUserManager } from "service/UserManager";
 import PageProps from "../../../model/PageProps";
 
 const ConsumerHome: React.FC<PageProps> = (pageProp) => {
+  const { app } = usePartnerManager();
   const { user, logout } = useUserManager();
   const { openPage } = usePageManager();
   const openMemberCenter = useCallback(() => {
     const page = { name: "member", app: "consumer" };
     openPage(page);
   }, [openPage]);
+  const openGameCenter = useCallback(() => {
+    if (!user || !app) return;
+    const { uid, token } = user;
+    let url =
+      window.location.protocol + "//" + window.location.host + "/loyalty/gameplay" + "?u=" + uid + "&t=" + token;
+    if (app.partnerId > 0) url = url + "&partner=" + app.partnerId;
+    console.log(url);
+    window.open(url, "_blank");
+  }, [app, user]);
   return (
     <>
       <div
@@ -38,6 +49,22 @@ const ConsumerHome: React.FC<PageProps> = (pageProp) => {
           onClick={() => openMemberCenter()}
         >
           open my member
+        </div>
+        <div style={{ height: 100 }} />
+        <div
+          style={{
+            cursor: "pointer",
+            width: "200px",
+            height: "40px",
+            display: "flex",
+            justifyContent: "center",
+            alignItems: "center",
+            backgroundColor: "blue",
+            color: "white",
+          }}
+          onClick={() => openGameCenter()}
+        >
+          open game center
         </div>
         <div style={{ height: 100 }} />
         {user ? (

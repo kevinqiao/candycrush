@@ -1,11 +1,12 @@
-import React, { useCallback } from "react";
+import React, { useCallback, useMemo } from "react";
 import { usePageManager } from "service/PageManager";
+import usePartnerManager from "service/PartnerManager";
 import { useUserManager } from "service/UserManager";
 import PageProps from "../../../model/PageProps";
 
 const MerchantHome: React.FC<PageProps> = (pageProp) => {
-  const { logout } = useUserManager();
-  const { user } = useUserManager();
+  const { user, logout } = useUserManager();
+  const { partner } = usePartnerManager();
   const { openPage } = usePageManager();
 
   const openMemberCenter = useCallback(() => {
@@ -17,6 +18,10 @@ const MerchantHome: React.FC<PageProps> = (pageProp) => {
     const page = { name: "landing", app: "merchant" };
     openPage(page);
   }, []);
+  const isEmbed = useMemo(() => {
+    if (partner && partner.auth?.embed) return 1;
+    else return 0;
+  }, [partner]);
 
   return (
     <>
@@ -47,7 +52,7 @@ const MerchantHome: React.FC<PageProps> = (pageProp) => {
           Open Member Center
         </div>
         <div style={{ height: 100 }} />
-        {user ? (
+        {user && isEmbed === 0 ? (
           <div
             style={{
               cursor: "pointer",
